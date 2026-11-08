@@ -1,9 +1,12 @@
 import { useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import './App.css'
 import PhotoGallery from './PhotoGallery'
+import Account from './auth/Account'
+import { useAuth } from './auth/AuthProvider'
+import PrivateGallery from './cloud/PrivateGallery'
 import { gameReducer, initialGame, GRID, swipeDirection, type Direction } from './snake'
 
-type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor'
+type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta'
 const pages: { id: Page; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'fotos', label: 'Fotos' },
@@ -11,12 +14,18 @@ const pages: { id: Page; label: string }[] = [
   { id: 'danzers', label: 'DANZERS' },
   { id: 'danzin', label: 'DANZ IN' },
   { id: 'danzflor', label: 'DANZFLOR' },
+  { id: 'cuenta', label: 'Cuenta' },
 ]
 
 function Arrow() { return <span aria-hidden="true" className="arrow">↗</span> }
 
 export default function App() {
-  const [page, setPage] = useState<Page>('inicio')
+  const auth = useAuth()
+  const [page, setPage] = useState<Page>(() => {
+    const params = new URLSearchParams(window.location.search)
+    return auth.error || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : 'inicio'
+  })
+  const [photoSource, setPhotoSource] = useState<'private' | 'local'>('private')
   const [game, dispatch] = useReducer(gameReducer, initialGame())
   const [showControls, setShowControls] = useState(() => {
     try { return localStorage.getItem('danz-snake-buttons') === 'true' } catch { return false }
@@ -98,7 +107,7 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <span className="build-tag"><span className="status-dot"/> PROTOTIPO LOCAL</span>
+        <span className="build-tag"><span className="status-dot"/> {auth.user ? 'CONECTADO' : 'EN DESARROLLO'}</span>
       </header>
 
       <main>
@@ -142,7 +151,16 @@ export default function App() {
 
         {/* Se mantiene montada para conservar las fotos al cambiar entre secciones.
             El contenido solo es visible cuando estamos en Fotos. */}
-        <PhotoGallery active={page === 'fotos'} onBack={() => go('inicio')} />
+        {page === 'fotos' && <div className="content photo-source-nav" role="group" aria-label="Elegir galerías">
+          <button type="button" className="outline-btn" aria-pressed={photoSource === 'private'} onClick={() => setPhotoSource('private')}>Galerías privadas</button>
+          <button type="button" className="outline-btn" aria-pressed={photoSource === 'local'} onClick={() => setPhotoSource('local')}>Álbumes de este navegador</button>
+        </div>}
+        <PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} />
+        {page === 'fotos' && photoSource === 'private' && <PrivateGallery key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} onSignIn={() => go('cuenta')} />}
+        {page === 'cuenta' && <section className="content inner-page">
+          <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+          <Account key={auth.user?.id ?? 'guest'} />
+        </section>}
 
         {page === 'arcade' && (
           <section className="content inner-page">
@@ -212,7 +230,7 @@ export default function App() {
         )}
       </main>
 
-      <footer className="footer content"><span>DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>PRIMER PROTOTIPO LOCAL · SIN CUENTAS NI DATOS REALES</span></footer>
+      <footer className="footer content"><span>DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )
 }

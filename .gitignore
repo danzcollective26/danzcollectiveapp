@@ -17,3 +17,4 @@ Copias de seguridad/
 # Resultados de pruebas de navegador
 playwright-report/
 test-results/
+supabase/.temp/

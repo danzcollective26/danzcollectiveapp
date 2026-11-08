@@ -19,6 +19,7 @@ async function navigate(page: Page, section: string) {
 
 async function openGallery(page: Page) {
   await navigate(page, 'Fotos')
+  await page.getByRole('button', { name: 'Álbumes de este navegador', exact: true }).click()
   await expect(page.getByText('✓ GUARDADO LOCAL ACTIVADO', { exact: true })).toBeVisible()
 }
 
@@ -123,7 +124,7 @@ test('rejects unsupported files without changing an album', async ({ page }) => 
 })
 
 test('main sections and photo viewer fit the current viewport', async ({ page }) => {
-  for (const section of ['Inicio', 'Fotos', 'Arcade', 'DANZERS', 'DANZ IN', 'DANZFLOR']) {
+  for (const section of ['Inicio', 'Fotos', 'Arcade', 'DANZERS', 'DANZ IN', 'DANZFLOR', 'Cuenta']) {
     await navigate(page, section)
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   }

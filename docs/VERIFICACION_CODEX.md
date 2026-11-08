@@ -48,3 +48,46 @@ se modificó el proyecto remoto de Supabase.
 Pendiente: cuentas/login, permisos de galería privada y Storage, QR/sellos,
 PWA y despliegue. Snake sigue siendo prototipo 13×13; faltan branding final,
 rostros, Labyrinth y puntos de servidor. Probar en iPhone/Android físicos.
+
+## Cuentas y galerías privadas — 9 de noviembre de 2026
+
+Implementado: cliente Supabase tipado con clave publicable y versiones fijadas,
+inicio de sesión por enlace PKCE/código opcional de correo, validación mediante
+`getUser()`, cierre local y perfil propio. La interfaz separa galerías privadas
+de la demo IndexedDB, sin subir ni migrar fotografías automáticamente.
+
+Se muestran únicamente eventos/fotos permitidos por RLS, con firma de objetos
+privados durante 60 segundos, renovación visible, visor y descarga temporal.
+Las respuestas tardías de otra cuenta/evento no se muestran. Cerrar sesión
+borra la vista privada incluso si la petición de revocación al servidor falla;
+se comunica ese fallo. Un logout antiguo tampoco cierra una cuenta nueva.
+Los códigos residuales de callbacks sin verificador se limpian sin autorizar.
+
+Base de datos: recuperadas las cuatro migraciones históricas del servidor.
+Después de 15 pruebas SQL aisladas se aplicó
+`20261108234457_danz_private_gallery_client_access` al proyecto existente.
+Se verificaron privilegios/denegaciones sin leer filas privadas; la API REST
+real devolvió HTTP 401 al rol anónimo en las siete consultas LIMIT 0. El bucket
+sigue privado. No se crearon usuarios de prueba ni se subieron objetos al remoto.
+
+Validación local final por suites:
+- `npm test`: 29/29 (15 permisos SQL, 4 helpers Auth, 10 reglas Snake).
+- `npm run build`: TypeScript y Vite correctos.
+- Cuentas: 21/21 recorridos Chromium (7 por tamaño), incluidos PKCE positivo,
+  código opcional, errores/rate limit, perfil, logout y callback sin verificador.
+- Privadas: 21/21 recorridos (7 por tamaño), incluidos aislamiento de cuenta,
+  respuestas tardías, rutas públicas rechazadas y renovación denegada.
+- Álbumes locales/Snake: 27/27 recorridos del bloque integrado, conservados.
+- GitHub Actions ejecuta el conjunto completo con claves y endpoints ficticios,
+  PostgreSQL aislado y fotografías sintéticas.
+
+Límites: las pruebas de navegador interceptan Auth/Storage; no se enviaron
+correos reales, ni se validaron SMTP/plantilla/allowlist, emisión real de URLs
+con cuenta y objetos, ni iPhone/Android físicos. PGlite es PostgreSQL 18.6 y
+el remoto 17.11; las comprobaciones remotas verifican DDL/permisos reales,
+pero no sustituyen una prueba completa con cuentas autorizadas. Una firma
+caducada no revoca una copia ya descargada ni purga cachés externas.
+
+Pendiente: entorno accesible de prueba y validación del correo real,
+administración autenticada/MFA/subidas de nube, QR/sellos, recompensas,
+PWA y despliegue. No está listo como lanzamiento de producción.

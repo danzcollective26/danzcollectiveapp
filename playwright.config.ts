@@ -20,6 +20,10 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } } },
   ],
   webServer: {
+    env: {
+      VITE_SUPABASE_URL: 'https://danz-test.supabase.co',
+      VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_danz_test_key',
+    },
     command: 'npm run dev -- --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: !process.env.CI,

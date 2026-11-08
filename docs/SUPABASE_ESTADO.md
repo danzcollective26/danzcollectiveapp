@@ -3,6 +3,55 @@
 Fecha de revisión: **9 de noviembre de 2026** (Europe/Madrid).
 Proyecto: `ttgehdknhnrxtddxpknc`, `danzcollectiveapp Project`, región `eu-west-1`.
 
+## Avance posterior: migración y pruebas de aislamiento
+
+Se preparó una migración formal `danz_private_gallery_client_access` creada
+mediante CLI 3.0.0. Las cuatro migraciones históricas también se recuperaron
+fielmente desde `schema_migrations` con versiones/nombres originales. El
+SQL nuevo concede lecturas autenticadas bajo RLS y escrituras limitadas por
+columna de perfil/denuncia; retira privilegios de mantenimiento de clientes,
+añade índice de reporter y una policy SELECT de objetos privados vinculados
+a foto/evento publicados con asistencia propia. No abre eventos públicos,
+subidas, gestión administrativa, canje o hashes de códigos.
+
+Pruebas locales: **15/15 correctas** con PostgreSQL aislado mediante PGlite
+0.5.15 (PostgreSQL 18.6 WASM, mientras el remoto usa 17.11). Se comprobó
+aislamiento entre dos usuarios/dos eventos sintéticos, perfil propio y
+columnas protegidas, reportes pendientes, denegación a otros asistentes,
+anónimos o sin UID, borradores/cuarentena, objeto huérfano, otro bucket,
+revocación de asistencia, ausencia de escritura de Storage y códigos cerrados.
+
+El snapshot de siete tablas/constraints/índices/grants/policies proviene de
+los catálogos remotos. Auth/Storage usan stubs mínimos y `auth.uid()` reproduce
+la definición remota. Esto verifica las reglas SQL, no los servicios Auth,
+envío de correos ni la firma HTTP de URLs. No se han usado fotografías ni
+cuentas reales. Los fixtures nunca se ejecutaron en el remoto.
+
+**Aplicado y verificado:** la migración quedó registrada remotamente como
+`20261108234457_danz_private_gallery_client_access`, después de las pruebas
+locales. El archivo generado inicialmente por CLI se sincronizó con esa
+versión real para mantener alineado el historial. Los checks de privilegios
+y denegaciones de `supabase/proposals/verify_client_privileges.sql` finalizaron
+sin errores en el remoto; solo consultan metadatos o `LIMIT 0`, sin registros.
+La API REST real rechaza con HTTP 401 las consultas anónimas `LIMIT 0` de las
+siete tablas. El bucket sigue privado y tiene una policy SELECT de objetos.
+Los advisors posteriores mantienen solo avisos informativos: códigos cerrados
+sin policy e índices todavía sin uso. Se resolvió la FK sin índice de reporter.
+
+Se comprobó mediante `/auth/v1/settings` que email está habilitado, signup
+permitido y confirmación requerida; Google/Apple están desactivados. La app
+usa una clave publicable en `.env.local` excluido de Git. No se obtuvieron
+claves de servidor, no se enviaron correos ni se subieron fotos. SMTP,
+plantillas y allowlist de redirecciones siguen sin validación de extremo a
+extremo; la emisión HTTP real de URLs firmadas requiere una cuenta y objetos
+de prueba autorizados. Más detalles en `supabase/README.md`.
+
+## Inventario histórico anterior a la migración
+
+Lo que sigue conserva los hallazgos de la auditoría inicial. Las carencias de
+GRANT y de SELECT de Storage descritas aquí quedan sustituidas por el avance
+comprobado de arriba; el resto de flujos pendientes conserva su alcance.
+
 Auditoría de **solo lectura** mediante la conexión Supabase. Se consultaron
 metadatos de esquema, privilegios, policies, buckets, migraciones, funciones y
 advisors. No se consultaron fotografías, perfiles, correos ni otros contenidos

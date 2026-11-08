@@ -11,10 +11,12 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.119.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.15",
     "@playwright/test": "^1.65.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
