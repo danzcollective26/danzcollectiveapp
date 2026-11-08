@@ -1,0 +1,106 @@
+import { expect, test, type Page } from '@playwright/test'
+
+test.use({ hasTouch: true })
+
+const arcade = (page: Page) => page.getByRole('navigation').getByRole('button', { name: 'Arcade', exact: true }).click()
+const headIndex = (page: Page) => page.locator('.game-board > .cell').evaluateAll(cells => cells.findIndex(cell => cell.classList.contains('head')))
+
+async function openArcade(page: Page) {
+  await page.clock.install({ time: new Date("2026-11-09T00:00:00Z") })
+  await page.clock.pauseAt(new Date("2026-11-09T00:00:01Z"))
+  await page.goto('/')
+  await arcade(page)
+}
+
+test('teclado: un único giro por movimiento, pausa, continuar y reiniciar', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await openArcade(page)
+  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await page.keyboard.press('ArrowUp')
+  await page.keyboard.press('ArrowLeft')
+  await page.clock.runFor(150)
+  expect(await headIndex(page)).toBe(5 * 13 + 5)
+  await page.getByRole('button', { name: /^PAUSAR/ }).click()
+  await page.clock.runFor(900)
+  expect(await headIndex(page)).toBe(5 * 13 + 5)
+  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await page.clock.runFor(150)
+  expect(await headIndex(page)).toBe(4 * 13 + 5)
+  await page.getByRole('button', { name: 'REINICIAR', exact: true }).click()
+  expect(await headIndex(page)).toBe(6 * 13 + 5)
+  await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
+test('gesto táctil nativo gira sin desplazar la página', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'El evento táctil nativo de esta prueba usa Chromium CDP')
+  await openArcade(page)
+  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  const board = page.locator('.game-board')
+  await board.scrollIntoViewIfNeeded()
+  const rect = await board.boundingBox()
+  expect(rect).not.toBeNull()
+  const x = rect!.x + rect!.width / 2
+  const y = rect!.y + rect!.height / 2
+  const scrollY = await page.evaluate(() => window.scrollY)
+  const cdp = await page.context().newCDPSession(page)
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] })
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 70 }] })
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  await page.clock.runFor(150)
+  expect(await headIndex(page)).toBe(5 * 13 + 5)
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollY)
+  await cdp.detach()
+})
+
+test('botones de dirección opcionales, utilizables y persistentes', async ({ page }) => {
+  await openArcade(page)
+  await expect(page.getByRole('button', { name: 'Arriba', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: /MOSTRAR BOTONES/ }).click()
+  await expect(page.getByRole('button', { name: /OCULTAR BOTONES/ })).toHaveAttribute('aria-pressed', 'true')
+  await page.reload()
+  await arcade(page)
+  await expect(page.getByRole('button', { name: 'Arriba', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await page.getByRole('button', { name: 'Arriba', exact: true }).click()
+  await page.clock.runFor(150)
+  expect(await headIndex(page)).toBe(5 * 13 + 5)
+  await page.getByRole('button', { name: /OCULTAR BOTONES/ }).click()
+  await expect(page.getByRole('button', { name: 'Arriba', exact: true })).toHaveCount(0)
+})
+
+test('salir de Arcade pausa la partida y no avanza al regresar', async ({ page }) => {
+  await openArcade(page)
+  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await page.clock.runFor(150)
+  const before = await headIndex(page)
+  await page.getByRole('navigation').getByRole('button', { name: 'Inicio', exact: true }).click()
+  await page.clock.runFor(1500)
+  await arcade(page)
+  expect(await headIndex(page)).toBe(before)
+  await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
+})
+
+test('evento de ocultación de pestaña pausa y no reanuda automáticamente', async ({ page }) => {
+  await openArcade(page)
+  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await page.clock.runFor(150)
+  const before = await headIndex(page)
+  // Chromium headless mantiene document.hidden=false incluso al cambiar de pestaña.
+  // Simulamos su estado/evento estándar para verificar la respuesta de la app.
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await page.clock.runFor(1500)
+  expect(await headIndex(page)).toBe(before)
+  await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await page.clock.runFor(300)
+  expect(await headIndex(page)).toBe(before)
+  await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
+})

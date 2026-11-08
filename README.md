@@ -32,3 +32,29 @@ Las fotos **no están en este repositorio**: permanecen en el navegador del orde
 - Sin contraseñas, credenciales ni claves de Supabase.
 - No configurar el navegador para acceder a originales en buckets públicos.
 - Las políticas RLS se consultaron pero aún no se han probado contra cuentas reales.
+
+## Desarrollo en Codex
+
+Usar **Node.js 24** y `npm ci` para instalar las versiones del lockfile.
+
+```sh
+npm test
+npm run build
+npm run test:e2e
+```
+
+Las pruebas de navegador usan Playwright. En una máquina nueva, instalar su
+Chromium con `npx playwright install chromium`. En este entorno está disponible
+`/usr/bin/chromium`, seleccionable con
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e`.
+Playwright arranca el servidor de prueba automáticamente con su configuración.
+Los tests crean álbumes e imágenes sintéticos en contextos de navegador aislados;
+no acceden a las fotografías del equipo original.
+
+Snake admite teclado, gestos sobre el tablero y botones opcionales. Se pausa al
+salir de Arcade o al ocultar la pestaña. Su puntuación sigue siendo local y no
+concede recompensas. Los modos Labyrinth/Infinite/Power todavía no están hechos.
+
+El estado real del backend y las carencias de permisos están documentados en
+`docs/SUPABASE_ESTADO.md`. Las propuestas SQL locales no se aplican automáticamente
+al proyecto remoto.

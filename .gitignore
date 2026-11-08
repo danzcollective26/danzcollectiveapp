@@ -13,3 +13,7 @@ backup-galerias/
 Copias de seguridad/
 
 *.tsbuildinfo
+
+# Resultados de pruebas de navegador
+playwright-report/
+test-results/

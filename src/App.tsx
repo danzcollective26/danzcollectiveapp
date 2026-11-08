@@ -1,86 +1,9 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import './App.css'
 import PhotoGallery from './PhotoGallery'
+import { gameReducer, initialGame, GRID, swipeDirection, type Direction } from './snake'
 
 type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor'
-type Direction = 'up' | 'down' | 'left' | 'right'
-type Point = { x: number; y: number }
-
-type Game = {
-  snake: Point[]
-  food: Point
-  direction: Direction
-  running: boolean
-  over: boolean
-  score: number
-}
-type GameAction =
-  | { type: 'start' }
-  | { type: 'pause' }
-  | { type: 'reset' }
-  | { type: 'turn'; direction: Direction }
-  | { type: 'tick' }
-
-const GRID = 13
-const initialGame = (): Game => ({
-  snake: [{ x: 5, y: 6 }, { x: 4, y: 6 }, { x: 3, y: 6 }],
-  food: { x: 9, y: 6 },
-  direction: 'right',
-  running: false,
-  over: false,
-  score: 0,
-})
-
-const move: Record<Direction, Point> = {
-  up: { x: 0, y: -1 },
-  down: { x: 0, y: 1 },
-  left: { x: -1, y: 0 },
-  right: { x: 1, y: 0 },
-}
-
-const opposite: Record<Direction, Direction> = {
-  up: 'down', down: 'up', left: 'right', right: 'left',
-}
-
-function nextFood(snake: Point[]): Point {
-  const available: Point[] = []
-  for (let y = 0; y < GRID; y++) {
-    for (let x = 0; x < GRID; x++) {
-      if (!snake.some((p) => p.x === x && p.y === y)) available.push({ x, y })
-    }
-  }
-  return available[Math.floor(Math.random() * available.length)] ?? { x: 0, y: 0 }
-}
-
-function gameReducer(game: Game, action: GameAction): Game {
-  switch (action.type) {
-    case 'start': return game.over ? { ...initialGame(), running: true } : { ...game, running: true }
-    case 'pause': return { ...game, running: false }
-    case 'reset': return initialGame()
-    case 'turn':
-      return action.direction === opposite[game.direction] ? game : { ...game, direction: action.direction }
-    case 'tick': {
-      if (!game.running || game.over) return game
-      const head = game.snake[0]
-      const delta = move[game.direction]
-      const next = { x: head.x + delta.x, y: head.y + delta.y }
-      const eating = next.x === game.food.x && next.y === game.food.y
-      const body = eating ? game.snake : game.snake.slice(0, -1)
-      const collided = next.x < 0 || next.x >= GRID || next.y < 0 || next.y >= GRID ||
-        body.some((p) => p.x === next.x && p.y === next.y)
-      if (collided) return { ...game, running: false, over: true }
-      const snake = [next, ...game.snake.slice(0, eating ? undefined : -1)]
-      return {
-        ...game,
-        snake,
-        food: eating ? nextFood(snake) : game.food,
-        score: game.score + (eating ? 10 : 0),
-        running: eating && snake.length === GRID * GRID ? false : game.running,
-      }
-    }
-  }
-}
-
 const pages: { id: Page; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'fotos', label: 'Fotos' },
@@ -95,10 +18,41 @@ function Arrow() { return <span aria-hidden="true" className="arrow">↗</span> 
 export default function App() {
   const [page, setPage] = useState<Page>('inicio')
   const [game, dispatch] = useReducer(gameReducer, initialGame())
+  const [showControls, setShowControls] = useState(() => {
+    try { return localStorage.getItem('danz-snake-buttons') === 'true' } catch { return false }
+  })
+  const gesture = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+
+  const toggleControls = () => {
+    const next = !showControls
+    setShowControls(next)
+    try { localStorage.setItem('danz-snake-buttons', String(next)) } catch { /* Preferencia opcional. */ }
+  }
+
+  const startGesture = (event: PointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary) return
+    gesture.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+  const endGesture = (event: PointerEvent<HTMLDivElement>) => {
+    const start = gesture.current
+    if (!start || start.pointerId !== event.pointerId) return
+    gesture.current = null
+    const direction = swipeDirection(event.clientX - start.x, event.clientY - start.y)
+    if (direction) dispatch({ type: 'turn', direction })
+  }
+
+  useEffect(() => {
+    const pauseWhenHidden = () => {
+      if (document.hidden) dispatch({ type: 'pause' })
+    }
+    document.addEventListener('visibilitychange', pauseWhenHidden)
+    return () => document.removeEventListener('visibilitychange', pauseWhenHidden)
+  }, [])
 
   useEffect(() => {
     if (page !== 'arcade' || !game.running) return
-    const timer = window.setInterval(() => dispatch({ type: 'tick' }), 150)
+    const timer = window.setInterval(() => dispatch({ type: 'tick', random: Math.random() }), 150)
     return () => window.clearInterval(timer)
   }, [page, game.running])
 
@@ -109,12 +63,14 @@ export default function App() {
       w: 'up', s: 'down', a: 'left', d: 'right',
     }
     const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target
+      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return
       const direction = directions[event.key]
       if (direction) {
         event.preventDefault()
         dispatch({ type: 'turn', direction })
       }
-      if (event.code === 'Space') {
+      if (event.code === 'Space' && !event.repeat && !(target instanceof HTMLButtonElement)) {
         event.preventDefault()
         dispatch({ type: game.running ? 'pause' : 'start' })
       }
@@ -193,28 +149,34 @@ export default function App() {
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
             <div className="eyebrow">DANZ ARCADE / GAME 001</div>
             <h1 className="page-title">DANZ<br /><em>SNAKE.</em></h1>
-            <p className="page-lead">Nuestro primer minijuego ya se puede probar. Utiliza las flechas del teclado, WASD o los controles táctiles. Esta puntuación es solo una prueba local: aún no hay premios ni rankings oficiales.</p>
+            <p className="page-lead">Nuestro primer minijuego ya se puede probar. Utiliza las flechas del teclado, WASD, desliza sobre el tablero o activa los botones de dirección. Esta puntuación es solo una prueba local: aún no hay premios ni rankings oficiales.</p>
             <div className="game-panel">
-              <div className="game-heading"><span>SCORE <strong>{String(game.score).padStart(4, '0')}</strong></span><span>{game.over ? 'GAME OVER' : game.running ? 'NOW PLAYING ●' : 'READY / PAUSE'}</span></div>
-              <div className="game-board" role="img" aria-label={`Tablero de Snake, puntuación ${game.score}`}>
+              <div className="game-heading"><span>SCORE <strong>{String(game.score).padStart(4, '0')}</strong></span><span>{game.won ? 'TABLERO COMPLETO' : game.over ? 'GAME OVER' : game.running ? 'NOW PLAYING ●' : 'READY / PAUSE'}</span></div>
+              <div className="game-board" onPointerDown={startGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake, puntuación ${game.score}`}>
                 {Array.from({ length: GRID * GRID }, (_, i) => {
                   const x = i % GRID
                   const y = Math.floor(i / GRID)
                   const head = game.snake[0].x === x && game.snake[0].y === y
                   const body = game.snake.some((p) => p.x === x && p.y === y)
-                  const food = game.food.x === x && game.food.y === y
+                  const food = game.food?.x === x && game.food?.y === y
                   return <span key={i} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : 'cell'}/>
                 })}
-                {!game.running && <div className="game-overlay">{game.over ? 'GAME OVER' : 'DANZ SNAKE'}<small>{game.over ? 'OTRA PARTIDA?' : 'PULSA JUGAR'}</small></div>}
+                {!game.running && <div className="game-overlay">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : 'DANZ SNAKE'}<small>{game.over ? 'OTRA PARTIDA?' : 'PULSA JUGAR'}</small></div>}
               </div>
               <div className="game-actions">
                 <button className="primary-btn" onClick={() => dispatch({ type: game.running ? 'pause' : 'start' })}>{game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : 'JUGAR'} <span>→</span></button>
                 <button className="outline-btn" onClick={() => dispatch({ type: 'reset' })}>REINICIAR</button>
               </div>
-              <div className="controls" aria-label="Controles para móvil">
+              <div className="game-control-options">
+                <p>Desliza sobre el tablero para girar.</p>
+                <button type="button" className="outline-btn" aria-pressed={showControls} onClick={toggleControls}>
+                  {showControls ? 'OCULTAR BOTONES' : 'MOSTRAR BOTONES'} ⌘
+                </button>
+              </div>
+              {showControls && <div className="controls" aria-label="Controles para móvil">
                 <button aria-label="Arriba" onClick={() => dispatch({ type: 'turn', direction: 'up' })}>↑</button>
                 <div><button aria-label="Izquierda" onClick={() => dispatch({ type: 'turn', direction: 'left' })}>←</button><button aria-label="Abajo" onClick={() => dispatch({ type: 'turn', direction: 'down' })}>↓</button><button aria-label="Derecha" onClick={() => dispatch({ type: 'turn', direction: 'right' })}>→</button></div>
-              </div>
+              </div>}
             </div>
           </section>
         )}

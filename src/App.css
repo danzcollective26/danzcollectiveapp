@@ -26,3 +26,9 @@
 @media(max-width:1050px){.topbar{padding:0 24px;flex-wrap:wrap;height:auto;min-height:86px;padding-top:12px;padding-bottom:12px}.desktop-nav{order:3;width:100%;margin:0;flex:unset;justify-content:space-between;gap:14px;overflow-x:auto}.build-tag{margin-left:auto}.content{width:min(100% - 48px,1300px)}.photo-art b{font-size:55px}}
 @media(max-width:700px){.content{width:calc(100% - 32px)}.topbar{padding:13px 16px;gap:10px}.wordmark{font-size:29px}.wordmark-small{font-size:7px;margin-left:10px}.build-tag{font-size:8px}.desktop-nav{gap:18px}.desktop-nav button{font-size:10px;padding:9px 0}.intro{padding-top:46px;padding-bottom:30px}.intro h1{font-size:clamp(82px,18vw,140px);margin:25px 0}.intro-bottom{display:block}.intro-bottom p{font-size:20px}.intro-bottom span{display:block;text-align:left;margin-top:18px}.feature-grid{grid-template-columns:1fr;gap:12px}.feature{min-height:380px;padding:20px}.feature-bottom strong{font-size:86px}.photo-art b{font-size:69px}.module-grid{grid-template-columns:1fr}.module{min-height:120px}.footer{flex-direction:column}.lower-section{padding-bottom:44px}.inner-page{padding-top:34px}.page-title{font-size:clamp(82px,16vw,130px)}.empty-state{flex-wrap:wrap;gap:12px}.empty-icon{font-size:44px;min-width:50px}.empty-state h2{font-size:20px}.pill{margin-left:0}.game-panel{padding:14px}.game-board{gap:1px;padding:3px}.game-overlay{font-size:35px}}
 @media(prefers-reduced-motion:reduce){.site-shell *{scroll-behavior:auto!important;transition:none!important}}
+
+/* El tablero captura el gesto; el resto de la página conserva su desplazamiento. */
+.game-board{touch-action:none;user-select:none}
+.game-control-options{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
+.game-control-options p{font-size:12px;color:#aaa;margin:0}
+.game-control-options .outline-btn{font-size:11px}
