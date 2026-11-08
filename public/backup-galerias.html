@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Respaldo local de galerías · DANZ</title>
+  <style>
+    body{margin:0;background:#111;color:#f8f8f5;font:16px/1.55 system-ui,sans-serif}
+    main{max-width:750px;margin:6vh auto;padding:24px}
+    h1{font-size:clamp(28px,6vw,54px);line-height:1.1}
+    p{color:#ccc}strong{color:#fff}
+    .notice{border:1px solid #787878;border-radius:10px;padding:15px;margin:20px 0}
+    button{background:#d9ff5a;color:#131313;border:0;padding:15px 22px;font:inherit;font-weight:800;border-radius:8px;cursor:pointer}
+    button:disabled{opacity:.5;cursor:wait}
+    #status{white-space:pre-wrap;word-break:break-word;font-size:14px;min-height:36px}
+  </style>
+</head>
+<body><main>
+  <p>DANZ COLLECTIVE · HERRAMIENTA LOCAL DE RESCATE</p>
+  <h1>Guardar copia de los álbumes del navegador</h1>
+  <div class="notice"><strong>Antes de empezar:</strong> abre esta página desde <code>http://localhost:5173/backup-galerias.html</code>, usando el mismo Chrome y perfil donde están tus fotografías. Esta herramienta <strong>solo lee</strong> IndexedDB y escribe archivos en una carpeta que tú elijas. No los sube a internet.</div>
+  <p>Selecciona o crea una <strong>carpeta vacía</strong>. Se guardará un <code>manifest.json</code> y una carpeta <code>fotos</code> con las imágenes originales de la demo. No incluyas esta copia en GitHub.</p>
+  <button id="backup" type="button">Exportar álbumes y fotos</button>
+  <p id="status" role="status" aria-live="polite"></p>
+  <p><small>Chrome/Edge de escritorio. Usa el mismo origen (<code>localhost:5173</code>) y perfil del navegador. No sustituye a una copia de seguridad gestionada ni incluye una herramienta de importación: conserva esta carpeta hasta que Codex implemente una importación verificada.</small></p>
+<script>
+'use strict'
+const DATABASE_NAME = 'danz-collective-local-gallery'
+const albumsStore = 'albums'
+const photosStore = 'photos'
+const statusEl = document.getElementById('status')
+const button = document.getElementById('backup')
+const update = (s) => { statusEl.textContent = s }
+
+function openExistingDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DATABASE_NAME)
+    let hadToUpgrade = false
+    req.onupgradeneeded = () => { hadToUpgrade = true; req.transaction.abort() }
+    req.onerror = () => reject(hadToUpgrade ? new Error('No existe la base de datos DANZ en este origen. Abre esta herramienta desde el mismo localhost:5173 y perfil de Chrome.') : (req.error || new Error('No se pudo abrir IndexedDB.')))
+    req.onsuccess = () => {
+      const db = req.result
+      if (!db.objectStoreNames.contains(albumsStore) || !db.objectStoreNames.contains(photosStore)) {
+        db.close(); reject(new Error('Las tablas locales de las galerías no existen en este navegador.')); return
+      }
+      resolve(db)
+    }
+  })
+}
+function allGalleryData(db) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([albumsStore, photosStore], 'readonly')
+    const a = tx.objectStore(albumsStore).getAll()
+    const f = tx.objectStore(photosStore).getAll()
+    tx.oncomplete = () => resolve({albums: a.result, photos: f.result})
+    tx.onerror = () => reject(tx.error || new Error('Error leyendo los álbumes'))
+    tx.onabort = () => reject(tx.error || new Error('Lectura cancelada'))
+  })
+}
+async function writeFile(directory, name, data) {
+  const file = await directory.getFileHandle(name, {create:true})
+  const writer = await file.createWritable()
+  try { await writer.write(data) } finally { await writer.close() }
+}
+button.addEventListener('click', async () => {
+  button.disabled = true
+  let db = null
+  try {
+    if (!('showDirectoryPicker' in window)) throw new Error('Este navegador no admite elegir carpetas. Usa Chrome o Edge de escritorio.')
+    update('Leyendo los álbumes de este navegador…')
+    db = await openExistingDB()
+    const {albums, photos} = await allGalleryData(db)
+    if (!albums.length && !photos.length) throw new Error('No hay álbumes ni fotos guardadas aquí. Comprueba el perfil de Chrome y la dirección del proyecto.')
+    const totalBytes = photos.reduce((sum, x) => sum + (x.image?.size || 0), 0)
+    update(`Encontrados ${albums.length} álbumes y ${photos.length} fotos (${(totalBytes/1048576).toFixed(1)} MB). Elige una carpeta vacía.`)
+    const folder = await window.showDirectoryPicker({ mode:'readwrite' })
+    for await (const item of folder.values()) throw new Error(`La carpeta no está vacía (contiene «${item.name}»). Selecciona una carpeta nueva para evitar sobrescribir archivos.`)
+    const photosFolder = await folder.getDirectoryHandle('fotos', {create:true})
+    const manifest = {format:'danz-gallery-local-backup-v1', exported_at:new Date().toISOString(), origin:location.origin,
+      albums: albums.map(x=>({id:x.id,name:x.name,date:x.date,order:x.order})),
+      photos: []}
+    for (let i=0;i<photos.length;i++) {
+      const x=photos[i]
+      if (!/^[A-Za-z0-9-]{1,120}$/.test(x.id)) throw new Error('Identificador de foto inválido. Se ha detenido el respaldo.')
+      if (!(x.image instanceof Blob)) throw new Error('Fotografía inválida: '+ x.name)
+      const filename=x.id+'.bin'
+      update(`Exportando foto ${i+1} de ${photos.length}…`)
+      await writeFile(photosFolder, filename, x.image)
+      manifest.photos.push({id:x.id,eventId:x.eventId,name:x.name,addedAt:x.addedAt,file:'fotos/'+filename,mime:x.image.type,size:x.image.size})
+    }
+    await writeFile(folder, 'manifest.json', JSON.stringify(manifest,null,2))
+    update(`✅ Copia exportada: ${albums.length} álbumes y ${photos.length} fotos. Comprueba que existen «manifest.json» y la carpeta «fotos». Guarda esa carpeta en un lugar seguro; no la subas al repositorio.`)
+  } catch (e) {
+    update('No se ha completado la exportación. '+ (e?.message || String(e)) + ' Si cancelaste el selector, puedes intentarlo de nuevo.')
+  } finally {
+    db?.close()
+    button.disabled = false
+  }
+})
+</script>
+</main></body>
+</html>

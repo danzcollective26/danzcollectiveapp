@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.local
+.DS_Store
+.vscode/
+*.log
+# Nunca subir galerías, originales privados ni copias de IndexedDB
+backups/
+backup-galerias/
+Copias de seguridad/
+
+*.tsbuildinfo

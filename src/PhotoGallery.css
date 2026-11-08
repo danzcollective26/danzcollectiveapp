@@ -1,0 +1,69 @@
+.gallery-section[hidden]{display:none!important}
+.gallery-toolbar{display:flex;justify-content:space-between;align-items:center;gap:24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0}
+.gallery-toolbar-text{display:flex;flex-direction:column;gap:7px}.gallery-toolbar-text strong{font-size:15px;letter-spacing:.08em}.gallery-toolbar-text span{font-size:12px;color:var(--muted);line-height:1.5}
+.gallery-toolbar-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.gallery-toolbar-actions .primary-btn,.gallery-toolbar-actions .outline-btn{min-height:46px;white-space:nowrap}.gallery-file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.gallery-notice{font-size:13px;color:var(--acid);margin:15px 0 0}.gallery-instructions{font-size:13px;color:var(--muted);margin:20px 0}
+.gallery-empty{display:flex;align-items:center;gap:24px;padding:38px 0;border-bottom:1px solid var(--line)}.gallery-empty-symbol{color:var(--acid);font-size:64px;min-width:80px}.gallery-empty h2{margin:0 0 10px;font-size:23px}.gallery-empty p{margin:0;max-width:580px;color:var(--muted);line-height:1.6;font-size:14px}
+.gallery-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.gallery-photo{position:relative;aspect-ratio:4/5;overflow:hidden;background:#252525;border:1px solid #393939;cursor:pointer;padding:0;color:#fff}.gallery-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}.gallery-photo:hover img{transform:scale(1.045)}.gallery-photo:hover{border-color:var(--acid)}.gallery-photo-counter{position:absolute;bottom:10px;left:10px;padding:6px 8px;background:#111b;font-size:11px;font-weight:800}
+.gallery-privacy{margin-top:25px;color:#9d9d99;font-size:11px;line-height:1.6;letter-spacing:.02em}
+.gallery-lightbox{position:fixed;inset:0;z-index:100;background:#090909f7;display:flex;flex-direction:column;padding:18px 20px;box-sizing:border-box}.gallery-lightbox-header,.gallery-lightbox-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-shrink:0}.gallery-lightbox-header{min-height:48px}.gallery-lightbox-title{font-size:14px;letter-spacing:.12em;font-weight:900}.gallery-lightbox-title span{color:var(--acid);margin-left:14px}.gallery-lightbox-close{border:1px solid #666;background:#202020;color:#fff;padding:10px 13px;font-size:12px;letter-spacing:.06em;cursor:pointer;font-weight:800}.gallery-lightbox-close:hover{border-color:var(--acid)}.gallery-lightbox-viewer{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:pan-y}.gallery-lightbox-image{width:auto;height:auto;max-width:min(100%,calc(100vw - 150px));max-height:100%;object-fit:contain;min-width:0;user-select:none;-webkit-user-select:none}.gallery-lightbox-arrow{flex-shrink:0;background:#242424af;color:#fff;border:1px solid #5b5b5b;width:56px;height:56px;font-size:26px;cursor:pointer}.gallery-lightbox-arrow:hover{border-color:var(--acid);color:var(--acid)}.gallery-lightbox-footer{height:43px;color:#a8a8a4;font-size:11px;letter-spacing:.07em}.gallery-lightbox-footer span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:75%}
+@media(max-width:1000px){.gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.gallery-empty .pill{display:none}}
+@media(max-width:700px){.gallery-toolbar{display:block}.gallery-toolbar-actions{margin-top:18px}.gallery-toolbar-actions .primary-btn,.gallery-toolbar-actions .outline-btn{flex:1;justify-content:center}.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.gallery-empty{gap:14px}.gallery-empty-symbol{min-width:45px;font-size:43px}.gallery-empty h2{font-size:19px}.gallery-lightbox{padding:10px 8px}.gallery-lightbox-arrow{width:35px;height:46px;font-size:20px}.gallery-lightbox-image{max-width:calc(100vw - 94px)}.gallery-lightbox-footer{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.gallery-photo img{transition:none}}
+/* Paso 7: álbumes independientes por evento */
+.gallery-section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.gallery-section-heading h2{margin:9px 0 0;font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:clamp(28px,4vw,50px);font-weight:900;line-height:1;letter-spacing:-.025em;overflow-wrap:anywhere}
+.gallery-step{font-size:10px;letter-spacing:.15em;color:var(--acid);font-weight:850}.gallery-album-count{font-size:11px;color:var(--muted);white-space:nowrap;font-weight:750;letter-spacing:.05em}
+.gallery-event-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 0}
+.gallery-event-card{min-width:0;min-height:195px;position:relative;isolation:isolate;display:flex;align-items:flex-end;overflow:hidden;padding:16px;background:#262626;color:#f4f4ef;border:1px solid #454545;text-align:left;cursor:pointer}
+.gallery-event-card:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to bottom,transparent 20%,rgba(0,0,0,.85) 100%)}
+.gallery-event-card:hover,.gallery-event-card:focus-visible,.gallery-event-active{border-color:var(--acid);outline-offset:2px}.gallery-event-active{box-shadow:inset 0 0 0 1px var(--acid)}
+.gallery-event-cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}.gallery-event-placeholder{position:absolute;top:6px;right:20px;font-size:96px;font-weight:100;color:#777;z-index:-2}
+.gallery-event-information{width:100%;display:flex;flex-direction:column;gap:5px;position:relative}.gallery-event-information strong{font-size:22px;font-weight:900;line-height:1.15;overflow-wrap:anywhere}.gallery-event-information>span:last-child{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:.08em;font-weight:750}.gallery-event-date{font-size:10px;letter-spacing:.12em;color:#dbfc58;font-weight:800}
+.gallery-add-event{border:1px solid #444;background:#1b1b1b;margin:18px 0 42px;padding:18px}.gallery-add-event>label{font-size:11px;font-weight:850;letter-spacing:.13em}.gallery-add-event-fields{display:flex;gap:10px;margin-top:12px;align-items:stretch}.gallery-add-event-fields>input{background:#292929;color:#fff;border:1px solid #616161;padding:14px;min-width:0;flex:2;font:inherit;font-size:14px}.gallery-add-event-fields>input::placeholder{color:#aaa}.gallery-add-event-fields input:focus-visible{outline:2px solid var(--acid)}.gallery-add-event-fields .primary-btn{white-space:nowrap;justify-content:center}.gallery-date-field{background:#292929;border:1px solid #616161;padding:6px 10px;display:flex;flex-direction:column;gap:2px;flex:1;min-width:140px}.gallery-date-field span{font-size:9px;letter-spacing:.06em;color:#aaa}.gallery-date-field input{color:#fff;background:transparent;border:0;min-width:0;font:inherit;font-size:14px;color-scheme:dark}
+.gallery-active-heading{margin-top:15px}.gallery-remove-event{margin-top:23px;border:0;background:transparent;text-decoration:underline;color:#afafaa;cursor:pointer;font-size:12px;padding:5px 0}.gallery-remove-event:hover{color:#fff}
+@media(max-width:950px){.gallery-event-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery-add-event-fields{flex-wrap:wrap}.gallery-add-event-fields>input{flex:1 1 200px}.gallery-date-field{flex:1 1 160px}}
+@media(max-width:650px){.gallery-event-grid{grid-template-columns:1fr 1fr;gap:8px}.gallery-event-card{min-height:145px;padding:11px}.gallery-event-information strong{font-size:17px}.gallery-event-placeholder{font-size:64px}.gallery-section-heading{align-items:start;flex-direction:column;gap:8px}.gallery-add-event-fields>input,.gallery-date-field,.gallery-add-event-fields .primary-btn{flex:1 1 100%;width:100%;box-sizing:border-box}}
+
+/* Paso 8: gestión sencilla de álbumes y fotos de prueba */
+.gallery-manage-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 0;border-bottom:1px solid var(--line)}
+.gallery-manage-bar>span{font-size:10px;font-weight:850;letter-spacing:.1em;color:var(--muted)}
+.gallery-manage-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.gallery-manage-actions .outline-btn,.gallery-manage-actions .gallery-danger-btn{padding:12px 15px;font-size:11px;min-height:43px}
+.gallery-danger-btn{background:transparent;border:1px solid #ad6868;color:#f4a9a9;cursor:pointer;font:inherit;font-size:11px;font-weight:800;letter-spacing:.04em}
+.gallery-danger-btn:hover,.gallery-danger-btn:focus-visible{background:#552626;color:#fff;border-color:#f4a9a9}
+.gallery-edit-event{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px 14px;padding:19px;margin:15px 0;background:#212121;border:1px solid #4b4b4b}
+.gallery-edit-event>label{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--muted)}
+.gallery-edit-event>input{width:100%;min-width:0;box-sizing:border-box;padding:12px;border:1px solid #656565;background:#2c2c2c;color:#fff;font:inherit;font-size:14px}
+.gallery-edit-event>input[type=date]{color-scheme:dark}
+.gallery-edit-event>input:focus-visible{outline:2px solid var(--acid)}
+.gallery-edit-actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;margin-top:9px}
+.gallery-photo-container{position:relative;aspect-ratio:4/5;min-width:0}
+.gallery-photo-container>.gallery-photo{width:100%;height:100%;aspect-ratio:auto;display:block}
+.gallery-photo-remove{position:absolute;top:9px;right:9px;z-index:2;width:37px;height:37px;color:#fff;background:#151515dd;border:1px solid #aaa;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.gallery-photo-remove:hover,.gallery-photo-remove:focus-visible{color:#fff;background:#8a2828;border-color:#fff}
+.gallery-lightbox-remove{border:1px solid #ad6868;background:#381b1b;color:#ffdbdb;padding:9px;cursor:pointer;font:inherit;font-size:10px;font-weight:800;white-space:nowrap}
+.gallery-lightbox-remove:hover,.gallery-lightbox-remove:focus-visible{background:#692b2b;color:white}
+@media(max-width:650px){.gallery-manage-actions{width:100%}.gallery-manage-actions>button{flex:1}.gallery-edit-event{grid-template-columns:1fr}.gallery-edit-actions{grid-column:1}.gallery-lightbox-footer{gap:8px}.gallery-lightbox-remove{padding:8px 5px;font-size:9px}}
+
+/* Paso 9: guardado local IndexedDB */
+.gallery-storage-status{display:flex;flex-wrap:wrap;gap:7px 16px;align-items:center;background:#20271b;border:1px solid #53693c;padding:14px 18px;margin:18px 0 22px;font-size:12px}
+.gallery-storage-status strong{color:var(--acid);font-size:11px;letter-spacing:.07em}
+.gallery-storage-status span{color:#c5cbbb;line-height:1.5}
+.gallery-storage-warning{border:1px solid #be6b6b;color:#ffcaca;background:#421d1d;padding:15px;font-size:13px;line-height:1.6}
+.gallery-section button:disabled,.gallery-section input:disabled{opacity:.5;cursor:not-allowed}
+
+/* Paso 10 · Previsualizaciones de administración y asistente (sin autenticación real) */
+.gallery-role-switch{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;background:#1b1b1b;border:1px solid #4b4b4b;padding:17px 18px;margin-top:20px}
+.gallery-role-switch-text{display:flex;flex-direction:column;gap:5px}
+.gallery-role-switch-text strong{font-size:11px;letter-spacing:.12em;color:var(--acid)}
+.gallery-role-switch-text span{font-size:12px;color:#bfbfbd;line-height:1.5}
+.gallery-role-buttons{display:flex;flex-wrap:wrap;gap:7px}
+.gallery-role-buttons button{padding:12px 14px;color:#ededeb;background:#292929;border:1px solid #666;cursor:pointer;font:inherit;font-size:11px;font-weight:850;letter-spacing:.04em}
+.gallery-role-buttons button.gallery-role-active{color:#141414;background:var(--acid);border-color:var(--acid)}
+.gallery-role-buttons button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.gallery-role-warning{font-size:12px;line-height:1.6;color:#ffdfa7;border:1px solid #87672f;background:#352c1c;padding:12px 16px;margin:10px 0 22px}
+.gallery-lightbox-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.gallery-lightbox-download{display:inline-block;border:1px solid #8fac62;background:#243117;color:#e4ffd4;text-decoration:none;padding:9px;font:inherit;font-size:10px;font-weight:800;white-space:nowrap}
+.gallery-lightbox-download:hover,.gallery-lightbox-download:focus-visible{background:#476124;border-color:#b0d671;color:white}
+@media(max-width:650px){.gallery-role-buttons{width:100%}.gallery-role-buttons button{flex:1}.gallery-lightbox-footer span:last-child{display:none}.gallery-lightbox-download{padding:8px 6px;font-size:9px}}
