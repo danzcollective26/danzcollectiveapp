@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "DANZ Collective",
+  "short_name": "DANZ",
+  "lang": "es",
+  "description": "Tus fiestas, tus recuerdos y DANZ Snake.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101011",
+  "theme_color": "#101011",
+  "icons": [
+    { "src": "/icons/danz-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/danz-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/danz-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

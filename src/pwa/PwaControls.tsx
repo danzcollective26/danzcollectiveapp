@@ -1,0 +1,106 @@
+import { useEffect, useRef, useState } from 'react'
+import './PwaControls.css'
+
+type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
+const production = Boolean((import.meta as ImportMeta & { env: { PROD?: boolean } }).env.PROD)
+const standalone = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
+
+export default function PwaControls() {
+  const [online, setOnline] = useState(navigator.onLine)
+  const [installed, setInstalled] = useState(standalone)
+  const [canInstall, setCanInstall] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [update, setUpdate] = useState<ServiceWorkerRegistration | null>(null)
+  const [open, setOpen] = useState<'install' | 'update' | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const prompt = useRef<InstallPrompt | null>(null)
+  const requestedUpdate = useRef(false)
+  const dialog = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const connection = () => setOnline(navigator.onLine)
+    const beforeInstall = (event: Event) => { event.preventDefault(); prompt.current = event as InstallPrompt; setCanInstall(true) }
+    const onInstalled = () => { prompt.current = null; setCanInstall(false); setInstalled(true); setOpen(null) }
+    const display = window.matchMedia('(display-mode: standalone)')
+    const onDisplay = () => setInstalled(standalone())
+    window.addEventListener('online', connection); window.addEventListener('offline', connection)
+    window.addEventListener('beforeinstallprompt', beforeInstall); window.addEventListener('appinstalled', onInstalled)
+    display.addEventListener('change', onDisplay)
+    return () => {
+      window.removeEventListener('online', connection); window.removeEventListener('offline', connection)
+      window.removeEventListener('beforeinstallprompt', beforeInstall); window.removeEventListener('appinstalled', onInstalled)
+      display.removeEventListener('change', onDisplay)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!production || !('serviceWorker' in navigator) || !window.isSecureContext) return
+    let current = true
+    const listeners: (() => void)[] = []
+    const activate = () => { if (requestedUpdate.current) window.location.reload() }
+    navigator.serviceWorker.addEventListener('controllerchange', activate)
+    const register = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+        if (!current) return
+        const checkUpdate = () => { if (current && registration.waiting && navigator.serviceWorker.controller) setUpdate(registration) }
+        checkUpdate()
+        const found = () => {
+          const worker = registration.installing
+          if (!worker) return
+          worker.addEventListener('statechange', checkUpdate)
+          listeners.push(() => worker.removeEventListener('statechange', checkUpdate))
+        }
+        registration.addEventListener('updatefound', found); found()
+        listeners.push(() => registration.removeEventListener('updatefound', found))
+        await navigator.serviceWorker.ready
+        if (current) setReady(true)
+      } catch { /* Online use remains available when the browser cannot save a shell. */ }
+    }
+    void register()
+    return () => { current = false; listeners.forEach(cleanup => cleanup()); navigator.serviceWorker.removeEventListener('controllerchange', activate) }
+  }, [])
+
+  useEffect(() => {
+    if (open && !dialog.current?.open) dialog.current?.showModal()
+    if (!open && dialog.current?.open) dialog.current.close()
+  }, [open])
+
+  const install = async () => {
+    setError('')
+    const pending = prompt.current
+    if (!pending) { setOpen('install'); return }
+    setBusy(true)
+    try {
+      await pending.prompt()
+      await pending.userChoice
+      // Only appinstalled or standalone display confirms installation.
+      prompt.current = null; setCanInstall(false)
+    } catch { setError('Abre las instrucciones para instalar DANZ desde el menú de tu navegador.'); setOpen('install') }
+    finally { setBusy(false) }
+  }
+  return <aside className="content pwa-tools" aria-label="DANZ en tu móvil">
+    {!online && <p className="pwa-offline" role="status">Sin conexión. Snake y los álbumes guardados en este navegador siguen disponibles. Las cuentas y las galerías privadas necesitan Internet.</p>}
+    <div className="pwa-actions">
+      {ready && <span>Snake disponible sin conexión</span>}
+      {!installed && <button className="outline-btn" disabled={busy} onClick={() => { void install() }}>{canInstall ? 'INSTALAR DANZ' : 'CÓMO INSTALAR DANZ'}</button>}
+      {update && <button className="outline-btn" onClick={() => setOpen('update')}>VERSIÓN NUEVA DISPONIBLE</button>}
+    </div>
+    <dialog className="pwa-dialog" ref={dialog} aria-labelledby="pwa-dialog-title" onCancel={() => setOpen(null)} onClose={() => setOpen(null)}>
+      <h2 id="pwa-dialog-title">{open === 'update' ? 'Actualiza cuando estés listo.' : 'DANZ en tu pantalla de inicio.'}</h2>
+      {open === 'update' ? <><p>La aplicación se recargará. Termina las cargas de fotos y guarda tus cambios antes de continuar.</p><button className="primary-btn" onClick={() => {
+        if (!update?.waiting) { setOpen(null); return }
+        requestedUpdate.current = true
+        update.waiting.postMessage({ type: 'DANZ_ACTIVATE_UPDATE' })
+      }}>ACTUALIZAR Y RECARGAR</button></> : <>
+        <p><strong>Android:</strong> abre esta página en Chrome. Pulsa el menú ⋮ y busca «Instalar y crear acceso directo» o «Añadir a pantalla de inicio». Confirma la instalación.</p>
+        <p><strong>iPhone:</strong> abre esta página en Safari. Pulsa Compartir → Añadir a pantalla de inicio y confirma Añadir. Activa «Abrir como app web» si aparece.</p>
+        <p>Si estás dentro de la app de correo o de ChatGPT, abre primero el enlace en Chrome o Safari.</p>
+        <p>La demo sigue siendo privada y necesita tu cuenta ChatGPT para abrirse por primera vez. El acceso a fotos requiere además tu cuenta DANZ y el sello del evento.</p>
+      </>}
+      {error && <p role="alert">{error}</p>}
+      <button className="outline-btn" onClick={() => setOpen(null)}>CERRAR</button>
+    </dialog>
+  </aside>
+}

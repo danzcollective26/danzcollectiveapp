@@ -298,3 +298,29 @@ publicación y acceso del asistente tras archivar; terminó en ROLLBACK.
 Advisors no añadió WARN de seguridad; conserva el aviso previo de contraseñas
 filtradas y los INFO previstos. No se han subido fotos reales, creado eventos
 operativos ni activado planes de pago. La plantilla del correo continúa pendiente.
+
+## Instalación y modo sin conexión — 9 de noviembre de 2026
+
+Añadidos manifest/iconos, instalación guiada Android/iPhone, confirmación real
+de instalación, estado sin conexión y actualizaciones por confirmación. El
+service worker precarga exclusivamente el shell estático y rechaza el HTML de
+la puerta de acceso privada. Auth, callbacks con query, fotos, URLs firmadas,
+canjes y backup no se guardan en su caché. La audiencia de Sites se conserva.
+El juego y los álbumes explícitamente locales no requieren una identidad validada.
+
+Corregido el botón del pasaporte para abrir también galerías archivadas: la
+base de datos y Fotos ya lo permitían desde el hito de tandas. No hay cambios
+de esquema, permisos remotos ni nuevos registros de usuarios/eventos.
+
+68/68 pruebas locales (seis nuevas del service worker, exclusiones y manifest)
+y build correctos. Se incorporan recorridos de instrucciones/instalación y un
+recorrido sobre build de producción con service worker real y red cortada en
+Chromium. El resultado de CI/despliegue se registrará cuando esté confirmado.
+Instalación física, Safari y paso por la puerta privada desde PWA pendientes.
+
+La investigación del bloqueo de Source confirmó la restricción de Supabase
+Free para nuevos proyectos con correo predeterminado. El formulario SMTP de
+las capturas está vacío; no se presupone guardado por ver un switch verde.
+El propietario indicó que el dominio lo gestiona otra persona. El procedimiento
+está en ACTIVACION_CORREO.md. No se han configurado SMTP/DNS, enviado correos,
+creado cuentas de proveedores ni contratado servicios.

@@ -71,7 +71,7 @@ test('unavailable, throttled and failed canjes retain the pass for a safe retry'
   }
 })
 
-test('archived stamps remain visible while the gallery button is withheld; retry recovers fetch errors', async ({ page }) => {
+test('archived stamps retain their gallery access; retry recovers fetch errors', async ({ page }) => {
   await installMockSession(page)
   let fail = true
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => fail ? route.fulfill({ status: 503, json: { message: 'Synthetic failure' } }) : route.fulfill({ json: [stamp(EA, 'Recuerdo permanente', 'archived')] }))
@@ -80,8 +80,11 @@ test('archived stamps remain visible while the gallery button is withheld; retry
   fail = false
   await page.getByRole('button', { name: 'ACTUALIZAR SELLOS', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Recuerdo permanente', exact: true })).toBeVisible()
-  await expect(page.getByText('El sello se conserva.', { exact: false })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'ABRIR GALERÍA ↗', exact: true })).toHaveCount(0)
+  await page.route(`${supabaseHost}/rest/v1/danz_events**`, route => route.fulfill({ json: [{ id: EA, title: 'Recuerdo permanente', starts_at: null }] }))
+  await page.route(`${supabaseHost}/rest/v1/danz_photos**`, route => route.fulfill({ json: [] }))
+  await page.getByRole('button', { name: 'ABRIR GALERÍA ↗', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Recuerdo permanente', exact: true })).toBeVisible()
+  await expect(page.getByText('Todavía no hay fotografías publicadas para este evento.', { exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 

@@ -5,6 +5,13 @@ Revisión: 9 de noviembre de 2026. Proyecto Supabase
 
 ## Qué falta para el enlace de acceso
 
+**Actualización:** el editor de plantilla aparece deshabilitado en las capturas.
+La restricción de Free para proyectos nuevos con SMTP predeterminado impide
+editarlo hasta configurar un servicio propio. El dominio lo administra otra
+persona. Ver [Activación del correo](ACTIVACION_CORREO.md) antes de pedir pegar
+HTML o prometer que los correos ya incluyen un código numérico. Los pasos de
+abajo siguen siendo la prueba limitada con el enlace PKCE predeterminado.
+
 La app solicita el enlace con `emailRedirectTo` igual a la raíz del dominio
 desde el que se abre: `https://danz-collective-demo.right-vine-9666.chatgpt.site/` (incluida la barra final).
 Usa PKCE. No requiere una ruta `/auth/callback` adicional en esta versión.

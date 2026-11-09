@@ -6,6 +6,7 @@ import { useAuth } from './auth/AuthProvider'
 import { emailCallbackPresent } from './auth/client'
 import PrivateGallery from './cloud/PrivateGallery'
 import EventPassport from './events/EventPassport'
+import PwaControls from './pwa/PwaControls'
 import { captureLaunchPass } from './events/pass'
 import { useAdminAccess } from './admin/access'
 const AdminPanel = lazy(() => import('./admin/AdminPanel'))
@@ -134,6 +135,8 @@ export default function App() {
         </nav>
         <span className="build-tag"><span className="status-dot"/> {auth.user ? 'CONECTADO' : 'EN DESARROLLO'}</span>
       </header>
+
+      <PwaControls />
 
       <main>
         {pendingPass && page !== 'danzers' && <div className="content pending-pass-banner"><span>Tienes un pase de evento guardado.</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}

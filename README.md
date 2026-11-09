@@ -14,6 +14,8 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 ## Estado actual
 
 - Inicio y navegación, DANZ Snake local con teclado/gestos/botones opcionales.
+- Instalación PWA en navegadores compatibles, instrucciones Android/iPhone y
+  apertura de Snake sin conexión tras guardar el shell. Actualizaciones confirmadas.
 - Cuenta por correo sin contraseña, validación de sesión, cierre de sesión y perfil propio.
 - Galerías privadas: consulta de eventos autorizados y fotos publicadas, enlaces firmados
   de corta duración, visor y descarga. Los permisos los impone Supabase, no el navegador.
@@ -31,11 +33,14 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 El acceso por correo requiere las plantillas, redirecciones y envío de Supabase correctamente
 configurados. Las pruebas automáticas no envían correos ni sustituyen una prueba real de
 recepción/callback. Google/Apple, interfaz de denuncias/moderación, recompensas
-y PWA instalable siguen pendientes. Los puntos de Snake son locales y no canjeables.
+siguen pendientes. La instalación física en Android/iPhone sigue por verificar.
+Los puntos de Snake son locales y no canjeables.
 
 El flujo y las condiciones de los pases están en `docs/PASAPORTE_EVENTOS.md`.
 El primer acceso al panel se explica en `docs/ADMINISTRACION_EVENTOS.md`.
 Capacidad y límites: `docs/GALERIA_Y_ALMACENAMIENTO.md`.
+Instalación: `docs/INSTALACION_PWA.md`. Activación SMTP pendiente:
+`docs/ACTIVACION_CORREO.md` (el dominio lo gestiona otra persona).
 
 ## Desarrollo
 
@@ -56,6 +61,7 @@ npm test
 npm run build
 npx playwright install chromium
 npm run test:e2e
+npm run test:pwa
 ```
 
 En el entorno de Codex puede usarse el Chromium instalado:

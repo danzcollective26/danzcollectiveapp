@@ -136,7 +136,7 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
         <ul className="passport-stamps">{items.map(stamp => <li key={stamp.event_id} className="passport-stamp">
           <span className="passport-flower" aria-hidden="true">✳</span>
           <div><h3>{stamp.title}</h3><p>{date(stamp.starts_at) || 'Evento DANZ'} · Sello del {date(stamp.granted_at)}</p><p>ASISTENCIA GUARDADA</p>
-            {stamp.event_status === 'published' ? <button type="button" className="outline-btn" onClick={() => onGallery(stamp.event_id)}>ABRIR GALERÍA ↗</button> : <p>El sello se conserva. La galería no está publicada ahora.</p>}
+            {['published', 'archived'].includes(stamp.event_status) ? <button type="button" className="outline-btn" onClick={() => onGallery(stamp.event_id)}>ABRIR GALERÍA ↗</button> : <p>El sello se conserva. La galería no está publicada ahora.</p>}
           </div>
         </li>)}</ul>
       </section>

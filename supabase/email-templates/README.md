@@ -1,5 +1,11 @@
 # Correo sin dependencia del navegador solicitante
 
+Antes de editar: los proyectos Free creados desde el 3 de junio de 2026 con
+SMTP predeterminado no permiten modificar plantillas. El proyecto DANZ es
+posterior y el editor aparece bloqueado. Configurar/verificar un proveedor
+SMTP propio antes de aplicar el HTML. El dominio lo gestiona otra persona.
+Pasos y comprobaciones pendientes: `docs/ACTIVACION_CORREO.md`.
+
 La app soporta el canje oficial verifyOtp({token_hash,type:'email'}) y códigos
 numéricos email+token. PKCE se mantiene para los enlaces anteriores y otros
 flujos que lo usan. No se aceptan sesiones desde parámetros sin verificar.

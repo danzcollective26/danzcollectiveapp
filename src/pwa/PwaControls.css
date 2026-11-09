@@ -1,0 +1,11 @@
+.pwa-tools{padding-top:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.pwa-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px}
+.pwa-actions>span{font-size:12px;color:var(--muted);margin-right:auto}
+.pwa-actions .outline-btn{font-size:10px;padding:11px 14px;min-height:42px}
+.pwa-offline{font-size:14px;line-height:1.55;border-left:3px solid var(--acid);padding-left:14px;margin:0 0 14px}
+.pwa-dialog{width:min(560px,calc(100% - 32px));max-height:85dvh;overflow-y:auto;background:var(--black);color:var(--white);border:1px solid #777;padding:28px}
+.pwa-dialog::backdrop{background:#000b}
+.pwa-dialog h2{font-size:26px;line-height:1.15;margin:0 0 24px}
+.pwa-dialog p{font-size:15px;line-height:1.6;color:#d2d1cc;margin:0 0 20px}
+.pwa-dialog .outline-btn{margin-top:18px}
+@media(max-width:600px){.pwa-actions{justify-content:flex-start}.pwa-actions>span{width:100%}.pwa-dialog{padding:22px}}
