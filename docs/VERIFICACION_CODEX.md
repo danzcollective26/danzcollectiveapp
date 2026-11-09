@@ -194,3 +194,20 @@ Próximo bloque pendiente: administración autenticada de eventos, emisión/revo
   real, ni se han creado códigos operativos o enviado correos en este hito.
 
 Esta anotación posterior solo actualiza documentación; no cambia la aplicación publicada.
+
+## Administración de eventos y códigos — 9 de noviembre de 2026
+
+Preparado el panel de creación/edición/publicación/archivo de eventos y emisión
+de códigos con caducidad/cupo, QR descargable y revocación confirmada.
+Permisos events.manage/codes.manage separados, sin autoasignación del cliente.
+Los RPC requieren identidad válida, membresía/alcance actual y aal2; sus wrappers
+públicos son invoker y las implementaciones privilegiadas permanecen privadas.
+La app incorpora configuración TOTP y verificación de factores ya inscritos.
+El QR de acceso se genera localmente; solo se transmite su hash, no el código.
+Los reintentos de emisión reutilizan ID/hash para evitar códigos duplicados.
+
+Validación local: 52/52 pruebas de reglas/SQL y build TypeScript/Vite correctos.
+Se añadieron seis casos Playwright en tres tamaños (18 recorridos). Su resultado
+remoto y el despliegue se registrarán al completarse, sin presumirlos correctos.
+La vinculación real del autenticador requiere al propietario y no se ha realizado
+de forma automática. No se han publicado eventos ni emitido códigos operativos.

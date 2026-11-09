@@ -15,6 +15,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      danz_admin_permissions: {
+        Row: { user_id: string; permission: string }
+        Insert: { user_id: string; permission: string }
+        Update: { user_id?: string; permission?: string }
+        Relationships: [{ foreignKeyName: 'danz_admin_permissions_user_id_fkey'; columns: ['user_id']; isOneToOne: false; referencedRelation: 'danz_admins'; referencedColumns: ['user_id'] }]
+      }
       danz_admins: {
         Row: {
           created_at: string
@@ -217,6 +223,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      danz_admin_context: { Args: Record<string, never>; Returns: { is_admin: boolean; permissions: string[] }[] }
+      danz_admin_events: { Args: Record<string, never>; Returns: AdminEvent[] }
+      danz_admin_save_event: { Args: { p_id: string; p_title: string; p_starts_at: string | null; p_ends_at: string | null; p_status: string }; Returns: AdminEvent[] }
+      danz_admin_codes: { Args: { p_event_id: string }; Returns: AdminCode[] }
+      danz_admin_issue_code: { Args: { p_event_id: string; p_id: string; p_code_hash: string; p_expires_at: string; p_max_uses: number | null }; Returns: AdminCode[] }
+      danz_admin_revoke_code: { Args: { p_id: string }; Returns: AdminCode[] }
       danz_redeem_event_code: {
         Args: { p_code: string }
         Returns: { status: string; event_id: string | null; granted_at: string | null }[]
@@ -236,6 +248,8 @@ export type Database = {
 }
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+export type AdminEvent = { id: string; title: string; starts_at: string | null; ends_at: string | null; status: string }
+export type AdminCode = { id: string; event_id: string; expires_at: string | null; max_uses: number | null; used_count: number; revoked_at: string | null; created_at: string }
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 

@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
+import { lazy, Suspense, useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import './App.css'
 import PhotoGallery from './PhotoGallery'
 import Account from './auth/Account'
@@ -6,9 +6,11 @@ import { useAuth } from './auth/AuthProvider'
 import PrivateGallery from './cloud/PrivateGallery'
 import EventPassport from './events/EventPassport'
 import { captureLaunchPass } from './events/pass'
+import { useAdminAccess } from './admin/access'
+const AdminPanel = lazy(() => import('./admin/AdminPanel'))
 import { gameReducer, initialGame, GRID, swipeDirection, type Direction } from './snake'
 
-type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta'
+type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta' | 'admin'
 const pages: { id: Page; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'fotos', label: 'Fotos' },
@@ -24,9 +26,10 @@ const launchPass = captureLaunchPass()
 
 export default function App() {
   const auth = useAuth()
+  const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
-    return auth.error || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : launchPass.code || launchPass.invalid ? 'danzers' : 'inicio'
+    return auth.error || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : launchPass.code || launchPass.invalid ? 'danzers' : 'inicio'
   })
   const [pendingPass, setPendingPass] = useState(launchPass.code)
   const [passIssue, setPassIssue] = useState(launchPass.invalid ? 'El enlace del pase no contiene un código válido.' : !launchPass.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
@@ -126,6 +129,7 @@ export default function App() {
               {item.label}
             </button>
           ))}
+          {admin.member && !admin.loading && <button onClick={() => go('admin')} className={page === 'admin' ? 'active' : ''}>Administrar</button>}
         </nav>
         <span className="build-tag"><span className="status-dot"/> {auth.user ? 'CONECTADO' : 'EN DESARROLLO'}</span>
       </header>
@@ -180,8 +184,10 @@ export default function App() {
         {page === 'fotos' && photoSource === 'private' && <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+          {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
           <Account key={auth.user?.id ?? 'guest'} />
         </section>}
+        {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
         {page === 'arcade' && (
           <section className="content inner-page">
