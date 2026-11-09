@@ -211,3 +211,36 @@ Se añadieron seis casos Playwright en tres tamaños (18 recorridos). Su resulta
 remoto y el despliegue se registrarán al completarse, sin presumirlos correctos.
 La vinculación real del autenticador requiere al propietario y no se ha realizado
 de forma automática. No se han publicado eventos ni emitido códigos operativos.
+
+
+### Administración publicada y verificada
+
+- Migración remota: `20261109054826_danz_admin_events_codes`.
+- Comprobación PostgreSQL remota bajo roles authenticated/anon: MFA obligatoria,
+  creación/publicación, emisión idempotente, canje y revocación correctos. Todas
+  las filas sintéticas se descartaron mediante ROLLBACK.
+- Cuenta del colectivo confirmada: membresía administrativa y los dos alcances
+  habilitados con comprobación exacta de identidad. Cero factores verificados al
+  terminar: no se inscribió un autenticador en nombre del propietario.
+- Seguridad remota: RLS en permisos, sin INSERT del cliente, sin EXECUTE directo
+  del helper de autorización, sin EXECUTE anónimo y sin definers públicos.
+- Advisors conserva únicamente los avisos previos documentados; sin nuevos WARN.
+- GitHub: `c1f6cb4eeb3ed18c65d0ff36a649fdb61c7ea9eb`.
+- Actions `42569400095`: instalación, 52/52 pruebas, build y
+  **102/102 recorridos Chromium** correctos (escritorio, tablet y móvil).
+- Source Sites: `75e24038083c70795410f884324bd392c30c9773`, árbol idéntico
+  al commit GitHub probado. El bundle administrativo/QR se carga por separado.
+  Vite informa de un chunk principal de aproximadamente 502 kB; aviso no bloqueante.
+- Deployment: `appgdep_6af15f822bb481919e0a2dea5bacd53d`, estado `succeeded`.
+- Versión: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_a00df9b728ac8191a29927eda5c5b424`.
+- URL privada: https://danz-collective-demo.right-vine-9666.chatgpt.site
+
+Primer paso del propietario: Cuenta → Abrir administración → Configurar dos pasos.
+Usar el QR o la clave manual desde su aplicación de autenticación y verificar el
+código en la web. Esta prueba física no se ha simulado como completada. Los tests
+MFA de navegador usan respuestas sintéticas; no se enviaron correos ni se crearon
+factores reales. No quedan eventos ni pases operativos de las comprobaciones.
+
+Pendientes: prueba física del primer acceso/canje, subidas/moderación de fotografías,
+PWA instalable, delegación de permisos desde la interfaz y siguientes hitos de Arcade.
+Esta anotación posterior es documental y no cambia la aplicación publicada.
