@@ -1,7 +1,7 @@
 # Probar el correo y la demo en móvil
 
 Revisión: 9 de noviembre de 2026. Proyecto Supabase
-`ttgehdknhnrxtddxpknc`. URL de demo: `https://danz-collective-demo.right-vine-9666.chatgpt.site` (publicación en curso).
+`ttgehdknhnrxtddxpknc`. URL de demo: `https://danz-collective-demo.right-vine-9666.chatgpt.site` (demo privada publicada y confirmada el 9 de noviembre de 2026).
 
 ## Qué falta para el enlace de acceso
 

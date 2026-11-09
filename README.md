@@ -4,6 +4,13 @@ Prototipo React + TypeScript + Vite recuperado de los pasos 5/6/9/10 y continuad
 en Codex. Fotos y Arcade son las dos áreas principales. El historial de recuperación
 está en `DANZ-TRASPASO-CODEX.md` y `docs/VERIFICACION_CODEX.md`.
 
+## Demo privada
+
+[Abre la demo publicada](https://danz-collective-demo.right-vine-9666.chatgpt.site).
+Requiere la cuenta ChatGPT dueña del sitio. La cuenta DANZ/Supabase es una
+sesión distinta; la configuración mínima para probar correo y móvil está
+en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
+
 ## Estado actual
 
 - Inicio y navegación, DANZ Snake local con teclado/gestos/botones opcionales.

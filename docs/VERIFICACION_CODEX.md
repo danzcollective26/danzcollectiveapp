@@ -111,3 +111,18 @@ SITES_MANAGED_LINUX_CONTAINER=1 y cua_repl.js no disponible: se omite browser QA
 de esta publicación conforme a Sites. Compilación y revisión de referencias
 estáticas verificadas; las pruebas de aplicación del hito anterior siguen
 siendo evidencia del código, no una validación del sitio alojado ni del móvil.
+
+Publicación confirmada por Sites:
+- URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
+- Acceso: privado del propietario, conservado por operación privada nativa.
+- Project ID: appgprj_6af1179413088191b92fa5b50e37fdb2.
+- Deployment ID: appgdep_6af1188347a4819191e2fe0165d96844; estado succeeded.
+- Versión: appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_1a805fdba1d88191b3fb8c47ca4663a5.
+- Source Sites: a4b2ea9d57fb369253aa77182889b16a196e671f; árbol idéntico al
+  commit GitHub 5121883 de preparación. Tar solo manifest y dist, validado.
+- CI GitHub de 5121883 completó con éxito instalación, pruebas, build y
+  recorridos de navegador: actions/runs/42542095932.
+
+Esta anotación posterior solo actualiza documentación; no cambia la aplicación
+publicada. La guía de correo contiene el ajuste pendiente de Redirect URLs.
+No se anunció recepción de email ni validación visual/móvil como completadas.
