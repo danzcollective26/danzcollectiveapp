@@ -5,6 +5,7 @@ import type { AdminCode, AdminEvent, Database } from '../types/database'
 import type { AdminAccess } from './access'
 import { createCodeMaterial, localDateTime, newId } from './access'
 import AdminMfa from './AdminMfa'
+import GalleryAdmin from './GalleryAdmin'
 import './AdminPanel.css'
 
 type Client = SupabaseClient<Database>
@@ -178,6 +179,7 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
           {codes.rows.length === 100 && <p>Se muestran los 100 códigos más recientes de este evento.</p>}
           {confirm && <div className="admin-confirm" role="dialog" aria-label="Confirmar revocación"><h3>¿Revocar este código?</h3><p>Dejará de admitir nuevos canjes. Los sellos ya guardados se conservan.</p><div className="admin-actions"><button className="primary-btn" disabled={busy} onClick={revoke}>CONFIRMAR REVOCACIÓN</button><button className="outline-btn" disabled={busy} onClick={() => setConfirm(null)}>CANCELAR</button></div></div>}
         </section>}
+        {event && canEvents && <GalleryAdmin key={event.id} client={client} eventId={event.id} />}
       </div>
     </div>
   </>

@@ -12,7 +12,7 @@ export type PrivateGalleryProps = {
 }
 
 type Event = Pick<Database['public']['Tables']['danz_events']['Row'], 'id' | 'title' | 'starts_at'>
-type Photo = { id: string; path: string; url: string }
+type Photo = { id: string; path: string; previewPath: string; name: string | null; url: string }
 type Scope = { client: SupabaseClient<Database> | null; owner: string | null }
 type EventState = Scope & { items: Event[]; loading: boolean; error: boolean }
 type PhotoState = Scope & { eventId: string; items: Photo[]; loading: boolean; error: boolean; expiresAt: number }
@@ -26,7 +26,7 @@ function sameAccount(state: Scope, client: SupabaseClient<Database> | null, owne
 
 // The SDK builds URLs from its configured Storage endpoint. This getter performs
 // no request; its public URL is used ONLY to check that endpoint, never to load a file.
-function verifiedSignedUrl(client: SupabaseClient<Database>, value: string | null): string | null {
+export function verifiedSignedUrl(client: SupabaseClient<Database>, value: string | null): string | null {
   if (!value) return null
   try {
     const configured = new URL(client.storage.from(BUCKET).getPublicUrl('__origin_check__').data.publicUrl)
@@ -48,6 +48,8 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   const [choice, setChoice] = useState<{ owner: string | null; id: string }>({ owner: userId, id: initialEventId })
   const [photos, setPhotos] = useState<PhotoState>({ client: null, owner: null, eventId: '', items: [], loading: true, error: false, expiresAt: 0 })
   const [retry, setRetry] = useState(0)
+  const [pageSize, setPageSize] = useState(60)
+  const [fullPhoto, setFullPhoto] = useState<{ owner: string; eventId: string; id: string; url: string } | null>(null)
   const [visible, setVisible] = useState(() => document.visibilityState !== 'hidden')
   const [viewer, setViewer] = useState<{ owner: string; eventId: string; photoId: string } | null>(null)
   const [download, setDownload] = useState<{ owner: string; eventId: string; busy: boolean; error: boolean } | null>(null)
@@ -81,7 +83,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     void (async () => {
       try {
         const { data, error } = await client.from('danz_events').select('id,title,starts_at')
-          .eq('status', 'published').order('starts_at', { ascending: false, nullsFirst: false }).abortSignal(abort.signal)
+          .in('status', ['published', 'archived']).order('starts_at', { ascending: false, nullsFirst: false }).abortSignal(abort.signal)
         if (!current) return
         if (error) throw error
         setEvents({ client, owner: userId, items: data ?? [], loading: false, error: false })
@@ -107,8 +109,8 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       try {
         // RLS checks attendance and publication; the event filter is an additional
         // query constraint, never a replacement for server authorization.
-        const { data, error } = await client!.from('danz_photos').select('id,storage_path')
-          .eq('event_id', eventId).eq('status', 'published').order('created_at').abortSignal(abort.signal)
+        const { data, error } = await client!.from('danz_photos').select('id,storage_path,preview_path,original_name')
+          .eq('event_id', eventId).eq('status', 'published').order('created_at').order('id').range(0, pageSize - 1).abortSignal(abort.signal)
         if (!current) return
         if (error) throw error
         const rows = data ?? []
@@ -119,14 +121,16 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
           const signedAt = Date.now()
           expiresAt = signedAt + URL_TTL_SECONDS * 1000
           const { data: signed, error: signingError } = await client!.storage.from(BUCKET)
-            .createSignedUrls(rows.map((row) => row.storage_path), URL_TTL_SECONDS)
+            .createSignedUrls(rows.map((row) => row.preview_path ?? row.storage_path), URL_TTL_SECONDS)
           if (!current) return
           if (signingError || !signed) throw signingError
+          const byPath = new Map(signed.filter(item => !item.error).map(item => [item.path, item]))
           items = rows.map((row) => {
-            const entry = signed.find((item) => item.path === row.storage_path && !item.error)
+            const previewPath = row.preview_path ?? row.storage_path
+            const entry = byPath.get(previewPath)
             const url = verifiedSignedUrl(client!, entry?.signedUrl ?? null)
             if (!url) throw new Error('Unavailable private photo')
-            return { id: row.id, path: row.storage_path, url }
+            return { id: row.id, path: row.storage_path, previewPath, name: row.original_name, url }
           })
           clearTimeout(expiryTimer)
           expiryTimer = setTimeout(() => {
@@ -146,7 +150,20 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       clearTimeout(refreshTimer)
       clearTimeout(expiryTimer)
     }
-  }, [client, userId, authLoading, eventId, retry, visible])
+  }, [client, userId, authLoading, eventId, retry, visible, pageSize])
+
+  useEffect(() => { setPageSize(60) }, [client, userId, eventId])
+  useEffect(() => {
+    setFullPhoto(null)
+    if (!client || !userId || !shownPhoto || shownPhoto.path === shownPhoto.previewPath) return
+    let current = true
+    const id = shownPhoto.id
+    void client.storage.from(BUCKET).createSignedUrls([shownPhoto.path], URL_TTL_SECONDS).then(({ data, error }) => {
+      const url = !error ? verifiedSignedUrl(client, data?.[0]?.signedUrl ?? null) : null
+      if (current && url) setFullPhoto({ owner: userId, eventId, id, url })
+    })
+    return () => { current = false }
+  }, [client, userId, eventId, shownPhoto?.id, shownPhoto?.url])
 
   useEffect(() => {
     setViewer(null)
@@ -216,7 +233,14 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     downloadAbort.current = abort
     setDownload({ owner, eventId, busy: true, error: false })
     try {
-      const response = await fetch(photo.url, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: abort.signal })
+      let sourceUrl = photo.url
+      if (photo.path !== photo.previewPath) {
+        const signed = await activeClient.storage.from(BUCKET).createSignedUrls([photo.path], URL_TTL_SECONDS)
+        const value = !signed.error ? verifiedSignedUrl(activeClient, signed.data?.[0]?.signedUrl ?? null) : null
+        if (!value || !current() || abort.signal.aborted) throw new Error('Download unavailable')
+        sourceUrl = value
+      }
+      const response = await fetch(sourceUrl, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: abort.signal })
       if (!response.ok) throw new Error('Download unavailable')
       const blob = await response.blob()
       if (abort.signal.aborted || !current()) return
@@ -225,7 +249,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       downloadUrls.current.add(url)
       const link = document.createElement('a')
       link.href = url
-      link.download = photo.path.split('/').pop()?.replace(/[^\p{L}\p{N}._ -]/gu, '_') || 'danz-foto'
+      link.download = (photo.name ?? photo.path.split('/').pop())?.replace(/[^\p{L}\p{N}._ -]/gu, '_') || 'danz-foto'
       document.body.append(link)
       link.click()
       link.remove()
@@ -259,9 +283,10 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
         <img src={photo.url} referrerPolicy="no-referrer" alt={`Fotografía ${index + 1} de ${selectedEvent?.title}`} loading="lazy" />
       </button>)}
     </div>}
+    {!photosLoading && !photosError && photoItems.length === pageSize && <button className="outline-btn" onClick={() => setPageSize(n => n + 60)}>CARGAR MÁS FOTOS</button>}
     {shownPhoto && <div className="private-gallery-viewer" ref={viewerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`Foto privada de ${selectedEvent?.title}`}>
       <div className="private-gallery-viewer-heading"><strong>{selectedEvent?.title}</strong><button className="outline-btn" onClick={() => setViewer(null)} aria-label="Cerrar foto privada">CERRAR ✕</button></div>
-      <img src={shownPhoto.url} referrerPolicy="no-referrer" alt={`Fotografía de ${selectedEvent?.title}`} />
+      <img src={fullPhoto?.owner === userId && fullPhoto.eventId === eventId && fullPhoto.id === shownPhoto.id ? fullPhoto.url : shownPhoto.url} referrerPolicy="no-referrer" alt={`Fotografía de ${selectedEvent?.title}`} />
       <div className="private-gallery-viewer-actions">
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Anterior foto privada" onClick={() => {
           const index = photoItems.findIndex((photo) => photo.id === shownPhoto.id)

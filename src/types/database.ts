@@ -167,6 +167,13 @@ export type Database = {
       }
       danz_photos: {
         Row: {
+          preview_path: string | null
+          original_name: string | null
+          original_bytes: number
+          preview_bytes: number
+          mime_type: string | null
+          sha256: string | null
+          upload_ready: boolean
           created_at: string
           event_id: string
           id: string
@@ -223,6 +230,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      danz_gallery_usage: { Args: Record<string, never>; Returns: { used_bytes: number; limit_bytes: number; photo_count: number }[] }
+      danz_prepare_photo: { Args: { p_event_id: string; p_id: string; p_name: string; p_size: number; p_preview_size: number; p_mime: string; p_sha256: string }; Returns: PhotoReservation[] }
+      danz_finish_photo: { Args: { p_id: string }; Returns: undefined }
+      danz_admin_photos: { Args: { p_event_id: string; p_offset: number }; Returns: AdminPhoto[] }
+      danz_photo_state: { Args: { p_event_id: string; p_ids: string[]; p_status: string }; Returns: number }
       danz_admin_context: { Args: Record<string, never>; Returns: { is_admin: boolean; permissions: string[] }[] }
       danz_admin_events: { Args: Record<string, never>; Returns: AdminEvent[] }
       danz_admin_save_event: { Args: { p_id: string; p_title: string; p_starts_at: string | null; p_ends_at: string | null; p_status: string }; Returns: AdminEvent[] }
@@ -250,6 +262,8 @@ export type Database = {
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 export type AdminEvent = { id: string; title: string; starts_at: string | null; ends_at: string | null; status: string }
 export type AdminCode = { id: string; event_id: string; expires_at: string | null; max_uses: number | null; used_count: number; revoked_at: string | null; created_at: string }
+export type AdminPhoto = Database['public']['Tables']['danz_photos']['Row']
+export type PhotoReservation = { id: string; storage_path: string; preview_path: string; upload_ready: boolean; original_exists: boolean; preview_exists: boolean }
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 

@@ -21,17 +21,21 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
   de sellos por cuenta, con acceso directo a la galería de cada evento.
 - Administración de eventos y pases: borradores/publicación/archivo, códigos con
   caducidad/cupo, descarga de QR y revocación. Requiere permisos explícitos y MFA.
+- Fotos en nube: tandas de hasta 600, originales de descarga intactos, vistas previas,
+  revisión/publicación por selección y presupuesto de espacio. Las galerías de
+  eventos archivados siguen disponibles a sus asistentes.
 - Álbumes de este navegador: se conserva la demo local de administración y asistente,
   guardada en IndexedDB. Esa simulación no concede permisos sobre las galerías privadas.
 - Pruebas de reglas, permisos de base de datos y recorridos Playwright; CI en GitHub Actions.
 
 El acceso por correo requiere las plantillas, redirecciones y envío de Supabase correctamente
 configurados. Las pruebas automáticas no envían correos ni sustituyen una prueba real de
-recepción/callback. Google/Apple, subidas/moderación de fotos en nube, recompensas
+recepción/callback. Google/Apple, interfaz de denuncias/moderación, recompensas
 y PWA instalable siguen pendientes. Los puntos de Snake son locales y no canjeables.
 
 El flujo y las condiciones de los pases están en `docs/PASAPORTE_EVENTOS.md`.
 El primer acceso al panel se explica en `docs/ADMINISTRACION_EVENTOS.md`.
+Capacidad y límites: `docs/GALERIA_Y_ALMACENAMIENTO.md`.
 
 ## Desarrollo
 

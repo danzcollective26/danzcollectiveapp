@@ -25,6 +25,8 @@ async function install(page:Page,{aal='aal2',permissions=scopes,member=true,fact
   })
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_events`,route=>route.fulfill({json:[]}))
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_codes`,route=>route.fulfill({json:[]}))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_photos`,route=>route.fulfill({json:[]}))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_gallery_usage`,route=>route.fulfill({json:[{used_bytes:0,limit_bytes:900000000,photo_count:0}]}))
 }
 const open=(page:Page)=>page.goto('/?panel=admin')
 

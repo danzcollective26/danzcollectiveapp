@@ -271,3 +271,20 @@ no edita Auth config. La plantilla del proveedor todavía no se ha cambiado. Los
 correos actuales conservan su formato anterior; no declarar que los nuevos enlaces
 ya se estén enviando. La app no modifica la plantilla por publicarse. No se han
 enviado correos de prueba, solicitado contraseñas por chat ni cambiado permisos/MFA.
+
+## Galería por tandas y conservación — 9 de noviembre de 2026
+
+Implementados carga en borrador con permiso administrativo/MFA, reserva de espacio,
+deduplicación por evento/checksum, originales sin recomprimir, vistas previas,
+revisión/publicación por selección y paginación. Los asistentes conservan acceso a
+las fotos publicadas de eventos archivados. Ver GALERIA_Y_ALMACENAMIENTO.md.
+
+62/62 pruebas locales y build correctos. Ocho pruebas SQL nuevas comprueban MFA,
+scopes, idempotencia, RLS de objetos, cargas incompletas, publicación/cuarentena,
+histórico, presupuesto y revocación. Las suites históricas prueban su estado de
+migración anterior; la suite nueva comprueba el esquema final con estas funciones.
+
+La descarga local de Chromium no fue un ZIP válido. El navegador de preview
+confirmó el acceso privado de Fotos. Se añadieron recorridos Playwright para GitHub;
+su resultado y la publicación se documentarán al confirmarse. Sin fotos reales ni
+planes de pago activados. La plantilla del correo continúa pendiente.

@@ -20,7 +20,7 @@ async function openPrivateGallery(page: Page) {
 async function installGallery(page: Page) {
   await installMockSession(page)
   await page.route(`${supabaseHost}/rest/v1/danz_events**`, async (route) => {
-    expect(new URL(route.request().url()).searchParams.get('status')).toBe('eq.published')
+    expect(new URL(route.request().url()).searchParams.get('status')).toBe('in.(published,archived)')
     await route.fulfill({ json: events })
   })
   await page.route(`${supabaseHost}/rest/v1/danz_photos**`, async (route) => {
