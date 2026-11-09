@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { authErrorMessage, clientConfiguration, consumeCallbackError, consumeCompletedCallback } from '../src/auth/config.ts'
+import { authErrorMessage, clientConfiguration, consumeCallbackError, consumeCompletedCallback, consumeEmailCallback } from '../src/auth/config.ts'
 
 const url = 'https://danz-test.supabase.co'
 const key = 'sb_publishable_danz_test_key'
@@ -40,8 +40,26 @@ test('errores de Auth traducidos desde códigos y sin interpolar mensajes del se
 test('callback terminado elimina códigos residuales y los identificadores del flujo', () => {
   const missing = consumeCompletedCallback(url + '/?code=sensitive-code&sb_flow_id=flow&__sb_flow_id=legacy&keep=1')
   assert.equal(missing.url, url + '/?keep=1')
-  assert.match(missing.message!, /caducado|este navegador/)
+  assert.match(missing.message!, /navegador donde solicitaste/)
   assert.doesNotMatch(missing.message!, /sensitive-code|legacy/)
   const completed = consumeCompletedCallback(url + '/')
   assert.deepEqual(completed, { url: url + '/', message: null })
+})
+
+test('email token callback removes credentials before exchange and preserves an event pass', () => {
+  const hash = 'synthetic-email-token-hash'
+  const result = consumeEmailCallback(`https://example.invalid/?token_hash=${hash}&type=email&keep=1#pase=DANZ12345678`)
+  assert.deepEqual(result, { url: 'https://example.invalid/?keep=1#pase=DANZ12345678', present: true, tokenHash: hash, issue: null })
+  assert.ok(!result.url.includes(hash))
+})
+
+test('email callback rejects duplicated credentials, other auth types and mixed session parameters', () => {
+  for (const suffix of ['token_hash=synthetic-email-token-hash&token_hash=another-synthetic-hash&type=email', 'token_hash=synthetic-email-token-hash&type=recovery', 'token_hash=synthetic-email-token-hash&type=email&code=pkce', 'token_hash=short&type=email', 'token_hash=synthetic-email-token-hash&type=email#access_token=untrusted']) {
+    const result = consumeEmailCallback(`https://example.invalid/?${suffix}`)
+    assert.equal(result.present, true)
+    assert.equal(result.tokenHash, null)
+    assert.ok(result.issue)
+    assert.equal(result.url, 'https://example.invalid/')
+  }
+  assert.equal(consumeEmailCallback('https://example.invalid/?code=legacy').present, false)
 })

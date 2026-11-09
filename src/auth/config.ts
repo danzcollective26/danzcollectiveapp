@@ -30,14 +30,35 @@ export function authErrorMessage(error: unknown): string {
   if (value?.status === 429 || ['over_email_send_rate_limit', 'over_request_rate_limit'].includes(value?.code ?? '')) {
     return 'Has hecho varios intentos seguidos. Espera antes de volver a intentarlo.'
   }
-  if (['otp_expired', 'flow_state_expired', 'flow_state_not_found', 'bad_code_verifier', 'pkce_verifier_not_found'].includes(value?.code ?? '') || value?.name === 'AuthPKCECodeVerifierMissingError') {
-    return 'El enlace o código ha caducado o no pertenece a este navegador. Solicita uno nuevo y ábrelo aquí.'
+  if (['bad_code_verifier', 'pkce_verifier_not_found'].includes(value?.code ?? '') || value?.name === 'AuthPKCECodeVerifierMissingError') {
+    return 'Este enlace necesita el navegador donde solicitaste el correo. Abre la app allí y solicita uno nuevo, o utiliza el código si tu correo lo incluye.'
   }
+  if (['otp_expired', 'flow_state_expired', 'flow_state_not_found'].includes(value?.code ?? '')) {
+    return 'El enlace o código ha caducado o ya se ha utilizado. Solicita un correo nuevo.'
+  }
+  if (value?.code === 'invalid_email_callback') return 'El enlace de acceso no es válido. Solicita un correo nuevo o utiliza su código de acceso.'
   if (value?.code === 'signup_disabled') return 'El registro de cuentas todavía no está habilitado.'
   if (['email_address_not_authorized', 'email_address_invalid'].includes(value?.code ?? '')) return 'No se puede utilizar ese correo ahora. Revisa la dirección o inténtalo más tarde.'
   if (value?.code === 'email_provider_disabled') return 'El acceso por correo todavía no está habilitado.'
   if (value?.status && value.status >= 500) return 'El servicio no está disponible ahora. Inténtalo de nuevo más tarde.'
   return 'No se ha podido completar la operación. Comprueba la conexión y vuelve a intentarlo.'
+}
+
+/** Capture a one-use email credential before Auth initialization.
+ * The provider verifies it; the URL never grants a session by itself. */
+export function consumeEmailCallback(currentUrl: string): { url: string; present: boolean; tokenHash: string | null; issue: string | null } {
+  const url = new URL(currentUrl)
+  const fragment = new URLSearchParams(url.hash.slice(1))
+  if (!url.searchParams.has('token_hash') && !fragment.has('token_hash')) return { url: currentUrl, present: false, tokenHash: null, issue: null }
+  const hashes = url.searchParams.getAll('token_hash')
+  const types = url.searchParams.getAll('type')
+  const mixed = fragment.has('token_hash') || url.searchParams.has('code') || fragment.has('access_token') || fragment.has('refresh_token')
+  const valid = !mixed && hashes.length === 1 && /^[A-Za-z0-9_-]{20,512}$/.test(hashes[0]) && types.length === 1 && types[0] === 'email'
+  for (const params of [url.searchParams, fragment]) {
+    for (const key of ['token_hash', 'type', 'code', 'access_token', 'refresh_token', 'token_type', 'expires_at', 'expires_in', 'sb_flow_id', '__sb_flow_id']) params.delete(key)
+  }
+  url.hash = fragment.toString()
+  return { url: url.href, present: true, tokenHash: valid ? hashes[0] : null, issue: valid ? null : 'El enlace de acceso no es válido. Solicita un correo nuevo o utiliza su código de acceso.' }
 }
 
 /** Remove untrusted Auth error parameters without retaining or displaying them. */

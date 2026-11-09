@@ -244,3 +244,30 @@ factores reales. No quedan eventos ni pases operativos de las comprobaciones.
 Pendientes: prueba física del primer acceso/canje, subidas/moderación de fotografías,
 PWA instalable, delegación de permisos desde la interfaz y siguientes hitos de Arcade.
 Esta anotación posterior es documental y no cambia la aplicación publicada.
+
+
+## Acceso por correo entre navegadores — 9 de noviembre de 2026
+
+El propietario aportó una captura Android del error de enlace caducado/navegador.
+La implementación PKCE anterior exige el almacenamiento del navegador solicitante;
+abrir desde otra vista es una causa compatible con lo observado. La captura por sí
+sola no distingue caducidad, reutilización y cambio de navegador. Se consultaron
+logs agregados sin exponer correos ni credenciales; no demuestran una causa única.
+
+Preparado el canje verifyOtp con token_hash/email para enlaces que no dependen de
+un verificador local, con limpieza inmediata de credenciales de URL, canje compartido
+entre montajes y validación posterior getUser. Se mantiene la validación PKCE de
+los enlaces anteriores. Los formularios permiten introducir email+código recibido
+sin haber hecho la solicitud en ese navegador y limpian avisos antiguos al reintentar.
+La pantalla distingue un verificador ausente de un código caducado y ofrece recuperación.
+
+54/54 pruebas locales y compilación correctas. Añadidas pruebas de dos contextos
+independientes, uso único, persistencia y rechazo de token caducado con recuperación
+por código. La plantilla lista para Magic Link/Confirm Signup está en
+supabase/email-templates/passwordless.html. No contiene tokens reales.
+
+ACTIVACIÓN PENDIENTE: el Dashboard Supabase pide inicio de sesión y la conexión
+no edita Auth config. La plantilla del proveedor todavía no se ha cambiado. Los
+correos actuales conservan su formato anterior; no declarar que los nuevos enlaces
+ya se estén enviando. La app no modifica la plantilla por publicarse. No se han
+enviado correos de prueba, solicitado contraseñas por chat ni cambiado permisos/MFA.

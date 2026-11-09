@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
-import { supabase, authCallbackIssue } from './client'
-import { authErrorMessage, consumeCompletedCallback } from './config'
+import { supabase, authCallbackIssue, completeAuthInitialization } from './client'
+import { authErrorMessage } from './config'
 
 type AuthState = {
   client: SupabaseClient<Database> | null
@@ -10,6 +10,7 @@ type AuthState = {
   loading: boolean
   error: string | null
   signOut: () => Promise<void>
+  clearError: () => void
 }
 const AuthContext = createContext<AuthState | null>(null)
 
@@ -34,11 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (checkInitialization) {
               // Share this outcome across StrictMode effects and INITIAL_SESSION
               // validations, so URL cleanup cannot erase a still-relevant warning.
-              initialCheck.current ??= client.auth.initialize().then(initialized => {
-                const finished = consumeCompletedCallback(window.location.href)
-                if (finished.url !== window.location.href) window.history.replaceState(window.history.state, '', finished.url)
-                return { error: initialized.error ?? (finished.message ? { code: 'pkce_verifier_not_found' } : null) }
-              })
+              initialCheck.current ??= completeAuthInitialization()
               const initialized = await initialCheck.current
               if (initialized.error) throw initialized.error
             }
@@ -131,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  return <AuthContext.Provider value={{ client: supabase, user, loading, error, signOut }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ client: supabase, user, loading, error, signOut, clearError: () => setError(null) }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

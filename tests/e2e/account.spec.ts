@@ -160,11 +160,64 @@ test('enlace abierto sin verificador no inicia sesión y elimina el código resi
   await page.route(`${supabaseHost}/auth/v1/token**`, async route => { exchanges += 1; await route.fulfill({ status: 400, json: { code: 'bad_code_verifier' } }) })
   await page.goto('/?code=missing-verifier-code&sb_flow_id=missing-flow')
   await page.getByRole('navigation').getByRole('button', { name: 'Cuenta', exact: true }).click()
-  await expect(page.getByText(/El enlace o código ha caducado/)).toBeVisible()
+  await expect(page.getByText(/Este enlace necesita el navegador donde solicitaste/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Entra con tu correo' })).toBeVisible()
   expect(exchanges).toBe(0)
   const current = new URL(page.url())
   expect(current.searchParams.has('code')).toBe(false)
   expect(current.searchParams.has('sb_flow_id')).toBe(false)
   await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toHaveCount(0)
+})
+
+test('email token link works in a fresh browser without the requesting browser verifier', async ({ browser, page, baseURL }) => {
+  await mockSupabase(page)
+  await page.route(`${supabaseHost}/auth/v1/otp**`, route => route.fulfill({ json: {} }))
+  await account(page)
+  await page.getByLabel('Correo electrónico', { exact: true }).fill('first@example.invalid')
+  await page.getByRole('button', { name: 'ENVIAR ENLACE', exact: true }).click()
+  await expect(page.getByText(/^Solicitud enviada\./)).toBeVisible()
+  const second = await browser.newContext({ baseURL, viewport: page.viewportSize()! })
+  const other = await second.newPage()
+  try {
+    await mockSupabase(other)
+    await profileMock(other)
+    let verifies = 0, pkce = 0
+    await other.route(`${supabaseHost}/auth/v1/token**`, route => { pkce++; return route.fulfill({ status: 400, json: {} }) })
+    await other.route(`${supabaseHost}/auth/v1/verify`, async route => {
+      verifies++
+      expect(route.request().postDataJSON()).toMatchObject({ token_hash: 'synthetic-email-token-hash', type: 'email' })
+      await route.fulfill({ json: makeSession() })
+    })
+    await other.goto('/?token_hash=synthetic-email-token-hash&type=email')
+    await expect(other.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+    expect(verifies).toBe(1)
+    expect(pkce).toBe(0)
+    expect(other.url()).not.toMatch(/token_hash|synthetic-email|type=email/)
+    await other.reload()
+    await other.getByRole('navigation').getByRole('button', { name: 'Cuenta', exact: true }).click()
+    await expect(other.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+    expect(verifies).toBe(1)
+  } finally { await second.close() }
+})
+
+test('a failed email token grants no session and a fresh browser can enter an emailed numeric code', async ({ page }) => {
+  await mockSupabase(page)
+  await profileMock(page)
+  let valid = false
+  await page.route(`${supabaseHost}/auth/v1/verify`, async route => {
+    if (!valid) { await route.fulfill({ status: 403, json: { code: 'otp_expired', message: 'Synthetic expired credential' } }); return }
+    expect(route.request().postDataJSON()).toMatchObject({ email: 'first@example.invalid', token: '123456', type: 'email' })
+    await route.fulfill({ json: makeSession() })
+  })
+  await page.goto('/?token_hash=synthetic-expired-email-token&type=email')
+  await expect(page.getByText(/El enlace o código ha caducado/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toHaveCount(0)
+  expect(page.url()).not.toContain('token_hash')
+  await page.getByRole('button', { name: 'MI CORREO INCLUYE UN CÓDIGO', exact: true }).click()
+  await page.getByLabel('Correo asociado al código', { exact: true }).fill('first@example.invalid')
+  await page.getByLabel('Código de acceso', { exact: true }).fill('123456')
+  valid = true
+  await page.getByRole('button', { name: 'COMPROBAR CÓDIGO', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+  await expect(page.getByText(/El enlace o código ha caducado/)).toHaveCount(0)
 })

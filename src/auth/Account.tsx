@@ -99,10 +99,11 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
 }
 
 export default function Account() {
-  const { client, user, loading, error: authError, signOut } = useAuth()
+  const { client, user, loading, error: authError, signOut, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [sentEmail, setSentEmail] = useState('')
   const [code, setCode] = useState('')
+  const [codeEmail, setCodeEmail] = useState('')
   const [showCode, setShowCode] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -121,7 +122,7 @@ export default function Account() {
     return () => clearInterval(timer)
   }, [nextSendAt])
   useEffect(() => {
-    if (user) { setEmail(''); setSentEmail(''); setCode(''); setMessage(''); setError('') }
+    if (user) { setEmail(''); setSentEmail(''); setCode(''); setCodeEmail(''); setMessage(''); setError('') }
   }, [user])
 
   const requestLink = async (event: FormEvent<HTMLFormElement>) => {
@@ -130,6 +131,7 @@ export default function Account() {
     const address = email.trim()
     action.current = true
     setBusy(true)
+    clearError()
     setError('')
     setMessage('')
     try {
@@ -140,10 +142,11 @@ export default function Account() {
       if (!mounted.current) return
       if (result.error) { setError(authErrorMessage(result.error)); return }
       setSentEmail(address)
+      setCodeEmail(address)
       setCode('')
       setNextSendAt(Date.now() + 60000)
       setCooldown(60)
-      setMessage('Solicitud enviada. Revisa tu correo y abre el enlace en este navegador. Si no llega, comprueba la carpeta de spam.')
+      setMessage('Solicitud enviada. Revisa tu correo. Si incluye un código, puedes escribirlo abajo. Para los enlaces antiguos, utiliza el mismo navegador donde has pedido el acceso.')
     } catch (reason) {
       if (mounted.current) setError(authErrorMessage(reason))
     } finally {
@@ -154,12 +157,13 @@ export default function Account() {
 
   const verifyCode = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!client || !sentEmail || action.current) return
+    if (!client || !codeEmail.trim() || action.current) return
     action.current = true
     setBusy(true)
     setError('')
+    clearError()
     try {
-      const result = await client.auth.verifyOtp({ email: sentEmail, token: code.trim(), type: 'email' })
+      const result = await client.auth.verifyOtp({ email: codeEmail.trim(), token: code.trim(), type: 'email' })
       if (mounted.current && result.error) setError(authErrorMessage(result.error))
     } catch (reason) {
       if (mounted.current) setError(authErrorMessage(reason))
@@ -193,7 +197,7 @@ export default function Account() {
         <ProfileForm key={user.id} client={client} user={user} />
       </> : <div className="account-card">
         <h2>Entra con tu correo</h2>
-        <p>Te enviaremos un enlace para entrar sin contraseña. Si todavía no tienes cuenta, se creará al confirmar tu correo.</p>
+        <p>Te enviaremos un correo para entrar sin contraseña. Si todavía no tienes cuenta, se creará al confirmar tu correo.</p>
         <form className="account-form" onSubmit={event => { void requestLink(event) }}>
           <label htmlFor="account-email">Correo electrónico</label>
           <input id="account-email" type="email" required maxLength={254} autoComplete="email" inputMode="email" value={email} onChange={event => setEmail(event.target.value)} disabled={busy} />
@@ -202,15 +206,18 @@ export default function Account() {
         <p className="account-note">Este correo se usa para acceder a tu cuenta. No te suscribe a publicidad.</p>
         {message && <p role="status" className="account-success">{message}</p>}
         {error && <p role="alert" className="account-error">{error}</p>}
-        {sentEmail && <>
-          <button className="account-text-button" type="button" onClick={() => setShowCode(value => !value)} aria-expanded={showCode}>MI CORREO INCLUYE UN CÓDIGO</button>
+        <>
+          <button className="account-text-button" type="button" onClick={() => { setCodeEmail(codeEmail || sentEmail || email.trim()); setShowCode(value => !value) }} aria-expanded={showCode}>MI CORREO INCLUYE UN CÓDIGO</button>
           {showCode && <form className="account-form account-code" onSubmit={event => { void verifyCode(event) }}>
-            <p className="account-note">Úsalo solo si el correo incluye un código de acceso para {sentEmail}.</p>
+            <p className="account-note">Úsalo si tu correo muestra un código numérico. Puedes introducirlo aquí aunque hayas abierto el correo en otra ventana.</p>
+            <label htmlFor="account-code-email">Correo asociado al código</label>
+            <input id="account-code-email" type="email" required maxLength={254} autoComplete="email" value={codeEmail} onChange={event => setCodeEmail(event.target.value)} disabled={busy} />
             <label htmlFor="account-code">Código de acceso</label>
             <input id="account-code" type="text" required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" minLength={6} maxLength={10} value={code} onChange={event => setCode(event.target.value)} disabled={busy} />
             <button className="primary-btn" type="submit" disabled={busy}>COMPROBAR CÓDIGO</button>
           </form>}
-        </>}
+        </>
+        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre esta app directamente en Chrome o Safari, solicita un correo nuevo desde allí y abre el enlace en ese mismo navegador. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={new URL('/', window.location.origin).href} target="_blank" rel="noreferrer">ABRIR LA APP EN OTRA VENTANA ↗</a></div>
       </div>}
   </section>
 }
