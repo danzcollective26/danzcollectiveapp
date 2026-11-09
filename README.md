@@ -17,14 +17,18 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 - Cuenta por correo sin contraseña, validación de sesión, cierre de sesión y perfil propio.
 - Galerías privadas: consulta de eventos autorizados y fotos publicadas, enlaces firmados
   de corta duración, visor y descarga. Los permisos los impone Supabase, no el navegador.
+- DANZERS: pase por enlace QR o código, canje validado en el servidor y pasaporte
+  de sellos por cuenta, con acceso directo a la galería de cada evento.
 - Álbumes de este navegador: se conserva la demo local de administración y asistente,
   guardada en IndexedDB. Esa simulación no concede permisos sobre las galerías privadas.
 - Pruebas de reglas, permisos de base de datos y recorridos Playwright; CI en GitHub Actions.
 
 El acceso por correo requiere las plantillas, redirecciones y envío de Supabase correctamente
 configurados. Las pruebas automáticas no envían correos ni sustituyen una prueba real de
-recepción/callback. Google/Apple, administración de nube, QR/sellos, recompensas y PWA
-instalable/despliegue siguen pendientes. Los puntos de Snake son locales y no canjeables.
+recepción/callback. Google/Apple, administración de nube y emisión de códigos/QR,
+recompensas y PWA instalable siguen pendientes. Los puntos de Snake son locales y no canjeables.
+
+El flujo y las condiciones de los pases están en `docs/PASAPORTE_EVENTOS.md`.
 
 ## Desarrollo
 

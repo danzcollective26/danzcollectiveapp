@@ -4,6 +4,8 @@ import PhotoGallery from './PhotoGallery'
 import Account from './auth/Account'
 import { useAuth } from './auth/AuthProvider'
 import PrivateGallery from './cloud/PrivateGallery'
+import EventPassport from './events/EventPassport'
+import { captureLaunchPass } from './events/pass'
 import { gameReducer, initialGame, GRID, swipeDirection, type Direction } from './snake'
 
 type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta'
@@ -18,19 +20,37 @@ const pages: { id: Page; label: string }[] = [
 ]
 
 function Arrow() { return <span aria-hidden="true" className="arrow">↗</span> }
+const launchPass = captureLaunchPass()
 
 export default function App() {
   const auth = useAuth()
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
-    return auth.error || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : 'inicio'
+    return auth.error || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : launchPass.code || launchPass.invalid ? 'danzers' : 'inicio'
   })
+  const [pendingPass, setPendingPass] = useState(launchPass.code)
+  const [passIssue, setPassIssue] = useState(launchPass.invalid ? 'El enlace del pase no contiene un código válido.' : !launchPass.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
+  const [galleryEvent, setGalleryEvent] = useState('')
   const [photoSource, setPhotoSource] = useState<'private' | 'local'>('private')
   const [game, dispatch] = useReducer(gameReducer, initialGame())
   const [showControls, setShowControls] = useState(() => {
     try { return localStorage.getItem('danz-snake-buttons') === 'true' } catch { return false }
   })
   const gesture = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+
+  useEffect(() => {
+    const receivePass = () => {
+      if (!new URLSearchParams(window.location.hash.slice(1)).has('pase')) return
+      const incoming = captureLaunchPass()
+      setPendingPass(incoming.code)
+      setPassIssue(incoming.invalid ? 'El enlace del pase no contiene un código válido.' : !incoming.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
+      dispatch({ type: 'pause' })
+      setPage('danzers')
+    }
+    receivePass()
+    window.addEventListener('hashchange', receivePass)
+    return () => window.removeEventListener('hashchange', receivePass)
+  }, [])
 
   const toggleControls = () => {
     const next = !showControls
@@ -111,6 +131,7 @@ export default function App() {
       </header>
 
       <main>
+        {pendingPass && page !== 'danzers' && <div className="content pending-pass-banner"><span>Tienes un pase de evento guardado.</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
         {page === 'inicio' && (
           <>
             <section className="intro content">
@@ -156,7 +177,7 @@ export default function App() {
           <button type="button" className="outline-btn" aria-pressed={photoSource === 'local'} onClick={() => setPhotoSource('local')}>Álbumes de este navegador</button>
         </div>}
         <PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} />
-        {page === 'fotos' && photoSource === 'private' && <PrivateGallery key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} onSignIn={() => go('cuenta')} />}
+        {page === 'fotos' && photoSource === 'private' && <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           <Account key={auth.user?.id ?? 'guest'} />
@@ -202,10 +223,7 @@ export default function App() {
         {page === 'danzers' && (
           <section className="content inner-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <div className="eyebrow">DANZ COLLECTIVE / EVENTS</div>
-            <h1 className="page-title">DANZ<br /><em>ERS.</em></h1>
-            <p className="page-lead">Fiestas, actuaciones y eventos colaboradores. Aquí incorporaremos el acceso por QR, los sellos del pasaporte y las galerías vinculadas a cada evento.</p>
-            <div className="empty-state"><span className="empty-icon">✳</span><div><h2>Próximamente: agenda y pasaporte</h2><p>Esta sección está preparada, pero todavía no gestiona entradas ni emite sellos reales.</p></div><span className="pill">EN DESARROLLO</span></div>
+            <EventPassport key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} launchIssue={passIssue} onPendingPass={setPendingPass} onSignIn={() => go('cuenta')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
           </section>
         )}
 

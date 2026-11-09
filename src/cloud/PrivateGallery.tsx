@@ -8,6 +8,7 @@ export type PrivateGalleryProps = {
   userId: string | null
   authLoading: boolean
   onSignIn: () => void
+  initialEventId?: string
 }
 
 type Event = Pick<Database['public']['Tables']['danz_events']['Row'], 'id' | 'title' | 'starts_at'>
@@ -42,9 +43,9 @@ function eventDate(value: string | null) {
   return Number.isNaN(date.valueOf()) ? '' : date.toLocaleDateString('es-ES', { dateStyle: 'medium' })
 }
 
-export default function PrivateGallery({ client, userId, authLoading, onSignIn }: PrivateGalleryProps) {
+export default function PrivateGallery({ client, userId, authLoading, onSignIn, initialEventId = '' }: PrivateGalleryProps) {
   const [events, setEvents] = useState<EventState>({ client: null, owner: null, items: [], loading: true, error: false })
-  const [choice, setChoice] = useState<{ owner: string | null; id: string }>({ owner: null, id: '' })
+  const [choice, setChoice] = useState<{ owner: string | null; id: string }>({ owner: userId, id: initialEventId })
   const [photos, setPhotos] = useState<PhotoState>({ client: null, owner: null, eventId: '', items: [], loading: true, error: false, expiresAt: 0 })
   const [retry, setRetry] = useState(0)
   const [visible, setVisible] = useState(() => document.visibilityState !== 'hidden')

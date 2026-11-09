@@ -140,3 +140,17 @@ validación de envíos a cualquier asistente, todos los navegadores, permisos
 administrativos ni carga de fotografías reales. No se migraron galerías.
 
 Esta actualización es documental y no cambia la versión alojada.
+
+## Canje de códigos y pasaporte — 9 de noviembre de 2026
+
+Implementados DANZERS con pase por fragmento QR/código, guardado antes del registro,
+canje en servidor y pasaporte por cuenta. El sello abre su galería y permanece visible
+al archivar el evento. Las implementaciones privilegiadas están fuera de `public`;
+los wrappers de API son invoker. Rate limit por cuenta y locks de código controlan
+reintentos, capacidad y duplicados sin permitir escribir asistencias desde cliente.
+
+Validación local: 42/42 pruebas correctas y compilación TypeScript/Vite correcta.
+Añadidos 15 recorridos de navegador a CI (cinco casos en tres tamaños).
+No se han creado eventos reales, códigos ni sellos remotos de asistentes.
+Queda pendiente la interfaz de administración para emitir códigos y el resto
+del alcance descrito en `PASAPORTE_EVENTOS.md`.

@@ -1,0 +1,20 @@
+.passport-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
+.passport-redeem { border: 1px solid var(--ink, #171717); padding: clamp(20px, 4vw, 34px); background: #eceee6; }
+.passport-redeem h2, .passport-heading h2 { margin: 0 0 16px; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.04em; }
+.passport-redeem p { line-height: 1.6; }
+.passport-redeem label { display: block; font-size: 12px; font-weight: 800; letter-spacing: .06em; margin: 24px 0 8px; }
+.passport-redeem input { width: 100%; min-width: 0; padding: 15px 12px; border: 1px solid #333; background: white; font: 700 16px monospace; text-transform: uppercase; border-radius: 0; }
+.passport-redeem .primary-btn { width: 100%; margin-top: 14px; white-space: normal; }
+.passport-message { padding: 12px; border-left: 3px solid #2f5742; background: white; font-size: 14px; overflow-wrap: anywhere; }
+.passport-heading { display: flex; flex-wrap: wrap; gap: 12px; align-items: start; justify-content: space-between; }
+.passport-heading .outline-btn { font-size: 11px; padding: 10px 12px; }
+.passport-stamps { display: grid; gap: 14px; list-style: none; padding: 0; margin: 0; }
+.passport-stamp { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 16px; border: 1px solid #aaa; padding: 22px; }
+.passport-flower { font-size: 42px; align-self: start; }
+.passport-stamp h3 { margin: 0 0 10px; font-size: 22px; overflow-wrap: anywhere; }
+.passport-stamp p { font-size: 13px; line-height: 1.6; margin: 8px 0; }
+.passport-stamp .outline-btn { margin-top: 8px; }
+.passport-empty { border: 1px dashed #999; padding: 24px; line-height: 1.6; }
+.pending-pass-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #bbb; padding-block: 16px; font-size: 14px; }
+.pending-pass-banner .outline-btn { font-size: 11px; padding: 10px 14px; }
+@media (max-width: 760px) { .passport-layout { grid-template-columns: 1fr; } .passport-stamp { padding: 18px; grid-template-columns: 36px minmax(0,1fr); gap: 12px; } .passport-flower { font-size: 30px; } }

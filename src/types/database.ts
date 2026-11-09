@@ -217,7 +217,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      danz_redeem_event_code: {
+        Args: { p_code: string }
+        Returns: { status: string; event_id: string | null; granted_at: string | null }[]
+      }
+      danz_my_passport: {
+        Args: Record<string, never>
+        Returns: { event_id: string; title: string; starts_at: string | null; event_status: string; granted_at: string }[]
+      }
     }
     Enums: {
       [_ in never]: never
