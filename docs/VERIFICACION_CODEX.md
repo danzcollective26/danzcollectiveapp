@@ -91,3 +91,23 @@ caducada no revoca una copia ya descargada ni purga cachés externas.
 Pendiente: entorno accesible de prueba y validación del correo real,
 administración autenticada/MFA/subidas de nube, QR/sellos, recompensas,
 PWA y despliegue. No está listo como lanzamiento de producción.
+
+## Preparación de demo privada — 9 de noviembre de 2026
+
+Hosting declarado como estático Vite (`dist`) para Sites, sin migración de
+framework ni cambio del backend. Se añadió meta referrer=no-referrer para
+limitar la propagación de parámetros de retorno y recursos privados.
+
+La guía de correo/móvil registra la URL concreta de retorno y las limitaciones
+de la conexión Supabase para modificar Auth config. No se envían correos de
+prueba ni se cambian permisos/SMTP por la publicación.
+
+En este entorno faltan los scripts auxiliares de Sites. Se conserva el contrato
+nativo mediante Git autenticado con credencial recibida por stdin sin archivos
+ni argumentos, compilación Vite y tar de `.openai/hosting.json` más `dist`.
+No se incluyen `.env.local`, originales, copias, tests ni código fuente en ese tar.
+
+SITES_MANAGED_LINUX_CONTAINER=1 y cua_repl.js no disponible: se omite browser QA
+de esta publicación conforme a Sites. Compilación y revisión de referencias
+estáticas verificadas; las pruebas de aplicación del hito anterior siguen
+siendo evidencia del código, no una validación del sitio alojado ni del móvil.
