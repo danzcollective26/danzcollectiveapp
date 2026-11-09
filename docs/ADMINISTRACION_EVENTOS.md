@@ -39,8 +39,17 @@ desde el proveedor de autenticación con verificación de identidad.
 
 La demo mantiene su audiencia privada. Sus QR no convierten el sitio en público.
 El panel lista los 200 eventos y 100 códigos por evento más recientes. La
-paginación histórica, delegación de roles desde la interfaz, subidas de fotos,
+paginación histórica de eventos, delegación de roles desde la interfaz,
 moderación, auditoría administrativa avanzada y recuperación de MFA quedan pendientes.
+
+## Fotos
+
+Seleccionar un evento y abrir Fotos del evento. Se usa el permiso events.manage
+y la misma verificación MFA. Elegir hasta 600 archivos que ya incorporen su marca
+de agua y subir como borradores. Revisar las páginas de 60 fotos, seleccionar
+las que corresponda y confirmar su publicación. Se puede volver a borrador.
+Archivar el evento conserva sus fotos publicadas para asistentes anteriores.
+Capacidad, reintentos y límites: GALERIA_Y_ALMACENAMIENTO.md.
 
 ## Permisos y servidor
 

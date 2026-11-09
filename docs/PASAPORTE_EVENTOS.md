@@ -12,7 +12,8 @@ ya verificadas por su propietario.
 - Antes de registrarse el pase no concede acceso. Tras iniciar sesión, el usuario confirma
   «Guardar mi sello». El servidor vincula el sello exclusivamente a `auth.uid()`.
 - Mis sellos muestra las asistencias de la cuenta y permite abrir su galería exacta.
-  Los eventos archivados conservan el sello y su título; su galería continúa oculta.
+  Los eventos archivados conservan el sello, el título y el acceso a sus fotos
+  publicadas para asistentes anteriores; no admiten nuevos canjes.
 - Repetir un canje de la misma cuenta/evento devuelve el sello original y no gasta más usos.
   Ante un fallo de red se puede reintentar con el mismo código.
 

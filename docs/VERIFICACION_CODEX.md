@@ -286,5 +286,15 @@ migración anterior; la suite nueva comprueba el esquema final con estas funcion
 
 La descarga local de Chromium no fue un ZIP válido. El navegador de preview
 confirmó el acceso privado de Fotos. Se añadieron recorridos Playwright para GitHub;
-su resultado y la publicación se documentarán al confirmarse. Sin fotos reales ni
-planes de pago activados. La plantilla del correo continúa pendiente.
+Actions `42577021541`, commit `bc801e2`, completó instalación, **62/62 pruebas**,
+build y **117/117 recorridos Chromium** en escritorio/tablet/móvil. Los casos nuevos
+verifican conservación de bytes del original, borradores/publicación confirmada,
+deduplicación, rechazo de 601 archivos/formato no permitido y parada por presupuesto.
+
+Aplicada la migración `20261109070504_danz_gallery_batches`. Su archivo local se
+sincronizó con la versión del servidor (sin cambiar SQL). Una transacción remota
+comprobó MFA, deduplicación, INSERT de objetos limitado a reserva, finalización,
+publicación y acceso del asistente tras archivar; terminó en ROLLBACK.
+Advisors no añadió WARN de seguridad; conserva el aviso previo de contraseñas
+filtradas y los INFO previstos. No se han subido fotos reales, creado eventos
+operativos ni activado planes de pago. La plantilla del correo continúa pendiente.

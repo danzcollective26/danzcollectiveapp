@@ -3,6 +3,12 @@
 Fecha de revisión: **9 de noviembre de 2026** (Europe/Madrid).
 Proyecto: `ttgehdknhnrxtddxpknc`, `danzcollectiveapp Project`, región `eu-west-1`.
 
+Actualización posterior: están aplicadas las migraciones de pasaporte, administración
+y `20261109070504_danz_gallery_batches`. Esta última incorpora carga administrativa
+con MFA, borradores/publicación, presupuesto de espacio y acceso histórico al archivar.
+La prueba SQL remota con datos sintéticos terminó en ROLLBACK. El informe de abajo
+conserva los estados históricos; el estado vigente está en VERIFICACION_CODEX.md.
+
 ## Avance posterior: migración y pruebas de aislamiento
 
 Se preparó una migración formal `danz_private_gallery_client_access` creada
