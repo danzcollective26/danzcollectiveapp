@@ -126,3 +126,17 @@ Publicación confirmada por Sites:
 Esta anotación posterior solo actualiza documentación; no cambia la aplicación
 publicada. La guía de correo contiene el ajuste pendiente de Redirect URLs.
 No se anunció recepción de email ni validación visual/móvil como completadas.
+
+
+## Confirmación real de correo y sesión móvil — 9 de noviembre de 2026
+
+El propietario confirmó la prueba personal de acceso por correo en la demo
+publicada y que la sesión continúa iniciada tras recargar Cuenta en el móvil.
+Supabase corroboró una cuenta con email confirmado e inicio de sesión reciente
+mediante consulta agregada; no se leyeron direcciones, códigos o tokens.
+
+Quedan validados ese correo/cuenta y ese navegador/dispositivo. No equivale a
+validación de envíos a cualquier asistente, todos los navegadores, permisos
+administrativos ni carga de fotografías reales. No se migraron galerías.
+
+Esta actualización es documental y no cambia la versión alojada.

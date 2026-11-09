@@ -78,8 +78,14 @@ No se intentó extraer tokens del conector ni leer secretos del entorno.
 Los ajustes de URL anteriores son la alternativa mínima de Dashboard si no
 se habilita una vía de gestión de Auth compatible.
 
-No se enviaron correos ni se modificó Auth durante esta investigación. La
-entrega del mensaje y el acceso desde un teléfono real siguen pendientes.
+No se enviaron correos ni se modificó Auth durante la investigación inicial.
+
+**Prueba posterior confirmada el 9 de noviembre de 2026:** el propietario
+comprobó el acceso por correo y la conservación de la sesión al recargar
+en su móvil. Supabase registró una cuenta con correo confirmado y un inicio
+de sesión reciente. El acceso privado de Sites requirió usar la cuenta
+ChatGPT propietaria; la cuenta DANZ es independiente. Esta prueba individual
+no valida todavía envío a otros asistentes, otros dispositivos o navegadores.
 
 ## Fuentes oficiales consultadas
 
