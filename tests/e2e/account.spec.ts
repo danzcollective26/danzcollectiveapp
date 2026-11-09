@@ -205,7 +205,7 @@ test('a failed email token grants no session and a fresh browser can enter an em
   await profileMock(page)
   let valid = false
   await page.route(`${supabaseHost}/auth/v1/verify`, async route => {
-    if (!valid) { await route.fulfill({ status: 403, headers: { 'x-supabase-api-version': '2024-01-01' }, json: { code: 'otp_expired', message: 'Synthetic expired credential' } }); return }
+    if (!valid) { await route.fulfill({ status: 403, headers: { 'x-supabase-api-version': '2024-01-01', 'access-control-expose-headers': 'x-supabase-api-version' }, json: { code: 'otp_expired', message: 'Synthetic expired credential' } }); return }
     expect(route.request().postDataJSON()).toMatchObject({ email: 'first@example.invalid', token: '123456', type: 'email' })
     await route.fulfill({ json: makeSession() })
   })
