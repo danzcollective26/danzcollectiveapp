@@ -55,6 +55,10 @@ service worker real y corte de red en Chromium. No sustituyen la instalación
 física en Android/iPhone, Safari ni una prueba de la sesión privada de hosting
 desde la app ya instalada. Esa prueba del propietario sigue pendiente.
 
+Resultado del hito: Actions `42715435217`, 68 pruebas locales/SQL y 120 recorridos
+de aplicación correctos, más dos pruebas de producción offline en Chromium
+(escritorio/móvil). Publicación privada confirmada el 9 de noviembre de 2026.
+
 Fuentes:
 - https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable
 - https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers

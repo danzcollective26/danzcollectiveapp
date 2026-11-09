@@ -315,7 +315,10 @@ de esquema, permisos remotos ni nuevos registros de usuarios/eventos.
 68/68 pruebas locales (seis nuevas del service worker, exclusiones y manifest)
 y build correctos. Se incorporan recorridos de instrucciones/instalación y un
 recorrido sobre build de producción con service worker real y red cortada en
-Chromium. El resultado de CI/despliegue se registrará cuando esté confirmado.
+Chromium. Actions `42715435217`, commit `1cc2fdc`, confirmó **68/68 pruebas**,
+**120/120 recorridos Chromium** de aplicación y **2/2 recorridos de producción**
+sin red (escritorio y móvil). Estos últimos abren de nuevo la aplicación, juegan
+a Snake y verifican que no se cachean fotos ni credenciales de callbacks.
 Instalación física, Safari y paso por la puerta privada desde PWA pendientes.
 
 La investigación del bloqueo de Source confirmó la restricción de Supabase
@@ -324,3 +327,14 @@ las capturas está vacío; no se presupone guardado por ver un switch verde.
 El propietario indicó que el dominio lo gestiona otra persona. El procedimiento
 está en ACTIVACION_CORREO.md. No se han configurado SMTP/DNS, enviado correos,
 creado cuentas de proveedores ni contratado servicios.
+
+Entrega publicada con acceso privado conservado:
+- Source Sites: `071bb9c1788706bcb6ccebed720ef0cf2bf5df9f`.
+- Árbol de source probado: `9a1942951a7bb606363c9a82388edff3189e15ec`, idéntico
+  al commit de GitHub verificado por CI. Backend de producción comprobado en
+  el build; no se ha empaquetado el backend ficticio de los tests.
+- Deployment: `appgdep_6af24f434eec81919345f22b347cf8f7`, estado `succeeded`.
+- Versión: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_3b6f358589448191b487d2a4218ebad2`.
+- URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
+
+Esta anotación posterior solo registra resultados; no modifica el bundle publicado.
