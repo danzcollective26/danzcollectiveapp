@@ -175,3 +175,22 @@ una prueba física de canje con un evento operativo, que aún no se ha creado.
 Advisors: sin nuevos avisos WARN de base de datos; se mantienen el aviso previo
 de protección de contraseñas filtradas (el acceso actual es por correo sin contraseña)
 y los INFO de RLS sin policies en tablas deliberadamente cerradas al cliente.
+
+
+### Versión publicada del pasaporte
+
+- GitHub: `6f45061781ae4155e9852614e417d071440e4f4b`.
+- GitHub Actions: ejecución `42561344207` terminada correctamente: 42/42
+  pruebas locales/SQL y 84/84 recorridos Chromium, además de instalación y build.
+- Source Sites: `ae7deda705214ff4253111af4dc4730b8ac1eef0`; su árbol se comparó con GitHub y es idéntico.
+- Deployment: `appgdep_6af14a735a04819191b947968f8a681e`, estado `succeeded`.
+- Versión Sites: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_82a9457ef2608191b3d11d0468ff2549`.
+- URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
+- Acceso privado del propietario conservado; publicación por operación privada.
+- Archivo de despliegue generado mediante el helper de Sites y build Vite correcto.
+
+Próximo bloque pendiente: administración autenticada de eventos, emisión/revocación
+  de códigos y QR, y prueba del primer canje operativo. No se ha anunciado un evento
+  real, ni se han creado códigos operativos o enviado correos en este hito.
+
+Esta anotación posterior solo actualiza documentación; no cambia la aplicación publicada.
