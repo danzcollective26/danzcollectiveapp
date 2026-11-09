@@ -1,5 +1,6 @@
 .passport-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
-.passport-redeem { border: 1px solid var(--ink, #171717); padding: clamp(20px, 4vw, 34px); background: #eceee6; }
+.passport-redeem { border: 1px solid var(--ink, #171717); padding: clamp(20px, 4vw, 34px); background: #eceee6; color: #171717; }
+.page-title.passport-title { font-size: clamp(54px, 8vw, 112px); }
 .passport-redeem h2, .passport-heading h2 { margin: 0 0 16px; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.04em; }
 .passport-redeem p { line-height: 1.6; }
 .passport-redeem label { display: block; font-size: 12px; font-weight: 800; letter-spacing: .06em; margin: 24px 0 8px; }

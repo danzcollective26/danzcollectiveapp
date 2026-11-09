@@ -45,3 +45,11 @@ SUPABASE_HOME=/workspace/work/supabase-cli-state SUPABASE_TELEMETRY_DISABLED=tru
 ```
 
 No se usa `--yes` de Supabase ni se ejecutan comandos CLI sobre el remoto.
+
+El pasaporte añade `20261109041611_danz_event_passport`, aplicado al proyecto
+existente después de pruebas aisladas. Su archivo se creó con CLI y la versión
+se sincronizó con la emitida por MCP. `tests/event-passport-database.test.ts`
+comprueba canje, cupos, duplicados, límites de intentos y aislamiento del pasaporte.
+Una prueba SQL remota equivalente usó únicamente filas sintéticas y ROLLBACK.
+Las funciones públicas son wrappers invoker; los helpers definer están en
+`danz_private`, que debe permanecer fuera de los schemas expuestos por la Data API.

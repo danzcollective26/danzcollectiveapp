@@ -154,3 +154,24 @@ Añadidos 15 recorridos de navegador a CI (cinco casos en tres tamaños).
 No se han creado eventos reales, códigos ni sellos remotos de asistentes.
 Queda pendiente la interfaz de administración para emitir códigos y el resto
 del alcance descrito en `PASAPORTE_EVENTOS.md`.
+
+Aplicada en Supabase `20261109041611_danz_event_passport`. Se sincronizó el
+nombre local con la versión emitida por el servidor tras aplicar por MCP.
+Prueba remota bajo rol authenticated: canje, repetición idempotente, pasaporte,
+acceso RLS al evento y contador de un solo uso correctos; denegación anon correcta.
+Se usaron filas sintéticas en una única transacción terminada en ROLLBACK:
+no queda ninguna cuenta, evento, código o asistencia de esta comprobación.
+La revisión de privilegios confirmó que anon no ejecuta los RPC, el cliente no
+lee intentos ni inserta asistencias y todas las funciones fijan search_path.
+
+GitHub Actions de `0e1a87b`: 42/42 pruebas de reglas/SQL y **84/84 recorridos
+Chromium** correctos, ejecución `42560869423` (escritorio/tablet/móvil).
+La revisión visual con el navegador de preview confirmó captura de enlace,
+guardado, recarga y descarte del pase pendiente; se corrigió contraste del formulario.
+El host de preview de Vite se limita explícitamente a `terminal.local`.
+Los recorridos de Auth/Storage/canje del navegador son simulados; no sustituyen
+una prueba física de canje con un evento operativo, que aún no se ha creado.
+
+Advisors: sin nuevos avisos WARN de base de datos; se mantienen el aviso previo
+de protección de contraseñas filtradas (el acceso actual es por correo sin contraseña)
+y los INFO de RLS sin policies en tablas deliberadamente cerradas al cliente.

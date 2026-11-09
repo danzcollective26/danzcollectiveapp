@@ -100,7 +100,7 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
   const items = !authLoading && passport.owner === userId ? passport.items : []
   return <>
     <div className="eyebrow">DANZ COLLECTIVE / TU PASAPORTE</div>
-    <h1 className="page-title">CADA NOCHE,<br /><em>UN SELLO.</em></h1>
+    <h1 className="page-title passport-title">CADA NOCHE,<br /><em>UN SELLO.</em></h1>
     <p className="page-lead">Escanea el QR del evento con la cámara de tu móvil o introduce su código. Tu sello se guarda en tu cuenta y abre la galería de esa noche.</p>
     <div className="passport-layout">
       <section className="passport-redeem" aria-labelledby="redeem-title">
