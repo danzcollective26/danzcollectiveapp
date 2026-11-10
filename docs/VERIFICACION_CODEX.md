@@ -632,3 +632,24 @@ ChatGPT. No se completó un canje real en producción durante esta revisión.
 Apple Developer, la recepción real de correo en iCloud, un iPhone físico,
 MFA del propietario y la capacidad real de 200 altas siguen pendientes.
 Este registro posterior solo documenta el despliegue; no cambia su código.
+
+## Configuración MFA al cambiar de aplicación — 10 de noviembre de 2026
+
+El propietario informó de que el QR cambiaba al salir a Authenticator y volver
+a Chrome. Una notificación SIGNED_IN de la misma cuenta inicia la comprobación
+de sesión y desmonta el panel; el estado local del formulario perdía la clave.
+Los errores de verificación quedaban además por encima del QR, fuera de la zona
+visible al enviar el código desde un móvil.
+
+La configuración temporal se conserva en memoria de la página, asociada al
+cliente y al propietario validado por el servidor. Se descarta al cambiar de
+cuenta o salir, y no se escribe la clave en localStorage ni sessionStorage.
+Una recarga completa permite verificar un factor TOTP pendiente existente sin
+generar otro automáticamente. Un reinicio explícito retira solo configuraciones
+TOTP sin verificar mediante la API de la cuenta; conserva los factores verificados.
+El formulario acepta las seis cifras pegadas con espacios y muestra el rechazo
+junto al campo. Se conserva la comprobación de usuario y permisos del servidor.
+
+Se añaden regresiones de revalidación de sesión, recarga, selección del factor
+pendiente reciente, pegado, error visible, reinicio y aislamiento entre cuentas.
+No se han copiado claves ni códigos reales a fuentes, registros o pruebas.

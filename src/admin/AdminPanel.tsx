@@ -5,6 +5,7 @@ import type { AdminCode, AdminEvent, Database } from '../types/database'
 import type { AdminAccess } from './access'
 import { createCodeMaterial, localDateTime, newId } from './access'
 import AdminMfa from './AdminMfa'
+import type { AdminMfaSetupCache } from './AdminMfa'
 import GalleryAdmin from './GalleryAdmin'
 import { suggestedPassExpiry } from '../events/pass'
 import './AdminPanel.css'
@@ -192,10 +193,10 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
   </>
 }
 
-export default function AdminPanel({ client, userId, authLoading, access, onSignIn }: { client: Client | null; userId: string | null; authLoading: boolean; access: AdminAccess; onSignIn: () => void }) {
+export default function AdminPanel({ client, userId, authLoading, access, setup, onSignIn }: { client: Client | null; userId: string | null; authLoading: boolean; access: AdminAccess; setup: AdminMfaSetupCache; onSignIn: () => void }) {
   const [verified, setVerified] = useState(false)
   const onVerified = useCallback(() => setVerified(true), [])
   return <div className="admin-page"><div className="eyebrow">DANZ COLLECTIVE / ADMINISTRACIÓN</div><h1 className="page-title">DETRÁS<br /><em>DE LA NOCHE.</em></h1>
-    {!client ? <p>La conexión de las cuentas todavía no está disponible.</p> : authLoading || access.loading ? <p role="status">Comprobando acceso de administración…</p> : !userId ? <div className="admin-state"><p>Inicia sesión con tu cuenta de administración.</p><button className="primary-btn" onClick={onSignIn}>INICIAR SESIÓN</button></div> : access.error ? <p className="account-error" role="alert">No hemos podido comprobar los permisos. Recarga para volver a intentarlo.</p> : !access.member || !access.permissions.length ? <p>Esta cuenta no tiene permisos de administración.</p> : !verified ? <AdminMfa client={client} onVerified={onVerified} /> : <Workspace client={client} permissions={access.permissions} />}
+    {!client ? <p>La conexión de las cuentas todavía no está disponible.</p> : authLoading || access.loading ? <p role="status">Comprobando acceso de administración…</p> : !userId ? <div className="admin-state"><p>Inicia sesión con tu cuenta de administración.</p><button className="primary-btn" onClick={onSignIn}>INICIAR SESIÓN</button></div> : access.error ? <p className="account-error" role="alert">No hemos podido comprobar los permisos. Recarga para volver a intentarlo.</p> : !access.member || !access.permissions.length ? <p>Esta cuenta no tiene permisos de administración.</p> : !verified ? <AdminMfa client={client} userId={userId} setup={setup} onVerified={onVerified} /> : <Workspace client={client} permissions={access.permissions} />}
   </div>
 }

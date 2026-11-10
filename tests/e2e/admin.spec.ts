@@ -154,3 +154,107 @@ test('codes-only scope hides event editing and server denials remove admin data'
   await expect(page.getByRole('heading',{name:'Hay que comprobar el acceso.',exact:true})).toBeVisible()
   await expect(page.getByRole('heading',{name:'Código permitido',exact:true})).toHaveCount(0)
 })
+
+test('same-account session revalidation keeps MFA setup and accepts a spaced authenticator code',async({page})=>{
+  await install(page,{aal:'aal1'})
+  let enrolled=false,verified=false,enrollments=0,reads=0,userChecks=0
+  const secret='SYNTHETIC-PRIVATE-MFA-SETUP'
+  await page.route(`${supabaseHost}/auth/v1/user`,route=>{
+    userChecks++
+    return route.fulfill({json:{...makeSession().user,factors:enrolled?[{id:F,factor_type:'totp',status:verified?'verified':'unverified',created_at:'2026-11-10T07:00:00Z'}]:[]}})
+  })
+  await page.route(`${supabaseHost}/auth/v1/factors`,route=>{
+    enrolled=true;enrollments++
+    return route.fulfill({json:{id:F,type:'totp',totp:{secret,qr_code:'<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><path fill="black" d="M0 0h40v40H0z"/></svg>',uri:'otpauth://totp/synthetic'}}})
+  })
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_events`,route=>{reads++;return route.fulfill({json:[]})})
+  await page.route(`${supabaseHost}/auth/v1/factors/${F}/challenge`,route=>route.fulfill({json:{id:'synthetic-challenge',expires_at:Math.floor(Date.now()/1000)+60}}))
+  await page.route(`${supabaseHost}/auth/v1/factors/${F}/verify`,route=>{
+    expect(route.request().postDataJSON().code).toBe('123456')
+    verified=true
+    return route.fulfill({json:session()})
+  })
+  await open(page)
+  await page.getByRole('button',{name:'CONFIGURAR DOS PASOS',exact:true}).click()
+  await expect(page.getByText(secret,{exact:true})).toBeVisible()
+  const qr=await page.getByRole('img',{name:'QR para configurar tu aplicación de autenticación',exact:true}).getAttribute('src')
+  const checksBefore=userChecks
+  // Supabase emits SIGNED_IN for the same session when the browser regains
+  // focus. Exercise that revalidation rather than bypass the account check.
+  await switchMockSession(page,USER_A)
+  await expect.poll(()=>userChecks).toBeGreaterThan(checksBefore)
+  await expect(page.getByText(secret,{exact:true})).toBeVisible()
+  await expect(page.getByRole('img',{name:'QR para configurar tu aplicación de autenticación',exact:true})).toHaveAttribute('src',qr!)
+  expect(enrollments).toBe(1)
+  expect(reads).toBe(0)
+  expect(await page.evaluate(value=>[localStorage,sessionStorage].some(storage=>Object.values(storage).some(item=>String(item).includes(value))),secret)).toBe(false)
+  await page.getByLabel('Código de tu aplicación de autenticación',{exact:true}).fill('123 456')
+  await expect(page.getByLabel('Código de tu aplicación de autenticación',{exact:true})).toHaveValue('123456')
+  await page.getByRole('button',{name:'VERIFICAR Y ENTRAR',exact:true}).click()
+  await expect(page.getByRole('button',{name:'NUEVO EVENTO',exact:true})).toBeVisible()
+  expect(reads).toBeGreaterThan(0)
+  expect(enrollments).toBe(1)
+})
+
+test('reloading resumes the newest pending MFA factor and shows rejection beside the code',async({page})=>{
+  await install(page,{aal:'aal1'})
+  const older='dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+  let valid=false,enrollments=0
+  await page.route(`${supabaseHost}/auth/v1/user`,route=>route.fulfill({json:{...makeSession().user,factors:[
+    {id:older,factor_type:'totp',status:'unverified',created_at:'2026-11-09T07:00:00Z'},
+    {id:F,factor_type:'totp',status:valid?'verified':'unverified',created_at:'2026-11-10T07:00:00Z'},
+  ]}}))
+  await page.route(`${supabaseHost}/auth/v1/factors`,route=>{enrollments++;return route.fulfill({status:500,json:{message:'Unexpected enrollment'}})})
+  await page.route(`${supabaseHost}/auth/v1/factors/${F}/challenge`,route=>route.fulfill({json:{id:'synthetic-challenge',expires_at:Math.floor(Date.now()/1000)+60}}))
+  await page.route(`${supabaseHost}/auth/v1/factors/${F}/verify`,route=>valid?route.fulfill({json:session()}):route.fulfill({status:400,json:{code:'mfa_verification_failed',message:'Synthetic rejection'}}))
+  await open(page)
+  await expect(page.getByText('Hay una configuración pendiente.',{exact:false})).toBeVisible()
+  await page.reload()
+  await expect(page.getByLabel('Dispositivo de verificación',{exact:true})).toHaveValue(F)
+  await expect(page.getByRole('img',{name:'QR para configurar tu aplicación de autenticación',exact:true})).toHaveCount(0)
+  await page.getByLabel('Código de tu aplicación de autenticación',{exact:true}).fill('123456')
+  await page.getByRole('button',{name:'VERIFICAR Y ENTRAR',exact:true}).click()
+  await expect(page.locator('form').getByRole('alert')).toContainText('No se pudo verificar el código.')
+  valid=true
+  await page.getByRole('button',{name:'VERIFICAR Y ENTRAR',exact:true}).click()
+  await expect(page.getByRole('button',{name:'NUEVO EVENTO',exact:true})).toBeVisible()
+  expect(enrollments).toBe(0)
+})
+
+test('an explicit MFA restart retires only pending TOTP setups and changing account clears its secret',async({page})=>{
+  await install(page,{aal:'aal1'})
+  const older='dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+  const phone='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
+  const fresh='ffffffff-ffff-4fff-8fff-ffffffffffff'
+  const secret='SYNTHETIC-FRESH-PRIVATE-SETUP'
+  let factors=[
+    {id:older,factor_type:'totp',status:'unverified',created_at:'2026-11-09T07:00:00Z'},
+    {id:F,factor_type:'totp',status:'unverified',created_at:'2026-11-10T07:00:00Z'},
+    {id:phone,factor_type:'phone',status:'verified',created_at:'2026-11-08T07:00:00Z'},
+  ]
+  const removed:string[]=[]
+  await page.route(`${supabaseHost}/auth/v1/user`,route=>{
+    const uid=JSON.parse(Buffer.from(route.request().headers().authorization!.split('.')[1],'base64url').toString()).sub
+    return route.fulfill({json:{...makeSession(uid).user,factors:uid===USER_A?factors:[]}})
+  })
+  for(const id of [older,F,phone]) await page.route(`${supabaseHost}/auth/v1/factors/${id}`,route=>{
+    removed.push(id);factors=factors.filter(factor=>factor.id!==id)
+    return route.fulfill({json:{id}})
+  })
+  await page.route(`${supabaseHost}/auth/v1/factors`,route=>{
+    factors.push({id:fresh,factor_type:'totp',status:'unverified',created_at:'2026-11-10T08:00:00Z'})
+    return route.fulfill({json:{id:fresh,type:'totp',totp:{secret,qr_code:'<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"/>',uri:'otpauth://totp/synthetic'}}})
+  })
+  await open(page)
+  await page.getByRole('button',{name:'CONFIGURAR OTRA CLAVE',exact:true}).click()
+  await expect(page.getByText(secret,{exact:true})).toBeVisible()
+  expect(removed.sort()).toEqual([older,F].sort())
+  expect(factors.some(factor=>factor.id===phone)).toBe(true)
+  await switchMockSession(page,USER_B)
+  await expect(page.getByText('Esta cuenta no tiene permisos de administración.',{exact:true})).toBeVisible()
+  await expect(page.getByText(secret,{exact:true})).toHaveCount(0)
+  await switchMockSession(page,USER_A)
+  await expect(page.getByText('Hay una configuración pendiente.',{exact:false})).toBeVisible()
+  await expect(page.getByText(secret,{exact:true})).toHaveCount(0)
+  await expect(page.getByRole('img',{name:'QR para configurar tu aplicación de autenticación',exact:true})).toHaveCount(0)
+})

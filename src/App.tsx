@@ -7,6 +7,7 @@ import PwaControls from './pwa/PwaControls'
 import { captureLaunchPass, PASS_CHANGE_EVENT, PENDING_PASS_KEY, PENDING_PASSES_KEY, readPendingPasses } from './events/pass'
 import { usePendingPassRedemption } from './events/usePendingPassRedemption'
 import { useAdminAccess } from './admin/access'
+import type { AdminMfaEnrollment } from './admin/AdminMfa'
 const AdminPanel = lazy(() => import('./admin/AdminPanel'))
 const Account = lazy(() => import('./auth/Account'))
 const PhotoGallery = lazy(() => import('./PhotoGallery'))
@@ -35,6 +36,10 @@ const launchPass = captureLaunchPass()
 
 export default function App() {
   const auth = useAuth()
+  // Keep setup only in this page's memory while a focus check revalidates the
+  // account. A different verified owner or sign-out clears it before display.
+  const adminMfaSetup = useRef<AdminMfaEnrollment | null>(null)
+  if (adminMfaSetup.current && (adminMfaSetup.current.client !== auth.client || (!auth.loading && adminMfaSetup.current.owner !== auth.user?.id))) adminMfaSetup.current = null
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
@@ -233,7 +238,7 @@ export default function App() {
           {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
           <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} /></Suspense>
         </section>}
-        {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} onSignIn={() => go('cuenta')} /></Suspense></section>}
+        {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
         {page === 'arcade' && (
           <section className="content inner-page arcade-page">
