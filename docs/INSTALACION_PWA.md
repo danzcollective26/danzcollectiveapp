@@ -3,13 +3,14 @@
 La aplicación incorpora un manifest con identidad estable, iconos PNG de
 192/512 px y variante maskable, icono Apple de 180 px y modo standalone. El
 monograma D. es provisional; no sustituye la futura aplicación de los logos
-originales del colectivo. La demo conserva su audiencia privada de Sites.
+originales del colectivo. La PWA abre al público sin ChatGPT desde el 10 de
+noviembre de 2026, por autorización del propietario.
 
 ## En el móvil
 
 Abrir la demo con conexión en Chrome (Android) o Safari (iPhone). Si el enlace
-se abrió dentro del correo/ChatGPT, pasarlo al navegador. Entrar con la cuenta
-ChatGPT propietaria cuando lo pida el hosting.
+se abrió dentro del correo/ChatGPT, pasarlo al navegador. El hosting de esta
+PWA ya no pide una cuenta ChatGPT; el acceso a fotos sigue protegido por DANZ.
 
 Usar «Instalar DANZ» si Chrome ofrece la instalación. En caso contrario,
 «Cómo instalar DANZ» muestra las instrucciones del navegador:

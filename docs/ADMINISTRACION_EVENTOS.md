@@ -37,7 +37,9 @@ desde el proveedor de autenticación con verificación de identidad.
 - Revocar requiere confirmación; no elimina los sellos ya conseguidos. Mostrar
   el código a asistentes sigue demostrando posesión, no presencia física.
 
-La demo mantiene su audiencia privada. Sus QR no convierten el sitio en público.
+La PWA abre sin ChatGPT desde el 10 de noviembre de 2026, con autorización del
+propietario. Un QR guarda un pase pendiente; no concede permisos de administración
+ni acceso a fotos sin una cuenta y un sello validado.
 El panel lista los 200 eventos y 100 códigos por evento más recientes. La
 paginación histórica de eventos, delegación de roles desde la interfaz,
 moderación, auditoría administrativa avanzada y recuperación de MFA quedan pendientes.

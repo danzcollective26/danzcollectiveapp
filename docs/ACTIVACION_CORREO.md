@@ -71,9 +71,9 @@ El interruptor verde con campos vacíos de las capturas no confirma activación.
 5. Comprobar recepción también en un destinatario de prueba fuera del equipo
    Supabase, cuenta verificada, sesión tras recargar y cierre de sesión.
 
-La demo de Sites conserva el acceso privado para su propietario. El SMTP no
-quita ese requisito de ChatGPT. La prueba individual anterior no valida envío
-general, y los tests automáticos no envían correos reales.
+Desde el 10 de noviembre de 2026 la PWA es pública por autorización del
+propietario y no requiere ChatGPT. Ese cambio no acredita envío general: la
+prueba individual anterior y los tests automáticos no validan entrega masiva.
 
 ## Conexión con el dominio más adelante
 

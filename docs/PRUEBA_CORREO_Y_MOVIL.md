@@ -31,9 +31,9 @@ poner la misma URL de demo. Si ya apunta a un sitio vigente, conservarlo:
 para el flujo actual basta añadir la URL en **Redirect URLs**, porque la app
 manda el destino explícitamente. No usar comodines amplios como `https://**`.
 
-No hace falta enviar claves ni contraseñas por chat. La demo de Sites está
-configurada como privada: primero hay que entrar con la cuenta ChatGPT dueña
-del sitio. Esa sesión es independiente de la cuenta DANZ en Supabase.
+No hace falta enviar claves ni contraseñas por chat. Desde el 10 de noviembre
+de 2026, con autorización del propietario, la PWA abre sin ChatGPT. La cuenta
+DANZ en Supabase sigue protegiendo el perfil, las galerías y la administración.
 
 ## Qué correo sirve para la primera prueba
 

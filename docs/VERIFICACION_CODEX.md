@@ -557,3 +557,33 @@ no se presenta como una prueba autenticada de la UI alojada. Pendientes: autoriz
 para abrir la PWA sin ChatGPT, Apple Developer y prueba física de Apple/iPhone,
 MFA del propietario y capacidad real de 200 altas. Registro posterior documental;
 no modifica la aplicación publicada.
+
+## Apertura pública autorizada — 10 de noviembre de 2026
+
+El propietario autorizó explícitamente abrir la PWA sin ChatGPT. La operación
+nativa de Sites confirmó access_mode=public, revisión 2. Se conserva la versión
+11 y no se añaden editores, administradores ni destinatarios de invitaciones.
+No cambia el proyecto Supabase, sus secretos, su autenticación ni sus permisos.
+
+Antes de la apertura, peticiones anónimas con la clave publicable a eventos,
+fotos y perfiles fueron rechazadas con HTTP 401. En el navegador que antes
+mostraba la puerta privada, recargar abrió directamente la PWA sin autenticarse
+en ChatGPT. Fotos pidió iniciar sesión y Cuenta mostró Continuar con Google;
+Apple no se anuncia como activado. Una sonda de urllib sin credencial de servicio
+devolvió 403, por lo que no se usa como prueba de acceso público: la verificación
+positiva es la del navegador y la política devuelta por Sites.
+
+El propietario no conoce una membresía Apple Developer del colectivo. El crédito
+de bienvenida de Google Cloud solo sirve para sus productos y servicios elegibles;
+Apple Developer se paga a Apple aparte, con tarifa de referencia 99 USD/año o
+precio local. No se ha verificado el saldo o la caducidad de una cuenta concreta,
+contratado Apple, movido fotos a Google Cloud ni activado facturación de pago.
+La configuración Apple y una prueba física en iPhone siguen pendientes.
+
+Fuentes oficiales revisadas:
+- https://docs.cloud.google.com/free/docs/free-cloud-features
+- https://developer.apple.com/help/account/membership/program-enrollment
+
+No hubo cambios de código ni una nueva versión: se conserva la validación
+76/76 + 147/147 + 2/2 del código publicado. Este registro y las guías se
+actualizan en Git para no volver a tratar el sitio como privado.

@@ -7,8 +7,9 @@ está en `DANZ-TRASPASO-CODEX.md` y `docs/VERIFICACION_CODEX.md`.
 ## Demo privada
 
 [Abre la demo publicada](https://danz-collective-demo.right-vine-9666.chatgpt.site).
-Requiere la cuenta ChatGPT dueña del sitio. La cuenta DANZ/Supabase es una
-sesión distinta; la configuración mínima para probar correo y móvil está
+La PWA abre al público sin una cuenta de ChatGPT desde el 10 de noviembre de
+2026, con autorización del propietario. Fotos, perfiles y administración mantienen
+sus permisos de DANZ/Supabase. La configuración para probar correo y móvil está
 en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 
 ## Estado actual

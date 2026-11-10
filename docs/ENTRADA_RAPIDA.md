@@ -35,9 +35,9 @@ correcto. Una restricción de history.replaceState no impide guardar ni navegar.
   canjes después de la fiesta, preparar una ventana adecuada y no archivar el
   evento antes de ese plazo; una reserva anónima verificable en servidor no está
   implementada. No prometer un sello permanente antes de haberlo vinculado.
-- La PWA publicada sigue privada en Sites. El acceso sin ChatGPT para asistentes
-  requiere abrir su audiencia, conservando los permisos de fotos y administración.
-  No se ha cambiado ese acceso en esta entrega.
+- Acceso público autorizado por el propietario el 10 de noviembre de 2026.
+  Sites confirmó modo public, revisión 2, versión 11. Se comprobó en navegador
+  que abre sin ChatGPT y mantiene el acceso a galerías tras inicio de sesión.
 - No se garantiza que Google/Apple completen un primer alta en un único toque:
   pueden pedir selección de cuenta, contraseña, consentimiento o validación.
 - La capacidad de 200 altas todavía requiere la prueba de carga y los límites
@@ -48,8 +48,10 @@ correcto. Una restricción de history.replaceState no impide guardar ni navegar.
 La PWA usa un cliente web: App ID con Sign in with Apple, Services ID asociado,
 Team ID y clave de firma del programa Apple Developer. El titular conserva la
 clave .p8 y configura el secreto directamente en Supabase; no se comparte en chat,
-Git ni Vite. Se consulta si el colectivo ya dispone de esa cuenta antes de una
-contratación o creación de credenciales. Dominio y retorno preparados:
+Git ni Vite. El propietario indica que, hasta donde sabe, no disponen de Apple
+Developer. La membresía de pago y las credenciales siguen pendientes. El crédito
+promocional de Google Cloud cubre servicios elegibles de Google Cloud, no la
+membresía de Apple; no se ha contratado ni pagado ningún servicio. Dominio y retorno preparados:
 
 - Dominio: ttgehdknhnrxtddxpknc.supabase.co
 - Retorno: https://ttgehdknhnrxtddxpknc.supabase.co/auth/v1/callback

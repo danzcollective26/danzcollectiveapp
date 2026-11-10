@@ -119,9 +119,11 @@ prueba de carga controlada en un entorno de ensayo, sin enviar cientos de correo
 reales ni crear cuentas de Google falsas. Los tests con API simulada prueban flujo
 y permisos; no acreditan capacidad ni entregabilidad de los proveedores reales.
 
-La demo de Sites conserva su puerta privada de ChatGPT. Para asistentes debe
-prepararse y publicar el acceso público a la PWA, manteniendo las galerías y el
-panel protegidos por Supabase/RLS y MFA. Ese cambio de audiencia no se ha hecho.
+El 10 de noviembre de 2026 el propietario autorizó explícitamente abrir la PWA
+al público. Sites confirmó access_mode=public, revisión 2, conservando la versión
+11. La página y el botón Google abren sin ChatGPT; las galerías y el panel siguen
+protegidos por Supabase/RLS y MFA. Peticiones anónimas a eventos, fotos y perfiles
+fueron rechazadas con HTTP 401 y la galería mostró su requisito de inicio de sesión.
 
 ## Fuentes oficiales
 
