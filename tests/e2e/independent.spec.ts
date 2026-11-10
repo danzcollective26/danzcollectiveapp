@@ -29,7 +29,11 @@ test('the app opens its own sections without connecting to the collective websit
 })
 
 test('artist profiles leave an embedded preview instead of loading a platform inside its iframe', async ({ page, baseURL, context }) => {
-  const preview = 'http://danz-preview.example/'
+  // Two loopback origins isolate iframe navigation from Chrome's unrelated
+  // permission gate for requests from public websites to a local test server.
+  const previewUrl = new URL('/__preview_test__', baseURL)
+  previewUrl.hostname = 'localhost'
+  const preview = previewUrl.href
   const destination = 'https://soundcloud.com/chicharro-es'
   await page.route(preview, route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><title>Vista previa</title><iframe title="DANZ" sandbox="allow-scripts allow-same-origin allow-top-navigation-by-user-activation" src="${baseURL}/?seccion=musica"></iframe>` }))
   await page.route(destination, route => route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Artista</title><h1>Perfil del artista</h1>' }))
