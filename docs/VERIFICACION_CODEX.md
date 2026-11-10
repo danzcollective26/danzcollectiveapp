@@ -611,3 +611,24 @@ QR nuevo recibido durante un canje y correo iCloud con API simulada. Google y
 Apple recorren el callback PKCE, verificación de usuario y sello automático en
 las pruebas. Esto no acredita entrega real a iCloud ni activa el proveedor Apple.
 No se han enviado correos, creado cuentas externas ni modificado permisos.
+
+### Validación y publicación de la versión 12
+
+- GitHub: `eb2d7478c50061c48374b7336e6942300d31924d`.
+- CI `42767486730`, job `129667276416`: 80/80 pruebas de lógica y SQL,
+  165/165 E2E Chromium en tres tamaños y 2/2 de PWA sin conexión. Sin fallos.
+- Árbol común comprobado: `6bbd5c65a3177cc3cfada89918e2c9e9238c88cf`.
+- Source Sites: `2c0d74a69c334edb277e5e644ba17cb0342dba4d`.
+- Versión 12: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_90e340ce35f8819183464667400541a8`.
+- Deployment: `appgdep_6af2b9fcd4bc8191a45aafd4f6b837ca`, `succeeded`,
+  10 de noviembre de 2026 a las 06:30 UTC. Se conserva la audiencia pública.
+- Build SW `f0af79dd03f384a3`, bundle `index-DljjkRVw.js`.
+- Paquete local: 418029 bytes, 28 entradas, cuatro retratos y backend de
+  producción. Sin entornos, credenciales servidor ni fixtures QA.
+
+La revisión visual local conservó varios pases tras recargar y permitió seguir
+con la noche. La página pública alojada abrió directamente sin la puerta de
+ChatGPT. No se completó un canje real en producción durante esta revisión.
+Apple Developer, la recepción real de correo en iCloud, un iPhone físico,
+MFA del propietario y la capacidad real de 200 altas siguen pendientes.
+Este registro posterior solo documenta el despliegue; no cambia su código.
