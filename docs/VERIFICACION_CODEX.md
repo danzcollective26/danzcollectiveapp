@@ -722,7 +722,15 @@ La primera CI (`42864960442`, commit `b38b71c21bb27d3846a49fcffcc160cfac6f4473`)
 aprobó 85 pruebas de lógica/SQL y 174 recorridos E2E; fallaron dos casos en los
 tres tamaños. La prueba de independencia seguía esperando cero imágenes en
 Snake; ahora verifica la flor local cargada y la ausencia de caras pendientes.
-La secuencia de colisión no esperaba la representación de cada movimiento antes
-de enviar el siguiente giro con reloj simulado; ahora comprueba ambas posiciones
-intermedias. Se conserva la aserción de GAME OVER al chocar contra un muro.
-La nueva validación CI y la publicación se registrarán al completarse.
+La secuencia de colisión añade comprobaciones de ambas posiciones intermedias
+antes de enviar el siguiente giro con reloj simulado.
+
+La segunda CI (`42866767634`, commit `9134126356d0ae4e05b40442792c7dde15df17b8`)
+aprobó 177 E2E; el caso de colisión todavía fallaba en tres tamaños. La revisión
+directa del navegador confirmó la causa: el contenido del recuadro es
+`GAME OVEROTRA PARTIDA?`, por lo que getByText con coincidencia exacta no encontraba
+el texto aislado. El juego ya estaba terminado y mostraba VOLVER A JUGAR. Se
+comprueba ahora el contenido del recuadro y la acción de repetir, manteniendo
+las posiciones intermedias y la colisión real contra el muro. No hay cambios
+de código de la aplicación por estas correcciones de pruebas.
+La validación CI final y la publicación se registrarán al completarse.
