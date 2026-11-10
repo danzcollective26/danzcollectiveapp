@@ -744,3 +744,27 @@ Dos regresiones comprueban el SVG válido y rechazos de HTML, JSON y otro origen
 El workflow ejecuta ahora la prueba breve PWA antes de los 180 recorridos para
 detectar antes problemas del paquete. La validación y publicación finales se
 registrarán al completarse.
+
+### Publicación de color, flor y Arcade — versión 17
+
+- GitHub: `cad85984ff821487490dece73e39821366b86867`.
+- Árbol común probado: `4210239f7e94b759fe20a94569f17759e3c5222c`.
+- CI `42869795902`, job `130017670995`, success: 87/87 pruebas internas,
+  2/2 PWA y 180/180 E2E, sin fallos ni reintentos.
+- Source Sites: `6c34915e46ecbd1b37a274694651216ea263d35e`.
+- Versión 17: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_0f86f7e084188191b2bb1600790332cb`.
+- Deployment `appgdep_6af35c25ea6c81919d19f46784ed0062`, succeeded,
+  10 de noviembre de 2026 a las 18:02 UTC. Se mantiene la audiencia pública.
+- Paquete de producción: 917921 bytes, 39 entradas y 31 archivos; cuatro
+  retratos, flor, marca oficial y carátula. Sin entornos, fixtures ni secretos
+  servidor. Bundle `index-LB5sCGGn.js`, SW `c3978ca442abffa6`.
+
+Las versiones 14–16 se guardaron durante la verificación y no se publicaron.
+La página pública abre directamente y muestra la flor, los colores nuevos,
+los tres recorridos de Snake y la tarjeta Idle con su imagen cargada. Se guarda
+una captura de la tarjeta publicada como evidencia. La sesión de Chrome gestionado
+no mostró el indicador de shell listo; no se usa esa sesión para acreditar el
+modo sin conexión del sitio alojado. Las dos pruebas PWA acreditan el build de
+producción en CI. Quedan por comprobar el modo sin conexión en un móvil real y
+una copia impresa del cartel. Administración/MFA y las caras siguen pendientes
+del propietario. Este registro posterior no modifica la aplicación publicada.
