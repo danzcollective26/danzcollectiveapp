@@ -15,7 +15,7 @@ un correo. Debe poder guardarse el pase al abrir el enlace del QR y continuar.
    operativo y probado con la cuenta del propietario. Apple tiene el flujo de
    cliente preparado, pero sigue desactivado hasta configurar Apple Developer.
 5. El sello definitivo y el acceso a fotos solo se conceden al iniciar sesión y
-   canjear un código válido. La verificación adicional de DANZ es para administrar,
+   canjear automáticamente los códigos válidos guardados. No hace falta pulsar «Guardar mi sello» después del acceso. La verificación adicional de DANZ es para administrar,
    no es un paso obligatorio del acceso normal de los asistentes.
 
 Guardar el pase no necesita una solicitud de alta, canje o correo. No acredita por
@@ -42,6 +42,24 @@ correcto. Una restricción de history.replaceState no impide guardar ni navegar.
   pueden pedir selección de cuenta, contraseña, consentimiento o validación.
 - La capacidad de 200 altas todavía requiere la prueba de carga y los límites
   documentados en ACCESO_GOOGLE_APPLE_200_ALTAS.md.
+
+## Continuidad y conectividad — 10 de noviembre
+
+- Los pases se acumulan en una cola local; un segundo QR no borra la fiesta anterior.
+  El pase único de versiones anteriores se migra conservándolo.
+- Al entrar en una cuenta validada se canjean los códigos uno a uno. El servidor
+  conserva sus reglas de vigencia, cupo, autorización e idempotencia.
+- Un fallo de red conserva los pases. Una reconexión vuelve a intentar el canje;
+  también existe «Reintentar pases». Una respuesta tardía de otra sesión no cambia
+  el pasaporte de la cuenta actual.
+- La llegada no muestra instalación, menús secundarios ni espera al acceso para
+  confirmar el guardado local. En detalles hay un enlace de respaldo copiable.
+- La primera apertura necesita Internet. Reabrir sin conexión requiere haber
+  guardado previamente el shell de la PWA; no se garantiza en un navegador nuevo.
+  Las fotos privadas y la validación de cuentas requieren conexión.
+- iPhone admite Google si la persona tiene esa cuenta. El acceso por correo
+  admite iCloud y otros proveedores sin contraseña. La recepción general de
+  correo y el dispositivo iPhone físico siguen pendientes de prueba.
 
 ## Apple
 

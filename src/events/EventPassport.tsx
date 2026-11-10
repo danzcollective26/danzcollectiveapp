@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { clearPendingPass, normalizeEventCode, readPendingPass, savePendingPass } from './pass'
+import type { PassRedemption } from './usePendingPassRedemption'
 import './EventPassport.css'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
@@ -10,6 +11,8 @@ type Props = {
   userId: string | null
   authLoading: boolean
   pendingPass: string | null
+  pendingCount: number
+  redemption: PassRedemption
   launchIssue: string | null
   onPendingPass: (code: string | null) => void
   onSignIn: () => void
@@ -23,22 +26,14 @@ function date(value: string | null) {
   return Number.isNaN(parsed.valueOf()) ? '' : parsed.toLocaleDateString('es-ES', { dateStyle: 'medium' })
 }
 
-export default function EventPassport({ client, userId, authLoading, pendingPass, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
+export default function EventPassport({ client, userId, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
   const [code, setCode] = useState(pendingPass ?? '')
   const [message, setMessage] = useState<string | null>(launchIssue)
-  const [busy, setBusy] = useState(false)
+  const busy = redemption.busy
+  const [backup, setBackup] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
   const [passport, setPassport] = useState<{ owner: string | null; items: Stamp[]; loading: boolean; error: boolean }>({ owner: null, items: [], loading: true, error: false })
-  const scope = useRef({ client, userId, authLoading })
-  scope.current = { client, userId, authLoading }
-  const operation = useRef(0)
-  const mounted = useRef(true)
-
-  useEffect(() => {
-    mounted.current = true
-    return () => { mounted.current = false; operation.current += 1 }
-  }, [])
-  useEffect(() => { if (pendingPass) setCode(pendingPass) }, [pendingPass])
+  useEffect(() => { setCode(pendingPass ?? ''); setBackup(null) }, [pendingPass])
   useEffect(() => { setMessage(launchIssue) }, [launchIssue])
 
   useEffect(() => {
@@ -56,9 +51,9 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
       }
     })()
     return () => { current = false; abort.abort() }
-  }, [client, userId, authLoading, retry])
+  }, [client, userId, authLoading, retry, redemption.revision])
 
-  const redeem = async (event: FormEvent) => {
+  const redeem = (event: FormEvent) => {
     event.preventDefault()
     if (busy || authLoading) return
     const normalized = normalizeEventCode(code)
@@ -69,33 +64,8 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
       setMessage(saved ? 'Pase guardado en este móvil. Inicia sesión para añadir el sello a tu cuenta.' : 'Este navegador no permite guardar el pase. Mantén esta página abierta e inicia sesión. Conserva también tu código.')
       return
     }
-    if (!client) return
-    const current = ++operation.current
-    const owner = userId
-    const requestClient = client
-    const stillCurrent = () => mounted.current && operation.current === current && scope.current.userId === owner && scope.current.client === requestClient && !scope.current.authLoading
-    setBusy(true)
     setMessage(null)
-    try {
-      const { data, error } = await client.rpc('danz_redeem_event_code', { p_code: normalized })
-        .abortSignal(AbortSignal.timeout(15_000))
-      if (!stillCurrent()) return
-      if (error) throw error
-      const result = data?.[0]
-      if (result?.status === 'granted' || result?.status === 'already_attended') {
-        clearPendingPass(normalized)
-        onPendingPass(null)
-        setCode('')
-        setMessage(result.status === 'granted' ? '¡Sello guardado! Ya tienes acceso a la galería de este evento.' : 'Ya tienes este sello. Puedes abrir su galería desde tu pasaporte.')
-        setRetry(value => value + 1)
-      } else if (result?.status === 'rate_limited') {
-        setMessage('Has hecho varios intentos seguidos. Espera diez minutos antes de volver a probar.')
-      } else {
-        setMessage('Este código no está disponible. Revisa que sea correcto y que siga vigente.')
-      }
-    } catch {
-      if (stillCurrent()) setMessage('No hemos podido confirmar el canje. Comprueba la conexión y vuelve a intentarlo; el mismo sello no se duplica.')
-    } finally { if (stillCurrent()) setBusy(false) }
+    redemption.retry()
   }
 
   const requestSignIn = () => {
@@ -108,6 +78,13 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
     onSignIn()
   }
   const discard = () => { if (pendingPass) clearPendingPass(pendingPass); onPendingPass(null); setCode(''); setMessage('Pase pendiente descartado. Tus sellos guardados se conservan.') }
+  const copyPass = async () => {
+    if (!pendingPass) return
+    const link = new URL('/', window.location.origin)
+    link.hash = new URLSearchParams({ pase: pendingPass }).toString()
+    try { await navigator.clipboard.writeText(link.href); setBackup('Enlace copiado. Puedes guardarlo para abrir tu pase en otro navegador.') }
+    catch { setBackup(link.href) }
+  }
   const codeForm = <form onSubmit={event => void redeem(event)}>
     <label htmlFor="event-access-code">CÓDIGO DEL EVENTO</label>
     <input id="event-access-code" value={code} onChange={event => setCode(event.target.value)} maxLength={256} autoCapitalize="characters" autoComplete="off" autoCorrect="off" spellCheck={false} placeholder="DANZ-XXXX-XXXX-XXXX" disabled={busy} />
@@ -119,18 +96,21 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
   const savedForLater = !userId && Boolean(pendingPass) && !launchIssue && readPendingPass() === pendingPass
   if (savedForLater) return <section className="passport-receipt" aria-labelledby="saved-pass-title">
     <div className="eyebrow">DANZ COLLECTIVE / TU NOCHE</div>
-    <span className="passport-receipt-mark" aria-hidden="true">✳</span>
+    <svg className="passport-receipt-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" strokeWidth="2" /><path d="m14 24 7 7 14-15" fill="none" stroke="currentColor" strokeWidth="3" /></svg>
     <h1 id="saved-pass-title">PASE<br /><em>GUARDADO.</em></h1>
     <p className="passport-receipt-lead" role="status">Ya puedes seguir con tu noche.</p>
-    <p>Está guardado en este navegador. Vincúlalo a tu cuenta para confirmar el sello y abrir las fotos del evento.</p>
+    <p>Está guardado en este navegador. Cuando quieras ver las fotos, entra con tu cuenta y añadiremos el sello automáticamente.</p>
+    {pendingCount > 1 && <p className="passport-queue-note">Tienes {pendingCount} pases guardados. Cada fiesta conserva el suyo.</p>}
     <div className="passport-receipt-actions">
-      <button type="button" className="primary-btn" onClick={onContinue}>SEGUIR CON MI NOCHE <span aria-hidden="true">↗</span></button>
+      <button type="button" className="primary-btn" onClick={onContinue}>SEGUIR CON MI NOCHE</button>
       {client && <button type="button" className="outline-btn" onClick={requestSignIn}>VINCULAR MI PASE</button>}
     </div>
     <p className="passport-receipt-note">Sin instalar la app. Puedes iniciar sesión más tarde; conserva este navegador hasta vincularlo.</p>
     <details className="passport-receipt-details passport-redeem">
       <summary>VER MI CÓDIGO Y OPCIONES</summary>
       <p>El sello se confirma al comprobar el código y vincularlo a tu cuenta. El código debe seguir vigente.</p>
+      <button type="button" className="outline-btn" onClick={() => void copyPass()}>COPIAR ENLACE DE MI PASE</button>
+      {backup && <p className="passport-backup" role="status">{backup}</p>}
       {codeForm}
       {message && <p className="passport-message" role="status">{message}</p>}
       <button type="button" className="outline-btn" onClick={discard}>DESCARTAR PASE PENDIENTE</button>
@@ -151,6 +131,8 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
         {authLoading && <p role="status">Comprobando tu sesión…</p>}
         {!userId && !authLoading && client && <button type="button" className="primary-btn" onClick={requestSignIn}>INICIAR SESIÓN</button>}
         {message && <p className="passport-message" role="status">{message}</p>}
+        {redemption.message && <p className="passport-message" role="status">{redemption.message}</p>}
+        {userId && pendingPass && !busy && <button type="button" className="outline-btn" onClick={redemption.retry}>REINTENTAR PASES</button>}
         {pendingPass && !busy && <button type="button" className="outline-btn" onClick={discard}>DESCARTAR PASE PENDIENTE</button>}
       </section>
       <section aria-labelledby="passport-title">

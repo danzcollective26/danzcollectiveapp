@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { GRID, gameReducer, initialGame, nextFood, swipeDirection, type Game } from '../src/snake.ts'
+import { GRID, gameLevel, gameTickMs, gameReducer, initialGame, nextFood, swipeDirection, type Game } from '../src/snake.ts'
 
 const tick = (game: Game) => gameReducer(game, { type: 'tick', random: 0.4 })
 const running = () => gameReducer(initialGame(), { type: 'start' })
@@ -99,4 +99,14 @@ test('gestos: cuatro direcciones y rechazo de pulsaciones cortas', () => {
   assert.equal(swipeDirection(5, 70), 'down')
   assert.equal(swipeDirection(5, -70), 'up')
   assert.equal(swipeDirection(5, -8), null)
+})
+
+test('la progresión sube cada cinco objetivos y limita la velocidad máxima', () => {
+  assert.equal(gameLevel(0), 1)
+  assert.equal(gameLevel(40), 1)
+  assert.equal(gameLevel(50), 2)
+  assert.equal(gameTickMs(0), 150)
+  assert.equal(gameTickMs(50), 142)
+  assert.equal(gameLevel(1500), 10)
+  assert.equal(gameTickMs(1500), 78)
 })

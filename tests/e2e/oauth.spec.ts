@@ -15,6 +15,13 @@ for (const provider of ['google', 'apple'] as const) {
     await mockSupabase(page)
     await page.route(`${supabaseHost}/auth/v1/settings`, route => route.fulfill({ json: { external: { google: true, apple: true } } }))
     await page.route(`${supabaseHost}/rest/v1/danz_profiles**`, route => route.fulfill({ json: [] }))
+    let redeemed = false
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+      expect(route.request().postDataJSON()).toEqual({ p_code: 'ABCD1234EFGH5678IJKL9012' })
+      redeemed = true
+      await route.fulfill({ json: [{ status: 'granted', event_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', granted_at: '2026-11-10T04:00:00Z' }] })
+    })
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: redeemed ? [{ event_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', title: 'Mi primera noche', starts_at: null, event_status: 'published', granted_at: '2026-11-10T04:00:00Z' }] : [] }))
     let emailRequests = 0
     let exchanges = 0
     await page.route(`${supabaseHost}/auth/v1/otp**`, async route => { emailRequests++; await route.fulfill({ json: {} }) })
@@ -41,10 +48,10 @@ for (const provider of ['google', 'apple'] as const) {
     await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
     await page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true }).click()
     await page.getByRole('button', { name: `Continuar con ${provider === 'google' ? 'Google' : 'Apple'}`, exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Mi primera noche', exact: true })).toBeVisible()
     expect(exchanges).toBe(1)
     expect(emailRequests).toBe(0)
-    expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBe(pass)
+    expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBeNull()
     expect(page.url()).not.toMatch(/code=|synthetic-oauth/)
     await expect(page.getByRole('button', { name: 'Administrar', exact: true })).toHaveCount(0)
   })

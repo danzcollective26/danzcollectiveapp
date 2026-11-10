@@ -5,7 +5,7 @@ type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<
 const production = Boolean((import.meta as ImportMeta & { env: { PROD?: boolean } }).env.PROD)
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 
-export default function PwaControls() {
+export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
   const [online, setOnline] = useState(navigator.onLine)
   const [installed, setInstalled] = useState(standalone)
   const [canInstall, setCanInstall] = useState(false)
@@ -80,13 +80,13 @@ export default function PwaControls() {
     } catch { setError('Abre las instrucciones para instalar DANZ desde el menú de tu navegador.'); setOpen('install') }
     finally { setBusy(false) }
   }
-  return <aside className="content pwa-tools" aria-label="DANZ en tu móvil">
+  return <aside className={`content pwa-tools${quiet ? ' pwa-quiet' : ''}`} aria-label="DANZ en tu móvil">
     {!online && <p className="pwa-offline" role="status">Sin conexión. Snake y los álbumes guardados en este navegador siguen disponibles. Las cuentas y las galerías privadas necesitan Internet.</p>}
-    <div className="pwa-actions">
+    {!quiet && <div className="pwa-actions">
       {ready && <span>Snake disponible sin conexión</span>}
       {!installed && <button className="outline-btn" disabled={busy} onClick={() => { void install() }}>{canInstall ? 'INSTALAR DANZ' : 'CÓMO INSTALAR DANZ'}</button>}
       {update && <button className="outline-btn" onClick={() => setOpen('update')}>VERSIÓN NUEVA DISPONIBLE</button>}
-    </div>
+    </div>}
     <dialog className="pwa-dialog" ref={dialog} aria-labelledby="pwa-dialog-title" onCancel={() => setOpen(null)} onClose={() => setOpen(null)}>
       <h2 id="pwa-dialog-title">{open === 'update' ? 'Actualiza cuando estés listo.' : 'DANZ en tu pantalla de inicio.'}</h2>
       {open === 'update' ? <><p>La aplicación se recargará. Termina las cargas de fotos y guarda tus cambios antes de continuar.</p><button className="primary-btn" onClick={() => {
@@ -97,7 +97,7 @@ export default function PwaControls() {
         <p><strong>Android:</strong> abre esta página en Chrome. Pulsa el menú ⋮ y busca «Instalar y crear acceso directo» o «Añadir a pantalla de inicio». Confirma la instalación.</p>
         <p><strong>iPhone:</strong> abre esta página en Safari. Pulsa Compartir → Añadir a pantalla de inicio y confirma Añadir. Activa «Abrir como app web» si aparece.</p>
         <p>Si estás dentro de la app de correo o de ChatGPT, abre primero el enlace en Chrome o Safari.</p>
-        <p>La demo sigue siendo privada y necesita tu cuenta ChatGPT para abrirse por primera vez. El acceso a fotos requiere además tu cuenta DANZ y el sello del evento.</p>
+        <p>DANZ abre sin una cuenta de ChatGPT. Para tus fotos privadas, vincula el pase del evento a tu cuenta DANZ.</p>
       </>}
       {error && <p role="alert">{error}</p>}
       <button className="outline-btn" onClick={() => setOpen(null)}>CERRAR</button>

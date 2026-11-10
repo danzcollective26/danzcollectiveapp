@@ -1,16 +1,17 @@
 import { lazy, Suspense, useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import './App.css'
-import PhotoGallery from './PhotoGallery'
-import Account from './auth/Account'
 import { useAuth } from './auth/AuthProvider'
 import { emailCallbackPresent } from './auth/client'
-import PrivateGallery from './cloud/PrivateGallery'
 import EventPassport from './events/EventPassport'
 import PwaControls from './pwa/PwaControls'
-import { captureLaunchPass } from './events/pass'
+import { captureLaunchPass, PASS_CHANGE_EVENT, PENDING_PASS_KEY, PENDING_PASSES_KEY, readPendingPasses } from './events/pass'
+import { usePendingPassRedemption } from './events/usePendingPassRedemption'
 import { useAdminAccess } from './admin/access'
 const AdminPanel = lazy(() => import('./admin/AdminPanel'))
-import { gameReducer, initialGame, GRID, swipeDirection, type Direction } from './snake'
+const Account = lazy(() => import('./auth/Account'))
+const PhotoGallery = lazy(() => import('./PhotoGallery'))
+const PrivateGallery = lazy(() => import('./cloud/PrivateGallery'))
+import { gameReducer, initialGame, GRID, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
 import { parseCollective, snakeFace } from './content/collective'
 import DanzMusic from './content/DanzMusic'
@@ -29,7 +30,7 @@ const pages: { id: Page; label: string }[] = [
   { id: 'cuenta', label: 'Cuenta' },
 ]
 
-function Arrow() { return <span aria-hidden="true" className="arrow">↗</span> }
+function Arrow() { return <svg aria-hidden="true" className="arrow" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19 19 5M5 5h14v14" /></svg> }
 const launchPass = captureLaunchPass()
 
 export default function App() {
@@ -39,21 +40,47 @@ export default function App() {
     const params = new URLSearchParams(window.location.search)
     return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : params.get('seccion') === 'cuenta' ? 'cuenta' : launchPass.code || launchPass.invalid ? 'danzers' : params.get('seccion') === 'musica' ? 'danzin' : 'inicio'
   })
-  const [pendingPass, setPendingPass] = useState(launchPass.code)
+  const [pendingPasses, setPendingPasses] = useState(() => {
+    const saved = readPendingPasses()
+    return launchPass.code && !saved.includes(launchPass.code) ? [...saved, launchPass.code] : saved
+  })
+  const pendingPass = pendingPasses.at(-1) ?? null
   const [passIssue, setPassIssue] = useState(launchPass.invalid ? 'El enlace del pase no contiene un código válido.' : !launchPass.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
   const [galleryEvent, setGalleryEvent] = useState('')
   const [photoSource, setPhotoSource] = useState<'private' | 'local'>('private')
+  const localGalleryOpened = useRef(false)
+  if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
+  const [record, setRecord] = useState(readSnakeRecord)
   const [showControls, setShowControls] = useState(() => {
     try { return localStorage.getItem('danz-snake-buttons') === 'true' } catch { return false }
   })
   const gesture = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+  const redemption = usePendingPassRedemption(auth.client, auth.user?.id ?? null, auth.loading, pendingPasses)
+  const quickArrival = page === 'danzers' && !auth.user && Boolean(pendingPass)
+  const syncPasses = (code: string | null) => {
+    const saved = readPendingPasses()
+    setPendingPasses(code && !saved.includes(code) ? [...saved, code] : saved)
+    if (code && saved.includes(code)) setPassIssue(null)
+  }
+
+  useEffect(() => {
+    const refresh = () => setPendingPasses(readPendingPasses())
+    const storage = (event: StorageEvent) => { if (!event.key || [PENDING_PASS_KEY, PENDING_PASSES_KEY].includes(event.key)) refresh() }
+    window.addEventListener(PASS_CHANGE_EVENT, refresh)
+    window.addEventListener('storage', storage)
+    return () => { window.removeEventListener(PASS_CHANGE_EVENT, refresh); window.removeEventListener('storage', storage) }
+  }, [])
+
+  useEffect(() => {
+    if (auth.user && pendingPasses.length) setPage(previous => previous === 'cuenta' ? 'danzers' : previous)
+  }, [auth.user?.id])
 
   useEffect(() => {
     const receivePass = () => {
       if (!new URLSearchParams(window.location.hash.slice(1)).has('pase')) return
       const incoming = captureLaunchPass()
-      setPendingPass(incoming.code)
+      syncPasses(incoming.code)
       setPassIssue(incoming.invalid ? 'El enlace del pase no contiene un código válido.' : !incoming.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
       dispatch({ type: 'pause' })
       setPage('danzers')
@@ -92,9 +119,13 @@ export default function App() {
 
   useEffect(() => {
     if (page !== 'arcade' || !game.running) return
-    const timer = window.setInterval(() => dispatch({ type: 'tick', random: Math.random() }), 150)
+    const timer = window.setInterval(() => dispatch({ type: 'tick', random: Math.random() }), gameTickMs(game.score))
     return () => window.clearInterval(timer)
-  }, [page, game.running])
+  }, [page, game.running, game.score])
+
+  useEffect(() => {
+    if (game.score > record) setRecord(saveSnakeRecord(game.score))
+  }, [game.score, record])
 
   useEffect(() => {
     if (page !== 'arcade') return
@@ -131,7 +162,7 @@ export default function App() {
   }
 
   return (
-    <div className="site-shell">
+    <div className={`site-shell${quickArrival ? ' quick-arrival' : ''}`}>
       <header className="topbar">
         <button className="wordmark" onClick={() => go('inicio')} aria-label="DANZ Collective, ir al inicio">
           DANZ<span className="wordmark-dot">.</span><span className="wordmark-small">COLLECTIVE</span>
@@ -147,10 +178,10 @@ export default function App() {
         <span className="build-tag"><span className="status-dot"/> {auth.user ? 'CONECTADO' : 'EN DESARROLLO'}</span>
       </header>
 
-      <PwaControls />
+      <PwaControls quiet={quickArrival || page === 'arcade'} />
 
       <main>
-        {pendingPass && page !== 'danzers' && <div className="content pending-pass-banner"><span>Tienes un pase de evento guardado.</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
+        {pendingPass && page !== 'danzers' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
         {page === 'inicio' && (
           <>
             <section className="intro content">
@@ -195,24 +226,25 @@ export default function App() {
           <button type="button" className="outline-btn" aria-pressed={photoSource === 'private'} onClick={() => setPhotoSource('private')}>Galerías privadas</button>
           <button type="button" className="outline-btn" aria-pressed={photoSource === 'local'} onClick={() => setPhotoSource('local')}>Álbumes de este navegador</button>
         </div>}
-        <PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} />
-        {page === 'fotos' && photoSource === 'private' && <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}
+        {localGalleryOpened.current && <Suspense fallback={<p className="content" role="status">Abriendo tus álbumes…</p>}><PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} /></Suspense>}
+        {page === 'fotos' && photoSource === 'private' && <Suspense fallback={<p className="content" role="status">Abriendo las galerías…</p>}><PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} /></Suspense>}
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
-          <Account key={auth.user?.id ?? 'guest'} />
+          <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} /></Suspense>
         </section>}
         {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
         {page === 'arcade' && (
-          <section className="content inner-page">
+          <section className="content inner-page arcade-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
             <div className="eyebrow">DANZ ARCADE / GAME 001</div>
             <h1 className="page-title">DANZ<br /><em>SNAKE.</em></h1>
-            <p className="page-lead">Nuestro primer minijuego ya se puede probar. Utiliza las flechas del teclado, WASD, desliza sobre el tablero o activa los botones de dirección. Esta puntuación es solo una prueba local: aún no hay premios ni rankings oficiales.</p>
+            <p className="page-lead">Desliza para girar. Recoge, crece y supera tu récord. La velocidad sube cada cinco objetivos.</p>
             <div className="game-panel">
-              <div className="game-heading"><span>SCORE <strong>{String(game.score).padStart(4, '0')}</strong></span><span>{game.won ? 'TABLERO COMPLETO' : game.over ? 'GAME OVER' : game.running ? 'NOW PLAYING ●' : 'READY / PAUSE'}</span></div>
+              <div className="game-heading"><span>PUNTOS <strong>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span>NIVEL {gameLevel(game.score)}</span></div>
               <div className="game-board" onPointerDown={startGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake, puntuación ${game.score}`}>
+                <svg className="snake-body-art" viewBox={`0 0 ${GRID} ${GRID}`} aria-hidden="true"><polyline points={game.snake.map(point => `${point.x + .5},${point.y + .5}`).join(' ')} /></svg>
                 {Array.from({ length: GRID * GRID }, (_, i) => {
                   const x = i % GRID
                   const y = Math.floor(i / GRID)
@@ -240,6 +272,7 @@ export default function App() {
                 <button aria-label="Arriba" onClick={() => dispatch({ type: 'turn', direction: 'up' })}>↑</button>
                 <div><button aria-label="Izquierda" onClick={() => dispatch({ type: 'turn', direction: 'left' })}>←</button><button aria-label="Abajo" onClick={() => dispatch({ type: 'turn', direction: 'down' })}>↓</button><button aria-label="Derecha" onClick={() => dispatch({ type: 'turn', direction: 'right' })}>→</button></div>
               </div>}
+              <p className="game-local-note">Récord en este navegador · Sin registro · Puntos todavía sin premios.</p>
             </div>
           </section>
         )}
@@ -247,7 +280,7 @@ export default function App() {
         {page === 'danzers' && (
           <section className="content inner-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <EventPassport key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} launchIssue={passIssue} onPendingPass={setPendingPass} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
+            <EventPassport key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
           </section>
         )}
 

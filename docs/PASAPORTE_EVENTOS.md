@@ -8,9 +8,9 @@ ya verificadas por su propietario.
 - DANZERS permite introducir un código o abrir un enlace con fragmento `#pase=CODIGO`.
   El teléfono puede leer ese enlace con su cámara; la web no necesita acceder a la cámara.
 - El código se retira de la barra de direcciones, se guarda en este navegador y no se
-  confunde con el parámetro `?code=` del retorno de Supabase. Se admite un pase pendiente.
-- Antes de registrarse el pase no concede acceso. Tras iniciar sesión, el usuario confirma
-  «Guardar mi sello». El servidor vincula el sello exclusivamente a `auth.uid()`.
+  confunde con el parámetro `?code=` del retorno de Supabase. Se acumulan varios pases pendientes; el pase de versiones anteriores se conserva.
+- Antes de registrarse el pase no concede acceso. Tras iniciar sesión se intentan canjear automáticamente
+  los pases guardados, sin una confirmación adicional. El servidor vincula el sello exclusivamente a `auth.uid()`.
 - Mis sellos muestra las asistencias de la cuenta y permite abrir su galería exacta.
   Los eventos archivados conservan el sello, el título y el acceso a sus fotos
   publicadas para asistentes anteriores; no admiten nuevos canjes.

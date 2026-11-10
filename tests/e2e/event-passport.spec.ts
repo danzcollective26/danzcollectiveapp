@@ -34,7 +34,8 @@ test('a guest QR is saved without a form, survives reload and can be linked late
   await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue('SECONDACCESS1234')
   await expect(page).toHaveURL(/\/$/)
   await page.getByRole('button', { name: 'DESCARTAR PASE PENDIENTE', exact: true }).click()
-  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('danz-pending-event-passes-v2')!))).toEqual([CODE])
 })
 
 test('blocked storage keeps the code visible and never claims the pass was saved', async ({ page }) => {
@@ -42,7 +43,7 @@ test('blocked storage keeps the code visible and never claims the pass was saved
   await page.addInitScript(() => {
     const original = Storage.prototype.setItem
     Storage.prototype.setItem = function (key, value) {
-      if (key === 'danz-pending-event-pass') throw new DOMException('Storage blocked', 'SecurityError')
+      if (key.startsWith('danz-pending-event-pass')) throw new DOMException('Storage blocked', 'SecurityError')
       return original.call(this, key, value)
     }
   })
@@ -130,6 +131,8 @@ test('switching accounts and signing out clears stamps; a late redemption cannot
   let requested = false
   const pending = new Promise<void>(resolve => { release = resolve })
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+    const owner = JSON.parse(Buffer.from(route.request().headers().authorization!.split('.')[1], 'base64url').toString()).sub
+    if (owner === USER_B) { await route.fulfill({ json: [{ status: 'unavailable', event_id: null, granted_at: null }] }); return }
     requested = true
     await pending
     await route.fulfill({ json: [{ status: 'granted', event_id: EA, granted_at: '2026-11-09T01:00:00Z' }] }).catch(() => {})
@@ -147,4 +150,50 @@ test('switching accounts and signing out clears stamps; a late redemption cannot
   await switchMockSession(page, null)
   await expect(page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Solo cuenta B', exact: true })).toHaveCount(0)
+})
+
+test('two saved nights are linked automatically after sign-in without another code or confirmation', async ({ page }) => {
+  await mockSupabase(page)
+  const redeemed: string[] = []
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: redeemed.map((_, i) => stamp(i ? EB : EA, i ? 'Segunda fiesta' : 'Primera fiesta')) }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+    const code = route.request().postDataJSON().p_code
+    redeemed.push(code)
+    await route.fulfill({ json: [{ status: 'granted', event_id: code === CODE ? EA : EB, granted_at: '2026-11-10T04:00:00Z' }] })
+  })
+  await page.goto(`/#pase=${CODE}`)
+  await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /CÓMO INSTALAR/ })).toHaveCount(0)
+  await page.goto('/#pase=SECONDACCESS1234')
+  await expect(page.getByText('Tienes 2 pases guardados.', { exact: false })).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('Tienes 2 pases guardados.', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true }).click()
+  await switchMockSession(page, USER_A)
+  await expect(page.getByRole('heading', { name: 'Mis sellos (2)', exact: true })).toBeVisible()
+  expect(redeemed).toEqual([CODE, 'SECONDACCESS1234'])
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('danz-pending-event-passes-v2')!))).toEqual([])
+  await expect(page.getByRole('button', { name: 'ABRIR MI PASE ↗', exact: true })).toHaveCount(0)
+})
+
+test('a connection failure retains the QR and reconnecting retries once automatically', async ({ page, context }) => {
+  await installMockSession(page)
+  let requests = 0
+  let granted = false
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: granted ? [stamp(EA, 'Pase recuperado')] : [] }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+    requests++
+    if (requests === 1) { await route.abort('failed'); return }
+    granted = true
+    await route.fulfill({ json: [{ status: 'granted', event_id: EA, granted_at: '2026-11-10T04:00:00Z' }] })
+  })
+  await page.goto(`/#pase=${CODE}`)
+  await expect(page.getByText('No hemos podido confirmar el canje.', { exact: false })).toBeVisible()
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
+  await context.setOffline(true)
+  await expect(page.getByText('Sin conexión.', { exact: false })).toBeVisible()
+  await context.setOffline(false)
+  await expect(page.getByRole('heading', { name: 'Pase recuperado', exact: true })).toBeVisible()
+  expect(requests).toBe(2)
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
 })

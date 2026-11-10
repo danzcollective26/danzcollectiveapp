@@ -4,7 +4,7 @@ Prototipo React + TypeScript + Vite recuperado de los pasos 5/6/9/10 y continuad
 en Codex. Fotos y Arcade son las dos áreas principales. El historial de recuperación
 está en `DANZ-TRASPASO-CODEX.md` y `docs/VERIFICACION_CODEX.md`.
 
-## Demo privada
+## Demo DANZ
 
 [Abre la demo publicada](https://danz-collective-demo.right-vine-9666.chatgpt.site).
 La PWA abre al público sin una cuenta de ChatGPT desde el 10 de noviembre de
@@ -14,7 +14,8 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 
 ## Estado actual
 
-- Inicio y navegación, DANZ Snake local con teclado/gestos/botones opcionales.
+- Inicio y navegación, DANZ Snake local con teclado/gestos/botones opcionales, cuerpo continuo, récord
+  en el navegador y velocidad progresiva.
 - Web del colectivo opcional y desactivada por ahora; la app usa su propia URL.
   Perfiles de Chicharro (ES), TonyDawgs, Wizme y LEÖN integrados con un estilo
   común, retratos oficiales y enlaces en la misma ventana con retorno a DANZ IN.
@@ -24,12 +25,13 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
   apertura de Snake sin conexión tras guardar el shell. Actualizaciones confirmadas.
 - Cuenta por correo sin contraseña, validación de sesión, cierre de sesión y perfil propio.
 - Google/Apple preparados con PKCE y detección de proveedores activados en el
-  servidor. Ambos siguen desactivados hasta configurar sus cuentas externas.
+  servidor. Google está operativo; Apple espera la membresía y configuración del colectivo.
   Requisito de 200 altas y activación: `docs/ACCESO_GOOGLE_APPLE_200_ALTAS.md`.
 - Galerías privadas: consulta de eventos autorizados y fotos publicadas, enlaces firmados
   de corta duración, visor y descarga. Los permisos los impone Supabase, no el navegador.
 - DANZERS: pase por enlace QR o código, canje validado en el servidor y pasaporte
-  de sellos por cuenta, con acceso directo a la galería de cada evento.
+  de sellos por cuenta, con acceso directo a la galería de cada evento. Pases de varias noches conservados
+  sin registro en puerta y canje automático después del acceso.
 - Administración de eventos y pases: borradores/publicación/archivo, códigos con
   caducidad/cupo, descarga de QR y revocación. Requiere permisos explícitos y MFA.
 - Fotos en nube: tandas de hasta 600, originales de descarga intactos, vistas previas,
@@ -41,7 +43,7 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 
 El acceso por correo requiere las plantillas, redirecciones y envío de Supabase correctamente
 configurados. Las pruebas automáticas no envían correos ni sustituyen una prueba real de
-recepción/callback. Google/Apple, interfaz de denuncias/moderación, recompensas
+recepción/callback. Apple, interfaz de denuncias/moderación y recompensas
 siguen pendientes. La instalación física en Android/iPhone sigue por verificar.
 Los puntos de Snake son locales y no canjeables.
 

@@ -236,7 +236,8 @@ export default function Account() {
           {providers.map(provider => <button className={`account-social-button account-social-${provider}`} key={provider} type="button" disabled={busy} onClick={() => { void enterWithProvider(provider) }}>Continuar con {provider === 'google' ? 'Google' : 'Apple'}</button>)}
           <p className="account-note">O utiliza tu correo electrónico.</p>
         </div>)}
-        <p>Te enviaremos un correo para entrar sin contraseña. Si todavía no tienes cuenta, se creará al confirmar tu correo.</p>
+        <p>También puedes entrar con cualquier correo: iCloud, Gmail, Outlook u otro. Sin crear contraseña.</p>
+        {readPendingPass() && <p className="account-note">Tu pase ya está guardado. Al entrar, lo añadiremos a tu pasaporte automáticamente si el código sigue vigente.</p>}
         <form className="account-form" onSubmit={event => { void requestLink(event) }}>
           <label htmlFor="account-email">Correo electrónico</label>
           <input id="account-email" type="email" required maxLength={254} autoComplete="email" inputMode="email" value={email} onChange={event => setEmail(event.target.value)} disabled={busy} />

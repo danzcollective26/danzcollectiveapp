@@ -12,7 +12,7 @@ test('a production build reopens offline and plays Snake without caching photos 
   await expect(page.getByText('Sin conexión.', { exact: false })).toBeVisible()
   await page.getByRole('navigation').getByRole('button', { name: 'Arcade', exact: true }).click()
   await page.getByRole('button', { name: 'JUGAR', exact: false }).click()
-  await expect(page.getByText('NOW PLAYING ●', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^PAUSAR/ })).toBeVisible()
   const callbacksBypassed = await page.evaluate(async () => {
     try { await fetch('/?token_hash=synthetic-secret&type=email'); return false } catch { return true }
   })

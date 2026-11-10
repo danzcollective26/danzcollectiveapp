@@ -20,6 +20,25 @@ export type GameAction =
   | { type: 'tick'; random: number }
 
 export const GRID = 13
+export function gameLevel(score: number): number {
+  return Math.min(10, 1 + Math.floor(Math.max(0, score) / 50))
+}
+export function gameTickMs(score: number): number {
+  return 150 - (gameLevel(score) - 1) * 8
+}
+
+const RECORD_KEY = 'danz-snake-best-v1'
+export function readSnakeRecord(): number {
+  try {
+    const value = Number(localStorage.getItem(RECORD_KEY))
+    return Number.isSafeInteger(value) && value >= 0 && value <= GRID * GRID * 10 ? value : 0
+  } catch { return 0 }
+}
+export function saveSnakeRecord(score: number): number {
+  const best = Math.max(readSnakeRecord(), Number.isSafeInteger(score) && score >= 0 && score <= GRID * GRID * 10 ? score : 0)
+  try { localStorage.setItem(RECORD_KEY, String(best)) } catch { /* The current game remains playable. */ }
+  return best
+}
 export const initialGame = (): Game => ({
   snake: [{ x: 5, y: 6 }, { x: 4, y: 6 }, { x: 3, y: 6 }],
   food: { x: 9, y: 6 },
