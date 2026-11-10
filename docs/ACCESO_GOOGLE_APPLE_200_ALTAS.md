@@ -30,6 +30,9 @@ crear o seleccionar el proyecto y registrar una aplicación externa de tipo Web
 en Google Auth Platform. Pedir solo `openid`, correo y perfil. No acceso a Gmail,
 Drive ni otros servicios. Configurar la audiencia adecuada para asistentes reales:
 no limitar la publicación a una lista cerrada de probadores.
+Google documenta una excepción de los límites de Testing para el acceso que
+solo pide identidad básica. Mantener esos tres permisos y revisar la audiencia
+real; añadir permisos sensibles podría introducir avisos y un límite de usuarios.
 
 | Dato | Valor de esta PWA |
 | --- | --- |
@@ -94,3 +97,5 @@ panel protegidos por Supabase/RLS y MFA. Ese cambio de audiencia no se ha hecho.
 - https://supabase.com/docs/guides/self-hosting/self-hosted-oauth (contrato público de settings)
 - https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web
 - https://developers.brevo.com/docs/supabase-smtp-integration
+- https://support.google.com/cloud/answer/15549945
+- https://developers.google.com/identity/protocols/oauth2/production-readiness/overview

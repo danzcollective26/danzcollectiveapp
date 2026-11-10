@@ -496,4 +496,20 @@ ACCESO_GOOGLE_APPLE_200_ALTAS.md.
 
 76/76 tests locales y build correctos. Se incorporan recorridos con API simulada
 para Google/Apple, callback PKCE, pase pendiente, no envío OTP y salida del iframe.
-Validación final de navegador y publicación de esta preparación: pendientes.
+Validación final: Actions `42737486491` confirmó 76/76 tests de lógica y permisos,
+141/141 recorridos Chromium y 2/2 recorridos de producción sin red. Los tests
+sociales verifican callbacks simulados de ambos proveedores, PKCE, identidad
+comprobada con getUser, pase pendiente y ausencia de correo OTP en ese flujo.
+No se han usado cuentas reales de Google/Apple ni medido 200 altas.
+
+Preparación publicada con audiencia privada conservada:
+- GitHub probado: `51fc499faefbaae8e9e8608a005e07f562bf42f0`.
+- Source Sites: `d402ac6e6d02ff01f04f7561db2bde4e7b70e471`.
+- Árbol común: `d9778a09abaeb907b7b195051b244d48ad63db45`.
+- Deployment: `appgdep_6af277c076988191bfb953c12b71505f`, estado `succeeded`.
+- Versión: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_f94e5490b1d8819185cb06a6c033425d`.
+- URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
+
+El paquete excluye archivos de entorno y fixtures temporales, y contiene el
+backend de producción. Proveedores reales y correo siguen pendientes de su
+prueba de activación; el código solo ofrece métodos habilitados por el servidor.
