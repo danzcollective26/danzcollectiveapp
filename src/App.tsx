@@ -21,9 +21,10 @@ import DanzFlower from './content/DanzFlower'
 
 const collective = parseCollective(content)
 
-type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta' | 'admin'
+type Page = 'inicio' | 'pasaporte' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta' | 'admin'
 const pages: { id: Page; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
+  { id: 'pasaporte', label: 'Pasaporte' },
   { id: 'fotos', label: 'Fotos' },
   { id: 'arcade', label: 'Arcade' },
   { id: 'danzers', label: 'DANZERS' },
@@ -44,7 +45,7 @@ export default function App() {
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
-    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : params.get('seccion') === 'cuenta' ? 'cuenta' : launchPass.code || launchPass.invalid ? 'danzers' : params.get('seccion') === 'musica' ? 'danzin' : 'inicio'
+    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : params.get('seccion') === 'cuenta' ? 'cuenta' : params.get('seccion') === 'pasaporte' && !launchPass.invalid ? 'pasaporte' : launchPass.code || launchPass.invalid ? 'danzers' : params.get('seccion') === 'musica' ? 'danzin' : 'inicio'
   })
   const [pendingPasses, setPendingPasses] = useState(() => {
     const saved = readPendingPasses()
@@ -161,6 +162,7 @@ export default function App() {
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
     const url = new URL(window.location.href)
     if (destination === 'danzin') url.searchParams.set('seccion', 'musica')
+    else if (destination === 'pasaporte') url.searchParams.set('seccion', 'pasaporte')
     else if (destination === 'cuenta') url.searchParams.set('seccion', 'cuenta')
     else url.searchParams.delete('seccion')
     try { window.history.replaceState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
@@ -176,7 +178,7 @@ export default function App() {
         </button>
         <nav className="desktop-nav" aria-label="Navegación principal">
           {pages.map((item) => (
-            <button key={item.id} onClick={() => go(item.id)} className={page === item.id ? 'active' : ''}>
+            <button key={item.id} onClick={() => go(item.id)} className={page === item.id ? 'active' : ''} aria-current={page === item.id ? 'page' : undefined}>
               {item.label}
             </button>
           ))}
@@ -188,7 +190,7 @@ export default function App() {
       <PwaControls quiet={quickArrival || page === 'arcade'} />
 
       <main>
-        {pendingPass && page !== 'danzers' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
+        {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
         {page === 'inicio' && (
           <>
             <section className="intro content">
@@ -213,6 +215,14 @@ export default function App() {
                   <span className="snake-stamp">PRESS PLAY_</span>
                 </div>
                 <span className="feature-bottom"><strong>ARCADE</strong><small>Juega a DANZ Snake.</small></span>
+              </button>
+            </section>
+
+            <section className="content passport-home-section" aria-label="Tu pasaporte DANZ">
+              <button className="passport-home-link" onClick={() => go('pasaporte')}>
+                <span className="passport-mini-book" aria-hidden="true"><DanzFlower /><span>PASAPORTE</span></span>
+                <span className="passport-home-copy"><small>TU COLECCIÓN DE NOCHES</small><strong>Un pasaporte.<br />Todas tus fiestas.</strong><span>Guarda tus sellos y vuelve a sus galerías.</span></span>
+                <Arrow />
               </button>
             </section>
 
@@ -288,16 +298,16 @@ export default function App() {
               <p className="game-local-note">{game.mode === 'maze' ? 'Recoge cinco objetivos para avanzar. En Circuito, sigue hasta donde llegues.' : 'La velocidad sube cada cinco objetivos.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
             </div>
             <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
-              <div className="idle-cover"><img src="/arcade/idle-studio-preview.webp" alt="Ilustración provisional de un estudio con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
+              <div className="idle-cover"><img src="/arcade/idle-studio-preview.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
               <div className="idle-copy"><span className="idle-status"><DanzFlower /> EN EL ESTUDIO</span><h2>DANZ<br /><em>IDLE STUDIO.</em></h2><p>Un puesto, mil ideas. Música, moda, vídeo y diseño: el estudio del colectivo, a tu ritmo.</p><span className="idle-coming">PRÓXIMAMENTE <span aria-hidden="true">↗</span></span><small>Nombre y carátula provisionales.</small></div>
             </article>
           </section>
         )}
 
-        {page === 'danzers' && (
-          <section className="content inner-page">
+        {(page === 'pasaporte' || page === 'danzers') && (
+          <section className="content inner-page passport-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <EventPassport key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
+            <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
           </section>
         )}
 

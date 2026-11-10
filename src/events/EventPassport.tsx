@@ -8,6 +8,7 @@ import './EventPassport.css'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
 type Props = {
+  arrival: boolean
   client: SupabaseClient<Database> | null
   userId: string | null
   authLoading: boolean
@@ -27,7 +28,7 @@ function date(value: string | null) {
   return Number.isNaN(parsed.valueOf()) ? '' : parsed.toLocaleDateString('es-ES', { dateStyle: 'medium' })
 }
 
-export default function EventPassport({ client, userId, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
+export default function EventPassport({ arrival, client, userId, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
   const [code, setCode] = useState(pendingPass ?? '')
   const [message, setMessage] = useState<string | null>(launchIssue)
   const busy = redemption.busy
@@ -95,7 +96,7 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
   // A QR is saved at launch. Guests can leave immediately without waiting for
   // Auth, installing the PWA, or submitting the same code a second time.
   const savedForLater = !userId && Boolean(pendingPass) && !launchIssue && readPendingPass() === pendingPass
-  if (savedForLater) return <section className="passport-receipt" aria-labelledby="saved-pass-title">
+  if (arrival && savedForLater) return <section className="passport-receipt" aria-labelledby="saved-pass-title">
     <div className="eyebrow">DANZ COLLECTIVE / TU NOCHE</div>
     <svg className="passport-receipt-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" strokeWidth="2" /><path d="m14 24 7 7 14-15" fill="none" stroke="currentColor" strokeWidth="3" /></svg>
     <h1 id="saved-pass-title">PASE<br /><em>GUARDADO.</em></h1>
@@ -119,37 +120,50 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
   </section>
 
   const items = !authLoading && passport.owner === userId ? passport.items : []
+  const stampsReady = Boolean(userId && !authLoading && passport.owner === userId && !passport.loading && !passport.error)
   return <>
     <div className="eyebrow">DANZ COLLECTIVE / TU PASAPORTE</div>
     <h1 className="page-title passport-title">CADA NOCHE,<br /><em>UN SELLO.</em></h1>
-    <p className="page-lead">Escanea el QR del evento con la cámara de tu móvil o introduce su código. Tu sello se guarda en tu cuenta y abre la galería de esa noche.</p>
+    <p className="page-lead">Tu colección de noches. Cada sello guarda una fiesta y la llave para volver a sus fotos.</p>
+    {redemption.message && <p className="passport-message passport-link-status" role="status">{redemption.message}</p>}
     <div className="passport-layout">
+      <div className="passport-book" aria-label="Pasaporte DANZ: portada y páginas de sellos">
+        <aside className="passport-cover" aria-label="Portada del pasaporte">
+          <img src="/brand/danz-collective-wordmark.png" alt="Danz Collective" width="225" height="32" />
+          <span className="passport-cover-edition">MUSIC · PEOPLE · CULTURE</span>
+          <DanzFlower className="passport-cover-flower" />
+          <h2>PASAPORTE</h2>
+          <p>NOCHES QUE<br />SE QUEDAN CONTIGO.</p>
+          <div className="passport-cover-count">{stampsReady ? <><strong>{String(items.length).padStart(2, '0')}</strong><span>{items.length === 1 ? 'NOCHE GUARDADA' : 'NOCHES GUARDADAS'}</span></> : <span>TU HISTORIA EN DANZ</span>}</div>
+        </aside>
+        <section className="passport-paper" aria-labelledby="passport-title">
+          <div className="passport-page-index"><span>REGISTRO DE NOCHES</span><DanzFlower /></div>
+          <div className="passport-heading"><h2 id="passport-title">Mis sellos {stampsReady ? `(${items.length})` : ''}</h2>
+            {userId && <button type="button" className="outline-btn" onClick={() => setRetry(value => value + 1)} disabled={authLoading || passport.loading}>ACTUALIZAR SELLOS</button>}
+          </div>
+          {!userId && <div className="passport-empty"><span className="passport-next-stamp" aria-hidden="true"><DanzFlower /><span>TU PRÓXIMA<br />NOCHE</span></span><p>Inicia sesión para ver los sellos que ya has guardado.</p>{!authLoading && client && <button className="outline-btn" type="button" onClick={requestSignIn}>ABRIR MI PASAPORTE</button>}</div>}
+          {userId && (authLoading || passport.loading) && <p role="status">Cargando tu pasaporte…</p>}
+          {userId && !authLoading && passport.error && <p className="passport-empty" role="status">No hemos podido cargar tus sellos. Pulsa «Actualizar sellos» para volver a intentarlo.</p>}
+          {stampsReady && items.length === 0 && <div className="passport-empty"><span className="passport-next-stamp" aria-hidden="true"><DanzFlower /><span>TU PRÓXIMA<br />NOCHE</span></span><p>Tu primera noche empieza aquí. Añade el código de un evento para estrenar tu pasaporte.</p></div>}
+          <ul className="passport-stamps">{items.map((stamp, index) => <li key={stamp.event_id} className="passport-stamp" data-ink={index % 3}>
+            <div className="passport-ink-stamp" aria-hidden="true"><span>DANZ COLLECTIVE</span><DanzFlower /><span>ASISTENCIA</span></div>
+            <div className="passport-stamp-copy"><h3>{stamp.title}</h3><p>{date(stamp.starts_at) || 'Evento DANZ'} · Sello del {date(stamp.granted_at)}</p><p className="passport-confirmed">ASISTENCIA GUARDADA</p>
+              {['published', 'archived'].includes(stamp.event_status) ? <button type="button" className="outline-btn" onClick={() => onGallery(stamp.event_id)}>ABRIR GALERÍA ↗</button> : <p>El sello se conserva. La galería no está publicada ahora.</p>}
+            </div>
+          </li>)}</ul>
+          <div className="passport-paper-foot"><span>TUS NOCHES. TUS RECUERDOS.</span><span aria-hidden="true">DANZ / PASSPORT</span></div>
+        </section>
+      </div>
       <section className="passport-redeem" aria-labelledby="redeem-title">
-        <h2 id="redeem-title">Guarda tu noche.</h2>
-        <p>{userId ? 'El sello se añadirá a la cuenta con la que has iniciado sesión.' : 'Puedes guardar el pase ahora y añadirlo a tu cuenta después.'}</p>
+        <div className="passport-redeem-intro"><span className="passport-redeem-number" aria-hidden="true">+</span><div><h2 id="redeem-title">Guarda tu noche.</h2>
+        <p>Escanea el QR del evento con la cámara de tu móvil o introduce su código. {userId ? 'El sello se añadirá a la cuenta con la que has iniciado sesión.' : 'Puedes guardar el pase ahora y añadirlo a tu cuenta después.'}</p></div></div>
         {codeForm}
         {!client && <p role="status">El canje estará disponible cuando se configure la conexión de las cuentas.</p>}
         {authLoading && <p role="status">Comprobando tu sesión…</p>}
         {!userId && !authLoading && client && <button type="button" className="primary-btn" onClick={requestSignIn}>INICIAR SESIÓN</button>}
         {message && <p className="passport-message" role="status">{message}</p>}
-        {redemption.message && <p className="passport-message" role="status">{redemption.message}</p>}
         {userId && pendingPass && !busy && <button type="button" className="outline-btn" onClick={redemption.retry}>REINTENTAR PASES</button>}
         {pendingPass && !busy && <button type="button" className="outline-btn" onClick={discard}>DESCARTAR PASE PENDIENTE</button>}
-      </section>
-      <section aria-labelledby="passport-title">
-        <div className="passport-heading"><h2 id="passport-title">Mis sellos {userId && !passport.loading && !passport.error ? `(${items.length})` : ''}</h2>
-          {userId && <button type="button" className="outline-btn" onClick={() => setRetry(value => value + 1)} disabled={authLoading || passport.loading}>ACTUALIZAR SELLOS</button>}
-        </div>
-        {!userId && <p className="passport-empty">Inicia sesión para ver los sellos que ya has guardado.</p>}
-        {userId && (authLoading || passport.loading) && <p role="status">Cargando tu pasaporte…</p>}
-        {userId && !authLoading && passport.error && <p className="passport-empty" role="status">No hemos podido cargar tus sellos. Pulsa «Actualizar sellos» para volver a intentarlo.</p>}
-        {userId && !authLoading && !passport.loading && !passport.error && items.length === 0 && <p className="passport-empty">Tu primera noche empieza aquí. Añade el código de un evento para estrenar tu pasaporte.</p>}
-        <ul className="passport-stamps">{items.map(stamp => <li key={stamp.event_id} className="passport-stamp">
-          <span className="passport-flower" aria-hidden="true"><DanzFlower /></span>
-          <div><h3>{stamp.title}</h3><p>{date(stamp.starts_at) || 'Evento DANZ'} · Sello del {date(stamp.granted_at)}</p><p>ASISTENCIA GUARDADA</p>
-            {['published', 'archived'].includes(stamp.event_status) ? <button type="button" className="outline-btn" onClick={() => onGallery(stamp.event_id)}>ABRIR GALERÍA ↗</button> : <p>El sello se conserva. La galería no está publicada ahora.</p>}
-          </div>
-        </li>)}</ul>
       </section>
     </div>
   </>

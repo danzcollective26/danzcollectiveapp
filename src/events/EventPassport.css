@@ -1,23 +1,84 @@
-.passport-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
-.passport-redeem { border: 1px solid var(--ink, #171717); padding: clamp(20px, 4vw, 34px); background: #eceee6; color: #171717; }
-.page-title.passport-title { font-size: clamp(54px, 8vw, 112px); }
-.passport-redeem h2, .passport-heading h2 { margin: 0 0 16px; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.04em; }
-.passport-redeem p { line-height: 1.6; }
-.passport-redeem label { display: block; font-size: 12px; font-weight: 800; letter-spacing: .06em; margin: 24px 0 8px; }
-.passport-redeem input { width: 100%; min-width: 0; padding: 15px 12px; border: 1px solid #333; background: white; font: 700 16px monospace; text-transform: uppercase; border-radius: 0; }
-.passport-redeem .primary-btn { width: 100%; margin-top: 14px; white-space: normal; }
-.passport-message { padding: 12px; border-left: 3px solid #2f5742; background: white; font-size: 14px; overflow-wrap: anywhere; }
-.passport-heading { display: flex; flex-wrap: wrap; gap: 12px; align-items: start; justify-content: space-between; }
-.passport-heading .outline-btn { font-size: 11px; padding: 10px 12px; }
-.passport-stamps { display: grid; gap: 14px; list-style: none; padding: 0; margin: 0; }
-.passport-stamp { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 16px; border: 1px solid #aaa; padding: 22px; }
-.passport-flower { font-size: 42px; align-self: start; }
-.passport-stamp h3 { margin: 0 0 10px; font-size: 22px; overflow-wrap: anywhere; }
-.passport-stamp p { font-size: 13px; line-height: 1.6; margin: 8px 0; }
-.passport-stamp .outline-btn { margin-top: 8px; }
-.passport-empty { border: 1px dashed #999; padding: 24px; line-height: 1.6; }
+.passport-page .page-lead { max-width: 700px; margin-bottom: 36px; }
+.page-title.passport-title { font-size: clamp(48px, 7vw, 100px); line-height: .94; }
+.passport-layout { display: grid; gap: 38px; max-width: 1160px; }
+.passport-book { display: grid; grid-template-columns: minmax(220px, .75fr) minmax(0, 2fr); align-items: stretch; padding: 8px; background: #202d28; border: 1px solid #557268; border-radius: 6px 20px 20px 6px; box-shadow: 0 22px 50px #0004; min-width: 0; }
+.passport-cover { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 34px 25px; min-height: 470px; color: var(--acid); border: 1px solid #6a806149; border-radius: 3px 12px 12px 3px; background: repeating-linear-gradient(100deg, #fff0 0 2px, #ffffff02 2px 3px), #25392f; box-shadow: inset -12px 0 15px #0002, inset 3px 0 0 #ffffff08; }
+.passport-cover:before { content: ''; position: absolute; inset: 12px; border: 1px solid #c4d89140; border-radius: 2px 9px 9px 2px; pointer-events: none; }
+.passport-cover>img { width: min(100%, 205px); height: auto; }
+.passport-cover-edition { color: #d6dfb5; font-size: 8px; font-weight: 700; letter-spacing: .15em; margin-top: 14px; }
+.passport-cover-flower { width: 116px; height: 116px; margin: 38px 0 24px; filter: drop-shadow(0 2px 0 #0004); }
+.passport-cover h2 { font-size: clamp(23px, 2.3vw, 32px); letter-spacing: .07em; margin: 0; font-weight: 800; }
+.passport-cover p { font-size: 9px; line-height: 1.6; letter-spacing: .16em; color: #d6dfb5; margin: 18px 0 28px; }
+.passport-cover-count { display: flex; align-items: center; justify-content: center; gap: 13px; margin-top: auto; border-top: 1px solid #c4d89140; padding-top: 20px; width: 100%; font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.passport-cover-count strong { font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.passport-paper { display: flex; flex-direction: column; min-width: 0; padding: clamp(22px, 3.4vw, 44px); color: #283a35; background: linear-gradient(90deg, #d9d3c0, #f3f0e8 5%, #f3f0e8 96%, #e0dbcb); border-radius: 2px 12px 12px 2px; border-right: 4px double #c2baa7; }
+.passport-page-index { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #b4bbab; padding-bottom: 16px; margin-bottom: 24px; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
+.passport-page-index svg { width: 24px; height: 24px; color: #668778; }
+.passport-heading { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.passport-heading h2 { margin: 0; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.045em; }
+.passport-paper .outline-btn { color: #283a35; border-color: #718177; font-size: 10px; padding: 11px 12px; letter-spacing: .04em; }
+.passport-paper .outline-btn:hover { background: #dde3d4; border-color: #283a35; }
+.passport-heading .outline-btn { font-size: 9px; }
+.passport-empty { margin: 0; padding: 24px 8px; line-height: 1.6; font-size: 14px; text-align: center; }
+.passport-empty p { max-width: 35ch; margin: 22px auto; }
+.passport-next-stamp { display: flex; width: 138px; height: 138px; margin: 0 auto; border: 2px dashed #7f978373; border-radius: 50%; flex-direction: column; align-items: center; justify-content: center; color: #738b7d; transform: rotate(-10deg); font-size: 10px; font-weight: 800; letter-spacing: .1em; line-height: 1.35; }
+.passport-next-stamp svg { width: 40px; height: 40px; margin-bottom: 8px; }
+.passport-stamps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 22px; list-style: none; padding: 0; margin: 0; }
+.passport-stamp { --stamp-ink: #2f685e; min-width: 0; border-bottom: 1px solid #bbc2b4; padding-bottom: 22px; }
+.passport-stamp[data-ink='1'] { --stamp-ink: #7c4771; }
+.passport-stamp[data-ink='2'] { --stamp-ink: #9a4f3b; }
+.passport-ink-stamp { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 114px; height: 114px; margin: 4px auto 22px; border: 3px double var(--stamp-ink); outline: 1px solid var(--stamp-ink); outline-offset: 3px; border-radius: 50%; color: var(--stamp-ink); transform: rotate(-9deg); opacity: .9; }
+.passport-stamp[data-ink='1'] .passport-ink-stamp { transform: rotate(8deg); }
+.passport-ink-stamp span { font: 800 8px monospace; letter-spacing: .06em; }
+.passport-ink-stamp svg { width: 48px; height: 48px; margin: 7px 0; }
+.passport-stamp h3 { margin: 0 0 10px; font-size: 19px; line-height: 1.15; letter-spacing: -.035em; color: var(--stamp-ink); overflow-wrap: anywhere; }
+.passport-stamp p { font-size: 11px; line-height: 1.6; margin: 8px 0; overflow-wrap: anywhere; }
+.passport-stamp .passport-confirmed { font-size: 8px; font-weight: 800; letter-spacing: .06em; color: var(--stamp-ink); }
+.passport-stamp .outline-btn { width: 100%; margin-top: 7px; }
+.passport-paper-foot { margin-top: auto; padding-top: 30px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: #607468; font-size: 8px; font-weight: 700; letter-spacing: .07em; }
+.passport-redeem { padding: clamp(22px, 3vw, 34px); border: 1px solid var(--line); background: #191d1b; color: var(--white); }
+.passport-redeem-intro { display: flex; align-items: start; gap: 22px; max-width: 680px; }
+.passport-redeem-number { font-size: 54px; font-weight: 300; color: var(--acid); line-height: 1; }
+.passport-redeem h2 { margin: 0 0 12px; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.04em; }
+.passport-redeem p { line-height: 1.6; color: #c9cbc1; font-size: 14px; }
+.passport-redeem form { max-width: 610px; }
+.passport-redeem label { display: block; font-size: 11px; font-weight: 800; letter-spacing: .08em; margin: 24px 0 10px; }
+.passport-redeem input { width: 100%; min-width: 0; padding: 15px 12px; border: 1px solid #606c64; background: #101411; color: var(--white); font: 700 16px monospace; text-transform: uppercase; border-radius: 0; }
+.passport-redeem .primary-btn { width: 100%; max-width: 610px; margin-top: 14px; white-space: normal; }
+.passport-redeem>.outline-btn { margin: 16px 12px 0 0; }
+.passport-message { padding: 14px 18px; border-left: 3px solid #6e9c7c; background: #e1eadb; color: #203b2a; font-size: 14px; overflow-wrap: anywhere; }
+.passport-redeem .passport-message { color: #203b2a; }
+.passport-link-status { max-width: 1160px; margin-bottom: 24px; }
 .pending-pass-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #bbb; padding-block: 16px; font-size: 14px; }
 .pending-pass-banner .outline-btn { font-size: 11px; padding: 10px 14px; }
+@media (max-width: 760px) {
+  .passport-book { grid-template-columns: minmax(155px, .65fr) minmax(0, 1fr); }
+  .passport-cover { padding: 30px 18px; min-height: 420px; }
+  .passport-cover h2 { font-size: 20px; }
+  .passport-cover-flower { width: 80px; height: 80px; }
+  .passport-stamps { grid-template-columns: 1fr; }
+  .passport-cover-count { flex-direction: column; }
+}
+@media (max-width: 560px) {
+  .passport-book { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 6px; border-radius: 7px 16px 16px 7px; }
+  .passport-cover { display: grid; grid-template-columns: 1fr 86px; gap: 10px 16px; min-height: 218px; padding: 28px 26px; text-align: left; justify-items: start; }
+  .passport-cover>img { width: 178px; grid-column: 1; }
+  .passport-cover-edition { grid-column: 1; font-size: 6px; letter-spacing: .1em; margin-top: 0; }
+  .passport-cover-flower { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; width: 80px; height: 80px; }
+  .passport-cover h2 { grid-column: 1; font-size: clamp(19px, 5vw, 25px); margin-top: 9px; }
+  .passport-cover p { display: none; }
+  .passport-cover-count { grid-column: 1 / -1; flex-direction: row; justify-content: start; padding-top: 14px; font-size: 7px; }
+  .passport-cover-count strong { font-size: 24px; }
+  .passport-paper { padding: 24px 22px; min-height: 340px; }
+  .passport-stamps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+  .passport-ink-stamp { width: 94px; height: 94px; }
+  .passport-ink-stamp span { font-size: 6px; }
+  .passport-ink-stamp svg { width: 40px; height: 40px; }
+  .passport-stamp h3 { font-size: 17px; }
+  .passport-stamp .outline-btn { font-size: 8px; padding: 11px 5px; }
+  .passport-redeem-intro { gap: 14px; }
+}
+@media (max-width: 360px) { .passport-cover { grid-template-columns: 1fr 54px; padding-inline: 22px; } .passport-cover-flower { width: 54px; height: 54px; } .passport-stamps { grid-template-columns: 1fr; } }
 .passport-receipt { max-width: 720px; margin: 0 auto; padding: clamp(20px, 4vw, 42px); border: 1px solid #4b4b4c; background: #19191a; }
 .passport-receipt-mark { display: block; color: var(--acid, #f3f0e8); width: 48px; height: 48px; margin: 25px 0 22px; }
 .passport-receipt h1 { margin: 0 0 18px; font-size: clamp(44px, 7vw, 82px); line-height: .96; letter-spacing: -.055em; }

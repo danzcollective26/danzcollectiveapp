@@ -141,3 +141,18 @@
 .idle-coming{display:flex;gap:50px;align-items:center;border:1px solid #c67f9c;color:var(--rose);padding:13px 16px;font-size:10px;font-weight:850;letter-spacing:.09em}
 .idle-copy small{font-size:10px;color:#b4a8b5;margin-top:14px}
 @media(max-width:700px){.brand-flower{width:30px;height:30px}.brand-wordmark{width:clamp(145px,45vw,205px)}.wordmark{gap:10px}.arcade-coming-soon{grid-template-columns:1fr;margin-top:35px}.idle-copy{padding:28px}.idle-copy h2{font-size:49px}.idle-coming{gap:60px}.artist-photo-label{font-size:8px}}
+
+/* The passport has a first-class entrance, alongside photos and Arcade. */
+.desktop-nav { margin-left: 0; gap: clamp(10px, 1.35vw, 22px); }
+.passport-home-section { padding-top: 28px; }
+.passport-home-link { width: 100%; display: flex; align-items: center; gap: clamp(20px, 4vw, 54px); text-align: left; border: 1px solid #596e59; padding: clamp(22px, 4vw, 40px); background: linear-gradient(120deg, #202d26, #171c1a 70%); color: var(--white); cursor: pointer; }
+.passport-home-link:hover { border-color: var(--acid); }
+.passport-mini-book { width: 98px; height: 130px; flex: none; border: 3px double #a4bd7a; border-radius: 2px 9px 9px 2px; background: #2d4437; color: var(--acid); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 15px; transform: rotate(-8deg); box-shadow: 5px 5px 0 #f3f0e870, 8px 8px 0 #101511; }
+.passport-mini-book svg { width: 42px; height: 42px; }
+.passport-mini-book>span { font-size: 8px; font-weight: 800; letter-spacing: .07em; }
+.passport-home-copy { display: flex; flex-direction: column; gap: 12px; }
+.passport-home-copy small { color: var(--acid); font-size: 9px; font-weight: 800; letter-spacing: .14em; }
+.passport-home-copy strong { font-size: clamp(25px, 3vw, 42px); line-height: 1.03; letter-spacing: -.04em; }
+.passport-home-copy>span { color: #b3beb0; font-size: 13px; line-height: 1.5; }
+.passport-home-link>.arrow { margin-left: auto; color: var(--acid); flex: none; }
+@media (max-width: 700px) { .desktop-nav { gap: 20px; } .passport-home-link { gap: 22px; padding: 24px 20px; } .passport-mini-book { width: 68px; height: 98px; gap: 10px; } .passport-mini-book svg { width: 33px; height: 33px; } .passport-mini-book>span { font-size: 6px; } .passport-home-copy small { font-size: 7px; } .passport-home-copy>span { font-size: 11px; } .passport-home-copy strong { font-size: 24px; } .passport-home-link>.arrow { width: 20px; } }

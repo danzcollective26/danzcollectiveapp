@@ -821,3 +821,14 @@ esa comprobación física sigue pendiente. La consulta pública de Auth devolvi�
 200 con Google habilitado y Apple deshabilitado; se conservó la configuración
 publicable existente, sin activar proveedores ni modificar permisos.
 Este registro y su captura son posteriores al despliegue y no cambian la app.
+
+
+## Pasaporte visible y estudio industrial — comprobación previa
+
+- Nueva pestaña Pasaporte junto a Inicio, con enlace `?seccion=pasaporte` que se conserva al recargar, y acceso visual desde Inicio.
+- Libreta con portada de flor/wordmark, papel y sellos de asistencia reales; los pases pendientes siguen separados de las asistencias confirmadas.
+- Se mantiene el recibo rápido del QR, su cola local, los canjes automáticos al iniciar sesión y los permisos de las galerías. La libreta puede abrirse con un pase pendiente sin perderlo.
+- Carátula provisional de Idle con ambiente industrial y los mismos gadgets. El vídeo se usa como inspiración y no se incorpora al sitio; la prioridad de esa referencia es el futuro juego y su progresión por puestos.
+- Se conserva el botón de instalación y su guía; MFA pendiente de la actuación privada del administrador.
+- Se esperan paleta y tipografía oficiales.
+- Comprobación interna anterior al último ajuste de navegación: 93 pruebas correctas. Se ejecutará el conjunto de navegador en CI sobre el árbol final antes de publicar.

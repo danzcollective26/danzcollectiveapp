@@ -11,6 +11,50 @@ const openPassport = async (page: import('@playwright/test').Page) => {
   await page.getByRole('button', { name: 'DANZERS', exact: true }).click()
 }
 
+test('the passport has a primary tab, a reloadable link and only the account stamps', async ({ page }) => {
+  await installMockSession(page)
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: [stamp(EA, 'Fiesta de prueba'), stamp(EB, 'Recuerdo archivado', 'archived')] }))
+  await page.goto('/')
+  const navigation = page.getByRole('navigation', { name: 'Navegación principal' })
+  await navigation.getByRole('button', { name: 'Pasaporte', exact: true }).click()
+  await expect(page).toHaveURL(/seccion=pasaporte/)
+  await expect(navigation.getByRole('button', { name: 'Pasaporte', exact: true })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Mis sellos (2)', exact: true })).toBeVisible()
+  await expect(page.locator('.passport-stamp')).toHaveCount(2)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Mis sellos (2)', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Recuerdo archivado', exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await page.getByRole('button', { name: 'Inicio', exact: true }).click()
+  await page.getByRole('button', { name: /Un pasaporte\. Todas tus fiestas\./ }).click()
+  await expect(page.getByRole('heading', { name: 'Mis sellos (2)', exact: true })).toBeVisible()
+})
+
+test('an empty or signed-out booklet never invents attendance and keeps sign-in accessible', async ({ page }) => {
+  await mockSupabase(page)
+  await page.goto('/?seccion=pasaporte')
+  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte' })).toBeVisible()
+  await expect(page.locator('.passport-stamp')).toHaveCount(0)
+  await expect(page.getByText('Inicia sesión para ver los sellos que ya has guardado.', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'ABRIR MI PASAPORTE', exact: true }).click()
+  await expect(page.getByLabel('Correo electrónico', { exact: true })).toBeVisible()
+})
+
+test('opening the booklet keeps an unlinked guest QR and survives reload', async ({ page }) => {
+  await mockSupabase(page)
+  await page.goto(`/#pase=${CODE}`)
+  await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
+  await page.getByRole('button', { name: 'SEGUIR CON MI NOCHE', exact: true }).click()
+  await page.getByRole('button', { name: 'Pasaporte', exact: true }).click()
+  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte' })).toBeVisible()
+  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(CODE)
+  await page.reload()
+  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte' })).toBeVisible()
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
+  await expect(page.locator('.passport-stamp')).toHaveCount(0)
+})
+
 test('a guest QR is saved without a form, survives reload and can be linked later', async ({ page }) => {
   await mockSupabase(page)
   const redemptions: string[] = []
