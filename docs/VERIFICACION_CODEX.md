@@ -796,3 +796,28 @@ confirmado. Se añaden seis pruebas de lógica y tres casos PWA por tamaño:
 reintento manual, recuperación al conectar y preparación que nunca se resuelve.
 93/93 pruebas internas locales y compilación aprobadas; la validación completa
 de navegador y publicación se registrarán al finalizar.
+
+### Publicación de la recuperación — versión 18
+
+- GitHub: `b3e5837565590d04cdff706805853e516f2601f4`.
+- Árbol común probado: `23c47fb23a258b79ba233791adb21b5f28f3ce2a`.
+- CI `42923171413`, job `130202850831`, success: 93/93 pruebas internas,
+  8/8 PWA y 180/180 E2E, sin fallos ni reintentos.
+- Source Sites: `67b7cdcdae34535fa8a91d65d45522722dbe3232`.
+- Versión 18: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_5004963ce2648191b639452026de050d`.
+- Deployment `appgdep_6af3a941a7dc8191b8b6c53c7a877284`, succeeded,
+  11 de noviembre de 2026 a las 00:31 Europe/Madrid. Audiencia pública conservada.
+- Paquete: 930731 bytes, 39 entradas y 31 archivos; backend de producción,
+  sin entornos, fixtures ni claves servidor. Bundle `index-C0FBGY2W.js`,
+  SW `c17146a7573ce772`.
+
+La vista estática de producción gestionada confirmó «Snake disponible sin
+conexión». En la publicación se verificaron la guía actualizada y el estado
+de fallo con «Reintentar guardado», coherente con la restricción del cliente
+del navegador gestionado. La navegación permanece disponible. Se conserva
+una captura pública sin datos personales en `docs/evidence/offline-guide.png`.
+No se presenta la sesión gestionada como prueba de uso sin conexión del hosting;
+esa comprobación física sigue pendiente. La consulta pública de Auth devolvió
+200 con Google habilitado y Apple deshabilitado; se conservó la configuración
+publicable existente, sin activar proveedores ni modificar permisos.
+Este registro y su captura son posteriores al despliegue y no cambian la app.
