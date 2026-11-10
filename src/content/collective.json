@@ -8,7 +8,8 @@
         "https://soundcloud.com/chicharro-es",
         "https://open.spotify.com/artist/38ToIIgwwXERo4ZNMplyf5",
         "https://www.instagram.com/chicharro.dnz/"
-      ]
+      ],
+      "image": "/artists/chicharro-es.jpg"
     },
     {
       "id": "tonydawgs",
@@ -20,7 +21,8 @@
         "https://www.instagram.com/tonydawgs/",
         "https://www.youtube.com/@DanzInRecords",
         "https://www.mavelpoint.com/artist/tonydawgs/overview"
-      ]
+      ],
+      "image": "/artists/tonydawgs.jpg"
     },
     {
       "id": "wizme",
@@ -30,7 +32,8 @@
         "https://open.spotify.com/artist/7Lyek7a3Nh61kaCAktFlRW",
         "https://www.instagram.com/wizme.music/",
         "https://www.youtube.com/@wizme."
-      ]
+      ],
+      "image": "/artists/wizme.jpg"
     },
     {
       "id": "leon",
@@ -39,7 +42,8 @@
         "https://soundcloud.com/leoen-358114940",
         "https://open.spotify.com/artist/7FJQJvMRK8RPZ4HMjXCr55",
         "https://www.instagram.com/lionromero_/"
-      ]
+      ],
+      "image": "/artists/leon.jpg"
     }
   ],
   "snake": {

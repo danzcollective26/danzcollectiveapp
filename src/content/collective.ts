@@ -1,5 +1,5 @@
 export type MusicLink = { label: string; href: string }
-export type Artist = { id: string; name: string; links: MusicLink[]; youtubeChannelName?: string }
+export type Artist = { id: string; name: string; links: MusicLink[]; youtubeChannelName?: string; image?: string }
 export type SnakeFace = { id: string; name: string; image: string }
 export type Collective = { websiteUrl: string | null; artists: Artist[]; snake: { headImage: string | null; faces: SnakeFace[] } }
 
@@ -66,7 +66,8 @@ export function parseCollective(input: unknown): Collective {
       if (!Array.isArray(artist.links) || !artist.links.length) throw new Error('An artist needs at least one official profile')
       const platforms = ['SoundCloud', 'Spotify', 'Instagram', 'YouTube', 'MavelPoint']
       const links = [...new Map(artist.links.map(musicLink).map(link => [link.href, link])).values()].sort((a, b) => platforms.indexOf(a.label) - platforms.indexOf(b.label))
-      return { id: identifier(artist.id), name: text(artist.name), links, ...(artist.youtubeChannelName === undefined ? {} : { youtubeChannelName: text(artist.youtubeChannelName) }) }
+      if (artist.image !== undefined && (typeof artist.image !== 'string' || !/^\/artists\/[a-z0-9][a-z0-9-]*\.(?:png|jpe?g|webp)$/.test(artist.image))) throw new Error('Use a bundled artist portrait')
+      return { id: identifier(artist.id), name: text(artist.name), links, ...(artist.youtubeChannelName === undefined ? {} : { youtubeChannelName: text(artist.youtubeChannelName) }), ...(artist.image === undefined ? {} : { image: artist.image as string }) }
     })),
     snake: {
       headImage: snake.headImage === null ? null : image(snake.headImage, 'brand'),
@@ -79,6 +80,9 @@ export function parseCollective(input: unknown): Collective {
 }
 export function arcadeAssets(collective: Collective): string[] {
   return [...new Set([collective.snake.headImage, ...collective.snake.faces.map(face => face.image)].filter((path): path is string => path !== null))]
+}
+export function collectiveAssets(collective: Collective): string[] {
+  return [...new Set([...arcadeAssets(collective), ...collective.artists.flatMap(artist => artist.image ? [artist.image] : [])])]
 }
 
 /** Each eaten item adds one segment. The initial body remains plain. */

@@ -16,7 +16,8 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 - Inicio y navegación, DANZ Snake local con teclado/gestos/botones opcionales.
 - Web del colectivo opcional y desactivada por ahora; la app usa su propia URL.
   Perfiles de Chicharro (ES), TonyDawgs, Wizme y LEÖN integrados con un estilo
-  común. Configuración preparada para caras de Snake, pendientes de recibir.
+  común, retratos oficiales y enlaces en la misma ventana con retorno a DANZ IN.
+  Configuración preparada para caras de Snake, pendientes de recibir.
   Ver `docs/CONTENIDO_COLECTIVO.md`.
 - Instalación PWA en navegadores compatibles, instrucciones Android/iPhone y
   apertura de Snake sin conexión tras guardar el shell. Actualizaciones confirmadas.

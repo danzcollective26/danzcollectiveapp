@@ -381,3 +381,32 @@ Publicación privada confirmada por el servicio:
 El bundle contiene el backend de producción y excluye el de los tests.
 El paquete no incluye archivos de entorno privados. Esta anotación posterior
 solo registra resultados, sin modificar la aplicación publicada.
+
+## Retratos y apertura de enlaces — 10 de noviembre de 2026
+
+El propietario indicó que los enlaces no se abrían en su móvil y pidió fotos
+con una presentación similar para todos los DJs. El despliegue anterior tenía
+los 15 enlaces correctos en HTML pero solo se había comprobado su presencia,
+no pulsar y volver en el navegador del usuario. No se atribuye una causa exacta
+al móvil sin reproducirla: los anchors usaban target=_blank y se retira esa
+dependencia de pestañas nuevas. La foto/nombre también enlaza al SoundCloud del
+artista. Una URL de sección restaura DANZ IN al volver desde una plataforma.
+
+Incorporadas las fotos oficiales de los cuatro perfiles Spotify proporcionados,
+en su resolución de hasta 640 píxeles. Son archivos propios del catálogo público,
+con fuentes y SHA-256 en FUENTES_RETRATOS_DJS.md. El acabado unificado se realiza
+en CSS, sin regenerar caras ni cuerpos; Snake conserva sus caras pendientes.
+Los retratos también entran en el precache explícito, sin datos privados.
+
+Revisión local: navegación real en la misma pestaña a Spotify de Chicharro (ES)
+y regreso a la sección de música confirmados en el navegador. Los 19 enlaces
+(15 plataformas + 4 fotos/nombres) tendrán comprobación automática de navegación
+nativa y retorno con destinos simulados. Estas pruebas no acreditan que cada
+plataforma esté disponible ni que el teléfono del propietario esté verificado.
+
+La activación SMTP sigue pendiente. Se dieron al propietario los primeros pasos
+para la verificación de Google en su propia cuenta. No se ha generado ni recibido
+una contraseña de aplicación, iniciado sesión en Google/Supabase por él ni
+cambiado la configuración remota de Auth.
+
+Resultados finales y publicación: pendientes de registrar tras ejecutarlos.

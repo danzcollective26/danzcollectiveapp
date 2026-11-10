@@ -37,7 +37,14 @@ YouTube y MavelPoint cuando existe. El YouTube compartido por TonyDawgs es
 DANZ IN Records y se identifica expresamente como tal. Chicharro (ES) y LEÖN
 no llevan canal de YouTube: no se ha inventado ninguno. Solo se incorporó el
 MavelPoint facilitado por el propietario, sin añadir perfiles por coincidencia
-de nombre ni copiar biografías, fotos o estadísticas externas.
+de nombre ni copiar biografías o estadísticas externas. Después, el propietario
+pidió añadir retratos: se incorporan las cuatro fotos oficiales de Spotify,
+con encuadre, blanco y negro y fondo común mediante CSS. Las fuentes constan
+en [FUENTES_RETRATOS_DJS.md](FUENTES_RETRATOS_DJS.md). Las fotos, nombres y
+botones son enlaces nativos en la misma ventana. Al volver desde una plataforma,
+la URL `?seccion=musica` recupera esta sección. No se ha podido reproducir
+el navegador concreto del teléfono del propietario; se elimina la dependencia
+de abrir pestañas nuevas y se prueba navegación y retorno.
 
 ## Incorporar las caras
 

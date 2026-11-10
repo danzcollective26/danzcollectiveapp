@@ -2,18 +2,18 @@ import { createHash } from 'node:crypto'
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import content from '../src/content/collective.json' with { type: 'json' }
-import { arcadeAssets, parseCollective } from '../src/content/collective.ts'
+import { collectiveAssets, parseCollective } from '../src/content/collective.ts'
 
 const root = resolve('dist')
 const runtime = await readFile(new URL('./service-worker.js', import.meta.url), 'utf8')
 const assets = (await readdir(resolve(root, 'assets'))).filter(name => /\.(?:js|css)$/.test(name)).map(name => `/assets/${name}`)
-const artwork = arcadeAssets(parseCollective(content))
+const artwork = collectiveAssets(parseCollective(content))
 for (const path of artwork) {
   const bytes = await readFile(resolve(root, `.${path}`))
   const valid = /\.png$/.test(path) ? bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
     : /\.jpe?g$/.test(path) ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255
     : bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP'
-  if (!valid || bytes.length > 512 * 1024) throw new Error(`Invalid or oversized arcade image: ${path}`)
+  if (!valid || bytes.length > 512 * 1024) throw new Error(`Invalid or oversized public collective image: ${path}`)
 }
 const paths = ['/index.html', '/manifest.webmanifest', '/icons/danz-180.png', '/icons/danz-192.png', '/icons/danz-512.png', '/icons/danz-maskable-512.png', ...assets, ...artwork].sort()
 const digest = createHash('sha256').update(runtime)

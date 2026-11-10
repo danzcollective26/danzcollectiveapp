@@ -41,6 +41,18 @@
 .artist-heading{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.15em}
 .artist-heading span:last-child{color:var(--acid)}
 .artist-card h2{margin:0;overflow-wrap:anywhere;font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:clamp(32px,4.5vw,64px);font-weight:900;letter-spacing:-.035em;line-height:1.1}
+.artist-profile{display:block;color:var(--white);text-decoration:none;min-width:0}
+.artist-profile h2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:24px}
+.artist-arrow{flex-shrink:0}
+.artist-profile h2 .artist-arrow{width:24px;height:24px;color:var(--acid)}
+.artist-listen{display:flex;align-items:center;gap:10px;color:var(--acid);font-size:10px;font-weight:800;letter-spacing:.12em;margin-top:14px}
+.artist-portrait{position:relative;aspect-ratio:1;overflow:hidden;background:#2c3027;isolation:isolate;border-bottom:2px solid var(--acid)}
+.artist-portrait img{display:block;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.08);mix-blend-mode:luminosity}
+.artist-portrait:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#10101114 40%,#101011b3 100%),linear-gradient(130deg,#dbfc581f,transparent 60%)}
+.artist-photo-label{position:absolute;z-index:1;left:16px;bottom:16px;color:var(--acid);font-size:9px;font-weight:800;letter-spacing:.16em}
+.artist-card[data-artist=tonydawgs] .artist-portrait img{transform:scale(1.65);transform-origin:50% 24%}
+.artist-profile:focus-visible{outline:2px solid var(--acid);outline-offset:5px}
+.artist-profile:hover h2{color:var(--acid)}
 .artist-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto}
 .artist-links a{font-size:11px;letter-spacing:.04em;display:flex;justify-content:space-between;align-items:center;gap:8px;max-width:none;padding:14px 12px;min-height:55px}
 .artist-links small{display:block;font-size:9px;font-weight:500;letter-spacing:0;color:var(--muted);margin-top:5px}

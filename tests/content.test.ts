@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { arcadeAssets, musicLink, parseCollective, snakeFace } from '../src/content/collective.ts'
+import { arcadeAssets, collectiveAssets, musicLink, parseCollective, snakeFace } from '../src/content/collective.ts'
 
 const empty = () => ({ websiteUrl: null, artists: [], snake: { headImage: null, faces: [] } })
 
@@ -48,4 +48,12 @@ test('Snake cycles faces for food, adds them to eaten segments and leaves the in
   assert.equal(snakeFace(faces, 20)?.id, 'one')
   assert.equal(snakeFace(faces, 20, 1)?.id, 'two')
   assert.equal(snakeFace(faces, 20, 2)?.id, 'one')
+})
+
+test('artist portraits must be bundled public rasters and are distinct from private galleries and Snake faces', () => {
+  const artist = { id: 'test', name: 'Test', image: '/artists/test.jpg', links: ['https://soundcloud.com/test'] }
+  const config = parseCollective({ ...empty(), artists: [artist] })
+  assert.deepEqual(collectiveAssets(config), ['/artists/test.jpg'])
+  assert.deepEqual(arcadeAssets(config), [])
+  for (const image of ['/private-gallery/test.jpg', '/artists/../private.jpg', '/artists/test.svg', '/artists/test.jpg?token=secret', 'https://external.example/test.jpg']) assert.throws(() => parseCollective({ ...empty(), artists: [{ ...artist, image }] }))
 })
