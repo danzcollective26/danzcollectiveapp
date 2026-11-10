@@ -535,3 +535,25 @@ El canje, la caducidad del código, RLS y MFA no se modifican. El guardado local
 no concede un sello ni reserva cupo; ver ENTRADA_RAPIDA.md. Apple continúa
 preparado en cliente y pendiente de la cuenta y credenciales Apple Developer.
 La audiencia privada de Sites se conserva hasta una decisión explícita.
+
+
+Validación y publicación de esta entrega:
+- 76/76 tests de lógica y permisos; build local correcto.
+- Actions `42757159287`, commit `1857341d686e35329dec71dcc7da585dca8d817b`:
+  147/147 recorridos Chromium (escritorio, tablet y móvil simulado) y 2/2 de
+  producción sin conexión. Google/Apple se prueban con API simulada en este CI.
+- QA manual en Chrome: QR de ensayo local, recibo automático, recarga y continuar
+  sin registro. No se completó un canje real ni se activó Apple durante la QA.
+- Source Sites: `a777ef24bee79aeaef9b25b4eea868fab610083a`.
+- Árbol común probado: `5bb57b0df7e62a473e903b53d17179c866f9e60e`.
+- Deployment: `appgdep_6af2a132330481919d2f5f7dcdbbf3a9`, estado `succeeded`.
+- Versión 11: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_75b854b0f5608191af2af0e46687c441`.
+- URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
+
+Paquete de 22 entradas, cuatro retratos y backend de producción, sin entornos ni
+fixtures QA. Se mantiene la audiencia del propietario, sin visitantes externos.
+El navegador de trabajo muestra la puerta privada de ChatGPT del sitio publicado;
+no se presenta como una prueba autenticada de la UI alojada. Pendientes: autorización
+para abrir la PWA sin ChatGPT, Apple Developer y prueba física de Apple/iPhone,
+MFA del propietario y capacidad real de 200 altas. Registro posterior documental;
+no modifica la aplicación publicada.
