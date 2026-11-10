@@ -364,4 +364,20 @@ contraseña de aplicación directamente en Supabase. No se ha creado esa
 credencial, guardado SMTP, modificado la plantilla remota ni enviado correos.
 No se presenta Gmail como proveedor validado para un evento masivo.
 
-Validación final y publicación: pendientes de registrar tras su ejecución.
+Validación final: 73/73 pruebas de lógica y permisos, build correcto, revisión
+visual local de los cuatro perfiles y Actions `42729093113` satisfactorio:
+123/123 recorridos Chromium (escritorio, tablet y móvil) y 2/2 recorridos
+de producción sin red. Estos tests no envían correos reales ni validan una
+instalación física en Android/iPhone o Safari.
+
+Publicación privada confirmada por el servicio:
+- GitHub probado: `a5cd88ca76b36a597e14a292ab22a5c480baadaa`.
+- Source Sites: `4487ecb9910bbcb3ecdd97d7a35f4d895b809dcd`.
+- Árbol común: `bcc5185bfeddf1d9c99d0180e59647ee2bc41ba0`.
+- Deployment: `appgdep_6af2671da3608191b1b786124c32d210`, estado `succeeded`.
+- Versión: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_d845abcd258c8191acfa182fbd0c5a79`.
+- URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
+
+El bundle contiene el backend de producción y excluye el de los tests.
+El paquete no incluye archivos de entorno privados. Esta anotación posterior
+solo registra resultados, sin modificar la aplicación publicada.
