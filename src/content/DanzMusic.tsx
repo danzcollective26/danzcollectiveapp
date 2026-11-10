@@ -7,9 +7,11 @@ function ExternalArrow() {
 // Preserve the music section when the browser's Back button returns from a platform.
 // Leave navigation to the native anchor: no popup or asynchronous window.open.
 function rememberMusic() {
-  const url = new URL(window.location.href)
-  url.searchParams.set('seccion', 'musica')
-  window.history.replaceState(window.history.state, '', url)
+  try {
+    const url = new URL(window.location.href)
+    url.searchParams.set('seccion', 'musica')
+    window.history.replaceState(window.history.state, '', url)
+  } catch { /* Restricted previews may deny history writes; navigation still works. */ }
 }
 
 export default function DanzMusic({ artists }: { artists: Artist[] }) {
@@ -17,12 +19,12 @@ export default function DanzMusic({ artists }: { artists: Artist[] }) {
   return <div className="artist-grid" aria-label="DJs del colectivo">
     {artists.map((artist, index) => <article className="artist-card" data-artist={artist.id} key={artist.id} aria-label={artist.name}>
       <div className="artist-heading"><span>DANZ COLLECTIVE</span><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
-      <a className="artist-profile" href={(artist.links.find(link => link.label === 'SoundCloud') ?? artist.links[0]).href} target="_self" rel="noreferrer" onClick={rememberMusic} aria-label={`Escuchar a ${artist.name}`}>
+      <a className="artist-profile" href={(artist.links.find(link => link.label === 'SoundCloud') ?? artist.links[0]).href} target="_top" rel="noreferrer" onClick={rememberMusic} aria-label={`Escuchar a ${artist.name}`}>
         {artist.image && <div className="artist-portrait"><img src={artist.image} alt={`Retrato de ${artist.name}`} width="640" height="640" decoding="async" /><span className="artist-photo-label" aria-hidden="true">DANZ IN / ARTIST</span></div>}
         <h2>{artist.name}<ExternalArrow /></h2>
         <span className="artist-listen">ESCUCHAR AL ARTISTA <ExternalArrow /></span>
       </a>
-      <div className="artist-links">{artist.links.map(link => <a className="outline-btn external-btn" key={link.href} href={link.href} target="_self" rel="noreferrer" onClick={rememberMusic} aria-label={`${artist.name} en ${link.label}${link.label === 'YouTube' && artist.youtubeChannelName ? ` · ${artist.youtubeChannelName}` : ''}`}><span>{link.label}{link.label === 'YouTube' && artist.youtubeChannelName && <small>{artist.youtubeChannelName}</small>}</span><ExternalArrow /></a>)}</div>
+      <div className="artist-links">{artist.links.map(link => <a className="outline-btn external-btn" key={link.href} href={link.href} target="_top" rel="noreferrer" onClick={rememberMusic} aria-label={`${artist.name} en ${link.label}${link.label === 'YouTube' && artist.youtubeChannelName ? ` · ${artist.youtubeChannelName}` : ''}`}><span>{link.label}{link.label === 'YouTube' && artist.youtubeChannelName && <small>{artist.youtubeChannelName}</small>}</span><ExternalArrow /></a>)}</div>
     </article>)}
   </div>
 }

@@ -426,3 +426,29 @@ Publicación privada confirmada:
 El paquete incluye las cuatro fotos del catálogo y el backend de producción,
 sin archivos de entorno privados ni backend ficticio. El acceso sigue limitado
 al propietario. Este registro posterior no modifica la aplicación publicada.
+
+## Enlaces desde vista incrustada — 10 de noviembre de 2026
+
+El propietario indicó que seguían sin abrirse al entrar desde el enlace de la
+conversación. La prueba anterior de navegación había sido en una pestaña completa;
+no demostraba el funcionamiento dentro de una vista incrustada. La versión 8
+publicada se comprobó por el acceso de servicio oficial de Sites: index y bundle
+actuales, fotos presentes y service worker bda862e9ad3d01b4. No se cambió la audiencia,
+se envió la credencial solo al mismo Site y no se guardó en disco o en código.
+
+Se cambia el destino nativo de los 19 enlaces de _self a _top: una pulsación
+puede abrir el perfil fuera del iframe cuando el contenedor lo permite. Dentro
+de una página completa conserva la misma pestaña. Guardar la sección de retorno
+pasa a ser opcional si el contenedor prohíbe history.replaceState.
+
+Nueva regresión: app dentro de un iframe de otro origen, sin popups y con
+navegación superior permitida por interacción. El destino simulado prohíbe ser
+incrustado (frame-ancestors none y X-Frame-Options DENY). Debe abrirse arriba y
+volver a DANZ. El entorno exacto del móvil del propietario no está disponible;
+esta prueba cubre una causa posible, no atribuye con certeza el fallo de su móvil.
+
+El propietario confirmó creada la contraseña de aplicación Google. Se le indicó
+pegarla directamente en el formulario SMTP de Supabase. No se recibió, almacenó
+ni utilizó dicha contraseña; guardar SMTP y probar entrega siguen pendientes.
+
+Validación final y publicación de esta corrección: pendientes de registrar.

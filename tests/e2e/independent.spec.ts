@@ -20,12 +20,28 @@ test('the app opens its own sections without connecting to the collective websit
   await expect(page.getByRole('article', { name: 'Chicharro (ES)', exact: true }).getByRole('link', { name: /YouTube/ })).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'TonyDawgs en YouTube · DANZ IN Records', exact: true })).toHaveAttribute('href', 'https://www.youtube.com/@DanzInRecords')
   const links = await page.locator('.artist-card a').evaluateAll(anchors => anchors.map(anchor => ({ href: (anchor as HTMLAnchorElement).href, target: (anchor as HTMLAnchorElement).target, rel: (anchor as HTMLAnchorElement).rel })))
-  expect(links.every(link => !new URL(link.href).search && link.target === '_self' && link.rel.includes('noreferrer'))).toBe(true)
+  expect(links.every(link => !new URL(link.href).search && link.target === '_top' && link.rel.includes('noreferrer'))).toBe(true)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await nav.getByRole('button', { name: 'Arcade', exact: true }).click()
   await expect(page.locator('.game-board > .cell')).toHaveCount(169)
   await expect(page.locator('.game-board img')).toHaveCount(0)
   expect(externalRequests).toEqual([])
+})
+
+test('artist profiles leave an embedded preview instead of loading a platform inside its iframe', async ({ page, baseURL, context }) => {
+  const preview = 'http://danz-preview.example/'
+  const destination = 'https://soundcloud.com/chicharro-es'
+  await page.route(preview, route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><title>Vista previa</title><iframe title="DANZ" sandbox="allow-scripts allow-same-origin allow-top-navigation-by-user-activation" src="${baseURL}/?seccion=musica"></iframe>` }))
+  await page.route(destination, route => route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Artista</title><h1>Perfil del artista</h1>' }))
+  await page.goto(preview)
+  const frame = page.frameLocator('iframe')
+  await frame.getByRole('link', { name: 'Escuchar a Chicharro (ES)', exact: true }).click()
+  await expect(page).toHaveURL(destination)
+  await expect(page.getByRole('heading', { name: 'Perfil del artista' })).toBeVisible()
+  expect(context.pages()).toHaveLength(1)
+  await page.goBack()
+  await expect(page).toHaveURL(preview)
+  await expect(frame.getByRole('link', { name: 'Escuchar a Chicharro (ES)', exact: true })).toBeVisible()
 })
 
 test('every artist link navigates in the same tab and Back restores the music section', async ({ page, context }) => {
