@@ -513,3 +513,25 @@ Preparación publicada con audiencia privada conservada:
 El paquete excluye archivos de entorno y fixtures temporales, y contiene el
 backend de producción. Proveedores reales y correo siguen pendientes de su
 prueba de activación; el código solo ofrece métodos habilitados por el servidor.
+
+## Acceso Google real y llegada rápida — 10 de noviembre de 2026
+
+El titular completó la configuración Google en su propio Chrome e introdujo su
+secreto directamente en Supabase. Settings público confirmó Google=true,
+Apple=false, correo=true y registro permitido. Authorize devolvió 302 al cliente
+Google correcto y al callback de Supabase. Después, «He entrado» se contrastó
+con una identidad Google y un acceso real a las 04:31 Europe/Madrid, manteniendo
+el UUID, perfil y permisos anteriores y una sola cuenta para su correo.
+La prueba no acredita 200 altas ni Apple; MFA de administración sigue pendiente.
+
+El propietario priorizó que la entrada no obligue a instalar o registrarse.
+El QR ya guardaba el código al cargar; ahora se muestra directamente el recibo
+«Pase guardado», con seguir la noche y vincular después. No se espera a Auth ni
+se pide reenviar un formulario. Solo se anuncia éxito tras comprobar guardado
+local real. Se conserva el fallback si el almacenamiento falla y la limpieza
+de URL/navegación tolera una vista que bloquee history.replaceState.
+
+El canje, la caducidad del código, RLS y MFA no se modifican. El guardado local
+no concede un sello ni reserva cupo; ver ENTRADA_RAPIDA.md. Apple continúa
+preparado en cliente y pendiente de la cuenta y credenciales Apple Developer.
+La audiencia privada de Sites se conserva hasta una decisión explícita.

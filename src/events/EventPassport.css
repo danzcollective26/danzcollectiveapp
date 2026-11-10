@@ -18,4 +18,17 @@
 .passport-empty { border: 1px dashed #999; padding: 24px; line-height: 1.6; }
 .pending-pass-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #bbb; padding-block: 16px; font-size: 14px; }
 .pending-pass-banner .outline-btn { font-size: 11px; padding: 10px 14px; }
+.passport-receipt { max-width: 720px; margin: 0 auto; padding: clamp(20px, 4vw, 42px); border: 1px solid #4b4c42; background: #191a16; }
+.passport-receipt-mark { display: block; color: var(--acid, #d9ff59); font-size: 54px; line-height: 1; margin: 25px 0 16px; }
+.passport-receipt h1 { margin: 0 0 18px; font-size: clamp(44px, 7vw, 82px); line-height: .96; letter-spacing: -.055em; }
+.passport-receipt h1 em { color: var(--acid, #d9ff59); font-style: normal; }
+.passport-receipt p { max-width: 48ch; color: #c9cbc1; line-height: 1.6; }
+.passport-receipt .passport-receipt-lead { color: #f6f5ed; font-size: 20px; font-weight: 700; }
+.passport-receipt-actions { display: grid; gap: 12px; margin: 26px 0 18px; }
+.passport-receipt-actions button { width: 100%; justify-content: center; white-space: normal; text-align: center; }
+.passport-receipt .passport-receipt-note { font-size: 13px; color: #aeb0a6; }
+.passport-receipt-details { padding: 16px; margin-top: 24px; background: transparent; border-color: #626457; color: inherit; }
+.passport-receipt-details summary { cursor: pointer; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+.passport-receipt-details .outline-btn { margin-top: 16px; }
+.passport-receipt-details .passport-message { color: #171717; }
 @media (max-width: 760px) { .passport-layout { grid-template-columns: 1fr; } .passport-stamp { padding: 18px; grid-template-columns: 36px minmax(0,1fr); gap: 12px; } .passport-flower { font-size: 30px; } }

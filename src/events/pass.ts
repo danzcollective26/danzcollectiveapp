@@ -42,6 +42,8 @@ export function captureLaunchPass() {
   const incoming = consumePassUrl(window.location.href)
   let saved = true
   if (incoming.code) saved = savePendingPass(incoming.code)
-  if (incoming.url !== window.location.href) window.history.replaceState(window.history.state, '', incoming.url)
+  if (incoming.url !== window.location.href) {
+    try { window.history.replaceState(window.history.state, '', incoming.url) } catch { /* Saving the pass must still work in a restricted browser view. */ }
+  }
   return { code: incoming.code ?? readPendingPass(), invalid: incoming.invalid, saved }
 }

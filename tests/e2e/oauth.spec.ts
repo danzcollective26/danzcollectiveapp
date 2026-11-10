@@ -37,7 +37,9 @@ for (const provider of ['google', 'apple'] as const) {
       await route.fulfill({ json: session })
     })
     const pass = 'ABCD1234EFGH5678IJKL9012'
-    await page.goto(`/?seccion=cuenta#pase=${pass}`)
+    await page.goto(`/#pase=${pass}`)
+    await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
+    await page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true }).click()
     await page.getByRole('button', { name: `Continuar con ${provider === 'google' ? 'Google' : 'Apple'}`, exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
     expect(exchanges).toBe(1)

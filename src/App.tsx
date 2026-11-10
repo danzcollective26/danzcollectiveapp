@@ -125,7 +125,7 @@ export default function App() {
     if (destination === 'danzin') url.searchParams.set('seccion', 'musica')
     else if (destination === 'cuenta') url.searchParams.set('seccion', 'cuenta')
     else url.searchParams.delete('seccion')
-    window.history.replaceState(window.history.state, '', url)
+    try { window.history.replaceState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
     setPage(destination)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -247,7 +247,7 @@ export default function App() {
         {page === 'danzers' && (
           <section className="content inner-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <EventPassport key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} launchIssue={passIssue} onPendingPass={setPendingPass} onSignIn={() => go('cuenta')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
+            <EventPassport key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} launchIssue={passIssue} onPendingPass={setPendingPass} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
           </section>
         )}
 

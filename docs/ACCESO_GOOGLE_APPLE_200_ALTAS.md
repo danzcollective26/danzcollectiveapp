@@ -76,6 +76,14 @@ comprobar acceso y alta con una cuenta real, sesión al recargar y pase pendient
 Activar el método no requiere enlazar `danzcollective.com` ni mover usuarios/fotos.
 La revisión de marca o de otros requisitos de Google puede requerir pasos externos.
 
+## Entrada sin registro en puerta
+
+El propietario prioriza guardar el pase con la mínima interacción aunque el
+asistente no instale la app ni se registre al llegar. La pantalla del QR confirma
+el guardado local automáticamente y deja la vinculación para después. Alcance,
+caducidad del código y publicación sin ChatGPT: [Entrada rápida](ENTRADA_RAPIDA.md).
+Este recorrido no exige la verificación de dos pasos del panel administrativo.
+
 ## Apple
 
 Se necesita la configuración de desarrollador Apple: App ID con la capacidad,

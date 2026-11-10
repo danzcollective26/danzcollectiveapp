@@ -11,27 +11,58 @@ const openPassport = async (page: import('@playwright/test').Page) => {
   await page.getByRole('button', { name: 'DANZERS', exact: true }).click()
 }
 
-test('a guest QR pass is removed from the URL, survives reload and is kept before sign-in', async ({ page }) => {
+test('a guest QR is saved without a form, survives reload and can be linked later', async ({ page }) => {
   await mockSupabase(page)
   const redemptions: string[] = []
   page.on('request', request => { if (request.url().includes('/rpc/danz_redeem_event_code')) redemptions.push(request.url()) })
   await page.goto('/#pase=danz-access-a123456')
-  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(CODE)
+  await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
   await expect(page).toHaveURL(/\/$/)
   await page.reload()
-  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(CODE)
-  await page.getByRole('button', { name: 'GUARDAR PASE EN ESTE MÓVIL', exact: true }).click()
-  await expect(page.getByText('Pase guardado en este móvil.', { exact: false })).toBeVisible()
-  await page.getByRole('button', { name: 'INICIAR SESIÓN', exact: true }).click()
+  await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
+  await page.getByRole('button', { name: 'SEGUIR CON MI NOCHE', exact: true }).click()
+  await expect(page.getByRole('heading', { name: /WE ARE/ })).toBeVisible()
+  await page.getByRole('button', { name: 'ABRIR MI PASE ↗', exact: true }).click()
+  await page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true }).click()
   await expect(page.getByLabel('Correo electrónico', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'ABRIR MI PASE ↗', exact: true })).toBeVisible()
   expect(redemptions).toEqual([])
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
   await page.goto('/#pase=SECONDACCESS1234')
+  await page.getByText('VER MI CÓDIGO Y OPCIONES', { exact: true }).click()
   await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue('SECONDACCESS1234')
   await expect(page).toHaveURL(/\/$/)
   await page.getByRole('button', { name: 'DESCARTAR PASE PENDIENTE', exact: true }).click()
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
+})
+
+test('blocked storage keeps the code visible and never claims the pass was saved', async ({ page }) => {
+  await mockSupabase(page)
+  await page.addInitScript(() => {
+    const original = Storage.prototype.setItem
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'danz-pending-event-pass') throw new DOMException('Storage blocked', 'SecurityError')
+      return original.call(this, key, value)
+    }
+  })
+  await page.goto(`/#pase=${CODE}`)
+  await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toHaveCount(0)
+  await expect(page.getByText('Este navegador no permite guardar el pase.', { exact: false })).toBeVisible()
+  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(CODE)
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
+})
+
+test('restricted browser history cannot prevent saving or leaving the arrival screen', async ({ page }) => {
+  await mockSupabase(page)
+  await page.addInitScript(() => {
+    window.history.replaceState = () => { throw new DOMException('History blocked', 'SecurityError') }
+  })
+  await page.goto(`/#pase=${CODE}`)
+  await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
+  await page.getByRole('button', { name: 'SEGUIR CON MI NOCHE', exact: true }).click()
+  await expect(page.getByRole('heading', { name: /WE ARE/ })).toBeVisible()
 })
 
 test('server redemption refreshes the passport and opens the matching gallery', async ({ page }) => {
@@ -114,6 +145,6 @@ test('switching accounts and signing out clears stamps; a late redemption cannot
   await expect(page.getByRole('heading', { name: 'Solo cuenta A', exact: true })).toHaveCount(0)
   await expect(page.getByText('¡Sello guardado!', { exact: false })).toHaveCount(0)
   await switchMockSession(page, null)
-  await expect(page.getByRole('button', { name: 'INICIAR SESIÓN', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Solo cuenta B', exact: true })).toHaveCount(0)
 })
