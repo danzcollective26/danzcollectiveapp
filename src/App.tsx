@@ -37,7 +37,7 @@ export default function App() {
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
-    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : launchPass.code || launchPass.invalid ? 'danzers' : params.get('seccion') === 'musica' ? 'danzin' : 'inicio'
+    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : params.get('seccion') === 'cuenta' ? 'cuenta' : launchPass.code || launchPass.invalid ? 'danzers' : params.get('seccion') === 'musica' ? 'danzin' : 'inicio'
   })
   const [pendingPass, setPendingPass] = useState(launchPass.code)
   const [passIssue, setPassIssue] = useState(launchPass.invalid ? 'El enlace del pase no contiene un código válido.' : !launchPass.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
@@ -123,6 +123,7 @@ export default function App() {
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
     const url = new URL(window.location.href)
     if (destination === 'danzin') url.searchParams.set('seccion', 'musica')
+    else if (destination === 'cuenta') url.searchParams.set('seccion', 'cuenta')
     else url.searchParams.delete('seccion')
     window.history.replaceState(window.history.state, '', url)
     setPage(destination)

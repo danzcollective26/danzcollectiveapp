@@ -22,6 +22,9 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 - Instalación PWA en navegadores compatibles, instrucciones Android/iPhone y
   apertura de Snake sin conexión tras guardar el shell. Actualizaciones confirmadas.
 - Cuenta por correo sin contraseña, validación de sesión, cierre de sesión y perfil propio.
+- Google/Apple preparados con PKCE y detección de proveedores activados en el
+  servidor. Ambos siguen desactivados hasta configurar sus cuentas externas.
+  Requisito de 200 altas y activación: `docs/ACCESO_GOOGLE_APPLE_200_ALTAS.md`.
 - Galerías privadas: consulta de eventos autorizados y fotos publicadas, enlaces firmados
   de corta duración, visor y descarga. Los permisos los impone Supabase, no el navegador.
 - DANZERS: pase por enlace QR o código, canje validado en el servidor y pasaporte

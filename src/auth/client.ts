@@ -1,10 +1,21 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { clientConfiguration, consumeCallbackError, consumeCompletedCallback, consumeEmailCallback } from './config'
+import { availableSocialProviders, type SocialProvider } from './oauth'
 
 const env = (import.meta as ImportMeta & { env: Record<string, string | boolean | undefined> }).env
 const checked = clientConfiguration(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY, Boolean(env.DEV))
 export const configIssue = checked.issue
+
+/** Public Auth settings, never admin config or provider credentials. */
+export async function fetchSocialProviders(signal: AbortSignal): Promise<SocialProvider[]> {
+  if (!checked.config) return []
+  const response = await fetch(`${checked.config.url}/auth/v1/settings`, {
+    headers: { apikey: checked.config.key }, signal, credentials: 'omit', cache: 'no-store', redirect: 'error',
+  })
+  if (!response.ok) throw new Error('Auth options unavailable')
+  return availableSocialProviders(await response.json())
+}
 
 const callback = consumeCallbackError(window.location.href)
 if (callback.url !== window.location.href) window.history.replaceState(window.history.state, '', callback.url)

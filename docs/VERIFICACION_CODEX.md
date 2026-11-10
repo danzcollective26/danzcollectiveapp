@@ -451,4 +451,49 @@ El propietario confirmó creada la contraseña de aplicación Google. Se le indi
 pegarla directamente en el formulario SMTP de Supabase. No se recibió, almacenó
 ni utilizó dicha contraseña; guardar SMTP y probar entrega siguen pendientes.
 
-Validación final y publicación de esta corrección: pendientes de registrar.
+Corrección publicada con acceso privado conservado: source Sites
+`9938f585f5660056e137bf8b3eb46eefdae9474c`, árbol probado
+`1ac5c73c285218723e93fe104d47af7d7e2b9319`, commit GitHub
+`e6b12b5624db364b59a93576a3b860e5d3408a8e`, Actions `42735181268`.
+Confirmados 74/74 tests de lógica/permisos, 129/129 recorridos Chromium y 2/2
+de producción sin red. Deployment `appgdep_6af272efa1408191bf6a8764459ddd98`
+en succeeded; versión `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_8a4a7eeb3dec8191aaf1d2020d6d02cd`.
+
+Las primeras dos ejecuciones de la prueba incrustada fallaron antes de cargar
+la app. El trace de `42733647635` confirmó ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS:
+el origen padre simulado se trataba como público. Se corrigió el harness para
+usar una página padre real y dos orígenes loopback; no se deshabilitó ninguna
+protección. Además, una comprobación visual real en Chrome abrió Spotify desde
+un iframe y salió a la página completa. El fixture temporal se eliminó antes
+de empaquetar. El entorno del teléfono del propietario sigue por validar.
+
+El propietario reportó guardado SMTP con el aviso de proveedor personal Gmail.
+Se explicó que el aviso no acredita ni impide por sí solo la entrega. Se le
+indicó solicitar y abrir un correo nuevo desde el mismo Chrome. No se recibió
+ninguna contraseña ni se confirmó todavía recepción por ese SMTP.
+
+## Google, Apple y requisito de 200 altas — 10 de noviembre de 2026
+
+El propietario concretó 200 altas en el día del evento y pidió acceso con Google
+o Apple. Se preparan los flujos web PKCE y una consulta al endpoint público de
+settings para mostrar solo proveedores explícitamente habilitados. Una lectura
+real confirmó Google=false, Apple=false, email=true y registro permitido.
+No se han activado proveedores, creado clientes externos, configurado secretos
+ni contratado servicios. La contraseña SMTP no se usa para configurar OAuth.
+
+El acceso social comienza en una página completa. Desde una vista incrustada,
+se abre primero el mismo origen de la app, trasladando únicamente un pase
+pendiente validado en el fragmento. La app retira el fragmento y conserva el
+pase antes de crear el verificador OAuth. El callback sigue requiriendo getUser
+verificado; los perfiles sociales no otorgan administración ni asistencia.
+
+Gmail es provisional. La preparación del evento exige SMTP transaccional con
+remitente autenticado, margen de reintentos y revisión de límites globales y por
+IP, incluyendo asistentes en la misma Wi-Fi. No se ha hecho una prueba de carga
+ni se presenta como acreditada la capacidad de 200 altas. El hosting de la demo
+sigue privado para su propietario. Pasos y bloqueos en
+ACCESO_GOOGLE_APPLE_200_ALTAS.md.
+
+76/76 tests locales y build correctos. Se incorporan recorridos con API simulada
+para Google/Apple, callback PKCE, pase pendiente, no envío OTP y salida del iframe.
+Validación final de navegador y publicación de esta preparación: pendientes.

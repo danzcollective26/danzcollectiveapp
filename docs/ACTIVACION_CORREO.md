@@ -6,8 +6,12 @@ La app funciona en su propia dirección. No necesita vincularse a la web del
 colectivo ni cambiar su dominio. `danzcollective.com` lo gestiona otra persona;
 el propietario ha pedido dejar esa conexión para más adelante.
 
-**Estado real:** parámetros e instrucciones preparados; no se ha guardado un
-SMTP propio, autorizado Google ni comprobado entrega a nuevos destinatarios.
+**Estado real:** el propietario creó la contraseña de aplicación de Google y
+reportó guardado del formulario Gmail en Supabase el 10 de noviembre, con el
+aviso de proveedor personal. No se ha leído su contraseña ni comprobado todavía
+la entrega a nuevos destinatarios. Gmail queda limitado a las primeras pruebas.
+El requisito posterior es 200 altas en el evento: ver
+[Acceso y capacidad](ACCESO_GOOGLE_APPLE_200_ALTAS.md) antes de dar por listo el correo.
 No poner contraseñas, códigos de acceso ni enlaces de sesión en el chat o Git.
 
 ## Primera vía: cuenta Gmail del proyecto, para pruebas pequeñas

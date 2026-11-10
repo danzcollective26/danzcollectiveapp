@@ -2,8 +2,10 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { useAuth } from './AuthProvider'
-import { configIssue } from './client'
+import { configIssue, fetchSocialProviders } from './client'
 import { authErrorMessage } from './config'
+import { accountBrowserUrl, type SocialProvider } from './oauth'
+import { readPendingPass } from '../events/pass'
 import './Account.css'
 
 type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_id' | 'display_name' | 'instagram_handle'>
@@ -110,10 +112,22 @@ export default function Account() {
   const [message, setMessage] = useState('')
   const [nextSendAt, setNextSendAt] = useState(0)
   const [cooldown, setCooldown] = useState(0)
+  const [providers, setProviders] = useState<SocialProvider[]>([])
+  const embedded = window.self !== window.top
   const action = useRef(false)
   const mounted = useRef(true)
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
+  useEffect(() => {
+    setProviders([])
+    if (!client || user || loading) return
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
+    void fetchSocialProviders(controller.signal).then(options => {
+      if (!controller.signal.aborted) setProviders(options)
+    }).catch(() => { /* Email remains usable if options cannot be loaded. */ }).finally(() => clearTimeout(timeout))
+    return () => { controller.abort(); clearTimeout(timeout) }
+  }, [client, user?.id, loading])
   useEffect(() => {
     if (!nextSendAt) return
     const update = () => setCooldown(Math.max(0, Math.ceil((nextSendAt - Date.now()) / 1000)))
@@ -173,6 +187,24 @@ export default function Account() {
     }
   }
 
+  const enterWithProvider = async (provider: SocialProvider) => {
+    if (!client || action.current || embedded || !providers.includes(provider)) return
+    action.current = true
+    setBusy(true)
+    setError('')
+    setMessage('')
+    clearError()
+    try {
+      const result = await client.auth.signInWithOAuth({ provider, options: { redirectTo: new URL('/', window.location.origin).href } })
+      if (mounted.current && result.error) setError(authErrorMessage(result.error))
+    } catch (reason) {
+      if (mounted.current) setError(authErrorMessage(reason))
+    } finally {
+      action.current = false
+      if (mounted.current) setBusy(false)
+    }
+  }
+
   const leave = async () => {
     if (action.current) return
     action.current = true
@@ -196,7 +228,14 @@ export default function Account() {
         {error && <p role="alert" className="account-error">{error}</p>}
         <ProfileForm key={user.id} client={client} user={user} />
       </> : <div className="account-card">
-        <h2>Entra con tu correo</h2>
+        <h2>{providers.length ? 'Entra en DANZ' : 'Entra con tu correo'}</h2>
+        {providers.length > 0 && (embedded ? <div className="account-browser-login">
+          <p>Para usar este acceso, abre DANZ en tu navegador.</p>
+          <a className="primary-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_top" rel="noreferrer">ABRIR DANZ PARA ENTRAR</a>
+        </div> : <div className="account-social" role="group" aria-label="Acceso con tu cuenta">
+          {providers.map(provider => <button className={`account-social-button account-social-${provider}`} key={provider} type="button" disabled={busy} onClick={() => { void enterWithProvider(provider) }}>Continuar con {provider === 'google' ? 'Google' : 'Apple'}</button>)}
+          <p className="account-note">O utiliza tu correo electrónico.</p>
+        </div>)}
         <p>Te enviaremos un correo para entrar sin contraseña. Si todavía no tienes cuenta, se creará al confirmar tu correo.</p>
         <form className="account-form" onSubmit={event => { void requestLink(event) }}>
           <label htmlFor="account-email">Correo electrónico</label>
@@ -217,7 +256,7 @@ export default function Account() {
             <button className="primary-btn" type="submit" disabled={busy}>COMPROBAR CÓDIGO</button>
           </form>}
         </>
-        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre esta app directamente en Chrome o Safari, solicita un correo nuevo desde allí y abre el enlace en ese mismo navegador. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={new URL('/', window.location.origin).href} target="_blank" rel="noreferrer">ABRIR LA APP EN OTRA VENTANA ↗</a></div>
+        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre esta app directamente en Chrome o Safari, solicita un correo nuevo desde allí y abre el enlace en ese mismo navegador. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_top" rel="noreferrer">ABRIR CUENTA EN EL NAVEGADOR</a></div>
       </div>}
   </section>
 }

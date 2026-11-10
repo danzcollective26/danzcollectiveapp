@@ -23,6 +23,10 @@ export async function mockSupabase(page: Page) {
   await page.route(`${supabaseHost}/**`, async (route) => {
     const request = route.request()
     const path = new URL(request.url()).pathname
+    if (path === '/auth/v1/settings') {
+      await route.fulfill({ json: { external: { email: true, google: false, apple: false } } })
+      return
+    }
     if (path === '/auth/v1/user' && request.method() === 'GET') {
       const token = request.headers().authorization?.replace(/^Bearer /i, '')
       try {
