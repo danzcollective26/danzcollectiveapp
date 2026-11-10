@@ -15,6 +15,7 @@ async function staticResponse(path) {
     : path.endsWith('.png') ? !mime.includes('image/png')
     : /\.jpe?g$/.test(path) ? !mime.includes('image/jpeg')
     : path.endsWith('.webp') ? !mime.includes('image/webp')
+    : path.endsWith('.svg') ? !mime.includes('image/svg+xml')
     : !/json|manifest/.test(mime)) throw new Error('Unexpected application file type')
   return response
 }

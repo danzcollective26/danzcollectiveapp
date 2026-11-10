@@ -733,4 +733,14 @@ el texto aislado. El juego ya estaba terminado y mostraba VOLVER A JUGAR. Se
 comprueba ahora el contenido del recuadro y la acción de repetir, manteniendo
 las posiciones intermedias y la colisión real contra el muro. No hay cambios
 de código de la aplicación por estas correcciones de pruebas.
-La validación CI final y la publicación se registrarán al completarse.
+La tercera CI (`42868379837`, commit `ecb2fc9f1ddc7f70d0ad0b4ea628f1bdb7eb030d`)
+aprobó 85/85 pruebas de lógica/SQL y los 180 E2E sin reintentos. Las dos pruebas
+PWA detectaron que la flor SVG de la nueva lista de precarga no tenía una rama
+de tipo MIME admitido; la instalación del shell se abortaba correctamente al
+encontrar un formato desconocido. Se admite image/svg+xml para las rutas SVG
+ya incluidas expresamente en BUILD.paths. Se mantienen los controles de origen,
+redirecciones, HTML de login, lista explícita y exclusión de datos privados.
+Dos regresiones comprueban el SVG válido y rechazos de HTML, JSON y otro origen.
+El workflow ejecuta ahora la prueba breve PWA antes de los 180 recorridos para
+detectar antes problemas del paquete. La validación y publicación finales se
+registrarán al completarse.
