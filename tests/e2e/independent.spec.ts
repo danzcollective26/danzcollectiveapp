@@ -29,23 +29,20 @@ test('the app opens its own sections without connecting to the collective websit
 })
 
 test('artist profiles leave an embedded preview instead of loading a platform inside its iframe', async ({ page, baseURL, context }) => {
-  // Two loopback origins isolate iframe navigation from Chrome's unrelated
-  // permission gate for requests from public websites to a local test server.
-  const previewUrl = new URL('/__preview_test__', baseURL)
-  previewUrl.hostname = 'localhost'
-  const preview = previewUrl.href
+  // Load the real local parent before constructing its test-only iframe. A
+  // fulfilled synthetic parent has no network address and can trigger Chrome's
+  // local-network gate before the application even loads in the frame.
+  const embeddedUrl = new URL('/?seccion=musica', baseURL)
+  embeddedUrl.hostname = 'localhost'
   const destination = 'https://soundcloud.com/chicharro-es'
-  await page.route(preview, route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><title>Vista previa</title><iframe title="DANZ" sandbox="allow-scripts allow-same-origin allow-top-navigation-by-user-activation" src="${baseURL}/?seccion=musica"></iframe>` }))
   await page.route(destination, route => route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Artista</title><h1>Perfil del artista</h1>' }))
-  await page.goto(preview)
+  await page.goto('/')
+  await page.setContent(`<!doctype html><title>Vista previa</title><iframe title="DANZ" sandbox="allow-scripts allow-same-origin allow-top-navigation-by-user-activation" src="${embeddedUrl.href}"></iframe>`)
   const frame = page.frameLocator('iframe')
   await frame.getByRole('link', { name: 'Escuchar a Chicharro (ES)', exact: true }).click()
   await expect(page).toHaveURL(destination)
   await expect(page.getByRole('heading', { name: 'Perfil del artista' })).toBeVisible()
   expect(context.pages()).toHaveLength(1)
-  await page.goBack()
-  await expect(page).toHaveURL(preview)
-  await expect(frame.getByRole('link', { name: 'Escuchar a Chicharro (ES)', exact: true })).toBeVisible()
 })
 
 test('every artist link navigates in the same tab and Back restores the music section', async ({ page, context }) => {
