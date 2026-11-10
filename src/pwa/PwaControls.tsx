@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { prepareOffline, type OfflinePreparation } from './offline'
 import './PwaControls.css'
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
@@ -9,7 +10,8 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
   const [online, setOnline] = useState(navigator.onLine)
   const [installed, setInstalled] = useState(standalone)
   const [canInstall, setCanInstall] = useState(false)
-  const [ready, setReady] = useState(false)
+  const [offlineState, setOfflineState] = useState<OfflinePreparation | 'idle' | 'unsupported'>('idle')
+  const [offlineAttempt, setOfflineAttempt] = useState(0)
   const [update, setUpdate] = useState<ServiceWorkerRegistration | null>(null)
   const [open, setOpen] = useState<'install' | 'update' | null>(null)
   const [busy, setBusy] = useState(false)
@@ -35,32 +37,23 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
   }, [])
 
   useEffect(() => {
-    if (!production || !('serviceWorker' in navigator) || !window.isSecureContext) return
-    let current = true
-    const listeners: (() => void)[] = []
-    const activate = () => { if (requestedUpdate.current) window.location.reload() }
-    navigator.serviceWorker.addEventListener('controllerchange', activate)
-    const register = async () => {
-      try {
-        const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
-        if (!current) return
-        const checkUpdate = () => { if (current && registration.waiting && navigator.serviceWorker.controller) setUpdate(registration) }
-        checkUpdate()
-        const found = () => {
-          const worker = registration.installing
-          if (!worker) return
-          worker.addEventListener('statechange', checkUpdate)
-          listeners.push(() => worker.removeEventListener('statechange', checkUpdate))
-        }
-        registration.addEventListener('updatefound', found); found()
-        listeners.push(() => registration.removeEventListener('updatefound', found))
-        await navigator.serviceWorker.ready
-        if (current) setReady(true)
-      } catch { /* Online use remains available when the browser cannot save a shell. */ }
-    }
-    void register()
-    return () => { current = false; listeners.forEach(cleanup => cleanup()); navigator.serviceWorker.removeEventListener('controllerchange', activate) }
-  }, [])
+    if (!production) return
+    if (!('serviceWorker' in navigator) || !window.isSecureContext) { setOfflineState('unsupported'); return }
+    try {
+      const container = navigator.serviceWorker
+      const activate = () => { if (requestedUpdate.current) window.location.reload() }
+      const stop = prepareOffline(container, { onState: setOfflineState, onUpdate: setUpdate })
+      container.addEventListener('controllerchange', activate)
+      return () => { stop(); container.removeEventListener('controllerchange', activate) }
+    } catch { setOfflineState('unavailable') }
+  }, [offlineAttempt])
+
+  useEffect(() => {
+    if (offlineState !== 'unavailable') return
+    const retry = () => setOfflineAttempt(attempt => attempt + 1)
+    window.addEventListener('online', retry)
+    return () => window.removeEventListener('online', retry)
+  }, [offlineState])
 
   useEffect(() => {
     if (open && !dialog.current?.open) dialog.current?.showModal()
@@ -81,9 +74,14 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
     finally { setBusy(false) }
   }
   return <aside className={`content pwa-tools${quiet ? ' pwa-quiet' : ''}`} aria-label="DANZ en tu móvil">
-    {!online && <p className="pwa-offline" role="status">Sin conexión. Snake y los álbumes guardados en este navegador siguen disponibles. Las cuentas y las galerías privadas necesitan Internet.</p>}
+    {!online && <p className="pwa-offline" role="status">Sin conexión. {offlineState === 'ready' ? 'Snake y los álbumes guardados en este navegador siguen disponibles.' : 'Puedes seguir jugando a Snake si ya lo tienes abierto.'} Las cuentas y las galerías privadas necesitan Internet.</p>}
     {!quiet && <div className="pwa-actions">
-      {ready && <span>Snake disponible sin conexión</span>}
+      {offlineState === 'preparing' && <span role="status">Preparando Snake sin conexión…</span>}
+      {offlineState === 'ready' && <span>Snake disponible sin conexión</span>}
+      {(offlineState === 'unavailable' || offlineState === 'unsupported') && <div className="pwa-save-status">
+        <span role="status">{offlineState === 'unsupported' ? 'Este navegador no permite guardar DANZ sin conexión.' : 'El modo sin conexión aún no está listo. Puedes seguir usando DANZ con Internet.'}</span>
+        {offlineState === 'unavailable' && <button className="outline-btn" disabled={!online} onClick={() => setOfflineAttempt(attempt => attempt + 1)}>REINTENTAR GUARDADO</button>}
+      </div>}
       {!installed && <button className="outline-btn" disabled={busy} onClick={() => { void install() }}>{canInstall ? 'INSTALAR DANZ' : 'CÓMO INSTALAR DANZ'}</button>}
       {update && <button className="outline-btn" onClick={() => setOpen('update')}>VERSIÓN NUEVA DISPONIBLE</button>}
     </div>}
@@ -97,6 +95,7 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
         <p><strong>Android:</strong> abre esta página en Chrome. Pulsa el menú ⋮ y busca «Instalar y crear acceso directo» o «Añadir a pantalla de inicio». Confirma la instalación.</p>
         <p><strong>iPhone:</strong> abre esta página en Safari. Pulsa Compartir → Añadir a pantalla de inicio y confirma Añadir. Activa «Abrir como app web» si aparece.</p>
         <p>Si estás dentro de la app de correo o de ChatGPT, abre primero el enlace en Chrome o Safari.</p>
+        <p>Para volver a abrir Snake sin Internet, espera a ver «Snake disponible sin conexión» antes de cerrar la app. Las fotos privadas necesitan conexión.</p>
         <p>DANZ abre sin una cuenta de ChatGPT. Para tus fotos privadas, vincula el pase del evento a tu cuenta DANZ.</p>
       </>}
       {error && <p role="alert">{error}</p>}

@@ -768,3 +768,31 @@ modo sin conexión del sitio alojado. Las dos pruebas PWA acreditan el build de
 producción en CI. Quedan por comprobar el modo sin conexión en un móvil real y
 una copia impresa del cartel. Administración/MFA y las caras siguen pendientes
 del propietario. Este registro posterior no modifica la aplicación publicada.
+
+## Recuperación de la preparación sin conexión — 11 de noviembre de 2026
+
+La continuación parte de la versión 17 y conserva su identidad y audiencia
+pública. El navegador gestionado rechaza abrir el archivo público sw.js con
+ERR_BLOCKED_BY_CLIENT; su política tampoco permite páginas internas de Chrome.
+No se ha sorteado esa restricción. Esto no acredita un fallo universal en los
+móviles de asistentes. Los logs recientes del hosting no mostraron errores.
+
+Se sustituye la espera sin límite de serviceWorker.ready por una observación
+con límite de veinte segundos y estados visibles. Solo se confirma «Snake
+disponible sin conexión» tras observar un worker activado. Un rechazo, una
+instalación redundante o una espera agotada deja disponible la navegación online
+y ofrece «Reintentar guardado». Volver a tener conexión reintenta si el guardado
+había fallado. Una activación tardía real puede recuperar el estado listo.
+
+Los intentos desmontados ignoran respuestas tardías y retiran sus listeners y
+temporizadores. Un shell anterior activado sigue siendo válido si falla buscar
+la actualización. Las actualizaciones esperan la decisión explícita ya existente.
+No se eliminan registros de instalación, cachés, sesiones, álbumes ni pases.
+Las pantallas de entrada rápida y Arcade conservan sus controles discretos.
+
+Las instrucciones distinguen instalar el icono de preparar el uso sin conexión.
+La página offline tampoco promete disponibilidad cuando ese guardado no se ha
+confirmado. Se añaden seis pruebas de lógica y tres casos PWA por tamaño:
+reintento manual, recuperación al conectar y preparación que nunca se resuelve.
+93/93 pruebas internas locales y compilación aprobadas; la validación completa
+de navegador y publicación se registrarán al finalizar.

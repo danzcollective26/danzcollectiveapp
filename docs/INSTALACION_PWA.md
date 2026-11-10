@@ -2,8 +2,8 @@
 
 La aplicación incorpora un manifest con identidad estable, iconos PNG de
 192/512 px y variante maskable, icono Apple de 180 px y modo standalone. El
-monograma D. es provisional; no sustituye la futura aplicación de los logos
-originales del colectivo. La PWA abre al público sin ChatGPT desde el 10 de
+icono usa la flor de DANZ, junto con la marca del colectivo en la cabecera.
+La PWA abre al público sin ChatGPT desde el 10 de
 noviembre de 2026, por autorización del propietario.
 
 ## En el móvil
@@ -33,6 +33,14 @@ desde su raíz y permite jugar a Snake. Los álbumes ya guardados explícitament
 en IndexedDB siguen teniendo el mismo carácter local. El navegador puede
 liberar almacenamiento; no es una copia de seguridad ni una garantía permanente.
 
+Mientras se prepara, aparece «Preparando Snake sin conexión…» y se puede seguir
+navegando. Una preparación fallida o que no termina en veinte segundos muestra
+un aviso y «Reintentar guardado». Ese botón vuelve a intentarlo con conexión;
+recuperar Internet también inicia un reintento si la preparación había fallado.
+No se anuncia que Snake esté listo hasta que haya un worker activado. Si el
+navegador no admite esta función, se explica que seguirá necesitando conexión.
+Instalar el icono y preparar el modo sin conexión son pasos distintos.
+
 Cuentas, canjes QR y galerías privadas necesitan Internet y sus permisos de
 servidor. No se autoriza una cuenta usando únicamente la sesión local guardada.
 Al recuperar conexión, pueden utilizarse los reintentos/recarga existentes.
@@ -54,7 +62,9 @@ el prefijo de DANZ; no se borra IndexedDB, sesiones ni cachés de otras apps.
 Las pruebas de producción usan `npm run test:pwa` sobre Vite preview, con un
 service worker real y corte de red en Chromium. No sustituyen la instalación
 física en Android/iPhone, Safari ni una prueba de la sesión privada de hosting
-desde la app ya instalada. Esa prueba del propietario sigue pendiente.
+desde la app ya instalada. El propietario confirmó instalación e inicio de
+sesión desde un segundo móvil, sin concretar su sistema. La prueba física sin
+conexión sigue pendiente.
 
 Resultado del hito: Actions `42715435217`, 68 pruebas locales/SQL y 120 recorridos
 de aplicación correctos, más dos pruebas de producción offline en Chromium
