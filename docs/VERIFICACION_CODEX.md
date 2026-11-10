@@ -587,3 +587,27 @@ Fuentes oficiales revisadas:
 No hubo cambios de código ni una nueva versión: se conserva la validación
 76/76 + 147/147 + 2/2 del código publicado. Este registro y las guías se
 actualizan en Git para no volver a tratar el sitio como privado.
+
+## Vinculación automática del pase después del acceso — 10 de noviembre de 2026
+
+El propietario priorizó pocos pasos y acceso desde iPhone aunque no se disponga
+de una cuenta Google. Se mantiene el pase local sin registro en puerta. Al
+completar un acceso verificado desde Cuenta con un pase pendiente, la PWA vuelve
+al pasaporte y realiza un solo canje automático. Con una sesión ya verificada,
+abrir el QR también inicia el canje. No se exige guardar nombre, foto o Instagram.
+
+Se integra la cola de hasta cien pases de noches distintas y el canje global
+de la actualización `cfab9536593ac7bc1c9c0b021bec804369c25a9f`, conservando sus
+mejoras de entrada rápida, carga diferida y Snake. Un QR nuevo no interrumpe
+el canje en curso: se procesa después. Las respuestas atrasadas de una cuenta
+anterior se ignoran y cada éxito elimina únicamente el código confirmado.
+Un fallo conserva el pase; el usuario puede reintentar y volver a tener conexión
+desencadena otro intento. Los códigos no disponibles no se repiten por navegar
+entre pantallas y no bloquean otros pases. Los permisos, caducidad y límites
+del canje siguen siendo decisión del servidor.
+
+Se añaden pruebas de canje sin pulsación adicional, fallo con reintento explícito,
+QR nuevo recibido durante un canje y correo iCloud con API simulada. Google y
+Apple recorren el callback PKCE, verificación de usuario y sello automático en
+las pruebas. Esto no acredita entrega real a iCloud ni activa el proveedor Apple.
+No se han enviado correos, creado cuentas externas ni modificado permisos.

@@ -197,3 +197,72 @@ test('a connection failure retains the QR and reconnecting retries once automati
   expect(requests).toBe(2)
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
 })
+
+test('a signed-in visitor scans once and receives the stamp without submitting a form', async ({ page }) => {
+  await installMockSession(page)
+  let redemptions = 0
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+    redemptions++
+    expect(route.request().postDataJSON()).toEqual({ p_code: CODE })
+    await route.fulfill({ json: [{ status: 'granted', event_id: EA, granted_at: '2026-11-10T01:00:00Z' }] })
+  })
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: redemptions ? [stamp(EA, 'Sello automático')] : [] }))
+  await page.goto(`/#pase=${CODE}`)
+  await expect(page.getByText('¡Sello guardado!', { exact: false })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Sello automático', exact: true })).toBeVisible()
+  expect(redemptions).toBe(1)
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: /WE ARE/ })).toBeVisible()
+  expect(redemptions).toBe(1)
+})
+
+test('a failed automatic link keeps the pass and waits for an explicit retry', async ({ page }) => {
+  await installMockSession(page)
+  let redemptions = 0
+  let available = false
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: available ? [stamp(EA, 'Recuperado tras reintento')] : [] }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+    redemptions++
+    await route.fulfill({ json: [{ status: available ? 'granted' : 'unavailable', event_id: available ? EA : null, granted_at: available ? '2026-11-10T01:00:00Z' : null }] })
+  })
+  await page.goto(`/#pase=${CODE}`)
+  await expect(page.getByText('Este código no está disponible.', { exact: false })).toBeVisible()
+  expect(redemptions).toBe(1)
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
+  await page.getByRole('button', { name: 'Inicio', exact: true }).click()
+  await page.getByRole('button', { name: 'ABRIR MI PASE ↗', exact: true }).click()
+  await expect(page.getByText('Este código no está disponible.', { exact: false })).toBeVisible()
+  expect(redemptions).toBe(1)
+  available = true
+  await page.getByRole('button', { name: 'GUARDAR MI SELLO', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Recuperado tras reintento', exact: true })).toBeVisible()
+  expect(redemptions).toBe(2)
+})
+
+test('a late link keeps a newer QR and links both events in order', async ({ page }) => {
+  await installMockSession(page)
+  const next = 'SECONDACCESS1234'
+  const redeemed: string[] = []
+  const items: ReturnType<typeof stamp>[] = []
+  let release!: () => void
+  const first = new Promise<void>(resolve => { release = resolve })
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: items }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+    const code = route.request().postDataJSON().p_code as string
+    redeemed.push(code)
+    if (code === CODE) await first
+    const id = code === CODE ? EA : EB
+    items.push(stamp(id, code === CODE ? 'Primer QR confirmado' : 'Segundo QR confirmado'))
+    await route.fulfill({ json: [{ status: 'granted', event_id: id, granted_at: '2026-11-10T01:00:00Z' }] })
+  })
+  await page.goto(`/#pase=${CODE}`)
+  await expect.poll(() => redeemed).toEqual([CODE])
+  await page.goto(`/#pase=${next}`)
+  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(next)
+  release()
+  await expect(page.getByRole('heading', { name: 'Segundo QR confirmado', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Primer QR confirmado', exact: true })).toBeVisible()
+  expect(redeemed).toEqual([CODE, next])
+  expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
+})

@@ -74,3 +74,44 @@ test('embedded login opens the full app before creating an OAuth verifier and pr
   expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBe('ABCD1234EFGH5678IJKL9012')
   expect(authorizations).toBe(0)
 })
+
+test('an iCloud email can use the email flow and link its pass without Google or Apple', async ({ page }) => {
+  await mockSupabase(page)
+  const email = 'danz-attendee-test@icloud.com'
+  const pass = 'ICLOUDPASS1234567'
+  const eventId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  const session = makeSession()
+  session.user.email = email
+  let sends = 0
+  let redemptions = 0
+  await page.route(`${supabaseHost}/auth/v1/user`, route => route.fulfill({ json: session.user }))
+  await page.route(`${supabaseHost}/rest/v1/danz_profiles**`, route => route.fulfill({ json: [] }))
+  await page.route(`${supabaseHost}/auth/v1/otp**`, async route => {
+    sends++
+    expect(route.request().postDataJSON()).toMatchObject({ email, create_user: true })
+    await route.fulfill({ json: {} })
+  })
+  await page.route(`${supabaseHost}/auth/v1/verify`, async route => {
+    expect(route.request().postDataJSON()).toMatchObject({ email, type: 'email', token: '123456' })
+    await route.fulfill({ json: session })
+  })
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
+    redemptions++
+    expect(route.request().postDataJSON()).toEqual({ p_code: pass })
+    await route.fulfill({ json: [{ status: 'granted', event_id: eventId, granted_at: '2026-11-10T01:00:00Z' }] })
+  })
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: redemptions ? [{ event_id: eventId, title: 'Noche desde iCloud', starts_at: null, event_status: 'published', granted_at: '2026-11-10T01:00:00Z' }] : [] }))
+  await page.goto(`/#pase=${pass}`)
+  await page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true }).click()
+  await expect(page.getByRole('button', { name: /Continuar con/ })).toHaveCount(0)
+  await page.getByLabel('Correo electrónico', { exact: true }).fill(email)
+  await page.getByRole('button', { name: 'ENVIAR ENLACE', exact: true }).click()
+  await expect(page.getByText(/^Solicitud enviada\./)).toBeVisible()
+  await page.getByRole('button', { name: 'MI CORREO INCLUYE UN CÓDIGO', exact: true }).click()
+  await page.getByLabel('Código de acceso', { exact: true }).fill('123456')
+  await page.getByRole('button', { name: 'COMPROBAR CÓDIGO', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Noche desde iCloud', exact: true })).toBeVisible()
+  expect(sends).toBe(1)
+  expect(redemptions).toBe(1)
+  expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBeNull()
+})
