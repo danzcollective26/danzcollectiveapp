@@ -653,3 +653,35 @@ junto al campo. Se conserva la comprobación de usuario y permisos del servidor.
 Se añaden regresiones de revalidación de sesión, recarga, selección del factor
 pendiente reciente, pegado, error visible, reinicio y aislamiento entre cuentas.
 No se han copiado claves ni códigos reales a fuentes, registros o pruebas.
+
+### Publicación de la corrección móvil — versión 13
+
+- GitHub: `2d098de5ecc134d1ea5fcc5c948546ad6e3bab57`.
+- Árbol común: `c555d6f9703da83d1cdf2f9055dd23e13827a0ca`.
+- CI `42775943583`, job `129694346950`, resultado success: 80/80 pruebas
+  de lógica y SQL, 172 E2E aprobadas y dos aprobadas al reintentar, más 2/2 PWA.
+  Los dos reintentos fueron una aserción inmediata del contador de lectura de
+  eventos tras mostrar el panel, en tablet y móvil. La conservación del QR,
+  el código con espacios y la entrada al panel ya habían pasado en ambos casos;
+  la aserción deberá esperar la lectura asíncrona en una próxima revisión.
+- Source Sites: `e9cfa0d7cc674989898e5170f18fd57e88242a53`.
+- Versión 13: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_e80358e45e58819199dc9d02466d79d2`.
+- Deployment: `appgdep_6af2ca3cc2588191b72f1bfe4b002d6c`, succeeded,
+  10 de noviembre de 2026 a las 07:39 UTC. Se mantiene la audiencia pública.
+- SW `bd76ebf2d82a39df`, bundle `index-CNr3VFTJ.js`.
+- Paquete: 418689 bytes y 28 entradas, con backend de producción. Sin entornos,
+  fixtures ni claves sintéticas de prueba en los archivos publicados.
+
+La consulta de continuación encontró configuraciones TOTP pendientes y ninguna
+verificada para el propietario. No se han modificado por SQL: el usuario deberá
+reiniciar su configuración desde la versión corregida y verificar el código en
+su propio dispositivo. No se ha confirmado aún esa activación real.
+
+### Prueba del propietario desde otro móvil
+
+El propietario informa de que pudo guardar la aplicación en la pantalla de
+inicio, iniciar sesión y navegar en general desde un segundo móvil. Considera
+que la navegación funciona bien y pide conservar el pulido estético pendiente.
+No especificó el sistema del segundo móvil ni el método de acceso. Esta prueba
+manual no confirma todavía el MFA administrativo, un canje real, la galería
+privada, la recepción de correo en iCloud ni la capacidad de 200 altas.
