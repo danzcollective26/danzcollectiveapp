@@ -409,4 +409,20 @@ para la verificación de Google en su propia cuenta. No se ha generado ni recibi
 una contraseña de aplicación, iniciado sesión en Google/Supabase por él ni
 cambiado la configuración remota de Auth.
 
-Resultados finales y publicación: pendientes de registrar tras ejecutarlos.
+Validación final: 74/74 pruebas de lógica y permisos y build correctos. Actions
+`42731314673` confirmó 126/126 recorridos Chromium en escritorio, tablet y móvil
+simulado, incluidos los 19 enlaces y la vuelta a Inicio sin conservar una URL
+de música desactualizada. Los 2/2 recorridos de producción sin conexión también
+pasaron. La comprobación del teléfono físico del propietario sigue pendiente.
+
+Publicación privada confirmada:
+- GitHub probado: `4a5b281ce293455a835645cb4f99a2ae43481d4a`.
+- Source Sites: `868a5cb7ed34a590cf8bef89f0a92e1e4e9219d1`.
+- Árbol común: `83b237f3d6916b211a52f65d2e58ac894c2738b9`.
+- Deployment: `appgdep_6af26b0c0ce48191b4b3f44930600067`, estado `succeeded`.
+- Versión: `appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_76868431f8b88191b941694993ec94f9`.
+- URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
+
+El paquete incluye las cuatro fotos del catálogo y el backend de producción,
+sin archivos de entorno privados ni backend ficticio. El acceso sigue limitado
+al propietario. Este registro posterior no modifica la aplicación publicada.
