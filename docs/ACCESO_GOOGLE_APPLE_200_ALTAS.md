@@ -6,9 +6,27 @@ acceso con Google o Apple. No se presenta la demo como validada para ese volumen
 
 ## Estado comprobado
 
-El endpoint público `/auth/v1/settings` del proyecto `ttgehdknhnrxtddxpknc`
-respondió: Google desactivado, Apple desactivado, correo activado, registro
-permitido. No revela credenciales SMTP ni acredita su entrega. El propietario
+Comprobación del 10 de noviembre de 2026, después de que el propietario
+confirmara guardado el proveedor Google: el endpoint público `/auth/v1/settings`
+del proyecto `ttgehdknhnrxtddxpknc` respondió HTTP 200 con Google activado,
+Apple desactivado, correo activado y registro permitido. La lectura anterior,
+previa a la configuración del titular, tenía Google desactivado.
+
+Una petición de comprobación a `/auth/v1/authorize` con PKCE devolvió HTTP 302
+hacia `https://accounts.google.com`, con el Client ID que figura en las capturas
+del titular, callback `https://ttgehdknhnrxtddxpknc.supabase.co/auth/v1/callback`,
+`response_type=code` y permisos `email profile`. No se siguió la redirección a
+Google ni se completó un acceso real. Esto verifica la habilitación y el destino
+inicial, no la validez del secreto, la aceptación de las URLs por Google ni el
+retorno completo a la PWA. No se crearon usuarios ni enviaron correos en la prueba.
+
+El titular confirmó conservado el secreto anterior y lo introdujo directamente
+en Supabase; el asistente no recibió su valor. El primer acceso real en Chrome,
+la conservación de sesión al recargar y el pase pendiente siguen por comprobar.
+El acceso a Google Cloud desde el navegador de trabajo mostró `Site Unavailable`,
+por lo que la configuración externa se completó guiando al titular en su Chrome.
+
+Estos checks no revelan credenciales SMTP ni acreditan su entrega. El propietario
 reportó guardado Gmail con un aviso sobre su uso personal; recepción pendiente.
 
 La app incorpora OAuth con PKCE para Google y Apple y solo muestra un método
