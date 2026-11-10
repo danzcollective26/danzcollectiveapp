@@ -45,4 +45,8 @@ test('every artist link navigates in the same tab and Back restores the music se
     await expect(page).toHaveURL(/seccion=musica/)
     await expect(page.getByRole('heading', { name: 'Chicharro (ES)', exact: true })).toBeVisible()
   }
+  await page.getByRole('navigation').getByRole('button', { name: 'Inicio', exact: true }).click()
+  expect(new URL(page.url()).searchParams.has('seccion')).toBe(false)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'WE ARE DANZ.' })).toBeVisible()
 })

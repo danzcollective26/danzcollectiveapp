@@ -121,6 +121,10 @@ export default function App() {
 
   const go = (destination: Page) => {
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
+    const url = new URL(window.location.href)
+    if (destination === 'danzin') url.searchParams.set('seccion', 'musica')
+    else url.searchParams.delete('seccion')
+    window.history.replaceState(window.history.state, '', url)
     setPage(destination)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
