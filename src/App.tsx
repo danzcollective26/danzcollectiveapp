@@ -298,7 +298,7 @@ export default function App() {
               <p className="game-local-note">{game.mode === 'maze' ? 'Recoge cinco objetivos para avanzar. En Circuito, sigue hasta donde llegues.' : 'La velocidad sube cada cinco objetivos.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
             </div>
             <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
-              <div className="idle-cover"><img src="/arcade/idle-studio-preview.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
+              <div className="idle-cover"><img src="/arcade/idle-studio-industrial.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
               <div className="idle-copy"><span className="idle-status"><DanzFlower /> EN EL ESTUDIO</span><h2>DANZ<br /><em>IDLE STUDIO.</em></h2><p>Un puesto, mil ideas. Música, moda, vídeo y diseño: el estudio del colectivo, a tu ritmo.</p><span className="idle-coming">PRÓXIMAMENTE <span aria-hidden="true">↗</span></span><small>Nombre y carátula provisionales.</small></div>
             </article>
           </section>

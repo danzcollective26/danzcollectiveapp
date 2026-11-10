@@ -28,6 +28,11 @@ test('the app opens its own sections without connecting to the collective websit
   await expect(head).toHaveAttribute('src', '/arcade/brand/danz-flower.png')
   await expect.poll(() => head.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
   await expect(page.locator('.game-board .cell:not(.head) img')).toHaveCount(0)
+  await page.locator('.idle-cover').scrollIntoViewIfNeeded()
+  const studio = page.locator('.idle-cover img')
+  await expect(studio).toHaveAttribute('src', '/arcade/idle-studio-industrial.webp')
+  await expect.poll(() => studio.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1200)
+  await expect(page.getByText('Nombre y carátula provisionales.', { exact: true })).toBeVisible()
   expect(externalRequests).toEqual([])
 })
 
