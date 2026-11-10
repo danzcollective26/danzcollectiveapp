@@ -24,7 +24,10 @@ test('the app opens its own sections without connecting to the collective websit
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await nav.getByRole('button', { name: 'Arcade', exact: true }).click()
   await expect(page.locator('.game-board > .cell')).toHaveCount(169)
-  await expect(page.locator('.game-board img')).toHaveCount(0)
+  const head = page.locator('.game-board .head img')
+  await expect(head).toHaveAttribute('src', '/arcade/brand/danz-flower.png')
+  await expect.poll(() => head.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+  await expect(page.locator('.game-board .cell:not(.head) img')).toHaveCount(0)
   expect(externalRequests).toEqual([])
 })
 

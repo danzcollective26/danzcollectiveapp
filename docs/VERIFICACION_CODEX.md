@@ -716,5 +716,13 @@ Validación local: 85/85 pruebas de lógica y SQL y compilación aprobada. Revis
 visual en navegador de inicio, cuatro retratos, selector de recorridos y tarjeta
 Idle. Se añaden dos recorridos E2E y se espera explícitamente la lectura asíncrona
 en las dos aserciones administrativas que antes necesitaron reintento. No cambia
-el comportamiento de Auth, MFA ni los permisos. La validación CI y publicación
-se registrarán al completarse.
+el comportamiento de Auth, MFA ni los permisos.
+
+La primera CI (`42864960442`, commit `b38b71c21bb27d3846a49fcffcc160cfac6f4473`)
+aprobó 85 pruebas de lógica/SQL y 174 recorridos E2E; fallaron dos casos en los
+tres tamaños. La prueba de independencia seguía esperando cero imágenes en
+Snake; ahora verifica la flor local cargada y la ausencia de caras pendientes.
+La secuencia de colisión no esperaba la representación de cada movimiento antes
+de enviar el siguiente giro con reloj simulado; ahora comprueba ambas posiciones
+intermedias. Se conserva la aserción de GAME OVER al chocar contra un muro.
+La nueva validación CI y la publicación se registrarán al completarse.
