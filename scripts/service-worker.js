@@ -13,6 +13,8 @@ async function staticResponse(path) {
   } else if (path.endsWith('.js') ? !/javascript|ecmascript/.test(mime)
     : path.endsWith('.css') ? !mime.includes('text/css')
     : path.endsWith('.png') ? !mime.includes('image/png')
+    : /\.jpe?g$/.test(path) ? !mime.includes('image/jpeg')
+    : path.endsWith('.webp') ? !mime.includes('image/webp')
     : !/json|manifest/.test(mime)) throw new Error('Unexpected application file type')
   return response
 }

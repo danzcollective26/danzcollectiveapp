@@ -338,3 +338,30 @@ Entrega publicada con acceso privado conservado:
 - URL: https://danz-collective-demo.right-vine-9666.chatgpt.site
 
 Esta anotación posterior solo registra resultados; no modifica el bundle publicado.
+
+## App independiente y perfiles de DJs — 10 de noviembre de 2026
+
+El propietario pidió continuar sin acceso a la web/dominio del colectivo.
+`src/content/collective.json` deja el enlace externo opcional en null; la
+PWA y sus retornos de Auth conservan su propio origen. No se ha cambiado
+el proveedor de cuentas, la audiencia privada ni la base de datos remota.
+
+Integrados los perfiles aportados de Chicharro (ES), TonyDawgs, Wizme y LEÖN:
+15 enlaces oficiales con presentación común y sin parámetros de seguimiento.
+Se resolvieron los tres enlaces cortos SoundCloud y se contrastaron los cuatro
+nombres con Spotify oEmbed. El enlace de una pista de LEÖN se cambió al perfil
+como pidió el propietario; el YouTube de TonyDawgs se identifica como DANZ IN
+Records. No se copian biografías, fotografías ni estadísticas de terceros.
+
+Snake acepta caras como comida y textura atenuada del cuerpo, y una cabeza
+opcional. El propietario enviará el grupo completo más adelante; no hay caras
+incorporadas ni animaciones individuales. Solo podrán precargarse imágenes
+públicas de Arcade explícitas, con validación de rutas, firma y tamaño.
+
+Preparada la vía de SMTP Gmail para pruebas pequeñas sin DNS, con parámetros
+y pasos en ACTIVACION_CORREO.md. Requiere que el titular genere y guarde su
+contraseña de aplicación directamente en Supabase. No se ha creado esa
+credencial, guardado SMTP, modificado la plantilla remota ni enviado correos.
+No se presenta Gmail como proveedor validado para un evento masivo.
+
+Validación final y publicación: pendientes de registrar tras su ejecución.

@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm'
 
 const origin = 'https://danz.example'
 const prefix = 'danz-shell-v1-'
-const paths = ['/index.html', '/assets/app-123.js', '/assets/app-123.css', '/manifest.webmanifest', '/icons/danz-192.png']
+const paths = ['/index.html', '/assets/app-123.js', '/assets/app-123.css', '/manifest.webmanifest', '/icons/danz-192.png', '/arcade/faces/synthetic.jpg', '/arcade/faces/synthetic.webp']
 const source = await readFile(new URL('../scripts/service-worker.js', import.meta.url), 'utf8')
 
 function worker() {
@@ -29,7 +29,7 @@ function worker() {
     const path = url.pathname
     const html = path === '/' || path === '/index.html'
     const body = state.gate ? '<html>Sign in with ChatGPT</html>' : html ? '<meta name="danz-shell" content="1"><div>DANZ</div>' : 'static asset'
-    const mime = state.gate || html ? 'text/html' : path.endsWith('.js') ? 'text/javascript' : path.endsWith('.css') ? 'text/css' : path.endsWith('.png') ? 'image/png' : 'application/manifest+json'
+    const mime = state.gate || html ? 'text/html' : path.endsWith('.js') ? 'text/javascript' : path.endsWith('.css') ? 'text/css' : path.endsWith('.png') ? 'image/png' : path.endsWith('.jpg') ? 'image/jpeg' : path.endsWith('.webp') ? 'image/webp' : 'application/manifest+json'
     const response = new Response(body, { headers: { 'content-type': mime } })
     Object.defineProperty(response, 'url', { value: url.href })
     return response
@@ -81,6 +81,8 @@ test('offline reloads can open the static app; online navigations still enforce 
   w.state.offline = true
   assert.match(await (await w.request('/', 'navigate')!).text(), /danz-shell/)
   assert.match(await (await w.request('/assets/app-123.js')!).text(), /static asset/)
+  assert.match(await (await w.request('/arcade/faces/synthetic.jpg')!).text(), /static asset/)
+  assert.match(await (await w.request('/arcade/faces/synthetic.webp')!).text(), /static asset/)
   assert.equal(w.request('/?code=synthetic', 'navigate'), null)
 })
 

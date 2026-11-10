@@ -1,57 +1,97 @@
-# Activación del correo de DANZ
+# Activación del correo de DANZ sin depender de la web
 
-Estado comprobado el 9 de noviembre de 2026:
+Revisión: 10 de noviembre de 2026. Proyecto Supabase `ttgehdknhnrxtddxpknc`.
 
-- Proyecto Supabase `ttgehdknhnrxtddxpknc`, creado el 4 de noviembre de 2026.
-- Las capturas muestran Free, la pestaña Source deshabilitada y el formulario
-  SMTP con campos vacíos. El interruptor verde por sí solo no demuestra que se
-  haya guardado un proveedor válido. El propietario indicó que otra persona
-  gestiona `danzcollective.com`.
-- Supabase bloquea la edición de plantillas de los proyectos Free nuevos que
-  usan su correo predeterminado desde el 3 de junio de 2026. Un SMTP propio
-  permite editar las plantillas conservando Free. El servicio de envío puede
-  tener sus propios límites y costes; todavía no se ha elegido ni contratado.
+La app funciona en su propia dirección. No necesita vincularse a la web del
+colectivo ni cambiar su dominio. `danzcollective.com` lo gestiona otra persona;
+el propietario ha pedido dejar esa conexión para más adelante.
 
-## Lo necesario de la persona que gestiona el dominio
+**Estado real:** parámetros e instrucciones preparados; no se ha guardado un
+SMTP propio, autorizado Google ni comprobado entrega a nuevos destinatarios.
+No poner contraseñas, códigos de acceso ni enlaces de sesión en el chat o Git.
 
-Primero, confirmar dónde se gestionan los DNS y si ya hay un servicio de envío
-de correo compatible con SMTP. Si existe, revisar si admite correos de acceso
-de la app y el volumen previsto. La capacidad depende de asistentes y accesos,
-no del número de fotos.
+## Primera vía: cuenta Gmail del proyecto, para pruebas pequeñas
 
-Si hace falta otro proveedor, crear/configurar su cuenta bajo control del
-colectivo y generar los registros de verificación que solicite. Puede usarse
-un subdominio dedicado, por ejemplo `auth.danzcollective.com`, pendiente de
-confirmación por quien gestiona el dominio. Esa persona añade los registros
-exactos generados por el proveedor. No hay valores DNS listos para copiar aún.
-Conservar los registros de la web y del correo actual; no sustituir los MX de
-la raíz para habilitar únicamente el envío de la app.
+Puede enviarse desde `danzcollectiveapp@gmail.com` sin modificar DNS. La persona
+con control de esa cuenta debe autorizar una contraseña de aplicación. No es
+la contraseña normal del correo ni el acceso «Continuar con Google» de los
+asistentes. No activa Google como proveedor de inicio de sesión de la app.
 
-No es necesario compartir la contraseña del dominio ni conceder acceso
-administrativo a Supabase para añadir esos DNS. Las credenciales SMTP se
-introducen directamente en el panel autorizado, nunca en el chat ni en Git.
+1. Abrir [la cuenta de Google](https://myaccount.google.com/security) e iniciar
+   sesión con **danzcollectiveapp@gmail.com**. Si no se controla esa cuenta,
+   no continuar con otra identidad por error.
+2. Activar **Verificación en dos pasos** si todavía no está activada.
+3. Abrir [Contraseñas de aplicaciones](https://myaccount.google.com/apppasswords),
+   crear una llamada **DANZ Supabase** y conservarla solo para introducirla en
+   el formulario autorizado. Algunas cuentas, políticas de organización o
+   configuraciones de seguridad no permiten esta opción: si no aparece, no
+   sustituirla por la contraseña normal ni desactivar protecciones.
+4. Abrir [Supabase → Authentication → SMTP Settings](https://supabase.com/dashboard/project/ttgehdknhnrxtddxpknc/auth/smtp)
+   con una cuenta administradora del proyecto. Activar SMTP propio y completar
+   los campos siguientes; pegar la contraseña de aplicación directamente allí.
+5. Guardar la configuración completa. Si no se dispone de la contraseña,
+   cancelar el formulario sin guardar campos vacíos.
 
-## Después de verificar el remitente
+| Campo en Supabase | Valor preparado |
+| --- | --- |
+| Sender email address | `danzcollectiveapp@gmail.com` |
+| Sender name | `DANZ Collective` |
+| Host | `smtp.gmail.com` |
+| Port | `587` (STARTTLS) |
+| Username | `danzcollectiveapp@gmail.com` |
+| Password | Contraseña de aplicación generada por el titular; pendiente |
 
-1. Configurar un remitente verificado, nombre DANZ Collective y los parámetros
-   SMTP exactos en [Supabase](https://supabase.com/dashboard/project/ttgehdknhnrxtddxpknc/auth/smtp).
-   Guardar únicamente una configuración completa.
-2. Aplicar `supabase/email-templates/passwordless.html` en Magic Link y Confirm
-   Signup. Asunto: «Tu código de acceso a DANZ». Conservar el resto de ajustes.
-3. Solicitar un correo nuevo. Probar por separado el código numérico y un
-   segundo correo cuyo enlace se abra en otro navegador. Cada código/enlace
-   sirve una sola vez; no reutilizar el mismo para ambas pruebas.
-4. Comprobar recepción, validación de la cuenta y persistencia tras recargar.
-   Revisar los límites del proveedor y de Supabase antes de un evento público.
+Es una vía para pruebas de poco volumen. Gmail personal puede bloquear el
+envío al superar sus límites (Google documenta más de 500 mensajes diarios,
+con bloqueos de 1–24 horas); no garantiza entregar un lote de accesos para
+500–600 asistentes. También se aplican los límites de Supabase. La app no
+se conecta directamente a Gmail: Supabase usa el SMTP autorizado y las
+credenciales permanecen allí.
 
-Mientras esto siga pendiente, la prueba individual con el correo permitido
-por Supabase puede usar el enlace predeterminado solicitándolo y abriéndolo
-en el mismo navegador. No demuestra entrega al resto de asistentes. No añadir
-asistentes al equipo de administradores para sortear esa limitación.
+## Plantillas y prueba real después de guardar SMTP
 
-## Referencias oficiales
+El proyecto se creó el 4 de noviembre de 2026. Supabase no permite editar las
+plantillas de proyectos Free nuevos que usan SMTP predeterminado desde el
+3 de junio de 2026. Un SMTP propio permite editarlas conservando Free.
+El interruptor verde con campos vacíos de las capturas no confirma activación.
 
-- https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier
+1. En las plantillas **Magic Link** y **Confirm Signup**, pegar el cuerpo de
+   `supabase/email-templates/passwordless.html`. Asunto: **Tu código de acceso a DANZ**.
+   Conservar el resto de plantillas y ajustes.
+2. Mantener en las redirecciones permitidas la raíz HTTPS exacta de la PWA:
+   `https://danz-collective-demo.right-vine-9666.chatgpt.site/`.
+   No introducir la web del colectivo como destino de acceso a la app.
+3. Solicitar un correo nuevo desde Cuenta y probar el código numérico.
+4. Solicitar **otro** correo y abrir su enlace en otro navegador. Cada correo
+   sirve una sola vez: no reutilizar el de la prueba anterior.
+5. Comprobar recepción también en un destinatario de prueba fuera del equipo
+   Supabase, cuenta verificada, sesión tras recargar y cierre de sesión.
+
+La demo de Sites conserva el acceso privado para su propietario. El SMTP no
+quita ese requisito de ChatGPT. La prueba individual anterior no valida envío
+general, y los tests automáticos no envían correos reales.
+
+## Conexión con el dominio más adelante
+
+Cuando haya acceso, elegir un proveedor transaccional apto para el volumen del
+evento y verificar su remitente con los registros DNS que él genere. Puede
+usarse un subdominio dedicado; no sustituir los MX ni tocar la web actual.
+Cambiar únicamente los parámetros SMTP de Supabase y probar recepción. No
+requiere recrear cuentas, sellos, fotos, códigos de eventos ni la PWA.
+
+Un botón hacia la web/tienda es otra opción independiente, preparada en
+`src/content/collective.json`. Cambiar el alojamiento/dominio de la propia PWA
+sería una migración distinta: requeriría revisar redirecciones y datos locales.
+
+Mientras SMTP siga pendiente, Supabase predeterminado limita el envío a miembros
+del equipo y tiene límites bajos. No añadir asistentes como administradores
+para sortearlos. Los enlaces antiguos PKCE requieren el mismo navegador donde
+se solicitaron; los códigos y enlaces nuevos solo llegan tras aplicar la plantilla.
+
+## Documentación oficial comprobada
+
+- https://support.google.com/accounts/answer/185833?hl=es
+- https://support.google.com/mail/answer/7104828?hl=es
+- https://support.google.com/mail/answer/22839?hl=es
 - https://supabase.com/docs/guides/auth/auth-smtp
-- https://resend.com/docs/send-with-supabase-smtp (ejemplo compatible; no seleccionado)
-- https://resend.com/docs/dashboard/domains/introduction
+- https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier

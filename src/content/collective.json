@@ -1,0 +1,49 @@
+{
+  "websiteUrl": null,
+  "artists": [
+    {
+      "id": "chicharro-es",
+      "name": "Chicharro (ES)",
+      "links": [
+        "https://soundcloud.com/chicharro-es",
+        "https://open.spotify.com/artist/38ToIIgwwXERo4ZNMplyf5",
+        "https://www.instagram.com/chicharro.dnz/"
+      ]
+    },
+    {
+      "id": "tonydawgs",
+      "name": "TonyDawgs",
+      "youtubeChannelName": "DANZ IN Records",
+      "links": [
+        "https://soundcloud.com/tommy-podesta",
+        "https://open.spotify.com/artist/7jYAqCjR9jffVN26YsZKA3",
+        "https://www.instagram.com/tonydawgs/",
+        "https://www.youtube.com/@DanzInRecords",
+        "https://www.mavelpoint.com/artist/tonydawgs/overview"
+      ]
+    },
+    {
+      "id": "wizme",
+      "name": "Wizme",
+      "links": [
+        "https://soundcloud.com/wizmemusic",
+        "https://open.spotify.com/artist/7Lyek7a3Nh61kaCAktFlRW",
+        "https://www.instagram.com/wizme.music/",
+        "https://www.youtube.com/@wizme."
+      ]
+    },
+    {
+      "id": "leon",
+      "name": "LEÖN",
+      "links": [
+        "https://soundcloud.com/leoen-358114940",
+        "https://open.spotify.com/artist/7FJQJvMRK8RPZ4HMjXCr55",
+        "https://www.instagram.com/lionromero_/"
+      ]
+    }
+  ],
+  "snake": {
+    "headImage": null,
+    "faces": []
+  }
+}

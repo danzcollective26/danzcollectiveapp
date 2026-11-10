@@ -4,6 +4,8 @@ Antes de editar: los proyectos Free creados desde el 3 de junio de 2026 con
 SMTP predeterminado no permiten modificar plantillas. El proyecto DANZ es
 posterior y el editor aparece bloqueado. Configurar/verificar un proveedor
 SMTP propio antes de aplicar el HTML. El dominio lo gestiona otra persona.
+La app seguirá independiente; se ha preparado una vía provisional con Gmail
+sin DNS, pendiente de autorización de su titular. No se ha activado el envío.
 Pasos y comprobaciones pendientes: `docs/ACTIVACION_CORREO.md`.
 
 La app soporta el canje oficial verifyOtp({token_hash,type:'email'}) y códigos

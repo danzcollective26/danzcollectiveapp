@@ -8,7 +8,10 @@ Revisión: 9 de noviembre de 2026. Proyecto Supabase
 **Actualización:** el editor de plantilla aparece deshabilitado en las capturas.
 La restricción de Free para proyectos nuevos con SMTP predeterminado impide
 editarlo hasta configurar un servicio propio. El dominio lo administra otra
-persona. Ver [Activación del correo](ACTIVACION_CORREO.md) antes de pedir pegar
+persona. La decisión del 10 de noviembre es mantener la app independiente;
+la vía provisional con Gmail requiere una contraseña de aplicación autorizada
+por su titular, sin DNS ni enlace a la web. Sigue pendiente de activación.
+Ver [Activación del correo](ACTIVACION_CORREO.md) antes de pedir pegar
 HTML o prometer que los correos ya incluyen un código numérico. Los pasos de
 abajo siguen siendo la prueba limitada con el enlace PKCE predeterminado.
 

@@ -11,6 +11,12 @@ import { captureLaunchPass } from './events/pass'
 import { useAdminAccess } from './admin/access'
 const AdminPanel = lazy(() => import('./admin/AdminPanel'))
 import { gameReducer, initialGame, GRID, swipeDirection, type Direction } from './snake'
+import content from './content/collective.json'
+import { parseCollective, snakeFace } from './content/collective'
+import DanzMusic from './content/DanzMusic'
+import SnakeArtwork from './content/SnakeArtwork'
+
+const collective = parseCollective(content)
 
 type Page = 'inicio' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta' | 'admin'
 const pages: { id: Page; label: string }[] = [
@@ -206,9 +212,12 @@ export default function App() {
                   const x = i % GRID
                   const y = Math.floor(i / GRID)
                   const head = game.snake[0].x === x && game.snake[0].y === y
-                  const body = game.snake.some((p) => p.x === x && p.y === y)
+                  const segment = game.snake.findIndex((p) => p.x === x && p.y === y)
+                  const body = segment >= 0
                   const food = game.food?.x === x && game.food?.y === y
-                  return <span key={i} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : 'cell'}/>
+                  const face = food ? snakeFace(collective.snake.faces, game.score) : body && !head ? snakeFace(collective.snake.faces, game.score, segment) : null
+                  const artwork = head ? collective.snake.headImage : face?.image
+                  return <span key={i} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} />}</span>
                 })}
                 {!game.running && <div className="game-overlay">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : 'DANZ SNAKE'}<small>{game.over ? 'OTRA PARTIDA?' : 'PULSA JUGAR'}</small></div>}
               </div>
@@ -242,8 +251,8 @@ export default function App() {
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
             <div className="eyebrow">DANZ COLLECTIVE / LABEL</div>
             <h1 className="page-title">DANZ<br /><em>IN.</em></h1>
-            <p className="page-lead">Artistas, sesiones, lanzamientos y favoritos musicales. Más adelante llegarán DANZ ID y los momentos musicales de cada fiesta.</p>
-            <div className="empty-state"><span className="empty-icon">♫</span><div><h2>El sonido de DANZ</h2><p>Añadiremos reproductores oficiales de Spotify, SoundCloud y YouTube, cuando estén disponibles, con enlaces a las plataformas originales.</p></div><span className="pill">EN DESARROLLO</span></div>
+            <p className="page-lead">Los DJs del colectivo, en un mismo lugar. Descubre su música, sus sesiones y lo que está por sonar.</p>
+            <DanzMusic artists={collective.artists} />
           </section>
         )}
 
@@ -252,8 +261,8 @@ export default function App() {
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
             <div className="eyebrow">DANZ COLLECTIVE / CLOTHING</div>
             <h1 className="page-title">DANZ<br /><em>FLOR.</em></h1>
-            <p className="page-lead">La ropa del colectivo. Inicialmente enlazaremos la tienda existente; más adelante podremos incorporar un catálogo integrado y ventajas por puntos.</p>
-            <a className="primary-btn external-btn" href="https://danzcollective.com/" target="_blank" rel="noreferrer">VISITAR LA WEB OFICIAL <Arrow /></a>
+            <p className="page-lead">La ropa del colectivo. Estamos preparando el catálogo y las futuras colecciones de DANZ.</p>
+            {collective.websiteUrl && <a className="primary-btn external-btn" href={collective.websiteUrl} target="_blank" rel="noreferrer noopener">VISITAR LA WEB OFICIAL <Arrow /></a>}
           </section>
         )}
       </main>

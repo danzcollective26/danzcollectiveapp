@@ -14,6 +14,10 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 ## Estado actual
 
 - Inicio y navegación, DANZ Snake local con teclado/gestos/botones opcionales.
+- Web del colectivo opcional y desactivada por ahora; la app usa su propia URL.
+  Perfiles de Chicharro (ES), TonyDawgs, Wizme y LEÖN integrados con un estilo
+  común. Configuración preparada para caras de Snake, pendientes de recibir.
+  Ver `docs/CONTENIDO_COLECTIVO.md`.
 - Instalación PWA en navegadores compatibles, instrucciones Android/iPhone y
   apertura de Snake sin conexión tras guardar el shell. Actualizaciones confirmadas.
 - Cuenta por correo sin contraseña, validación de sesión, cierre de sesión y perfil propio.
@@ -40,7 +44,7 @@ El flujo y las condiciones de los pases están en `docs/PASAPORTE_EVENTOS.md`.
 El primer acceso al panel se explica en `docs/ADMINISTRACION_EVENTOS.md`.
 Capacidad y límites: `docs/GALERIA_Y_ALMACENAMIENTO.md`.
 Instalación: `docs/INSTALACION_PWA.md`. Activación SMTP pendiente:
-`docs/ACTIVACION_CORREO.md` (el dominio lo gestiona otra persona).
+`docs/ACTIVACION_CORREO.md` (vía provisional sin DNS; autorización Gmail pendiente).
 
 ## Desarrollo
 
