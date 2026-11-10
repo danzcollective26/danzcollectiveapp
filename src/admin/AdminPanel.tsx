@@ -6,6 +6,7 @@ import type { AdminAccess } from './access'
 import { createCodeMaterial, localDateTime, newId } from './access'
 import AdminMfa from './AdminMfa'
 import GalleryAdmin from './GalleryAdmin'
+import { suggestedPassExpiry } from '../events/pass'
 import './AdminPanel.css'
 
 type Client = SupabaseClient<Database>
@@ -28,7 +29,7 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
   const [denied, setDenied] = useState(false)
   const [codes, setCodes] = useState<{ event: string; rows: AdminCode[]; loading: boolean; error: boolean }>({ event: '', rows: [], loading: true, error: false })
   const [codeReload, setCodeReload] = useState(0)
-  const [expiry, setExpiry] = useState(() => localDateTime(new Date(Date.now() + 86_400_000).toISOString()))
+  const [expiry, setExpiry] = useState(() => localDateTime(suggestedPassExpiry(null)))
   const [maxUses, setMaxUses] = useState('')
   const [candidate, setCandidate] = useState<Candidate | null>(null)
   const [issued, setIssued] = useState<{ eventId: string; code: string; link: string; image: string | null } | null>(null)
@@ -38,6 +39,11 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
   const abortActions = useRef(new Set<AbortController>())
   const event = events.find(item => item.id === selected) ?? events[0]
   const eventId = event?.id ?? ''
+
+  useEffect(() => {
+    setExpiry(localDateTime(suggestedPassExpiry(event?.ends_at ?? event?.starts_at ?? null)))
+    setCandidate(null)
+  }, [eventId])
 
   useEffect(() => {
     mounted.current = true
@@ -163,6 +169,7 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
         {event && canCodes && <section className="account-card"><h2>Códigos y QR</h2>
           {event.status === 'archived' ? <p>Este evento está archivado. Puedes revisar o revocar sus códigos.</p> : <form className="account-form admin-form" onSubmit={issue}>
             <label htmlFor="admin-expiry">El código caduca el</label><input id="admin-expiry" type="datetime-local" required value={expiry} disabled={busy} onChange={e => { setExpiry(e.target.value); setCandidate(null) }} />
+            <p className="account-note">Es la fecha límite para añadir el sello a una cuenta. Dejamos 14 días después de la fiesta como propuesta; puedes cambiarla. Mantén el evento publicado durante ese plazo.</p>
             <label htmlFor="admin-uses">Máximo de asistentes (opcional)</label><input id="admin-uses" type="number" min={1} max={2147483647} step={1} placeholder="Sin límite" value={maxUses} disabled={busy} onChange={e => { setMaxUses(e.target.value); setCandidate(null) }} />
             <p className="account-note">El pase no podrá canjearse hasta que publiques el evento.</p>
             <button className="primary-btn" disabled={busy}>{busy ? 'EMITIENDO…' : candidate ? 'REINTENTAR EMISIÓN' : 'EMITIR CÓDIGO Y QR'}</button>

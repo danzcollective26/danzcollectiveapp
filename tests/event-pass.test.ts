@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { captureLaunchPass, clearPendingPass, consumePassUrl, normalizeEventCode, PENDING_PASS_KEY, PENDING_PASSES_KEY, readPendingPass, readPendingPasses, savePendingPass } from '../src/events/pass.ts'
+import { captureLaunchPass, clearPendingPass, consumePassUrl, normalizeEventCode, PENDING_PASS_KEY, PENDING_PASSES_KEY, readPendingPass, readPendingPasses, savePendingPass, suggestedPassExpiry } from '../src/events/pass.ts'
 
 test('event codes accept formatting but reject short, overlong and non-alphanumeric values', () => {
   assert.equal(normalizeEventCode(' danz-abcd-1234-5678 '), 'DANZABCD12345678')
   for (const input of ['', 'DANZ', 'A'.repeat(65), 'A'.repeat(300), 'https://wrong.invalid/#pase=ABCD12345678', '<img onerror=alert(1)>']) assert.equal(normalizeEventCode(input), null)
+})
+
+test('claim deadline leaves two weeks after a future event and never starts in the past', () => {
+  const now = Date.parse('2026-11-10T05:00:00Z')
+  assert.equal(suggestedPassExpiry('2026-11-21T05:00:00Z', now), '2026-12-05T05:00:00.000Z')
+  for (const date of [null, 'not-a-date', '2026-11-01T05:00:00Z']) assert.equal(suggestedPassExpiry(date, now), '2026-11-24T05:00:00.000Z')
 })
 
 test('QR pass is consumed from the fragment without changing the Auth callback code', () => {

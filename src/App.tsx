@@ -181,7 +181,7 @@ export default function App() {
       <PwaControls quiet={quickArrival || page === 'arcade'} />
 
       <main>
-        {pendingPass && page !== 'danzers' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
+        {pendingPass && page !== 'danzers' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
         {page === 'inicio' && (
           <>
             <section className="intro content">

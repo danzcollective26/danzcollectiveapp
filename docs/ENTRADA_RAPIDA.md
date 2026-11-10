@@ -47,6 +47,9 @@ correcto. Una restricción de history.replaceState no impide guardar ni navegar.
 
 - Los pases se acumulan en una cola local; un segundo QR no borra la fiesta anterior.
   El pase único de versiones anteriores se migra conservándolo.
+- La emisión propone una fecha límite de 14 días después del final/inicio del
+  evento (o desde hoy si ya pasó). Es editable. El evento debe seguir publicado
+  para admitir los canjes posteriores; guardar localmente no extiende un QR existente.
 - Al entrar en una cuenta validada se canjean los códigos uno a uno. El servidor
   conserva sus reglas de vigencia, cupo, autorización e idempotencia.
 - Un fallo de red conserva los pases. Una reconexión vuelve a intentar el canje;

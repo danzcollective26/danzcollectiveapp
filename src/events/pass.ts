@@ -3,6 +3,12 @@ export const PENDING_PASSES_KEY = 'danz-pending-event-passes-v2'
 export const PASS_CHANGE_EVENT = 'danz-pending-passes-change'
 const MAX_PENDING_PASSES = 100
 
+/** Leave time to claim photos after the event, rather than expire at the door. */
+export function suggestedPassExpiry(eventDate: string | null, now = Date.now()): string {
+  const eventTime = eventDate ? Date.parse(eventDate) : NaN
+  return new Date(Math.max(now, Number.isFinite(eventTime) ? eventTime : now) + 14 * 86_400_000).toISOString()
+}
+
 export function normalizeEventCode(value: string): string | null {
   if (value.length > 256) return null
   const normalized = value.replace(/[\s-]/g, '').toUpperCase()
