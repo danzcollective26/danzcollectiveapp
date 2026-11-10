@@ -47,7 +47,7 @@
     }
   ],
   "snake": {
-    "headImage": null,
+    "headImage": "/arcade/brand/danz-flower.png",
     "faces": []
   }
 }

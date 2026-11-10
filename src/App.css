@@ -1,4 +1,4 @@
-:root{--black:#101011;--white:#f3f0e8;--muted:#a5a49f;--acid:#f3f0e8;--line:#353535;--ink:#151515}
+:root{--black:#101011;--white:#f3f0e8;--muted:#aaa9a3;--acid:#d9ff6b;--rose:#ff789f;--violet:#ba9efa;--aqua:#8dd8c8;--line:#38383c;--ink:#151515}
 .site-shell{min-height:100vh;background:var(--black);color:var(--white);overflow:hidden}
 .content{width:min(1300px,calc(100% - 80px));margin-inline:auto}
 .topbar{height:86px;padding:0 40px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:28px}
@@ -47,7 +47,7 @@
 .artist-profile h2 .artist-arrow{width:24px;height:24px;color:var(--acid)}
 .artist-listen{display:flex;align-items:center;gap:10px;color:var(--acid);font-size:10px;font-weight:800;letter-spacing:.12em;margin-top:14px}
 .artist-portrait{position:relative;aspect-ratio:1;overflow:hidden;background:#29292a;isolation:isolate;border-bottom:2px solid var(--acid)}
-.artist-portrait img{display:block;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.08);mix-blend-mode:luminosity}
+.artist-portrait img{display:block;width:100%;height:100%;object-fit:cover;filter:saturate(1.08) contrast(1.025)}
 .artist-portrait:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#10101114 40%,#101011b3 100%),linear-gradient(130deg,#ffffff0d,transparent 60%)}
 .artist-photo-label{position:absolute;z-index:1;left:16px;bottom:16px;color:var(--acid);font-size:9px;font-weight:800;letter-spacing:.16em}
 .artist-card[data-artist=tonydawgs] .artist-portrait img{transform:scale(1.65);transform-origin:50% 24%}
@@ -83,3 +83,61 @@
 @media(min-width:900px){.arcade-page{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);column-gap:64px;align-content:start;align-items:start}.arcade-page>.back{grid-column:1/-1;justify-self:start}.arcade-page>.eyebrow,.arcade-page>.page-title,.arcade-page>.page-lead{grid-column:1}.arcade-page>.game-panel{grid-column:2;grid-row:2/span 3;width:100%}.arcade-page>.page-title{align-self:start;margin-top:22px}.arcade-page>.page-lead{align-self:start}}
 @media(max-width:700px){.snake-body-art{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}.arcade-page{padding-top:24px}.arcade-page .page-title{font-size:64px}.game-heading strong{font-size:20px}.quick-arrival .passport-receipt h1{font-size:clamp(46px,13vw,72px)}}
 @media(max-width:700px){.photo-source-nav button{flex:1;min-width:135px;padding:13px 10px;font-size:10px}}
+
+/* Colour belongs to the music, the games and the collective's flower. */
+.wordmark{gap:12px;letter-spacing:normal;padding:4px 0}
+.brand-flower{width:36px;height:36px;flex:none;color:var(--white)}
+.brand-wordmark{width:225px;height:auto;display:block}
+.eyebrow{display:flex;align-items:center;gap:10px}
+.eyebrow-flower{width:22px;height:22px;flex:none}
+.footer-brand{display:flex;align-items:center;gap:10px}
+.footer-brand svg{width:23px;height:23px;color:var(--rose)}
+.intro h1{position:relative}.intro h1:after{content:'';display:inline-block;width:.15em;height:.15em;border-radius:50%;background:var(--rose);margin-left:.065em;vertical-align:.07em;box-shadow:.07em -.08em 0 -.025em var(--violet)}
+.photo-feature{border-color:#5e3547}
+.photo-art{background:radial-gradient(ellipse at 65% 23%,#82485e 0%,#452538 50%,#221c2b 100%)}
+.photo-art span{color:var(--rose)}.photo-art i{border-color:var(--rose);box-shadow:15px 17px 0 -3px #292031,15px 17px 0 -1px var(--violet)}
+.pixel-snake span{background:#bcdf58}.pixel-snake .food{background:#d35881}
+.module:nth-child(1){background:linear-gradient(135deg,#20271e,#19191a)}
+.module:nth-child(2){background:linear-gradient(135deg,#2c2338,#19191a)}
+.module:nth-child(3){background:linear-gradient(135deg,#30222b,#19191a)}
+.module:nth-child(1) .arrow{color:var(--acid)}.module:nth-child(2) .arrow{color:var(--violet)}.module:nth-child(3) .arrow{color:var(--rose)}
+.artist-card{--artist-accent:var(--rose);border-top:3px solid var(--artist-accent);background:linear-gradient(155deg,color-mix(in srgb,var(--artist-accent) 10%,#19191a),#19191a 65%)}
+.artist-card[data-artist=tonydawgs]{--artist-accent:var(--aqua)}
+.artist-card[data-artist=wizme]{--artist-accent:var(--violet)}
+.artist-card[data-artist=leon]{--artist-accent:var(--acid)}
+.artist-heading span:last-child,.artist-profile h2 .artist-arrow,.artist-listen{color:var(--artist-accent)}
+.artist-portrait{border-bottom:0}
+.artist-portrait:before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border:9px solid var(--artist-accent)}
+.artist-portrait:after{background:linear-gradient(180deg,transparent 60%,#10101170)}
+.artist-photo-label{z-index:3;background:var(--artist-accent);color:#101011;padding:8px 10px;left:18px;bottom:18px}
+.artist-links a{border-color:color-mix(in srgb,var(--artist-accent) 38%,#414145)}
+.artist-links a:hover{background:color-mix(in srgb,var(--artist-accent) 14%,#19191a);border-color:var(--artist-accent)}
+.artist-profile:hover h2{color:var(--artist-accent)}
+.game-panel{border-top:3px solid var(--acid);background:linear-gradient(150deg,#21261e,#19191b 38%)}
+.game-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 20px}
+.game-modes button{min-height:47px;padding:11px 8px;border:1px solid #56565b;background:transparent;color:var(--white);font:800 11px Arial,sans-serif;letter-spacing:.08em;cursor:pointer}
+.game-modes button span{display:block;font-size:8px;font-weight:600;margin-top:5px;letter-spacing:.12em}
+.game-modes button[aria-pressed=true]{background:var(--acid);border-color:var(--acid);color:#151515}
+.game-modes button:last-child[aria-pressed=true]{background:var(--violet);border-color:var(--violet)}
+.maze-level-picker{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;font-size:9px;font-weight:750;letter-spacing:.05em}
+.maze-level-picker select{color:var(--white);background:#27232f;border:1px solid #756589;padding:9px 10px;min-height:38px;max-width:100%;font-size:12px}
+.maze-level-picker>span{margin-left:auto;color:var(--violet)}
+.maze-board{border-color:#786795;background:#24212b}
+.game-board .cell.wall{background:var(--violet);border-radius:2px;box-shadow:inset 0 0 0 2px #5a446f}
+.game-board .cell.head{background:#15151a;border-radius:25%;box-shadow:inset 0 0 0 1px #d9ff6b66}
+.game-board .cell.head img{padding:1px}
+.snake-body-art polyline{stroke:#c2dca3}
+.game-board .cell.apple{background:var(--rose)}
+.arcade-coming-soon{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;margin-top:54px;background:#271f30;border:1px solid #684a65;overflow:hidden;min-width:0}
+.idle-cover{position:relative;min-width:0;aspect-ratio:4/3;background:#e9c8bd}
+.idle-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.idle-cover>span{position:absolute;left:18px;top:18px;background:#202022;color:#fff;padding:10px 12px;font-size:9px;font-weight:850;letter-spacing:.12em}
+.idle-copy{padding:clamp(24px,4vw,48px);display:flex;flex-direction:column;justify-content:center;align-items:start;min-width:0}
+.idle-status{display:flex;align-items:center;gap:9px;color:var(--rose);font-size:10px;font-weight:850;letter-spacing:.12em}
+.idle-status svg{width:25px;height:25px}
+.idle-copy h2{font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:clamp(38px,5vw,72px);line-height:.93;letter-spacing:-.035em;margin:22px 0}
+.idle-copy h2 em{font-style:normal;color:var(--rose)}
+.idle-copy p{font-size:14px;line-height:1.65;color:#ddd0db;max-width:370px;margin:0 0 24px}
+.idle-coming{display:flex;gap:50px;align-items:center;border:1px solid #c67f9c;color:var(--rose);padding:13px 16px;font-size:10px;font-weight:850;letter-spacing:.09em}
+.idle-copy small{font-size:10px;color:#b4a8b5;margin-top:14px}
+@media(max-width:700px){.brand-flower{width:30px;height:30px}.brand-wordmark{width:clamp(145px,45vw,205px)}.wordmark{gap:10px}.arcade-coming-soon{grid-template-columns:1fr;margin-top:35px}.idle-copy{padding:28px}.idle-copy h2{font-size:49px}.idle-coming{gap:60px}.artist-photo-label{font-size:8px}}

@@ -32,3 +32,4 @@
 .passport-receipt-details .outline-btn { margin-top: 16px; }
 .passport-receipt-details .passport-message { color: #171717; }
 @media (max-width: 760px) { .passport-layout { grid-template-columns: 1fr; } .passport-stamp { padding: 18px; grid-template-columns: 36px minmax(0,1fr); gap: 12px; } .passport-flower { font-size: 30px; } }
+.passport-flower svg{width:48px;height:48px;display:block}

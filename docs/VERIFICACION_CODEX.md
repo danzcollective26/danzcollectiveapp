@@ -685,3 +685,36 @@ que la navegación funciona bien y pide conservar el pulido estético pendiente.
 No especificó el sistema del segundo móvil ni el método de acceso. Esta prueba
 manual no confirma todavía el MFA administrativo, un canje real, la galería
 privada, la recepción de correo en iCloud ni la capacidad de 200 altas.
+
+## Color, identidad y DANZ Arcade — 10 de noviembre de 2026
+
+Se recupera el color de los cuatro retratos oficiales mediante CSS, sin editar
+rostros. Comparten composición y marcos coral, menta, lila y lima. La flor se
+reconstruye como vector a partir de la referencia aportada por el propietario;
+la marca Danz Collective® se obtiene del encabezado público de danzcollective.com.
+La flor reemplaza la D temporal en cabecera, iconos de instalación, sellos y
+cabeza de Snake. Los iconos tienen rutas nuevas para facilitar su renovación;
+la identidad de la PWA y el acceso independiente de la web se conservan.
+
+Snake mantiene el clásico y añade Islas, Pasillos y Circuito: 8, 14 y 24 muros,
+respectivamente. Los espacios transitables están conectados. La comida excluye
+muros y cuerpo; chocar con una pared termina la partida. Tras cinco objetivos,
+el siguiente mapa comienza pausado con salida segura y puntuación acumulada.
+Circuito continúa sin límite de nivel. Los récords se separan por modo.
+Las caras de integrantes siguen pendientes; no se han sustituido por los DJs.
+
+DANZ Idle Studio muestra «Próximamente», con nombre y carátula provisionales.
+La ilustración generada representa música, ropa, vídeo y diseño; no pretende
+ser una fotografía del estudio real. No presenta una acción de jugar disponible.
+
+El cartel A4 utiliza un QR de acceso general con corrección H, zona blanca libre
+y corazones alrededor. Doce decodificaciones digitales verifican la URL exacta
+con rotaciones, escalas y grises. Queda pendiente la prueba física impresa.
+Detalles y regeneración en `docs/QR_IMPRIMIBLE.md`.
+
+Validación local: 85/85 pruebas de lógica y SQL y compilación aprobada. Revisión
+visual en navegador de inicio, cuatro retratos, selector de recorridos y tarjeta
+Idle. Se añaden dos recorridos E2E y se espera explícitamente la lectura asíncrona
+en las dos aserciones administrativas que antes necesitaron reintento. No cambia
+el comportamiento de Auth, MFA ni los permisos. La validación CI y publicación
+se registrarán al completarse.

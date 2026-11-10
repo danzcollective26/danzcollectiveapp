@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { clearPendingPass, normalizeEventCode, readPendingPass, savePendingPass } from './pass'
 import type { PassRedemption } from './usePendingPassRedemption'
+import DanzFlower from '../content/DanzFlower'
 import './EventPassport.css'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
@@ -144,7 +145,7 @@ export default function EventPassport({ client, userId, authLoading, pendingPass
         {userId && !authLoading && passport.error && <p className="passport-empty" role="status">No hemos podido cargar tus sellos. Pulsa «Actualizar sellos» para volver a intentarlo.</p>}
         {userId && !authLoading && !passport.loading && !passport.error && items.length === 0 && <p className="passport-empty">Tu primera noche empieza aquí. Añade el código de un evento para estrenar tu pasaporte.</p>}
         <ul className="passport-stamps">{items.map(stamp => <li key={stamp.event_id} className="passport-stamp">
-          <span className="passport-flower" aria-hidden="true">✳</span>
+          <span className="passport-flower" aria-hidden="true"><DanzFlower /></span>
           <div><h3>{stamp.title}</h3><p>{date(stamp.starts_at) || 'Evento DANZ'} · Sello del {date(stamp.granted_at)}</p><p>ASISTENCIA GUARDADA</p>
             {['published', 'archived'].includes(stamp.event_status) ? <button type="button" className="outline-btn" onClick={() => onGallery(stamp.event_id)}>ABRIR GALERÍA ↗</button> : <p>El sello se conserva. La galería no está publicada ahora.</p>}
           </div>

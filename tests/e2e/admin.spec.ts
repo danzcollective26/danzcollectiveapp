@@ -56,7 +56,7 @@ test('an aal1 admin must verify an existing TOTP factor before any admin data is
   valid=true
   await page.getByRole('button',{name:'VERIFICAR Y ENTRAR',exact:true}).click()
   await expect(page.getByRole('button',{name:'NUEVO EVENTO',exact:true})).toBeVisible()
-  expect(reads).toBeGreaterThan(0)
+  await expect.poll(()=>reads).toBeGreaterThan(0)
 })
 
 test('first enrollment displays a valid local QR and can cancel its unverified factor',async({page})=>{
@@ -192,7 +192,7 @@ test('same-account session revalidation keeps MFA setup and accepts a spaced aut
   await expect(page.getByLabel('Código de tu aplicación de autenticación',{exact:true})).toHaveValue('123456')
   await page.getByRole('button',{name:'VERIFICAR Y ENTRAR',exact:true}).click()
   await expect(page.getByRole('button',{name:'NUEVO EVENTO',exact:true})).toBeVisible()
-  expect(reads).toBeGreaterThan(0)
+  await expect.poll(()=>reads).toBeGreaterThan(0)
   expect(enrollments).toBe(1)
 })
 

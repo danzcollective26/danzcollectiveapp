@@ -14,8 +14,15 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 
 ## Estado actual
 
-- Inicio y navegación, DANZ Snake local con teclado/gestos/botones opcionales, cuerpo continuo, récord
-  en el navegador y velocidad progresiva.
+- Inicio y navegación con la flor de DANZ y la marca oficial del colectivo. Retratos
+  de artistas en color con marcos coral, menta, lila y lima.
+- DANZ Snake local con teclado/gestos/botones opcionales, cuerpo continuo, récord
+  por modo y velocidad progresiva. Clásico y tres laberintos: Islas, Pasillos y
+  Circuito; cinco objetivos permiten avanzar y el último recorrido es infinito.
+- DANZ Idle Studio: tarjeta «Próximamente» con ilustración y nombre provisionales.
+  El juego completo y las caras de integrantes siguen pendientes.
+- Cartel A4 con QR de acceso general a la app y decoración inspirada en el amor.
+  Generación e impresión: `docs/QR_IMPRIMIBLE.md`. No concede un sello de evento.
 - Web del colectivo opcional y desactivada por ahora; la app usa su propia URL.
   Perfiles de Chicharro (ES), TonyDawgs, Wizme y LEÖN integrados con un estilo
   común, retratos oficiales y enlaces en la misma ventana con retorno a DANZ IN.

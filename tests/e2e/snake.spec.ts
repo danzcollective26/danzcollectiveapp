@@ -104,3 +104,32 @@ test('evento de ocultación de pestaña pausa y no reanuda automáticamente', as
   expect(await headIndex(page)).toBe(before)
   await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
 })
+
+test('laberinto tiene obstáculos, conserva su recorrido al reiniciar y vuelve al clásico sin paredes',async({page})=>{
+  await openArcade(page)
+  await page.getByRole('button',{name:/^LABERINTO/}).click()
+  await expect(page.locator('.game-board > .wall')).toHaveCount(8)
+  await page.getByRole('button',{name:/^JUGAR/}).click()
+  for(const direction of ['ArrowUp','ArrowLeft','ArrowUp']){await page.keyboard.press(direction);await page.clock.runFor(150)}
+  await expect(page.getByText('GAME OVER',{exact:true})).toBeVisible()
+  await page.getByRole('button',{name:'REINICIAR',exact:true}).click()
+  await expect(page.getByText('GAME OVER',{exact:true})).toHaveCount(0)
+  await page.getByLabel('RECORRIDO',{exact:true}).selectOption('3')
+  await expect(page.locator('.game-board > .wall')).toHaveCount(24)
+  await page.getByRole('button',{name:'REINICIAR',exact:true}).click()
+  await expect(page.getByLabel('RECORRIDO',{exact:true})).toHaveValue('3')
+  await page.getByRole('button',{name:'CLÁSICO',exact:true}).click()
+  await expect(page.locator('.game-board > .wall')).toHaveCount(0)
+  await expect(page.getByLabel('RECORRIDO',{exact:true})).toHaveCount(0)
+})
+
+test('Idle Studio muestra una carátula provisional sin fingir que el juego está disponible',async({page})=>{
+  await openArcade(page)
+  const coming=page.getByRole('article',{name:'DANZ Idle Studio, próximamente',exact:true})
+  await coming.scrollIntoViewIfNeeded()
+  await expect(coming.getByText('Nombre y carátula provisionales.',{exact:true})).toBeVisible()
+  const cover=coming.getByRole('img')
+  await expect.poll(()=>cover.evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
+  await expect(coming.getByRole('button')).toHaveCount(0)
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)
+})

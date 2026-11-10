@@ -12,11 +12,12 @@ const AdminPanel = lazy(() => import('./admin/AdminPanel'))
 const Account = lazy(() => import('./auth/Account'))
 const PhotoGallery = lazy(() => import('./PhotoGallery'))
 const PrivateGallery = lazy(() => import('./cloud/PrivateGallery'))
-import { gameReducer, initialGame, GRID, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
+import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
 import { parseCollective, snakeFace } from './content/collective'
 import DanzMusic from './content/DanzMusic'
 import SnakeArtwork from './content/SnakeArtwork'
+import DanzFlower from './content/DanzFlower'
 
 const collective = parseCollective(content)
 
@@ -56,7 +57,8 @@ export default function App() {
   const localGalleryOpened = useRef(false)
   if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
-  const [record, setRecord] = useState(readSnakeRecord)
+  const [records, setRecords] = useState(() => ({ classic: readSnakeRecord(), maze: readSnakeRecord('maze') }))
+  const record = records[game.mode]
   const [showControls, setShowControls] = useState(() => {
     try { return localStorage.getItem('danz-snake-buttons') === 'true' } catch { return false }
   })
@@ -129,8 +131,8 @@ export default function App() {
   }, [page, game.running, game.score])
 
   useEffect(() => {
-    if (game.score > record) setRecord(saveSnakeRecord(game.score))
-  }, [game.score, record])
+    if (game.score > record) setRecords(previous => ({ ...previous, [game.mode]: saveSnakeRecord(game.score, game.mode) }))
+  }, [game.score, game.mode, record])
 
   useEffect(() => {
     if (page !== 'arcade') return
@@ -170,7 +172,7 @@ export default function App() {
     <div className={`site-shell${quickArrival ? ' quick-arrival' : ''}`}>
       <header className="topbar">
         <button className="wordmark" onClick={() => go('inicio')} aria-label="DANZ Collective, ir al inicio">
-          DANZ<span className="wordmark-dot">.</span><span className="wordmark-small">COLLECTIVE</span>
+          <DanzFlower className="brand-flower" /><img className="brand-wordmark" src="/brand/danz-collective-wordmark.png" alt="" width="225" height="32" />
         </button>
         <nav className="desktop-nav" aria-label="Navegación principal">
           {pages.map((item) => (
@@ -190,7 +192,7 @@ export default function App() {
         {page === 'inicio' && (
           <>
             <section className="intro content">
-              <div className="eyebrow"><span className="plus">✳</span> MUSIC · PEOPLE · CULTURE</div>
+              <div className="eyebrow"><DanzFlower className="eyebrow-flower" /> MUSIC · PEOPLE · CULTURE</div>
               <h1>WE ARE<br /><em>DANZ.</em></h1>
               <div className="intro-bottom">
                 <p>Tu noche no acaba cuando termina la música.</p>
@@ -245,10 +247,15 @@ export default function App() {
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
             <div className="eyebrow">DANZ ARCADE / GAME 001</div>
             <h1 className="page-title">DANZ<br /><em>SNAKE.</em></h1>
-            <p className="page-lead">Desliza para girar. Recoge, crece y supera tu récord. La velocidad sube cada cinco objetivos.</p>
+            <p className="page-lead">Tu ritmo, tus reglas. El clásico de siempre o tres laberintos para encontrar otro camino.</p>
             <div className="game-panel">
-              <div className="game-heading"><span>PUNTOS <strong>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span>NIVEL {gameLevel(game.score)}</span></div>
-              <div className="game-board" onPointerDown={startGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake, puntuación ${game.score}`}>
+              <div className="game-modes" role="group" aria-label="Modo de Snake">
+                <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => dispatch({ type: 'mode', mode: 'classic' })}>CLÁSICO</button>
+                <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => dispatch({ type: 'mode', mode: 'maze' })}>LABERINTO <span>3 NIVELES</span></button>
+              </div>
+              {game.mode === 'maze' && <div className="maze-level-picker"><label htmlFor="maze-level">RECORRIDO</label><select id="maze-level" value={game.stage} onChange={event => dispatch({ type: 'maze-level', stage: Number(event.target.value) })}>{MAZE_STAGES.map((name, i) => <option key={name} value={i + 1}>{i + 1} · {name}</option>)}</select><span>{game.stage < MAZE_STAGES.length ? `${game.stageGoals}/5 OBJETIVOS` : 'MODO INFINITO'}</span></div>}
+              <div className="game-heading"><span>PUNTOS <strong>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span>NIVEL {game.mode === 'maze' ? game.stage : gameLevel(game.score)}</span></div>
+              <div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} onPointerDown={startGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
                 <svg className="snake-body-art" viewBox={`0 0 ${GRID} ${GRID}`} aria-hidden="true"><polyline points={game.snake.map(point => `${point.x + .5},${point.y + .5}`).join(' ')} /></svg>
                 {Array.from({ length: GRID * GRID }, (_, i) => {
                   const x = i % GRID
@@ -257,14 +264,15 @@ export default function App() {
                   const segment = game.snake.findIndex((p) => p.x === x && p.y === y)
                   const body = segment >= 0
                   const food = game.food?.x === x && game.food?.y === y
+                  const wall = game.walls.some(point => point.x === x && point.y === y)
                   const face = food ? snakeFace(collective.snake.faces, game.score) : body && !head ? snakeFace(collective.snake.faces, game.score, segment) : null
                   const artwork = head ? collective.snake.headImage : face?.image
-                  return <span key={i} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} />}</span>
+                  return <span key={i} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : wall ? 'cell wall' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} />}</span>
                 })}
-                {!game.running && <div className="game-overlay">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : 'DANZ SNAKE'}<small>{game.over ? 'OTRA PARTIDA?' : 'PULSA JUGAR'}</small></div>}
+                {!game.running && <div className="game-overlay">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : game.levelUp ? `NIVEL ${game.stage}` : 'DANZ SNAKE'}<small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
               </div>
               <div className="game-actions">
-                <button className="primary-btn" onClick={() => dispatch({ type: game.running ? 'pause' : 'start' })}>{game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : 'JUGAR'} <span>→</span></button>
+                <button className="primary-btn" onClick={() => dispatch({ type: game.running ? 'pause' : 'start' })}>{game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
                 <button className="outline-btn" onClick={() => dispatch({ type: 'reset' })}>REINICIAR</button>
               </div>
               <div className="game-control-options">
@@ -277,8 +285,12 @@ export default function App() {
                 <button aria-label="Arriba" onClick={() => dispatch({ type: 'turn', direction: 'up' })}>↑</button>
                 <div><button aria-label="Izquierda" onClick={() => dispatch({ type: 'turn', direction: 'left' })}>←</button><button aria-label="Abajo" onClick={() => dispatch({ type: 'turn', direction: 'down' })}>↓</button><button aria-label="Derecha" onClick={() => dispatch({ type: 'turn', direction: 'right' })}>→</button></div>
               </div>}
-              <p className="game-local-note">Récord en este navegador · Sin registro · Puntos todavía sin premios.</p>
+              <p className="game-local-note">{game.mode === 'maze' ? 'Recoge cinco objetivos para avanzar. En Circuito, sigue hasta donde llegues.' : 'La velocidad sube cada cinco objetivos.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
             </div>
+            <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
+              <div className="idle-cover"><img src="/arcade/idle-studio-preview.webp" alt="Ilustración provisional de un estudio con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
+              <div className="idle-copy"><span className="idle-status"><DanzFlower /> EN EL ESTUDIO</span><h2>DANZ<br /><em>IDLE STUDIO.</em></h2><p>Un puesto, mil ideas. Música, moda, vídeo y diseño: el estudio del colectivo, a tu ritmo.</p><span className="idle-coming">PRÓXIMAMENTE <span aria-hidden="true">↗</span></span><small>Nombre y carátula provisionales.</small></div>
+            </article>
           </section>
         )}
 
@@ -310,7 +322,7 @@ export default function App() {
         )}
       </main>
 
-      <footer className="footer content"><span>DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
+      <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )
 }
