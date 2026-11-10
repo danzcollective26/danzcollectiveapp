@@ -21,8 +21,18 @@ inicial, no la validez del secreto, la aceptación de las URLs por Google ni el
 retorno completo a la PWA. No se crearon usuarios ni enviaron correos en la prueba.
 
 El titular confirmó conservado el secreto anterior y lo introdujo directamente
-en Supabase; el asistente no recibió su valor. El primer acceso real en Chrome,
-la conservación de sesión al recargar y el pase pendiente siguen por comprobar.
+en Supabase; el asistente no recibió su valor. Posteriormente confirmó «He
+entrado» tras las instrucciones de prueba en Chrome. Una consulta de lectura al
+servidor corroboró una identidad Google vinculada y un inicio de sesión Google
+real el 10 de noviembre de 2026 a las 04:31 (Europe/Madrid). Se conserva el mismo
+UUID de la cuenta previamente creada por correo, con correo confirmado y perfil
+existente; hay una sola cuenta para ese correo. El secreto ha permitido completar
+el flujo real; no se ha leído ni almacenado fuera de Supabase por el asistente.
+
+Esta prueba cubre el acceso Google de la cuenta existente en Android. No
+acredita un alta Google de un asistente nuevo, Apple, iPhone ni 200 altas.
+La conservación de sesión al recargar requiere confirmación específica; el pase
+pendiente y el acceso administrativo con MFA siguen por comprobar en equipo real.
 El acceso a Google Cloud desde el navegador de trabajo mostró `Site Unavailable`,
 por lo que la configuración externa se completó guiando al titular en su Chrome.
 
