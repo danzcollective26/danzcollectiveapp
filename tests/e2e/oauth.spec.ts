@@ -72,9 +72,10 @@ test(`${entry}: embedded login escapes a sandbox that forbids top navigation bef
     expect(url.searchParams.get('provider')).toBe('google')
     expect(url.searchParams.get('redirect_to')).toBe(`${embedded.origin}/`)
     expect(url.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/)
-    await route.fulfill({ status: 302, headers: { location: 'https://google-entry.example.invalid/' } })
+    // Fulfil the external Auth destination directly. Playwright does not route
+    // each subsequent hop of a fulfilled redirect chain to another fake host.
+    await route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Google de prueba</title><h1>Acceso externo de prueba</h1>' })
   })
-  await context.route('https://google-entry.example.invalid/', route => route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Google de prueba</title><h1>Acceso externo de prueba</h1>' }))
   await page.goto('/')
   await page.setContent(`<iframe title="DANZ" style="width:100%;height:90vh" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" src="${embedded.href}"></iframe>`)
   const frame = page.frameLocator('iframe')
@@ -93,6 +94,7 @@ test(`${entry}: embedded login escapes a sandbox that forbids top navigation bef
   expect(authorizations).toBe(0)
   await browser.getByRole('button', { name: 'Continuar con Google', exact: true }).click()
   await expect(browser.getByRole('heading', { name: 'Acceso externo de prueba', exact: true })).toBeVisible()
+  await expect(browser).toHaveURL(new RegExp(`${supabaseHost}/auth/v1/authorize`))
   expect(authorizations).toBe(1)
   await expect(page).toHaveURL(new URL('/', baseURL).href)
   await expect(frame.getByRole('heading', { name: 'TU CUENTA.', exact: true })).toBeVisible()
