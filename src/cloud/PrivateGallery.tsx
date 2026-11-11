@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import DanzFlower from '../content/DanzFlower'
+import OriginalFileActions from './OriginalFileActions'
 import './PrivateGallery.css'
 
 export type PrivateGalleryProps = {
@@ -13,7 +14,7 @@ export type PrivateGalleryProps = {
 }
 
 type Event = Pick<Database['public']['Tables']['danz_events']['Row'], 'id' | 'title' | 'starts_at'>
-type Photo = { id: string; path: string; previewPath: string; name: string | null; url: string }
+type Photo = { id: string; path: string; previewPath: string; name: string | null; mime: string | null; url: string }
 type Scope = { client: SupabaseClient<Database> | null; owner: string | null }
 type EventState = Scope & { items: Event[]; loading: boolean; error: boolean }
 type PhotoState = Scope & { eventId: string; items: Photo[]; loading: boolean; error: boolean; expiresAt: number }
@@ -55,9 +56,6 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   const [fullPhoto, setFullPhoto] = useState<{ owner: string; eventId: string; id: string; url: string } | null>(null)
   const [visible, setVisible] = useState(() => document.visibilityState !== 'hidden')
   const [viewer, setViewer] = useState<{ owner: string; eventId: string; photoId: string } | null>(null)
-  const [download, setDownload] = useState<{ owner: string; eventId: string; busy: boolean; error: boolean } | null>(null)
-  const downloadAbort = useRef<AbortController | null>(null)
-  const downloadUrls = useRef(new Set<string>())
   const viewerRef = useRef<HTMLDivElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const [zoom, setZoom] = useState<PhotoZoom | null>(null)
@@ -69,8 +67,6 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   const eventItems = !authLoading && sameAccount(events, client, userId) ? events.items : []
   const selectedEvent = eventItems.find((event) => choice.owner === userId && event.id === choice.id) ?? eventItems[0]
   const eventId = selectedEvent?.id ?? ''
-  const accountRef = useRef({ client, userId, authLoading, eventId })
-  accountRef.current = { client, userId, authLoading, eventId }
   const photoItems = !authLoading && visible && sameAccount(photos, client, userId) && photos.eventId === eventId && Date.now() < photos.expiresAt ? photos.items : []
   const shownPhoto = viewer?.owner === userId && viewer.eventId === eventId
     ? photoItems.find((photo) => photo.id === viewer.photoId) : undefined
@@ -120,7 +116,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       try {
         // RLS checks attendance and publication; the event filter is an additional
         // query constraint, never a replacement for server authorization.
-        const { data, error } = await client!.from('danz_photos').select('id,storage_path,preview_path,original_name')
+        const { data, error } = await client!.from('danz_photos').select('id,storage_path,preview_path,original_name,mime_type')
           .eq('event_id', eventId).eq('status', 'published').order('created_at').order('id').range(0, pageSize - 1).abortSignal(abort.signal)
         if (!current) return
         if (error) throw error
@@ -141,7 +137,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
             const entry = byPath.get(previewPath)
             const url = verifiedSignedUrl(client!, entry?.signedUrl ?? null)
             if (!url) throw new Error('Unavailable private photo')
-            return { id: row.id, path: row.storage_path, previewPath, name: row.original_name, url }
+            return { id: row.id, path: row.storage_path, previewPath, name: row.original_name, mime: row.mime_type, url }
           })
           clearTimeout(expiryTimer)
           expiryTimer = setTimeout(() => {
@@ -182,19 +178,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     return () => { current = false }
   }, [client, userId, eventId, shownPhoto?.id, shownPhoto?.url])
 
-  useEffect(() => {
-    setViewer(null)
-    setDownload(null)
-    downloadAbort.current?.abort()
-    const urls = downloadUrls.current
-    urls.forEach((url) => URL.revokeObjectURL(url))
-    urls.clear()
-    return () => {
-      downloadAbort.current?.abort()
-      urls.forEach((url) => URL.revokeObjectURL(url))
-      urls.clear()
-    }
-  }, [client, userId, authLoading, eventId])
+  useEffect(() => { setViewer(null) }, [client, userId, authLoading, eventId])
 
   useEffect(() => {
     if (!shownPhoto) return
@@ -216,7 +200,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     if (!isViewerOpen) return
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const dialog = viewerRef.current
-    const controls = () => Array.from(dialog?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? [])
+    const controls = () => Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]') ?? [])
     controls()[0]?.focus()
     const trapFocus = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return
@@ -292,43 +276,6 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     if (!ownZoom && Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.5) movePhoto(dx < 0 ? 1 : -1)
   }
 
-  async function downloadPhoto(photo: Photo) {
-    if (!userId || !client || authLoading || !verifiedSignedUrl(client, photo.url)) return
-    const owner = userId
-    const activeClient = client
-    const current = () => accountRef.current.client === activeClient && accountRef.current.userId === owner && accountRef.current.eventId === eventId && !accountRef.current.authLoading
-    downloadAbort.current?.abort()
-    const abort = new AbortController()
-    downloadAbort.current = abort
-    setDownload({ owner, eventId, busy: true, error: false })
-    try {
-      let sourceUrl = photo.url
-      if (photo.path !== photo.previewPath) {
-        const signed = await activeClient.storage.from(BUCKET).createSignedUrls([photo.path], URL_TTL_SECONDS)
-        const value = !signed.error ? verifiedSignedUrl(activeClient, signed.data?.[0]?.signedUrl ?? null) : null
-        if (!value || !current() || abort.signal.aborted) throw new Error('Download unavailable')
-        sourceUrl = value
-      }
-      const response = await fetch(sourceUrl, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: abort.signal })
-      if (!response.ok) throw new Error('Download unavailable')
-      const blob = await response.blob()
-      if (abort.signal.aborted || !current()) return
-      if (!blob.type.startsWith('image/') || !blob.size) throw new Error('Invalid image')
-      const url = URL.createObjectURL(blob)
-      downloadUrls.current.add(url)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = (photo.name ?? photo.path.split('/').pop())?.replace(/[^\p{L}\p{N}._ -]/gu, '_') || 'danz-foto'
-      document.body.append(link)
-      link.click()
-      link.remove()
-      setTimeout(() => { URL.revokeObjectURL(url); downloadUrls.current.delete(url) }, 1000)
-      setDownload({ owner, eventId, busy: false, error: false })
-    } catch {
-      if (!abort.signal.aborted && current()) setDownload({ owner, eventId, busy: false, error: true })
-    }
-  }
-
   const reload = () => setRetry((value) => value + 1)
   if (!client) return <div className="content private-gallery-state"><h2>Galerías privadas</h2><p>La conexión de las galerías todavía no está disponible.</p></div>
   if (authLoading) return <div className="content private-gallery-state" role="status">Comprobando tu sesión…</div>
@@ -339,7 +286,6 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
 
   const photosLoading = !sameAccount(photos, client, userId) || photos.eventId !== eventId || photos.loading
   const photosError = sameAccount(photos, client, userId) && photos.eventId === eventId && photos.error
-  const ownDownload = download?.owner === userId && download.eventId === eventId ? download : null
   return <div className="content private-gallery">
     <div className="private-gallery-events" aria-label="Eventos con acceso a fotos">
       {eventItems.map((event) => <button key={event.id} type="button" aria-pressed={event.id === eventId} onClick={() => { setViewer(null); setChoice({ owner: userId, id: event.id }) }}>
@@ -371,10 +317,9 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       <div className="private-gallery-viewer-actions">
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Anterior foto privada" onClick={() => movePhoto(-1)}>←</button>}
         <button className="outline-btn" aria-label={ownZoom ? 'Restablecer tamaño de foto privada' : 'Ampliar foto privada'} aria-pressed={Boolean(ownZoom)} onClick={toggleZoom}>{ownZoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
-        <button className="primary-btn" disabled={ownDownload?.busy} onClick={() => { void downloadPhoto(shownPhoto) }}>{ownDownload?.busy ? 'DESCARGANDO…' : 'DESCARGAR FOTO'}</button>
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Siguiente foto privada" onClick={() => movePhoto(1)}>→</button>}
       </div>
-      {ownDownload?.error && <p role="alert">No se ha podido descargar la foto. Vuelve a intentarlo.</p>}
+      <OriginalFileActions key={`${userId}:${eventId}:${shownPhoto.id}`} client={client} owner={userId} eventId={eventId} photoId={shownPhoto.id} path={shownPhoto.path} name={shownPhoto.name} mime={shownPhoto.mime} />
     </div>}
   </div>
 }

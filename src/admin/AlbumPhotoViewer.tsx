@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AdminPhoto, Database } from '../types/database'
 import { verifiedSignedUrl } from '../cloud/PrivateGallery'
 import { useViewerBack } from '../cloud/useViewerBack'
+import OriginalFileActions from '../cloud/OriginalFileActions'
 import { PHOTO_BUCKET } from './photoBatch'
 import '../cloud/PrivateGallery.css'
 
@@ -14,15 +15,10 @@ export default function AlbumPhotoViewer({ client, userId, eventId, title, photo
   const photo = photos.find(p => p.id === photoId)
   const [source, setSource] = useState<{ id: string; url: string } | null>(null)
   const [error, setError] = useState('')
-  const [downloading, setDownloading] = useState(false)
   const [zoom, setZoom] = useState(false)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const dialog = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
-  const downloadAbort = useRef<AbortController | null>(null)
-  const urls = useRef(new Set<string>())
-  const scope = useRef({ client, userId, eventId })
-  scope.current = { client, userId, eventId }
   const gesture = useRef<{ id: number; x: number; y: number; px: number; py: number } | null>(null)
   const lastTap = useRef(0)
   const pointerType = useRef('mouse')
@@ -62,8 +58,6 @@ export default function AlbumPhotoViewer({ client, userId, eventId, title, photo
     return () => {
       document.body.style.overflow = overflow
       if (before?.isConnected) before.focus()
-      downloadAbort.current?.abort()
-      urls.current.forEach(url => URL.revokeObjectURL(url)); urls.current.clear()
     }
   }, [])
   useEffect(() => {
@@ -71,7 +65,7 @@ export default function AlbumPhotoViewer({ client, userId, eventId, title, photo
       if (e.key === 'Escape') close()
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); move(e.key === 'ArrowRight' ? 1 : -1) }
       if (e.key === 'Tab') {
-        const buttons = Array.from(dialog.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? [])
+        const buttons = Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]') ?? [])
         const first = buttons[0], last = buttons.at(-1)
         if (e.shiftKey && (document.activeElement === first || !dialog.current?.contains(document.activeElement))) { e.preventDefault(); last?.focus() }
         else if (!e.shiftKey && (document.activeElement === last || !dialog.current?.contains(document.activeElement))) { e.preventDefault(); first?.focus() }
@@ -81,31 +75,6 @@ export default function AlbumPhotoViewer({ client, userId, eventId, title, photo
     return () => document.removeEventListener('keydown', keys)
   })
 
-  async function download() {
-    if (!photo || downloading) return
-    const owner = { client, userId, eventId }
-    const current = () => scope.current.client === owner.client && scope.current.userId === owner.userId && scope.current.eventId === owner.eventId
-    downloadAbort.current?.abort()
-    const abort = new AbortController(); downloadAbort.current = abort
-    setDownloading(true); setError('')
-    try {
-      // Sign the original afresh. The preview is never used as the download file.
-      const signed = await client.storage.from(PHOTO_BUCKET).createSignedUrls([photo.storage_path], 60)
-      const url = !signed.error ? verifiedSignedUrl(client, signed.data?.[0]?.signedUrl ?? null) : null
-      if (!url || !current() || abort.signal.aborted) throw new Error('Download unavailable')
-      const response = await fetch(url, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: abort.signal })
-      if (!response.ok) throw new Error('Download unavailable')
-      const blob = await response.blob()
-      if (abort.signal.aborted || !current()) return
-      if (!blob.type.startsWith('image/') || !blob.size) throw new Error('Invalid image')
-      const local = URL.createObjectURL(blob); urls.current.add(local)
-      const link = document.createElement('a'); link.href = local
-      link.download = (photo.original_name || 'DANZ-foto.jpg').replace(/[^\p{L}\p{N}._ -]/gu, '_')
-      document.body.append(link); link.click(); link.remove()
-      setTimeout(() => { URL.revokeObjectURL(local); urls.current.delete(local) }, 1000)
-    } catch { if (!abort.signal.aborted && current()) setError('No se pudo descargar el archivo. Vuelve a intentarlo.') }
-    finally { if (!abort.signal.aborted && current()) setDownloading(false) }
-  }
   const start = (e: PointerEvent<HTMLDivElement>) => {
     pointerType.current = e.pointerType
     if (!e.isPrimary || e.button !== 0) { gesture.current = null; return }
@@ -139,9 +108,9 @@ export default function AlbumPhotoViewer({ client, userId, eventId, title, photo
     <div className="private-gallery-viewer-actions">
       {photos.length > 1 && <button className="outline-btn" onClick={() => move(-1)} aria-label="Foto anterior del álbum">←</button>}
       <button className="outline-btn" aria-pressed={zoom} onClick={() => { setZoom(v => !v); setPan({ x: 0, y: 0 }) }}>{zoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
-      <button className="primary-btn" disabled={downloading} onClick={() => { void download() }}>{downloading ? 'DESCARGANDO…' : 'DESCARGAR ORIGINAL'}</button>
       {photos.length > 1 && <button className="outline-btn" onClick={() => move(1)} aria-label="Foto siguiente del álbum">→</button>}
     </div>
+    <OriginalFileActions key={`${userId}:${eventId}:${photo.id}`} client={client} owner={userId} eventId={eventId} photoId={photo.id} path={photo.storage_path} name={photo.original_name} mime={photo.mime_type} />
     {error && <p role="alert">{error}</p>}
   </div>
 }

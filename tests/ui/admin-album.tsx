@@ -19,7 +19,7 @@ const client = {
   },
   storage: { from: () => ({
     getPublicUrl: (path: string) => ({ data: { publicUrl: `${origin}/tests/ui/object/public/danz-event-photos/${path}` } }),
-    createSignedUrls: async (paths: string[]) => ({ data: paths.map(path => ({ path, signedUrl: `${origin}/tests/ui/object/sign/danz-event-photos/${path}?token=synthetic-local-qa` })), error: null }),
+    createSignedUrls: async (paths: string[], _ttl?: number, options?: { download?: string | boolean }) => ({ data: paths.map(path => ({ path, signedUrl: `${origin}/tests/ui/object/sign/danz-event-photos/${path}?token=synthetic-local-qa${options?.download ? `&download=${encodeURIComponent(String(options.download))}` : ''}` })), error: null }),
   }) },
 } as unknown as SupabaseClient<Database>
 createRoot(document.getElementById('root')!).render(<div className="site-shell"><div className="content"><p style={{ paddingTop: 24, color: 'var(--acid)', fontSize: 12 }}>PRUEBA VISUAL · SIN DATOS NI FOTOS REALES</p><AdminPanel client={client} userId="qa-owner" authLoading={false} access={{ loading: false, member: true, permissions: ['events.manage'], error: false }} setup={{ current: null }} onSignIn={() => {}} albumsOnly /></div></div>)

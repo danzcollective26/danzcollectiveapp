@@ -1,5 +1,13 @@
 # Galería y almacenamiento
 
+## Archivo JPG en Android — 11 de noviembre de 2026
+
+El visor muestra el nombre y formato del original, por ejemplo 1000273117.jpg. La acción DESCARGAR JPG entrega un enlace privado de Storage con nombre de archivo y Content-Disposition de adjunto, para que el navegador guarde el original como archivo. Los enlaces se renuevan cada 45 segundos y caducan a los 60, sin guardar URLs firmadas en almacenamiento local.
+
+En móviles compatibles, GUARDAR O COMPARTIR JPG prepara un File con el nombre, MIME image/jpeg y bytes originales. Abre el selector nativo solo por una acción del usuario; si una descarga lenta consume la activación del primer toque, deja el archivo preparado y solicita otro toque. Cancelar el selector no se trata como un fallo. El File temporal se descarta al salir del visor o cambiar de cuenta/foto. No se recomprime ni se retira la marca de agua.
+
+Android puede mostrar un archivo descargado mediante una URI content://media/external/downloads y un identificador numérico. Esa URI no es el nombre del archivo. La descarga puede localizarse desde Archivos → Descargas y abrirse o compartirse desde allí. Queda por confirmar el resultado en el móvil físico del propietario.
+
 ## Álbumes persistentes y acceso del administrador — 11 de noviembre de 2026
 
 Las fotos completadas se conservan en el servidor dentro del evento, como borradores o publicadas. Salir del panel, volver atrás, recargar o elegir otra tanda no las borra. El álbum seleccionado se recuerda por cuenta en la sesión del navegador y se incluye en la URL; los archivos de una carga todavía incompleta deben reseleccionarse para continuarla.

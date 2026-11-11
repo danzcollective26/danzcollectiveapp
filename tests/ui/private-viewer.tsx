@@ -21,7 +21,7 @@ const client = {
   },
   storage: { from: () => ({
     getPublicUrl: (path: string) => ({ data: { publicUrl: `${origin}/tests/ui/object/public/danz-event-photos/${path}` } }),
-    createSignedUrls: async (paths: string[]) => ({ data: paths.map(path => ({ path, signedUrl: `${origin}/tests/ui/object/sign/danz-event-photos/${path}?token=synthetic-local-qa` })), error: null }),
+    createSignedUrls: async (paths: string[], _ttl?: number, options?: { download?: string | boolean }) => ({ data: paths.map(path => ({ path, signedUrl: `${origin}/tests/ui/object/sign/danz-event-photos/${path}?token=synthetic-local-qa${options?.download ? `&download=${encodeURIComponent(String(options.download))}` : ''}` })), error: null }),
   }) },
 } as unknown as SupabaseClient<Database>
 createRoot(document.getElementById('root')!).render(<div className="site-shell"><p className="content" style={{ paddingTop: 30, color: 'var(--acid)', fontSize: 12 }}>PRUEBA LOCAL DEL VISOR · SIN DATOS NI FOTOS REALES</p><PrivateGallery client={client} userId="synthetic-local-qa" authLoading={false} onSignIn={() => {}} /></div>)

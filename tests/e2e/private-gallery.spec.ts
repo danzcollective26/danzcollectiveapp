@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
 import { installMockSession, mockSupabase, supabaseHost, switchMockSession, USER_B } from './helpers/supabase'
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64')
@@ -35,7 +36,7 @@ async function installGallery(page: Page) {
     expect(body.expiresIn).toBe(60)
     await route.fulfill({ json: body.paths.map((path) => ({ path, error: null, signedURL: `/object/sign/danz-event-photos/${path}?token=synthetic-private-token` })) })
   })
-  await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, (route) => route.fulfill({ contentType: 'image/png', headers: { 'cache-control': 'no-store' }, body: png }))
+  await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, route => { const download = new URL(route.request().url()).searchParams.get('download'); return route.fulfill({ contentType: 'image/png', headers: { 'cache-control': 'no-store', ...(download ? { 'content-disposition': `attachment; filename=\"${download}\"` } : {}) }, body: png }) })
 }
 
 async function installMultiplePhotos(page: Page) {
@@ -153,11 +154,15 @@ test('authorized events use short-lived private URLs; viewer and blob download w
   await expect(viewer).toBeVisible()
   const close = viewer.getByRole('button', { name: 'Cerrar foto privada', exact: true })
   await expect(close).toBeFocused()
+  await expect(viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true })).toBeVisible()
   await page.keyboard.press('Shift+Tab')
-  await expect(viewer.getByRole('button', { name: 'DESCARGAR FOTO', exact: true })).toBeFocused()
+  await expect(viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true })).toBeFocused()
   const downloaded = page.waitForEvent('download')
-  await viewer.getByRole('button', { name: 'DESCARGAR FOTO', exact: true }).click()
-  expect((await downloaded).suggestedFilename()).toBe('first-private.png')
+  await viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true }).click()
+  const file = await downloaded
+  expect(file.suggestedFilename()).toBe('first-private.png')
+  expect(await readFile((await file.path())!)).toEqual(png)
+  await expect(viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true })).toHaveAttribute('href', /download=first-private.png/)
   await page.keyboard.press('Escape')
   await expect(viewer).not.toBeVisible()
   await expect(thumbnail).toBeFocused()

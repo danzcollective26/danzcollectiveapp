@@ -31,7 +31,7 @@ async function savedAlbum(page: Page) {
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_events`, r => r.fulfill({ json: [second, event] }))
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_photos`, r => r.fulfill({ json: rows.filter(p => p.event_id === r.request().postDataJSON().p_event_id) }))
   await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos`, r => { signs++; return r.fulfill({ json: r.request().postDataJSON().paths.map((path: string) => ({ path, signedURL: `/object/sign/danz-event-photos/${path}?token=synthetic-${signs}`, error: null })) }) })
-  await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => r.fulfill({ contentType: 'image/jpeg', body: bytes }))
+  await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => { const filename = new URL(r.request().url()).searchParams.get('download'); return r.fulfill({ contentType: 'image/jpeg', headers: filename ? { 'content-disposition': `attachment; filename=\"${filename}\"` } : {}, body: bytes }) })
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_photo_state`, r => { const request = r.request().postDataJSON(); for (const row of rows) if (request.p_ids.includes(row.id)) row.status = request.p_status; return r.fulfill({ json: request.p_ids.length }) })
   await page.getByRole('button', { name: 'ACTUALIZAR EVENTOS', exact: true }).click()
   await page.getByRole('button', { name: /Galería de prueba.*ABRIR ÁLBUM/ }).click()
@@ -76,8 +76,11 @@ test('the admin can open and download an original without an attendance stamp, a
   const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
   await expect(viewer).toBeVisible()
   await expect(viewer.getByRole('img')).toHaveJSProperty('naturalWidth', 640)
+  const native = viewer.getByRole('link', { name: 'DESCARGAR JPG', exact: true })
+  await expect(native).toHaveAttribute('download', 'DANZ-original.jpg')
+  await expect(native).toHaveAttribute('href', /original.jpg.*download=DANZ-original.jpg/)
   const download = page.waitForEvent('download')
-  await viewer.getByRole('button', { name: 'DESCARGAR ORIGINAL', exact: true }).click()
+  await native.click()
   const file = await download
   expect(file.suggestedFilename()).toBe('DANZ-original.jpg')
   expect(await readFile((await file.path())!)).toEqual(bytes)
@@ -88,6 +91,34 @@ test('the admin can open and download an original without an attendance stamp, a
   await viewer.getByRole('button', { name: 'Cerrar foto del álbum', exact: true }).click()
   await expect(viewer).toHaveCount(0)
   await expect(opening).toBeVisible()
+})
+
+test('mobile file sharing receives a named JPG with its original bytes, after a slow preparation', async ({ page }) => {
+  await page.addInitScript(() => {
+    const target = window as unknown as { sharedFile?: { name: string; type: string; size: number; bytes: number[] } }
+    Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false, hasBeenActive: true } })
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: ({ files }: { files: File[] }) => files?.[0]?.type === 'image/jpeg' })
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async ({ files }: { files: File[] }) => {
+      const file = files[0]
+      target.sharedFile = { name: file.name, type: file.type, size: file.size, bytes: Array.from(new Uint8Array(await file.arrayBuffer())) }
+    } })
+  })
+  const { bytes } = await savedAlbum(page)
+  await page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true }).click()
+  const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
+  const share = viewer.getByRole('button', { name: 'GUARDAR O COMPARTIR JPG', exact: true })
+  await expect(share).toBeEnabled()
+  await share.click()
+  await expect(viewer.getByRole('status')).toContainText('Archivo JPG listo.')
+  expect(await page.evaluate(() => (window as unknown as { sharedFile?: unknown }).sharedFile)).toBeUndefined()
+  await share.click()
+  await expect.poll(() => page.evaluate(() => Boolean((window as unknown as { sharedFile?: unknown }).sharedFile))).toBe(true)
+  const shared = await page.evaluate(() => (window as unknown as { sharedFile?: { name: string; type: string; size: number; bytes: number[] } }).sharedFile)
+  expect(shared?.name).toBe('DANZ-original.jpg')
+  expect(shared?.type).toBe('image/jpeg')
+  expect(shared?.size).toBe(bytes.length)
+  expect(Buffer.from(shared!.bytes)).toEqual(bytes)
+  await expect(viewer).toBeVisible()
 })
 
 test('published photos remain visible in My albums and previews renew after a minute', async ({ page }) => {
@@ -202,7 +233,7 @@ for (const denied of [{ status: 401, code: 'InvalidJWT' }, { status: 403, code: 
       await r.fulfill({ json: null })
     })
     await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos`, r => r.fulfill({ json: r.request().postDataJSON().paths.map((path: string) => ({ path, signedURL: `/object/sign/danz-event-photos/${path}?token=synthetic`, error: null })) }))
-    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => r.fulfill({ contentType: 'image/jpeg', body: bytes }))
+    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => { const filename = new URL(r.request().url()).searchParams.get('download'); return r.fulfill({ contentType: 'image/jpeg', headers: filename ? { 'content-disposition': `attachment; filename=\"${filename}\"` } : {}, body: bytes }) })
     await page.getByLabel('Seleccionar fotos para subir', { exact: true }).setInputFiles(['a', 'b', 'c'].map(name => ({ name: `${name}.jpg`, mimeType: 'image/jpeg', buffer: Buffer.concat([bytes, Buffer.from(name)]) })))
     await page.getByLabel('Confirmo que las fotos ya incluyen su marca de agua.', { exact: true }).check()
     await page.getByRole('button', { name: 'SUBIR COMO BORRADORES', exact: true }).click()
@@ -257,7 +288,7 @@ for (const phase of ['prepare', 'preview', 'finish', 'service'] as const) {
       await r.fulfill({ json: null })
     })
     await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos`, r => r.fulfill({ json: r.request().postDataJSON().paths.map((path: string) => ({ path, signedURL: `/object/sign/danz-event-photos/${path}?token=synthetic`, error: null })) }))
-    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => r.fulfill({ contentType: 'image/jpeg', body: bytes }))
+    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => { const filename = new URL(r.request().url()).searchParams.get('download'); return r.fulfill({ contentType: 'image/jpeg', headers: filename ? { 'content-disposition': `attachment; filename=\"${filename}\"` } : {}, body: bytes }) })
     await page.getByLabel('Seleccionar fotos para subir', { exact: true }).setInputFiles(['a', 'b', 'c'].map(name => ({ name: `${name}.jpg`, mimeType: 'image/jpeg', buffer: Buffer.concat([bytes, Buffer.from(name)]) })))
     await page.getByLabel('Confirmo que las fotos ya incluyen su marca de agua.', { exact: true }).check()
     await page.getByRole('button', { name: 'SUBIR COMO BORRADORES', exact: true }).click()
