@@ -66,6 +66,7 @@ export default function OriginalFileActions({ client, owner, eventId, photoId, p
     const controller = new AbortController(); abort.current?.abort(); abort.current = controller
     const own = () => !controller.signal.aborted && current.current.client === identity.client && current.current.key === identity.key
     let file = prepared?.scope === key ? prepared.file : null
+    const wasPrepared = !!file
     let writer: FileSystemWritableFileStream | null = null
     setActionError(''); setMessage(''); setBusy(action)
     try {
@@ -97,7 +98,7 @@ export default function OriginalFileActions({ client, owner, eventId, photoId, p
         if (own()) setMessage(`Archivo guardado: ${handle.name}. Ya puedes seleccionarlo desde otra aplicación.`)
       } else {
         if (!navigator.canShare({ files: [file] })) throw new Error('Sharing unavailable')
-        if (!navigator.userActivation?.isActive) { setMessage(`Archivo ${type} listo. Pulsa otra vez «Compartir archivo ${type}».`); return }
+        if (!wasPrepared && !navigator.userActivation?.isActive) { setMessage(`Archivo ${type} listo. Pulsa otra vez «Compartir archivo ${type}».`); return }
         // Files only: do not turn this into a URL/text share on the receiver.
         // Resolution means handoff to the OS, not publication to a story.
         await navigator.share({ files: [file] })
