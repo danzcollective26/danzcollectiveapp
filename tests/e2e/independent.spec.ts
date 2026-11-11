@@ -20,7 +20,7 @@ test('the app opens its own sections without connecting to the collective websit
   await expect(page.getByRole('article', { name: 'Chicharro (ES)', exact: true }).getByRole('link', { name: /YouTube/ })).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'TonyDawgs en YouTube · DANZ IN Records', exact: true })).toHaveAttribute('href', 'https://www.youtube.com/@DanzInRecords')
   const links = await page.locator('.artist-card a').evaluateAll(anchors => anchors.map(anchor => ({ href: (anchor as HTMLAnchorElement).href, target: (anchor as HTMLAnchorElement).target, rel: (anchor as HTMLAnchorElement).rel })))
-  expect(links.every(link => !new URL(link.href).search && link.target === '_top' && link.rel.includes('noreferrer'))).toBe(true)
+  expect(links.every(link => !new URL(link.href).search && link.target === '_blank' && link.rel.includes('noreferrer') && link.rel.includes('noopener'))).toBe(true)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await nav.getByRole('button', { name: 'Arcade', exact: true }).click()
   await expect(page.locator('.game-board > .cell')).toHaveCount(169)
@@ -36,42 +36,44 @@ test('the app opens its own sections without connecting to the collective websit
   expect(externalRequests).toEqual([])
 })
 
-test('artist profiles leave an embedded preview instead of loading a platform inside its iframe', async ({ page, baseURL, context }) => {
-  // Load the real local parent before constructing its test-only iframe. A
-  // fulfilled synthetic parent has no network address and can trigger Chrome's
-  // local-network gate before the application even loads in the frame.
-  const embeddedUrl = new URL('/?seccion=musica', baseURL)
-  embeddedUrl.hostname = 'localhost'
+test('artist profiles open externally when the embedded host forbids top navigation', async ({ page, context }) => {
   const destination = 'https://soundcloud.com/chicharro-es'
-  await page.route(destination, route => route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Artista</title><h1>Perfil del artista</h1>' }))
-  await page.goto('/')
-  await page.setContent(`<!doctype html><title>Vista previa</title><iframe title="DANZ" sandbox="allow-scripts allow-same-origin allow-top-navigation-by-user-activation" src="${embeddedUrl.href}"></iframe>`)
+  await context.route(destination, route => route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Artista</title><h1>Perfil del artista</h1>' }))
+  await page.goto('/tests/ui/artist-links.html')
   const frame = page.frameLocator('iframe')
+  const opened = context.waitForEvent('page')
   await frame.getByRole('link', { name: 'Escuchar a Chicharro (ES)', exact: true }).click()
-  await expect(page).toHaveURL(destination)
-  await expect(page.getByRole('heading', { name: 'Perfil del artista' })).toBeVisible()
-  expect(context.pages()).toHaveLength(1)
+  const external = await opened
+  await expect(external).toHaveURL(destination)
+  await expect(external.getByRole('heading', { name: 'Perfil del artista' })).toBeVisible()
+  await expect(page).toHaveURL(/tests\/ui\/artist-links\.html/)
+  await expect(frame.getByRole('heading', { name: 'DANZ IN.', exact: true })).toBeVisible()
+  expect(await external.evaluate(() => window.opener === null)).toBe(true)
+  await external.close()
 })
 
-test('every artist link navigates in the same tab and Back restores the music section', async ({ page, context }) => {
+test('every artist link opens its platform while music and an unclaimed event pass remain available', async ({ page, context }) => {
   test.setTimeout(90000)
   // Simulated destinations verify actual browser navigation without depending on
   // third-party login, bot screening or sending visitors' data to those services.
-  await page.route(/^https:\/\/(soundcloud\.com|open\.spotify\.com|www\.instagram\.com|www\.youtube\.com|www\.mavelpoint\.com)\//, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Perfil de prueba</title><h1>Destino de prueba</h1>' }))
+  await context.route(/^https:\/\/(soundcloud\.com|open\.spotify\.com|www\.instagram\.com|www\.youtube\.com|www\.mavelpoint\.com)\//, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Perfil de prueba</title><h1>Destino de prueba</h1>' }))
+  await page.addInitScript(() => localStorage.setItem('danz-pending-event-pass', 'DANZLINKS12345678'))
   await page.goto('/?seccion=musica')
   const links = await page.locator('.artist-card a').evaluateAll(anchors => anchors.map(anchor => ({ label: anchor.getAttribute('aria-label')!, href: (anchor as HTMLAnchorElement).href })))
   expect(links).toHaveLength(19)
   for (const link of links) {
+    const opened = context.waitForEvent('page')
     await page.getByRole('link', { name: link.label, exact: true }).click()
-    await expect(page).toHaveURL(link.href)
-    await expect(page.getByRole('heading', { name: 'Destino de prueba' })).toBeVisible()
-    expect(context.pages()).toHaveLength(1)
-    await page.goBack()
+    const external = await opened
+    await expect(external).toHaveURL(link.href)
+    await expect(external.getByRole('heading', { name: 'Destino de prueba' })).toBeVisible()
+    expect(await external.evaluate(() => window.opener === null)).toBe(true)
+    await external.close()
     await expect(page).toHaveURL(/seccion=musica/)
     await expect(page.getByRole('heading', { name: 'Chicharro (ES)', exact: true })).toBeVisible()
+    expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBe('DANZLINKS12345678')
   }
   await page.getByRole('navigation').getByRole('button', { name: 'Inicio', exact: true }).click()
   expect(new URL(page.url()).searchParams.has('seccion')).toBe(false)
-  await page.reload()
   await expect(page.getByRole('heading', { name: 'WE ARE DANZ.' })).toBeVisible()
 })

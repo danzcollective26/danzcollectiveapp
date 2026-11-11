@@ -45,7 +45,7 @@ export default function App() {
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
-    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : params.get('seccion') === 'cuenta' ? 'cuenta' : params.get('seccion') === 'pasaporte' && !launchPass.invalid ? 'pasaporte' : launchPass.code || launchPass.invalid ? 'danzers' : params.get('seccion') === 'musica' ? 'danzin' : 'inicio'
+    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : params.get('seccion') === 'cuenta' ? 'cuenta' : params.get('seccion') === 'pasaporte' && !launchPass.invalid ? 'pasaporte' : params.get('seccion') === 'musica' && !launchPass.invalid ? 'danzin' : launchPass.code || launchPass.invalid ? 'danzers' : 'inicio'
   })
   const [pendingPasses, setPendingPasses] = useState(() => {
     const saved = readPendingPasses()
