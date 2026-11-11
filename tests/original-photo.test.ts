@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { photoDigest, verifiedPhotoFile } from '../src/cloud/originalPhoto.ts'
-const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64')
+const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC', 'base64')
 const metadata = { name: 'DANZ.jpg', path: 'private/original.png', mime: 'image/png', bytes: png.length }
 
 test('an original file keeps every byte, its matching extension, MIME and checksum', async () => {

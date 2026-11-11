@@ -1,7 +1,7 @@
 import { test as base, expect, type Page } from '@playwright/test'
 
 // A generated one-pixel PNG: these tests never need a person's photograph.
-const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64')
+const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC', 'base64')
 
 const test = base.extend<{ pageErrors: void }>({
   pageErrors: [async ({ page }, use) => {
