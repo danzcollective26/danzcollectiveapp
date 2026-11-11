@@ -44,12 +44,20 @@ cuando el servidor lo declara activado. No tiene IDs ni secretos de proveedores
 en el cliente. Tras el callback, la identidad sigue validándose con `getUser()`;
 ni Google, ni Apple, ni sus metadatos conceden permisos de administración.
 
-Si la app está incrustada, pide abrirla en el navegador antes de iniciar OAuth.
+Si la app está incrustada, abre una pestaña independiente mediante un enlace
+nativo con `target="_blank"` y `rel="noopener noreferrer"` antes de iniciar OAuth.
+No intenta sustituir la ventana contenedora: algunas vistas bloquean esa salida
+y dejaban el botón sin efecto. Se prueba con una ventana que permite pestañas
+pero prohíbe navegar su contenedor.
 Un pase pendiente se lleva únicamente en el fragmento de un enlace al mismo
 origen y se retira al abrirse. No se incluye en el retorno a Google/Apple.
 Esto evita crear el verificador PKCE dentro de una vista distinta del navegador
 que completará el acceso. Android/iPhone físicos y PWA instalada requieren prueba
 real después de activar el proveedor.
+
+Si falla la consulta de métodos disponibles, la cuenta muestra un aviso y permite
+recargarlos. No oculta Google sin explicar el fallo ni anuncia un proveedor que
+el servidor haya deshabilitado. Durante el salto a Google muestra «Abriendo Google…».
 
 ## Activar Google sin depender de la web del colectivo
 

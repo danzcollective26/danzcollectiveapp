@@ -57,22 +57,66 @@ for (const provider of ['google', 'apple'] as const) {
   })
 }
 
-test('embedded login opens the full app before creating an OAuth verifier and preserves the pass', async ({ page, baseURL }) => {
+for (const entry of ['ABRIR DANZ PARA ENTRAR', 'ABRIR CUENTA EN EL NAVEGADOR']) {
+test(`${entry}: embedded login escapes a sandbox that forbids top navigation before starting Google`, async ({ page, context, baseURL }) => {
   await mockSupabase(page)
   await page.route(`${supabaseHost}/auth/v1/settings`, route => route.fulfill({ json: { external: { google: true, apple: true } } }))
   const embedded = new URL('/?seccion=cuenta#pase=ABCD1234EFGH5678IJKL9012', baseURL)
   embedded.hostname = 'localhost'
   let authorizations = 0
-  await page.route(`${supabaseHost}/auth/v1/authorize**`, async route => { authorizations++; await route.fulfill({ status: 400, json: {} }) })
+  await context.route(`${supabaseHost}/**`, route => route.fulfill({ status: 404, json: { message: 'Unconfigured synthetic test endpoint' } }))
+  await context.route(`${supabaseHost}/auth/v1/settings`, route => route.fulfill({ json: { external: { google: true, apple: true } } }))
+  await context.route(`${supabaseHost}/auth/v1/authorize**`, async route => {
+    authorizations++
+    const url = new URL(route.request().url())
+    expect(url.searchParams.get('provider')).toBe('google')
+    expect(url.searchParams.get('redirect_to')).toBe(`${embedded.origin}/`)
+    expect(url.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/)
+    await route.fulfill({ status: 302, headers: { location: 'https://google-entry.example.invalid/' } })
+  })
+  await context.route('https://google-entry.example.invalid/', route => route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': "frame-ancestors 'none'", 'X-Frame-Options': 'DENY' }, body: '<!doctype html><title>Google de prueba</title><h1>Acceso externo de prueba</h1>' }))
   await page.goto('/')
-  await page.setContent(`<iframe title="DANZ" style="width:100%;height:90vh" sandbox="allow-scripts allow-same-origin allow-top-navigation-by-user-activation" src="${embedded.href}"></iframe>`)
+  await page.setContent(`<iframe title="DANZ" style="width:100%;height:90vh" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" src="${embedded.href}"></iframe>`)
   const frame = page.frameLocator('iframe')
   await expect(frame.getByRole('button', { name: /Continuar con Google/ })).toHaveCount(0)
-  await frame.getByRole('link', { name: 'ABRIR DANZ PARA ENTRAR', exact: true }).click()
-  await expect(page).toHaveURL(/localhost.*seccion=cuenta/)
-  await expect(page.getByRole('button', { name: 'Continuar con Google', exact: true })).toBeVisible()
-  expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBe('ABCD1234EFGH5678IJKL9012')
+  const link = frame.getByRole('link', { name: entry, exact: true })
+  await expect(link).toHaveAttribute('target', '_blank')
+  await expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  const opened = context.waitForEvent('page')
+  await link.click()
+  const browser = await opened
+  await expect(browser).toHaveURL(/localhost.*seccion=cuenta/)
+  await expect(browser.getByRole('button', { name: 'Continuar con Google', exact: true })).toBeVisible()
+  expect(await browser.evaluate(() => window.opener === null)).toBe(true)
+  expect(await browser.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBe('ABCD1234EFGH5678IJKL9012')
+  expect(await browser.evaluate(() => localStorage.getItem('sb-danz-test-auth-token-code-verifier'))).toBeNull()
   expect(authorizations).toBe(0)
+  await browser.getByRole('button', { name: 'Continuar con Google', exact: true }).click()
+  await expect(browser.getByRole('heading', { name: 'Acceso externo de prueba', exact: true })).toBeVisible()
+  expect(authorizations).toBe(1)
+  await expect(page).toHaveURL(new URL('/', baseURL).href)
+  await expect(frame.getByRole('heading', { name: 'TU CUENTA.', exact: true })).toBeVisible()
+  expect(await frame.locator('body').evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBe('ABCD1234EFGH5678IJKL9012')
+  await browser.close()
+})
+}
+
+test('failed provider discovery shows a retry instead of silently removing Google', async ({ page }) => {
+  await mockSupabase(page)
+  let failing = true
+  let requests = 0
+  await page.route(`${supabaseHost}/auth/v1/settings`, route => {
+    requests++
+    return failing ? route.fulfill({ status: 503, json: {} }) : route.fulfill({ json: { external: { google: true, apple: false } } })
+  })
+  await page.goto('/?seccion=cuenta')
+  await expect(page.getByRole('alert').filter({ hasText: 'No hemos podido cargar las opciones de acceso.' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'ENVIAR ENLACE', exact: true })).toBeEnabled()
+  failing = false
+  await page.getByRole('button', { name: 'RECARGAR ACCESOS', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Continuar con Google', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'RECARGAR ACCESOS', exact: true })).toHaveCount(0)
+  expect(requests).toBeGreaterThanOrEqual(2)
 })
 
 test('an iCloud email can use the email flow and link its pass without Google or Apple', async ({ page }) => {

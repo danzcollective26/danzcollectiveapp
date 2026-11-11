@@ -113,6 +113,10 @@ export default function Account() {
   const [nextSendAt, setNextSendAt] = useState(0)
   const [cooldown, setCooldown] = useState(0)
   const [providers, setProviders] = useState<SocialProvider[]>([])
+  const [providersLoading, setProvidersLoading] = useState(false)
+  const [providersUnavailable, setProvidersUnavailable] = useState(false)
+  const [providerAttempt, setProviderAttempt] = useState(0)
+  const [openingProvider, setOpeningProvider] = useState<SocialProvider | null>(null)
   const embedded = window.self !== window.top
   const action = useRef(false)
   const mounted = useRef(true)
@@ -120,14 +124,21 @@ export default function Account() {
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   useEffect(() => {
     setProviders([])
-    if (!client || user || loading) return
+    setProvidersUnavailable(false)
+    if (!client || user || loading) { setProvidersLoading(false); return }
+    let current = true
+    setProvidersLoading(true)
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 5000)
     void fetchSocialProviders(controller.signal).then(options => {
-      if (!controller.signal.aborted) setProviders(options)
-    }).catch(() => { /* Email remains usable if options cannot be loaded. */ }).finally(() => clearTimeout(timeout))
-    return () => { controller.abort(); clearTimeout(timeout) }
-  }, [client, user?.id, loading])
+      if (controller.signal.aborted) throw new Error('Auth options timed out')
+      if (current) setProviders(options)
+    }).catch(() => { if (current) setProvidersUnavailable(true) }).finally(() => {
+      clearTimeout(timeout)
+      if (current) setProvidersLoading(false)
+    })
+    return () => { current = false; controller.abort(); clearTimeout(timeout) }
+  }, [client, user?.id, loading, providerAttempt])
   useEffect(() => {
     if (!nextSendAt) return
     const update = () => setCooldown(Math.max(0, Math.ceil((nextSendAt - Date.now()) / 1000)))
@@ -191,6 +202,7 @@ export default function Account() {
     if (!client || action.current || embedded || !providers.includes(provider)) return
     action.current = true
     setBusy(true)
+    setOpeningProvider(provider)
     setError('')
     setMessage('')
     clearError()
@@ -201,7 +213,7 @@ export default function Account() {
       if (mounted.current) setError(authErrorMessage(reason))
     } finally {
       action.current = false
-      if (mounted.current) setBusy(false)
+      if (mounted.current) { setBusy(false); setOpeningProvider(null) }
     }
   }
 
@@ -228,12 +240,14 @@ export default function Account() {
         {error && <p role="alert" className="account-error">{error}</p>}
         <ProfileForm key={user.id} client={client} user={user} />
       </> : <div className="account-card">
-        <h2>{providers.length ? 'Entra en DANZ' : 'Entra con tu correo'}</h2>
+        <h2>{providers.length || providersLoading ? 'Entra en DANZ' : 'Entra con tu correo'}</h2>
+        {providersLoading && <p className="account-note" role="status">Comprobando las formas de acceso…</p>}
+        {providersUnavailable && <div className="account-browser-login" role="alert"><p>No hemos podido cargar las opciones de acceso. Vuelve a intentarlo o utiliza tu correo.</p><button className="outline-btn" type="button" disabled={busy} onClick={() => setProviderAttempt(value => value + 1)}>RECARGAR ACCESOS</button></div>}
         {providers.length > 0 && (embedded ? <div className="account-browser-login">
           <p>Para usar este acceso, abre DANZ en tu navegador.</p>
-          <a className="primary-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_top" rel="noreferrer">ABRIR DANZ PARA ENTRAR</a>
+          <a className="primary-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR DANZ PARA ENTRAR</a>
         </div> : <div className="account-social" role="group" aria-label="Acceso con tu cuenta">
-          {providers.map(provider => <button className={`account-social-button account-social-${provider}`} key={provider} type="button" disabled={busy} onClick={() => { void enterWithProvider(provider) }}>Continuar con {provider === 'google' ? 'Google' : 'Apple'}</button>)}
+          {providers.map(provider => <button className={`account-social-button account-social-${provider}`} key={provider} type="button" disabled={busy} aria-busy={openingProvider === provider} onClick={() => { void enterWithProvider(provider) }}>{openingProvider === provider ? 'Abriendo ' : 'Continuar con '}{provider === 'google' ? 'Google' : 'Apple'}{openingProvider === provider ? '…' : ''}</button>)}
           <p className="account-note">O utiliza tu correo electrónico.</p>
         </div>)}
         <p>También puedes entrar con cualquier correo: iCloud, Gmail, Outlook u otro. Sin crear contraseña.</p>
@@ -257,7 +271,7 @@ export default function Account() {
             <button className="primary-btn" type="submit" disabled={busy}>COMPROBAR CÓDIGO</button>
           </form>}
         </>
-        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre esta app directamente en Chrome o Safari, solicita un correo nuevo desde allí y abre el enlace en ese mismo navegador. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_top" rel="noreferrer">ABRIR CUENTA EN EL NAVEGADOR</a></div>
+        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre esta app directamente en Chrome o Safari, solicita un correo nuevo desde allí y abre el enlace en ese mismo navegador. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR CUENTA EN EL NAVEGADOR</a></div>
       </div>}
   </section>
 }
