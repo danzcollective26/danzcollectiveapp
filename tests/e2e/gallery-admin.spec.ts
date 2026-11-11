@@ -78,6 +78,7 @@ test('the admin can open and download an original without an attendance stamp, a
   await expect(viewer.getByRole('img')).toHaveJSProperty('naturalWidth', 640)
   const native = viewer.getByRole('link', { name: 'DESCARGAR JPG', exact: true })
   await expect(native).toHaveAttribute('download', 'DANZ-original.jpg')
+  await expect(native).not.toHaveAttribute('target', '_blank')
   await expect(native).toHaveAttribute('href', /original.jpg.*download=DANZ-original.jpg/)
   const download = page.waitForEvent('download')
   await native.click()

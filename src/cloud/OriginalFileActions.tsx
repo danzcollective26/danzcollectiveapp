@@ -89,7 +89,7 @@ export default function OriginalFileActions({ client, owner, eventId, photoId, p
 
   return <div className="original-file-actions">
     <div className="private-gallery-viewer-actions">
-      {available ? <a className="primary-btn external-btn" href={available.url} download={filename} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">DESCARGAR {type}</a> : <button className="primary-btn" disabled={!failed} onClick={() => setRetry(n => n + 1)}>{failed ? 'REINTENTAR DESCARGA' : `PREPARANDO ${type}…`}</button>}
+      {available ? <a className="primary-btn external-btn" href={available.url} download={filename} referrerPolicy="no-referrer" onClick={event => { if (Date.now() >= available.expiresAt) { event.preventDefault(); setRetry(n => n + 1) } }}>DESCARGAR {type}</a> : <button className="primary-btn" disabled={!failed} onClick={() => setRetry(n => n + 1)}>{failed ? 'REINTENTAR DESCARGA' : `PREPARANDO ${type}…`}</button>}
       {canShare && <button className="outline-btn" disabled={busy || !available && prepared?.scope !== key} onClick={() => { void shareFile() }}>{busy ? 'PREPARANDO ARCHIVO…' : `GUARDAR O COMPARTIR ${type}`}</button>}
     </div>
     <p className="original-file-name">Archivo: <strong>{filename}</strong> · Original con marca de agua.</p>
