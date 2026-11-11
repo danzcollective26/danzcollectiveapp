@@ -68,3 +68,15 @@ y permisos; puede haber otros costes de servidor. No está conectado ni contrata
 No se ha activado un plan de pago, enviado correo ni cargado ninguna foto del usuario.
 La interfaz de solicitudes de retirada y su revisión sigue pendiente; los borradores
 de esta entrega no sustituyen ese proceso de moderación.
+
+## Guardar en carpeta y usar la foto en Instagram (11/11/2026, versión 29)
+
+El propietario confirmó que abrir la descarga en su Android seguía mostrando una imagen en el navegador y que elegir Instagram desde compartir no cargaba la historia. La confirmación anterior de 344 pruebas no demostraba el recorrido físico de su teléfono.
+
+- Se añade GUARDAR JPG COMO ARCHIVO (o el formato original) cuando existe showSaveFilePicker. Abre el selector del dispositivo durante el toque, antes de esperar a la red; propone Imágenes, nombre y MIME/extensión del original. Escribe los bytes originales y confirma solo después de cerrar correctamente la escritura. No guarda handles ni fotos en el almacenamiento de la PWA.
+- La cancelación del selector es silenciosa; un error de escritura no se anuncia como guardado. Cerrar/cambiar de foto o cuenta cancela el trabajo pendiente y no inicia una escritura posterior. Si la selección tarda, se usa el enlace renovado o se firma uno nuevo al continuar.
+- DESCARGAR sigue disponible como alternativa cuando el navegador no expone el selector o lo bloquea. Guardar un archivo no garantiza que todas las galerías lo indexen inmediatamente.
+- COMPARTIR ARCHIVO envía solo files: un File de imagen, sin title, text ni url. Una respuesta satisfactoria del sistema no acredita publicación ni recepción por el editor de historias de Instagram.
+- Se añade ayuda en el visor: guardar el JPG, abrir Instagram → + → Historia → Galería y elegir la carpeta. La PWA no promete controlar la actividad nativa de historias. Un flujo específico nativo requeriría la integración oficial de Android/iOS.
+
+Pruebas: selector simulado con activación del toque, nombre/MIME y bytes exactos, cancelación sin descarga, error de escritura con abort, cierre del visor durante selección, compartir sin texto/enlace, descarga adjunta de respaldo y foco del visor. Sigue pendiente la comprobación del selector y de Instagram en el Android físico del propietario.

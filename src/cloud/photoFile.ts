@@ -20,3 +20,9 @@ export function photoFileType(filename: string) {
   const extension = filename.split('.').pop()?.toLowerCase()
   return extension === 'jpeg' || extension === 'jpg' ? 'JPG' : (extension || 'imagen').toUpperCase()
 }
+
+/** MIME used by Save As; no image conversion takes place. */
+export function photoFileMime(filename: string) {
+  const extension = filename.split('.').pop()?.toLowerCase()
+  return Object.entries(extensions).find(([, value]) => value === (extension === 'jpeg' ? 'jpg' : extension))?.[0] || 'image/jpeg'
+}

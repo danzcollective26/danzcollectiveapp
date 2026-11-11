@@ -99,7 +99,9 @@ test('mobile file sharing receives a named JPG with its original bytes, after a 
     const target = window as unknown as { sharedFile?: { name: string; type: string; size: number; bytes: number[] } }
     Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false, hasBeenActive: true } })
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: ({ files }: { files: File[] }) => files?.[0]?.type === 'image/jpeg' })
-    Object.defineProperty(navigator, 'share', { configurable: true, value: async ({ files }: { files: File[] }) => {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async (data: { files: File[] }) => {
+      if (Object.keys(data).join(',') !== 'files') throw new Error('The receiver must get only the image file')
+      const { files } = data
       const file = files[0]
       target.sharedFile = { name: file.name, type: file.type, size: file.size, bytes: Array.from(new Uint8Array(await file.arrayBuffer())) }
     } })
@@ -107,7 +109,7 @@ test('mobile file sharing receives a named JPG with its original bytes, after a 
   const { bytes } = await savedAlbum(page)
   await page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true }).click()
   const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
-  const share = viewer.getByRole('button', { name: 'GUARDAR O COMPARTIR JPG', exact: true })
+  const share = viewer.getByRole('button', { name: 'COMPARTIR ARCHIVO JPG', exact: true })
   await expect(share).toBeEnabled()
   await share.click()
   await expect(viewer.getByRole('status')).toContainText('Archivo JPG listo.')
@@ -310,3 +312,78 @@ for (const phase of ['prepare', 'preview', 'finish', 'service'] as const) {
     expect(new Set(uploads).size).toBe(6)
   })
 }
+
+for (const mode of ['save', 'cancel', 'write-error'] as const) {
+  test(`Save As ${mode}: the device chooses the JPG destination before fetching and success follows a closed write`, async ({ page }) => {
+    await page.addInitScript((mode) => {
+      const target = window as any
+      target.fileSave = { events: [] }
+      Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: async (options: any) => {
+        target.fileSave.events.push('picker')
+        target.fileSave.options = options
+        target.fileSave.activated = navigator.userActivation.isActive
+        if (mode === 'cancel') throw new DOMException('Cancelled', 'AbortError')
+        return { name: 'mi-foto-DANZ.jpg', createWritable: async () => {
+          target.fileSave.events.push('create')
+          return {
+            write: async (file: File) => {
+              target.fileSave.events.push('write')
+              if (mode === 'write-error') throw new Error('Device storage unavailable')
+              target.fileSave.file = { name: file.name, type: file.type, bytes: Array.from(new Uint8Array(await file.arrayBuffer())) }
+            },
+            close: async () => { target.fileSave.events.push('close') },
+            abort: async () => { target.fileSave.events.push('abort') },
+          }
+        } }
+      } })
+    }, mode)
+    const { bytes } = await savedAlbum(page)
+    let originalDownloads = 0
+    page.on('request', request => { if (new URL(request.url()).searchParams.get('download') === 'DANZ-original.jpg') originalDownloads++ })
+    await page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true }).click()
+    const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
+    await viewer.getByRole('button', { name: 'GUARDAR JPG COMO ARCHIVO', exact: true }).click()
+    await expect(viewer.getByRole('button', { name: 'GUARDAR JPG COMO ARCHIVO', exact: true })).toBeEnabled()
+    const result = await page.evaluate(() => (window as any).fileSave)
+    expect(result.activated).toBe(true)
+    expect(result.options).toMatchObject({ suggestedName: 'DANZ-original.jpg', startIn: 'pictures', types: [{ accept: { 'image/jpeg': ['.jpg'] } }] })
+    if (mode === 'save') {
+      expect(result.events).toEqual(['picker', 'create', 'write', 'close'])
+      expect(result.file.name).toBe('DANZ-original.jpg')
+      expect(result.file.type).toBe('image/jpeg')
+      expect(Buffer.from(result.file.bytes)).toEqual(bytes)
+      await expect(viewer.getByRole('status')).toContainText('Archivo guardado: mi-foto-DANZ.jpg.')
+    } else {
+      await expect(viewer.getByRole('status')).toHaveCount(0)
+      if (mode === 'cancel') { expect(originalDownloads).toBe(0); expect(result.events).toEqual(['picker']); await expect(viewer.getByRole('alert')).toHaveCount(0) }
+      else { expect(result.events).toEqual(['picker', 'create', 'write', 'abort']); await expect(viewer.getByRole('alert')).toContainText('No se pudo guardar el archivo.') }
+    }
+    await expect(viewer).toBeVisible()
+    await viewer.getByRole('button', { name: 'INSTAGRAM: CÓMO SUBIR LA FOTO', exact: true }).click()
+    await expect(viewer.getByText(/En Instagram pulsa/)).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  })
+}
+
+test('leaving the photo while the device picker is open cancels its pending save', async ({ page }) => {
+  await page.addInitScript(() => {
+    const target = window as any
+    target.fileSave = { selected: false, writes: 0 }
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: () => {
+      target.fileSave.selected = true
+      return new Promise(resolve => { target.completeSavePicker = () => resolve({ name: 'DANZ.jpg', createWritable: async () => { target.fileSave.writes++; return { write: async () => {}, close: async () => {}, abort: async () => {} } } }) })
+    } })
+  })
+  await savedAlbum(page)
+  let downloads = 0
+  page.on('request', request => { if (new URL(request.url()).searchParams.get('download')) downloads++ })
+  await page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true }).click()
+  const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
+  await viewer.getByRole('button', { name: 'GUARDAR JPG COMO ARCHIVO', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).fileSave.selected)).toBe(true)
+  await page.goBack()
+  await expect(viewer).toHaveCount(0)
+  await page.evaluate(async () => { (window as any).completeSavePicker(); await new Promise(resolve => setTimeout(resolve, 0)) })
+  expect(await page.evaluate(() => (window as any).fileSave.writes)).toBe(0)
+  expect(downloads).toBe(0)
+})

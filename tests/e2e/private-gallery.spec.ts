@@ -156,7 +156,9 @@ test('authorized events use short-lived private URLs; viewer and blob download w
   await expect(close).toBeFocused()
   await expect(viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true })).toBeVisible()
   await page.keyboard.press('Shift+Tab')
-  await expect(viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true })).toBeFocused()
+  await expect(viewer.getByRole('button', { name: 'INSTAGRAM: CÓMO SUBIR LA FOTO', exact: true })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(close).toBeFocused()
   const downloaded = page.waitForEvent('download')
   await viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true }).click()
   const file = await downloaded
