@@ -855,3 +855,15 @@ Este registro y su captura son posteriores al despliegue y no cambian la app.
 - Se mantienen las URLs privadas de 60 segundos, su renovación, la descarga del original y la limpieza al cerrar sesión o cambiar de cuenta/evento. No hay cambios de permisos, esquema ni carga por tandas.
 - Vista de prueba aislada en tests/ui, con gráficos sintéticos y cliente en memoria sin sesión ni API. No se incluye en el despliegue de producción.
 - Compilación correcta y 93 pruebas internas correctas antes de enviar las comprobaciones de navegador.
+
+
+## Publicación 20 — visor privado con gestos y zoom
+
+- Publicada correctamente el 2026-11-11T01:30:37.613279+00:00; URL: https://danz-collective-demo.right-vine-9666.chatgpt.site/.
+- Versión: appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_d2dac2e560bc819192cfc0285ee81d76; despliegue: appgdep_6af3c5302df88191b90ddb65957a65ca.
+- Fuentes Sites: 4e6713d4f0cc105631a146b5015d8c17884a1c58; GitHub probado: 7d99a063307852982416aab61808ddc2ef34a050; árbol común: 94075b3af12232650db6f8527e87d31c7c255d14.
+- CI 42938660460, trabajo 130254896668: 93 pruebas internas, 8 PWA y 195 de navegador correctas (296 en total).
+- Prueba visual local con gráficos sintéticos: deslizamiento real, doble clic para ampliar, arrastre dentro de la imagen, contador y restablecimiento al cambiar de foto. Captura: `docs/evidence/private-viewer.png`.
+- Comprobado en el sitio público: carga de DANZ y acceso a Fotos; las galerías siguen pidiendo sesión al visitante. La prueba de los gestos con datos reales de un evento queda para una galería publicada y autorizada.
+- Archivo de producción revisado: no incluye la página de pruebas, sus gráficos ni archivos de entorno. No se han cambiado permisos, base de datos, carga de fotos ni límites de almacenamiento.
+- Configuración MFA de administración y prueba física de subida de un álbum real siguen pendientes. Esta mejora no es una prueba de capacidad real de 600 JPG de alta calidad.
