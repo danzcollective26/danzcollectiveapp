@@ -8,7 +8,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
+
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,7 +35,7 @@ public final class MainActivity extends Activity {
         layout.setFitsSystemWindows(true);
         ImageView flower = new ImageView(this); flower.setImageResource(R.drawable.ic_danz);
         layout.addView(flower, new LinearLayout.LayoutParams(dp(80), dp(80)));
-        TextView title = new TextView(this); title.setText("DANZ FOTOS"); title.setTextSize(28); title.setTextColor(Color.WHITE); title.setPadding(0,dp(26),0,dp(20));
+        TextView title = new TextView(this); title.setText("DANZ FOTOS · 0.2"); title.setTextSize(28); title.setTextColor(Color.WHITE); title.setPadding(0,dp(26),0,dp(20));
         layout.addView(title);
         status = new TextView(this); status.setTextColor(Color.rgb(200,200,200)); status.setTextSize(17); status.setLineSpacing(dp(5),1);
         layout.addView(status, new LinearLayout.LayoutParams(-1,-2));
@@ -48,7 +48,7 @@ public final class MainActivity extends Activity {
         if (operation != null) operation.cancel(true);
         while (layout.getChildCount() > 3) layout.removeViewAt(3);
         if (intent.getData() == null) {
-            status.setText("Este complemento guarda tus fotos en la galería de Android, en el álbum DANZ.\n\nAbre una foto en DANZ y pulsa «Guardar en Fotos · Android». Tu cuenta y tu acceso siguen en el navegador.");
+            status.setText("Este complemento guarda tus fotos en la galería de Android, en DCIM/DANZ.\n\nAbre una foto en DANZ y pulsa «Guardar en Fotos · Android». Tu cuenta y tu acceso siguen en el navegador.");
             button("ABRIR DANZ", this::openDanz);
             return;
         }
@@ -60,14 +60,20 @@ public final class MainActivity extends Activity {
             File temporary = null;
             try {
                 temporary = PhotoIO.receive(request, getCacheDir());
-                final Uri saved = PhotoAlbum.save(this, request, temporary);
+                final PhotoAlbum.SavedPhoto saved = PhotoAlbum.save(this, request, temporary);
                 runOnUiThread(() -> {
                     if (isFinishing() || isDestroyed() || current != generation) return;
-                    status.setText("Foto guardada y comprobada.\n\n" + request.name + "\n\nLa encontrarás en la galería del móvil, dentro del álbum DANZ. La copia en la nube de Google Fotos depende de tus ajustes de copia de seguridad.");
-                    button("COMPARTIR FOTO", () -> share(saved, request, false));
-                    if (!BuildConfig.META_APP_ID.isEmpty()) button("ABRIR EN STORIES", () -> share(saved, request, true));
+                    status.setText(savedDescription(saved) + (saved.indexed
+                            ? "\n\nAndroid ha registrado la foto para la galería."
+                            : "\n\nEl archivo está completo. La galería de Android sigue actualizando su índice; puedes abrirlo directamente.")
+                            + "\n\nConserva el formato, las dimensiones y la calidad del original. Algunas galerías ordenan por la fecha original de la foto.");
+                    button("ABRIR FOTO GUARDADA", () -> openSaved(saved.uri, request.mime));
+                    Button downloads = button("GUARDAR COPIA EN DESCARGAS", () -> {});
+                    downloads.setOnClickListener(view -> saveDownloads(saved, request, downloads, current));
+                    button("COMPARTIR FOTO", () -> share(saved.uri, request, false));
+                    if (!BuildConfig.META_APP_ID.isEmpty()) button("ABRIR EN STORIES", () -> share(saved.uri, request, true));
                     button("VOLVER A DANZ", this::finish);
-                    if (request.story) share(saved, request, !BuildConfig.META_APP_ID.isEmpty());
+                    if (request.story) share(saved.uri, request, !BuildConfig.META_APP_ID.isEmpty());
                 });
             } catch (Exception ignored) {
                 runOnUiThread(() -> {
@@ -76,6 +82,39 @@ public final class MainActivity extends Activity {
                     button("VOLVER A DANZ", this::finish);
                 });
             } finally { if (temporary != null) temporary.delete(); }
+        });
+    }
+    private String savedDescription(PhotoAlbum.SavedPhoto photo) {
+        return "Archivo original guardado y comprobado.\n\n" + photo.name + "\n" + photo.width + " × " + photo.height + " px · "
+                + String.format(java.util.Locale.forLanguageTag("es-ES"), "%.1f KB", photo.bytes / 1024.0) + "\nCarpeta: " + photo.folder;
+    }
+    private void openSaved(Uri photo, String mime) {
+        Intent view = new Intent(Intent.ACTION_VIEW).setDataAndType(photo, mime);
+        view.setClipData(ClipData.newUri(getContentResolver(), "Foto DANZ", photo));
+        view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try { startActivity(Intent.createChooser(view, "Abrir foto guardada")); }
+        catch (ActivityNotFoundException | SecurityException ignored) {
+            status.append("\n\nNo se pudo abrir el visor del móvil. Puedes guardar otra copia en Descargas o compartir el archivo.");
+        }
+    }
+    private void saveDownloads(PhotoAlbum.SavedPhoto photo, PhotoRequest request, Button button, int current) {
+        button.setEnabled(false); button.setText("GUARDANDO COPIA…");
+        operation = worker.submit(() -> {
+            try {
+                PhotoAlbum.SavedPhoto copy = PhotoAlbum.copyToDownloads(this, request, photo);
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed() || current != generation) return;
+                    status.setText(savedDescription(copy) + "\n\nLa copia original de la galería también se conserva.");
+                    button.setText("ABRIR COPIA DE DESCARGAS"); button.setEnabled(true);
+                    button.setOnClickListener(view -> openSaved(copy.uri, request.mime));
+                });
+            } catch (Exception ignored) {
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed() || current != generation) return;
+                    status.append("\n\nNo se pudo crear la copia en Descargas. La foto de DCIM/DANZ sigue guardada.");
+                    button.setText("REINTENTAR COPIA EN DESCARGAS"); button.setEnabled(true);
+                });
+            }
         });
     }
     private void share(Uri photo, PhotoRequest request, boolean story) {
@@ -103,10 +142,10 @@ public final class MainActivity extends Activity {
             catch (ActivityNotFoundException ignored) { status.setText("Abre DANZ en tu navegador habitual."); }
         }
     }
-    private void button(String label, Runnable action) {
+    private Button button(String label, Runnable action) {
         Button button = new Button(this); button.setText(label); button.setTextColor(Color.BLACK); button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(219,255,102)));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1,dp(56)); params.topMargin = dp(20);
-        layout.addView(button,params); button.setOnClickListener(view -> action.run());
+        layout.addView(button,params); button.setOnClickListener(view -> action.run()); return button;
     }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
     @Override public void onDestroy() { generation++; if (operation != null) operation.cancel(true); worker.shutdownNow(); super.onDestroy(); }

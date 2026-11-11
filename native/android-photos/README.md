@@ -7,8 +7,10 @@ Complemento piloto para Android 10 o posterior. La PWA conserva las cuentas, los
 1. Instalar el APK de prueba y abrir DANZ Fotos.
 2. Pulsar **ABRIR DANZ**: se usa el navegador habitual y se activa el destino nativo en ese dispositivo.
 3. En la PWA, abrir una foto y pulsar **GUARDAR EN FOTOS · ANDROID**.
-4. Android descarga y verifica el original, lo escribe en `Pictures/DANZ`, vuelve a leerlo y solo entonces lo hace visible en `MediaStore.Images`. Se conserva el nombre, la calidad y la marca de agua. Si falla, se elimina únicamente la inserción pendiente que acaba de crear el complemento.
-5. El complemento confirma la escritura y ofrece compartir la foto o volver a la PWA.
+4. Android descarga y verifica el original, lo escribe en `DCIM/DANZ` sobre `VOLUME_EXTERNAL_PRIMARY`, vuelve a leerlo y solo entonces lo hace visible en `MediaStore.Images`. Solicita un refresco del índice y comprueba MIME, tamaño, dimensiones y estado publicado. Se conserva el nombre, la calidad y la marca de agua. Si falla, se elimina únicamente la inserción pendiente que acaba de crear el complemento.
+5. El complemento muestra el nombre real, dimensiones, bytes y carpeta. **ABRIR FOTO GUARDADA** entrega el URI y MIME al visor de imágenes elegido. **GUARDAR COPIA EN DESCARGAS** crea otra copia verificada en `Download/DANZ`, sin una nueva descarga de red. Compartir y volver a la PWA permanecen disponibles.
+
+La versión 0.2 (código 2) conserva el mismo paquete, firma y protocolo que la 0.1, para actualizar sobre la instalación existente. No recomprime, no cambia EXIF, no escribe fechas/dimensiones de solo lectura en MediaStore y no cambia orientación ni resolución. Una escritura verificada y la aparición en una galería concreta son estados distintos; si el índice tarda, la app lo explica y permite abrir el archivo igualmente.
 
 «Descargar JPG» y «Guardar como archivo» siguen disponibles para elegir otros destinos. Guardar en la galería del dispositivo no equivale a subir la foto a Google Fotos ni activa la copia de seguridad de ese servicio.
 
@@ -27,7 +29,7 @@ cd native/android-photos
 gradle testDebugUnitTest assembleDebug
 ```
 
-También se puede compilar con las herramientas oficiales del SDK, sin Gradle, mediante `ANDROID_SDK_ROOT=/ruta/al/sdk python3 build-pilot.py`. Esta vía usa aapt2, javac, D8, zipalign y apksigner; genera `.pilot-build/DANZ-Fotos-Android-pilot.apk` y conserva la clave de prueba en esa carpeta, fuera de Git.
+También se puede compilar con las herramientas oficiales del SDK, sin Gradle, mediante `ANDROID_SDK_ROOT=/ruta/al/sdk DANZ_PILOT_KEYSTORE=/ruta/clave-original.p12 python3 build-pilot.py`. Esta vía usa aapt2, javac, D8, zipalign y apksigner; genera `.pilot-build/DANZ-Fotos-Android-pilot.apk` y conserva la clave de prueba en esa carpeta, fuera de Git.
 
 El APK `app/build/outputs/apk/debug/app-debug.apk` o `.pilot-build/DANZ-Fotos-Android-pilot.apk` es un piloto. La distribución estable necesita conservar una clave de firma propia y preparar el flujo de actualizaciones antes de ofrecerla al público. No publicar ni confirmar instalaciones de un APK cuyo build/firma no estén verificados. Los permisos se limitan a INTERNET y a permisos temporales de lectura de la foto compartida.
 

@@ -16,14 +16,15 @@ def run(args,**kw):
     print('Running '+str(args[0]).split('/')[-1],flush=True)
     subprocess.run([str(a) for a in args],check=True,**kw)
 run([tools/'aapt2','compile','--dir',app/'res','-o',root/'res/resources.zip'])
-run([tools/'aapt2','link','-o',root/'base.apk','-I',android,'--manifest',root/'AndroidManifest.xml','--min-sdk-version','29','--target-sdk-version','36','--version-code','1','--version-name','0.1.0-pilot','--java',root/'generated',root/'res/resources.zip'])
+run([tools/'aapt2','link','-o',root/'base.apk','-I',android,'--manifest',root/'AndroidManifest.xml','--min-sdk-version','29','--target-sdk-version','36','--version-code','2','--version-name','0.2.0-pilot','--java',root/'generated',root/'res/resources.zip'])
 sources=[*app.glob('java/**/*.java'),* (root/'generated').glob('**/*.java')]
 run(['java','com.sun.tools.javac.Main','-source','8','-target','8','-bootclasspath',str(tools/'core-lambda-stubs.jar')+os.pathsep+str(android),'-classpath',android,'-d',root/'classes',*sources])
 classes=list((root/'classes').rglob('*.class'))
 run([tools/'d8','--min-api','29','--lib',android,'--output',root/'dex',*classes])
 with zipfile.ZipFile(root/'base.apk','a') as apk:apk.write(root/'dex/classes.dex','classes.dex',compress_type=zipfile.ZIP_DEFLATED)
 run([tools/'zipalign','-p','-f','4',root/'base.apk',root/'aligned.apk'])
-key=root/'danz-photos-pilot.p12'
+key=Path(os.environ.get('DANZ_PILOT_KEYSTORE') or root/'danz-photos-pilot.p12')
+if os.environ.get('DANZ_PILOT_KEYSTORE') and not key.is_file(): raise SystemExit('The original pilot signing key was not found')
 # A local, non-production pilot certificate. Never commit the private key.
 os.umask(0o077)
 env=dict(os.environ,DANZ_PILOT_STORE_PASSWORD='android')
