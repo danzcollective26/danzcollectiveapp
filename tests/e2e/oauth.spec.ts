@@ -46,7 +46,7 @@ for (const provider of ['google', 'apple'] as const) {
     const pass = 'ABCD1234EFGH5678IJKL9012'
     await page.goto(`/#pase=${pass}`)
     await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
-    await page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true }).click()
+    await page.getByRole('button', { name: 'CANJEAR MI PASE', exact: true }).click()
     await page.getByRole('button', { name: `Continuar con ${provider === 'google' ? 'Google' : 'Apple'}`, exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Mi primera noche', exact: true })).toBeVisible()
     expect(exchanges).toBe(1)
@@ -102,7 +102,7 @@ test('an iCloud email can use the email flow and link its pass without Google or
   })
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: redemptions ? [{ event_id: eventId, title: 'Noche desde iCloud', starts_at: null, event_status: 'published', granted_at: '2026-11-10T01:00:00Z' }] : [] }))
   await page.goto(`/#pase=${pass}`)
-  await page.getByRole('button', { name: 'VINCULAR MI PASE', exact: true }).click()
+  await page.getByRole('button', { name: 'CANJEAR MI PASE', exact: true }).click()
   await expect(page.getByRole('button', { name: /Continuar con/ })).toHaveCount(0)
   await page.getByLabel('Correo electrónico', { exact: true }).fill(email)
   await page.getByRole('button', { name: 'ENVIAR ENLACE', exact: true }).click()

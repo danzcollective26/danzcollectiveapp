@@ -867,3 +867,4 @@ Este registro y su captura son posteriores al despliegue y no cambian la app.
 - Comprobado en el sitio público: carga de DANZ y acceso a Fotos; las galerías siguen pidiendo sesión al visitante. La prueba de los gestos con datos reales de un evento queda para una galería publicada y autorizada.
 - Archivo de producción revisado: no incluye la página de pruebas, sus gráficos ni archivos de entorno. No se han cambiado permisos, base de datos, carga de fotos ni límites de almacenamiento.
 - Configuración MFA de administración y prueba física de subida de un álbum real siguen pendientes. Esta mejora no es una prueba de capacidad real de 600 JPG de alta calidad.
+

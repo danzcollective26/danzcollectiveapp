@@ -94,3 +94,24 @@
 .passport-receipt-details .passport-message { color: #171717; }
 @media (max-width: 760px) { .passport-layout { grid-template-columns: 1fr; } .passport-stamp { padding: 18px; grid-template-columns: 36px minmax(0,1fr); gap: 12px; } .passport-flower { font-size: 30px; } }
 .passport-flower svg{width:48px;height:48px;display:block}
+.pass-visual-guide { margin-top: 28px; padding: 22px 20px; border: 1px solid #49414e; border-radius: 6px; background: linear-gradient(145deg,#251421,#151b2d); }
+.pass-guide-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pass-guide-heading h2 { margin: 0; font-size: clamp(19px,4.5vw,23px); letter-spacing: -.035em; }
+.pass-guide-heading>svg { width: 28px; height: 28px; color: #ff86bd; flex-shrink: 0; }
+.pass-visual-guide ol { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 22px; }
+.pass-visual-guide li { display: grid; grid-template-columns: 58px minmax(0,1fr); align-items: center; gap: 17px; }
+.pass-guide-art { --guide-accent: #ff92c1; position: relative; display: block; width: 58px; height: 64px; color: var(--guide-accent); }
+.pass-guide-art[data-tone=blue] { --guide-accent: #9eafff; }
+.pass-guide-art[data-tone=lime] { --guide-accent: #dbff79; }
+.pass-guide-art svg { width: 58px; height: 58px; }
+.pass-guide-art b { position: absolute; left: -3px; bottom: -1px; width: 22px; height: 22px; display: grid; place-items: center; background: var(--guide-accent); color: #101011; border-radius: 50%; font-size: 12px; }
+.pass-visual-guide strong { font-size: 16px; }
+.passport-receipt .pass-visual-guide p { margin: 5px 0 0; font-size: 13px; line-height: 1.5; }
+.pass-reminder { margin-top: 18px; }
+.pass-reminder>button { width: 100%; display: flex; justify-content: center; gap: 8px; white-space: normal; }
+.pass-reminder-options { margin-top: 12px; padding: 18px; border: 1px solid #5e5665; background: #19171e; }
+.pass-reminder-options h3 { margin: 0 0 10px; font-size: 20px; }
+.pass-reminder-options p { font-size: 13px; }
+.pass-reminder-options a { display: flex; justify-content: center; white-space: normal; text-align: center; margin-top: 12px; text-decoration: none; }
+.pass-claim-now { width: 100%; margin-top: 12px; }
+@media(max-width:380px) { .pass-visual-guide { padding: 18px 14px; } .pass-visual-guide li { grid-template-columns: 46px minmax(0,1fr); gap: 13px; } .pass-guide-art,.pass-guide-art svg { width: 46px; } }

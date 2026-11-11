@@ -4,6 +4,7 @@ import type { Database } from '../types/database'
 import { clearPendingPass, normalizeEventCode, readPendingPass, savePendingPass } from './pass'
 import type { PassRedemption } from './usePendingPassRedemption'
 import DanzFlower from '../content/DanzFlower'
+import PassArrivalGuide from './PassArrivalGuide'
 import './EventPassport.css'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
@@ -101,13 +102,14 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
     <svg className="passport-receipt-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" strokeWidth="2" /><path d="m14 24 7 7 14-15" fill="none" stroke="currentColor" strokeWidth="3" /></svg>
     <h1 id="saved-pass-title">PASE<br /><em>GUARDADO.</em></h1>
     <p className="passport-receipt-lead" role="status">Ya puedes seguir con tu noche.</p>
-    <p>Está guardado en este navegador. Cuando quieras ver las fotos, entra con tu cuenta y añadiremos el sello automáticamente.</p>
+    <p>Vuelve mañana a este navegador para canjearlo.</p>
     {pendingCount > 1 && <p className="passport-queue-note">Tienes {pendingCount} pases guardados. Cada fiesta conserva el suyo.</p>}
     <div className="passport-receipt-actions">
       <button type="button" className="primary-btn" onClick={onContinue}>SEGUIR CON MI NOCHE</button>
-      {client && <button type="button" className="outline-btn" onClick={requestSignIn}>VINCULAR MI PASE</button>}
     </div>
-    <p className="passport-receipt-note">Sin instalar la app. Puedes iniciar sesión más tarde; conserva este navegador hasta vincularlo.</p>
+    <PassArrivalGuide code={pendingPass!} />
+    {client && <button type="button" className="outline-btn pass-claim-now" onClick={requestSignIn}>CANJEAR MI PASE</button>}
+    <p className="passport-receipt-note">No hace falta instalar DANZ. Si lo prefieres, puedes canjearlo ahora.</p>
     <details className="passport-receipt-details passport-redeem">
       <summary>VER MI CÓDIGO Y OPCIONES</summary>
       <p>El sello se confirma al comprobar el código y vincularlo a tu cuenta. El código debe seguir vigente.</p>
