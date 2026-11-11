@@ -8,6 +8,17 @@ export const MAX_PHOTO_BYTES = 25 * 1024 * 1024
 export const PREVIEW_MAX_BYTES = 1024 * 1024
 export const mb = (bytes: number) => `${(bytes / 1_000_000).toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`
 
+/** Keep transport failures distinct from image decoding and validation errors. */
+export function photoRequestError(error: unknown, status?: number) {
+  const value = error as { code?: string; status?: number; statusCode?: string; message?: string; name?: string }
+  return {
+    code: status === 0 || value?.name === 'StorageUnknownError' ? 'DANZ_UPLOAD_CONNECTION' : value?.code,
+    status: status ?? value?.status,
+    statusCode: value?.statusCode,
+    message: value?.message,
+  }
+}
+
 export function photoFileError(file: Pick<File, 'name' | 'type' | 'size'>): string | null {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return 'Usa archivos JPG, PNG o WebP.'
   if (!file.size || file.size > MAX_PHOTO_BYTES) return 'Cada foto debe pesar entre 1 byte y 25 MB.'
@@ -44,20 +55,20 @@ export async function preparePreview(file: File): Promise<{ blob: Blob; hash: st
 export async function uploadPhoto(client: SupabaseClient<Database>, eventId: string, file: File, current: () => boolean) {
   const { blob, hash } = await preparePreview(file)
   if (!current()) throw new Error('Carga detenida.')
-  const { data, error } = await client.rpc('danz_prepare_photo', { p_event_id: eventId, p_id: newId(), p_name: file.name.slice(0, 180), p_size: file.size, p_preview_size: blob.size, p_mime: file.type, p_sha256: hash })
-  if (error || !data?.[0]) throw error ?? new Error('No se pudo reservar espacio.')
+  const { data, error, status } = await client.rpc('danz_prepare_photo', { p_event_id: eventId, p_id: newId(), p_name: file.name.slice(0, 180), p_size: file.size, p_preview_size: blob.size, p_mime: file.type, p_sha256: hash })
+  if (error || !data?.[0]) throw error ? photoRequestError(error, status) : new Error('No se pudo reservar espacio.')
   const slot = data[0]
   if (slot.upload_ready) return 'existing' as const
   for (const item of [{ exists: slot.original_exists, path: slot.storage_path, body: file, mime: file.type }, { exists: slot.preview_exists, path: slot.preview_path, body: blob, mime: 'image/jpeg' }]) {
     if (!current()) throw new Error('Carga detenida.')
     if (!item.exists) {
       const response = await client.storage.from(PHOTO_BUCKET).upload(item.path, item.body, { contentType: item.mime, upsert: false, cacheControl: '60' })
-      if (response.error) throw response.error
+      if (response.error) throw photoRequestError(response.error)
     }
   }
   if (!current()) throw new Error('Carga detenida.')
   const result = await client.rpc('danz_finish_photo', { p_id: slot.id })
-  if (result.error) throw result.error
+  if (result.error) throw photoRequestError(result.error, result.status)
   return 'uploaded' as const
 }
 
@@ -67,13 +78,22 @@ function photoSessionError(error: unknown): boolean {
     || [value?.status, Number(value?.statusCode)].some(status => status === 401 || status === 403)
 }
 
+function photoServiceError(error: unknown): boolean {
+  const value = error as { status?: number; statusCode?: string }
+  const status = value?.status ?? Number(value?.statusCode)
+  return status === 429 || status >= 500
+}
+
 export function photoBatchMustPause(error: unknown): boolean {
-  return (error as { code?: string })?.code === '54000' || photoSessionError(error)
+  return ['54000', 'DANZ_UPLOAD_CONNECTION'].includes((error as { code?: string })?.code ?? '')
+    || photoSessionError(error) || photoServiceError(error)
 }
 
 export function photoError(error: unknown): string {
   const value = error as { code?: string; message?: string }
   if (value?.code === '54000') return 'La tanda supera el espacio disponible. Las fotos guardadas se conservan.'
   if (photoSessionError(error)) return 'Hay que volver a verificar la sesión y los permisos. Después puedes continuar la carga.'
+  if (value?.code === 'DANZ_UPLOAD_CONNECTION') return 'Se ha interrumpido la conexión. Las fotos ya guardadas se conservan; vuelve a intentarlo cuando tengas Internet.'
+  if (photoServiceError(error)) return 'El servicio de fotos no responde ahora. Las fotos guardadas se conservan; vuelve a intentarlo más tarde.'
   return value?.message?.startsWith('La foto ') || value?.message?.startsWith('Usa archivos') ? value.message : 'No se completó esta foto. Puedes reintentar; las ya guardadas no se duplican.'
 }

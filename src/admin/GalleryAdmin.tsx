@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AdminPhoto, Database } from '../types/database'
-import { BATCH_LIMIT, mb, PHOTO_BUCKET, photoBatchMustPause, photoError, photoFileError, uploadPhoto } from './photoBatch'
+import { BATCH_LIMIT, mb, PHOTO_BUCKET, photoBatchMustPause, photoError, photoFileError, photoRequestError, uploadPhoto } from './photoBatch'
 import { verifiedSignedUrl } from '../cloud/PrivateGallery'
 import './GalleryAdmin.css'
 
@@ -38,7 +38,7 @@ export default function GalleryAdmin({ client, eventId }: { client: SupabaseClie
           client.rpc('danz_admin_photos', { p_event_id: eventId, p_offset: offset }).abortSignal(abort.signal),
           client.rpc('danz_gallery_usage').abortSignal(abort.signal),
         ])
-        if (list.error || space.error) throw list.error ?? space.error
+        if (list.error || space.error) throw photoRequestError(list.error ?? space.error, list.error ? list.status : space.status)
         if (!current) return
         const rows = list.data ?? []
         setUsage(space.data?.[0] ?? null)
@@ -89,7 +89,7 @@ export default function GalleryAdmin({ client, eventId }: { client: SupabaseClie
     running.current = true; setBusy(true); setError(''); setMessage('')
     try {
       const result = await client.rpc('danz_photo_state', { p_event_id: eventId, p_ids: selected, p_status: confirm })
-      if (result.error) throw result.error
+      if (result.error) throw photoRequestError(result.error, result.status)
       if (alive.current) { setMessage(`${result.data} fotos ${confirm === 'published' ? 'publicadas' : 'guardadas en borrador'}.`); setRevision(n => n + 1) }
     } catch (reason) { if (alive.current) setError(photoError(reason)) }
     finally { running.current = false; if (alive.current) { setBusy(false); setConfirm(null) } }
@@ -114,7 +114,7 @@ export default function GalleryAdmin({ client, eventId }: { client: SupabaseClie
       <label className="gallery-check"><input type="checkbox" checked={watermarked} disabled={busy} onChange={e => setWatermarked(e.target.checked)} />Confirmo que las fotos ya incluyen su marca de agua.</label>
       {!!items.length && <><p>{items.length} fotos · {mb(bytes)} de archivos, más vistas previas.</p>{usage && bytes > usage.limit_bytes - usage.used_bytes && <p className="account-note">El conjunto puede superar el espacio disponible. El servidor comprueba cada foto y conserva las que ya estén guardadas.</p>}<progress max={items.length} value={completed} aria-label="Fotos completadas" /><p role="status">{completed} de {items.length} completadas{busy ? ' · Subiendo…' : paused ? ' · Carga pausada' : ''}{failed.length ? ` · ${failed.length} pendientes de reintento` : ''}</p></>}
       <div className="admin-actions"><button className="primary-btn" disabled={busy || !watermarked || !items.length || !usage || completed === items.length} onClick={() => { void start() }}>{completed || failed.length || paused ? 'CONTINUAR CARGA' : 'SUBIR COMO BORRADORES'}</button>{busy && <button className="outline-btn" onClick={() => { stopped.current = true; setPaused(true) }}>PAUSAR CARGA</button>}</div>
-      <small>Hasta 600 fotos por tanda. Mantén esta pantalla abierta durante la carga. Si sales, vuelve a seleccionar los mismos archivos: las fotos completadas se reconocerán y los archivos originales se conservarán.</small>
+      <small>Hasta 600 fotos por tanda. Mantén esta pantalla abierta durante la carga. Si se corta Internet, recupera la conexión y pulsa CONTINUAR CARGA. Si sales, vuelve a seleccionar los mismos archivos: las fotos completadas se reconocerán y los archivos originales se conservarán.</small>
       {!!failed.length && <ul className="gallery-errors">{items.filter(p => p.status === 'error').slice(0, 8).map((p, i) => <li key={i}>{p.file.name}: {p.error}</li>)}</ul>}
     </div>
     {error && <p className="account-error" role="alert">{error}</p>}

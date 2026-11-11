@@ -130,3 +130,62 @@ for (const denied of [{ status: 401, code: 'InvalidJWT' }, { status: 403, code: 
     expect(rows.every(row => row.upload_ready && row.status === 'draft')).toBe(true)
   })
 }
+
+for (const phase of ['prepare', 'preview', 'finish', 'service'] as const) {
+  test(`${phase}: an interrupted batch pauses and resumes without overwriting a partially stored photo`, async ({ page }) => {
+    const bytes = await install(page)
+    const rows: any[] = []
+    const reservations: string[] = []
+    const uploads: string[] = []
+    let interrupted = true
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_photos`, r => r.fulfill({ json: rows }))
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_prepare_photo`, async r => {
+      const p = r.request().postDataJSON()
+      reservations.push(p.p_name)
+      if (interrupted && p.p_name === 'b.jpg' && phase === 'prepare') { await r.abort('failed'); return }
+      let row = rows.find(row => row.sha256 === p.p_sha256)
+      if (!row) {
+        row = { id: p.p_id, event_id: E, storage_path: `${E}/${p.p_id}/original.jpg`, preview_path: `${E}/${p.p_id}/preview.jpg`, original_name: p.p_name, status: 'draft', upload_ready: false, original_exists: false, preview_exists: false, sha256: p.p_sha256 }
+        rows.push(row)
+      }
+      await r.fulfill({ json: [row] })
+    })
+    await page.route(`${supabaseHost}/storage/v1/object/danz-event-photos/**`, async r => {
+      const path = new URL(r.request().url()).pathname
+      const row = rows.find(row => path.endsWith(row.storage_path) || path.endsWith(row.preview_path))
+      if (interrupted && row.original_name === 'b.jpg' && path.endsWith(row.preview_path)) {
+        if (phase === 'preview') { await r.abort('failed'); return }
+        if (phase === 'service') { await r.fulfill({ status: 503, json: { code: 'InternalError', statusCode: '503', message: 'Synthetic unavailable service' } }); return }
+      }
+      uploads.push(path)
+      row[path.endsWith(row.storage_path) ? 'original_exists' : 'preview_exists'] = true
+      await r.fulfill({ json: { Key: 'synthetic-upload' } })
+    })
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_finish_photo`, async r => {
+      const row = rows.find(row => row.id === r.request().postDataJSON().p_id)
+      if (interrupted && row.original_name === 'b.jpg' && phase === 'finish') { await r.abort('failed'); return }
+      row.upload_ready = true
+      await r.fulfill({ json: null })
+    })
+    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos`, r => r.fulfill({ json: r.request().postDataJSON().paths.map((path: string) => ({ path, signedURL: `/object/sign/danz-event-photos/${path}?token=synthetic`, error: null })) }))
+    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => r.fulfill({ contentType: 'image/jpeg', body: bytes }))
+    await page.getByLabel('Seleccionar fotos para subir', { exact: true }).setInputFiles(['a', 'b', 'c'].map(name => ({ name: `${name}.jpg`, mimeType: 'image/jpeg', buffer: Buffer.concat([bytes, Buffer.from(name)]) })))
+    await page.getByLabel('Confirmo que las fotos ya incluyen su marca de agua.', { exact: true }).check()
+    await page.getByRole('button', { name: 'SUBIR COMO BORRADORES', exact: true }).click()
+    await expect(page.getByRole('alert')).toContainText(phase === 'service' ? 'El servicio de fotos no responde ahora.' : 'Se ha interrumpido la conexión.')
+    await expect(page.getByText('1 de 3 completadas · Carga pausada · 1 pendientes de reintento', { exact: true })).toBeVisible()
+    expect(reservations).not.toContain('c.jpg')
+    expect(rows.find(row => row.original_name === 'a.jpg').upload_ready).toBe(true)
+    const partial = rows.find(row => row.original_name === 'b.jpg')
+    if (phase === 'preview' || phase === 'service') expect(partial).toMatchObject({ original_exists: true, preview_exists: false, upload_ready: false })
+    if (phase === 'finish') expect(partial).toMatchObject({ original_exists: true, preview_exists: true, upload_ready: false })
+    interrupted = false
+    await page.getByRole('button', { name: 'CONTINUAR CARGA', exact: true }).click()
+    await expect(page.getByText('3 de 3 completadas', { exact: true })).toBeVisible()
+    expect(reservations.filter(name => name === 'a.jpg')).toHaveLength(1)
+    expect(rows).toHaveLength(3)
+    expect(rows.every(row => row.upload_ready && row.status === 'draft')).toBe(true)
+    expect(uploads).toHaveLength(6)
+    expect(new Set(uploads).size).toBe(6)
+  })
+}
