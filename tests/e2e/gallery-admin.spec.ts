@@ -79,7 +79,7 @@ test('the admin can open and download an original without an attendance stamp, a
   const native = viewer.getByRole('link', { name: 'DESCARGAR JPG', exact: true })
   await expect(native).toHaveAttribute('download', 'DANZ-original.jpg')
   await expect(native).not.toHaveAttribute('target', '_blank')
-  await expect(native).toHaveAttribute('href', /original.jpg.*download=DANZ-original.jpg/)
+  await expect(native).toHaveAttribute('href', /^blob:/)
   const download = page.waitForEvent('download')
   await native.click()
   const file = await download
@@ -94,7 +94,7 @@ test('the admin can open and download an original without an attendance stamp, a
   await expect(opening).toBeVisible()
 })
 
-test('mobile file sharing receives a named JPG with its original bytes, after a slow preparation', async ({ page }) => {
+test('mobile file sharing receives an already checked JPG with its original bytes in one tap', async ({ page }) => {
   await page.addInitScript(() => {
     const target = window as unknown as { sharedFile?: { name: string; type: string; size: number; bytes: number[] } }
     Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false, hasBeenActive: true } })
@@ -111,9 +111,6 @@ test('mobile file sharing receives a named JPG with its original bytes, after a 
   const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
   const share = viewer.getByRole('button', { name: 'COMPARTIR ARCHIVO JPG', exact: true })
   await expect(share).toBeEnabled()
-  await share.click()
-  await expect(viewer.getByRole('status')).toContainText('Archivo JPG listo.')
-  expect(await page.evaluate(() => (window as unknown as { sharedFile?: unknown }).sharedFile)).toBeUndefined()
   await share.click()
   await expect.poll(() => page.evaluate(() => Boolean((window as unknown as { sharedFile?: unknown }).sharedFile))).toBe(true)
   const shared = await page.evaluate(() => (window as unknown as { sharedFile?: { name: string; type: string; size: number; bytes: number[] } }).sharedFile)
@@ -313,8 +310,8 @@ for (const phase of ['prepare', 'preview', 'finish', 'service'] as const) {
   })
 }
 
-for (const mode of ['save', 'cancel', 'write-error'] as const) {
-  test(`Save As ${mode}: the device chooses the JPG destination before fetching and success follows a closed write`, async ({ page }) => {
+for (const mode of ['save', 'cancel', 'write-error', 'empty-readback', 'changed-readback'] as const) {
+  test(`Save As ${mode}: the complete original is ready before selecting a folder and saved bytes are checked`, async ({ page }) => {
     await page.addInitScript((mode) => {
       const target = window as any
       target.fileSave = { events: [] }
@@ -323,7 +320,12 @@ for (const mode of ['save', 'cancel', 'write-error'] as const) {
         target.fileSave.options = options
         target.fileSave.activated = navigator.userActivation.isActive
         if (mode === 'cancel') throw new DOMException('Cancelled', 'AbortError')
-        return { name: 'mi-foto-DANZ.jpg', createWritable: async () => {
+        return { name: 'mi-foto-DANZ.jpg', getFile: async () => {
+          target.fileSave.events.push('readback')
+          const bytes = new Uint8Array(target.fileSave.file.bytes)
+          if (mode === 'changed-readback') bytes[30] ^= 1
+          return new File([mode === 'empty-readback' ? new Uint8Array() : bytes], 'mi-foto-DANZ.jpg', { type: 'image/jpeg' })
+        }, createWritable: async () => {
           target.fileSave.events.push('create')
           return {
             write: async (file: File) => {
@@ -348,15 +350,15 @@ for (const mode of ['save', 'cancel', 'write-error'] as const) {
     expect(result.activated).toBe(true)
     expect(result.options).toMatchObject({ suggestedName: 'DANZ-original.jpg', startIn: 'pictures', types: [{ accept: { 'image/jpeg': ['.jpg'] } }] })
     if (mode === 'save') {
-      expect(result.events).toEqual(['picker', 'create', 'write', 'close'])
+      expect(result.events).toEqual(['picker', 'create', 'write', 'close', 'readback'])
       expect(result.file.name).toBe('DANZ-original.jpg')
       expect(result.file.type).toBe('image/jpeg')
       expect(Buffer.from(result.file.bytes)).toEqual(bytes)
-      await expect(viewer.getByRole('status')).toContainText('Archivo guardado: mi-foto-DANZ.jpg.')
+      await expect(viewer.getByRole('status')).toContainText('Archivo guardado y comprobado: mi-foto-DANZ.jpg')
     } else {
       await expect(viewer.getByRole('status')).toHaveCount(0)
-      if (mode === 'cancel') { expect(originalDownloads).toBe(0); expect(result.events).toEqual(['picker']); await expect(viewer.getByRole('alert')).toHaveCount(0) }
-      else { expect(result.events).toEqual(['picker', 'create', 'write', 'abort']); await expect(viewer.getByRole('alert')).toContainText('No se pudo guardar el archivo.') }
+      if (mode === 'cancel') { expect(originalDownloads).toBe(1); expect(result.events).toEqual(['picker']); await expect(viewer.getByRole('alert')).toHaveCount(0) }
+      else { expect(result.events).toEqual(mode === 'write-error' ? ['picker', 'create', 'write', 'abort'] : ['picker', 'create', 'write', 'close', 'readback']); await expect(viewer.getByRole('alert')).toContainText('No se pudo comprobar el archivo guardado.') }
     }
     await expect(viewer).toBeVisible()
     await viewer.getByRole('button', { name: 'INSTAGRAM: CÓMO SUBIR LA FOTO', exact: true }).click()
@@ -385,5 +387,47 @@ test('leaving the photo while the device picker is open cancels its pending save
   await expect(viewer).toHaveCount(0)
   await page.evaluate(async () => { (window as any).completeSavePicker(); await new Promise(resolve => setTimeout(resolve, 0)) })
   expect(await page.evaluate(() => (window as any).fileSave.writes)).toBe(0)
-  expect(downloads).toBe(0)
+  expect(downloads).toBe(1)
+})
+
+for (const kind of ['empty', 'truncated', 'wrong-image', 'fake-jpg'] as const) {
+  test(`the download refuses a ${kind} response and retry recovers the original`, async ({ page }) => {
+    const album = await savedAlbum(page)
+    Object.assign(album.rows[0], { original_bytes: album.bytes.length, mime_type: 'image/jpeg' })
+    let bad = true
+    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, route => {
+      if (!new URL(route.request().url()).searchParams.has('download') || !bad) return route.fulfill({ contentType: 'image/jpeg', body: album.bytes })
+      const changed = Buffer.from(album.bytes); changed[100] ^= 1
+      return route.fulfill({ contentType: 'image/jpeg', body: kind === 'empty' ? Buffer.alloc(0) : kind === 'truncated' ? album.bytes.subarray(0, -40) : kind === 'fake-jpg' ? Buffer.from('<html>Not a JPEG</html>') : changed })
+    })
+    if (kind === 'wrong-image') Object.assign(album.rows[0], { sha256: (await import('node:crypto')).createHash('sha256').update(album.bytes).digest('hex') })
+    await page.getByRole('button', { name: 'ACTUALIZAR FOTOS', exact: true }).click()
+    await page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true }).click()
+    const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
+    await expect(viewer.getByRole('alert')).toContainText('No se ha recibido una imagen completa y válida')
+    await expect(viewer.getByRole('link', { name: 'DESCARGAR JPG', exact: true })).toHaveCount(0)
+    bad = false
+    await viewer.getByRole('button', { name: 'REINTENTAR DESCARGA', exact: true }).click()
+    const download = page.waitForEvent('download')
+    await viewer.getByRole('link', { name: 'DESCARGAR JPG', exact: true }).click()
+    expect(await readFile((await (await download).path())!)).toEqual(album.bytes)
+  })
+}
+
+test('published album leads the page and published photos cannot be published a second time', async ({ page }) => {
+  const album = await savedAlbum(page)
+  album.rows.push({ ...album.rows[0], id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', status: 'published', original_name: 'publicada.jpg' })
+  await page.getByRole('button', { name: 'ACTUALIZAR FOTOS', exact: true }).click()
+  const published = page.getByRole('region', { name: 'Álbum publicado', exact: true })
+  const drafts = page.getByRole('region', { name: 'Borradores del álbum', exact: true })
+  await expect(published.getByRole('button', { name: 'Abrir foto publicada.jpg', exact: true })).toBeVisible()
+  await expect(published.getByRole('checkbox')).toHaveCount(0)
+  await expect(published.getByRole('button', { name: /PUBLICAR SELECCIONADAS/ })).toHaveCount(0)
+  expect((await published.boundingBox())!.y).toBeLessThan((await drafts.boundingBox())!.y)
+  await published.getByRole('button', { name: 'GESTIONAR PUBLICADAS', exact: true }).click()
+  await published.getByRole('checkbox').check()
+  await expect(drafts.getByRole('button', { name: 'PUBLICAR SELECCIONADAS (0)', exact: true })).toBeDisabled()
+  await published.getByRole('button', { name: 'VOLVER A BORRADOR (1)', exact: true }).click()
+  await page.getByRole('button', { name: 'CONFIRMAR FOTOS', exact: true }).click()
+  await expect(drafts.getByRole('button', { name: 'Abrir foto publicada.jpg', exact: true })).toBeVisible()
 })

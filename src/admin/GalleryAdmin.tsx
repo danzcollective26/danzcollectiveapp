@@ -23,7 +23,9 @@ export default function GalleryAdmin({ client, userId, eventId, eventTitle }: { 
   const [revision, setRevision] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
   const [confirm, setConfirm] = useState<'published' | 'draft' | null>(null)
-  const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all')
+  const [managePublished, setManagePublished] = useState(false)
+  const publishedAlbum = useRef<HTMLElement>(null)
+  const draftArea = useRef<HTMLElement>(null)
   const [viewer, setViewer] = useState<string | null>(null)
   const alive = useRef(true)
   const stopped = useRef(false)
@@ -94,10 +96,11 @@ export default function GalleryAdmin({ client, userId, eventId, eventTitle }: { 
   }
 
   async function changeState() {
-    if (!confirm || running.current || !selected.length) return
+    const ids = selected.filter(id => photos.some(photo => photo.id === id && photo.upload_ready && photo.status === (confirm === 'published' ? 'draft' : 'published')))
+    if (!confirm || running.current || !ids.length) return
     running.current = true; setBusy(true); setError(''); setMessage('')
     try {
-      const result = await client.rpc('danz_photo_state', { p_event_id: eventId, p_ids: selected, p_status: confirm })
+      const result = await client.rpc('danz_photo_state', { p_event_id: eventId, p_ids: ids, p_status: confirm })
       if (result.error) throw photoRequestError(result.error, result.status)
       if (alive.current) { setMessage(`${result.data} fotos ${confirm === 'published' ? 'publicadas' : 'guardadas en borrador'}.`); setRevision(n => n + 1) }
     } catch (reason) { if (alive.current) setError(photoError(reason)) }
@@ -107,27 +110,49 @@ export default function GalleryAdmin({ client, userId, eventId, eventTitle }: { 
   const failed = items.filter(p => p.status === 'error')
   const bytes = items.reduce((sum, p) => sum + p.file.size, 0)
   const ready = photos.filter(p => p.upload_ready)
-  const visiblePhotos = photos.filter(p => filter === 'all' || p.status === filter)
-  const shownReady = visiblePhotos.filter(p => p.upload_ready)
+  const published = ready.filter(p => p.status === 'published')
+  const drafts = photos.filter(p => p.status === 'draft')
+  const draftReady = drafts.filter(p => p.upload_ready)
+  const draftSelection = draftReady.filter(p => selected.includes(p.id)).map(p => p.id)
+  const publishedSelection = published.filter(p => selected.includes(p.id)).map(p => p.id)
+  const confirmCount = confirm === 'published' ? draftSelection.length : publishedSelection.length
+  const viewerPhotos = ready.filter(p => p.status === ready.find(photo => photo.id === viewer)?.status)
   return <section className="account-card gallery-admin" aria-labelledby="gallery-admin-title">
     <h2 id="gallery-admin-title">Fotos del evento</h2>
     <p className="gallery-saved-note">Tus fotos quedan guardadas en este álbum, aunque vuelvas atrás, cambies de página o añadas otra tanda.</p>
     {error && <p className="account-error" role="alert">{error}</p>}
     {message && <p className="account-success" role="status">{message}</p>}
-    <div className="admin-heading"><h3>Revisión de la galería</h3><button className="outline-btn" disabled={busy || loading} onClick={() => { setError(''); setRevision(n => n + 1) }}>ACTUALIZAR FOTOS</button></div>
-    <div className="admin-actions gallery-album-tools"><button className="primary-btn" disabled={busy} onClick={() => fileInput.current?.click()}>AÑADIR MÁS FOTOS</button><div className="gallery-filters" role="group" aria-label="Mostrar fotos del álbum"><button className="outline-btn" aria-pressed={filter === 'all'} onClick={() => { setFilter('all'); setSelected([]) }}>TODAS</button><button className="outline-btn" aria-pressed={filter === 'draft'} onClick={() => { setFilter('draft'); setSelected([]) }}>BORRADORES</button><button className="outline-btn" aria-pressed={filter === 'published'} onClick={() => { setFilter('published'); setSelected([]) }}>PUBLICADAS</button></div></div>
-    {!loading && <p className="gallery-page-summary">En esta página: {photos.filter(p => p.status === 'draft' && p.upload_ready).length} borradores · {photos.filter(p => p.status === 'published' && p.upload_ready).length} publicadas.</p>}
-    {loading ? <p role="status">Cargando fotos del evento…</p> : !visiblePhotos.length ? <p>{!photos.length ? 'Todavía no hay fotos en este álbum. Añade tu primera tanda.' : 'No hay fotos con este estado en esta página.'}</p> : <>
-      <label className="gallery-check"><input type="checkbox" disabled={busy || !shownReady.length} checked={!!shownReady.length && shownReady.every(p => selected.includes(p.id))} onChange={e => setSelected(e.target.checked ? shownReady.map(p => p.id) : [])} />Seleccionar las fotos listas de esta página</label>
-      <div className="gallery-review">{visiblePhotos.map(photo => <article key={photo.id}>
-        <button className="gallery-photo-open" disabled={!photo.upload_ready} aria-label={`Abrir foto ${photo.original_name ?? 'del álbum'}`} onClick={() => setViewer(photo.id)}>{photo.url ? <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Vista previa de ${photo.original_name ?? 'foto'}`} /> : <span className="gallery-placeholder">{photo.upload_ready ? 'ABRIR FOTO' : 'Carga pendiente'}</span>}<span>VER Y DESCARGAR ↗</span></button>
-        <label className="gallery-check"><input type="checkbox" disabled={busy || !photo.upload_ready} checked={selected.includes(photo.id)} onChange={e => setSelected(rows => e.target.checked ? [...rows, photo.id] : rows.filter(id => id !== photo.id))} /><span>{photo.original_name ?? 'Foto'}<small>{photo.status === 'published' ? 'Publicada' : photo.status === 'quarantined' ? 'Oculta para revisión' : 'Borrador'}</small></span></label>
-      </article>)}</div>
-      <div className="admin-actions"><button className="primary-btn" disabled={busy || !selected.length} onClick={() => setConfirm('published')}>PUBLICAR SELECCIONADAS ({selected.length})</button><button className="outline-btn" disabled={busy || !selected.length} onClick={() => setConfirm('draft')}>VOLVER A BORRADOR</button></div>
-    </>}
-    {confirm && <div className="admin-confirm" role="dialog" aria-label="Confirmar fotos"><h3>{confirm === 'published' ? `¿Publicar ${selected.length} fotos?` : `¿Guardar ${selected.length} fotos en borrador?`}</h3><p>{confirm === 'published' ? 'Podrán verlas los asistentes con acceso cuando el evento esté publicado.' : 'Dejarán de aparecer en la galería de los asistentes.'}</p><div className="admin-actions"><button className="primary-btn" disabled={busy} onClick={() => { void changeState() }}>CONFIRMAR FOTOS</button><button className="outline-btn" disabled={busy} onClick={() => setConfirm(null)}>CANCELAR</button></div></div>}
+    <div className="admin-actions gallery-album-tools"><button className="outline-btn" disabled={busy || loading} onClick={() => { setError(''); setRevision(n => n + 1) }}>ACTUALIZAR FOTOS</button><button className="primary-btn" disabled={busy} onClick={() => fileInput.current?.click()}>AÑADIR MÁS FOTOS</button></div>
+    {loading && <p role="status">Cargando fotos del evento…</p>}
+    <section ref={publishedAlbum} className="gallery-published-album" aria-label="Álbum publicado">
+      <div className="gallery-published-heading"><div><span className="gallery-published-label">ÁLBUM PUBLICADO</span><h3>{eventTitle}</h3><p>{published.length ? `${published.length} fotos publicadas en esta página. Toca una foto para ampliarla o descargar el original.` : loading ? 'Preparando el álbum…' : 'Todavía no hay fotos publicadas en esta página. Revisa los borradores para publicar tu primera tanda.'}</p></div><span className="gallery-published-count" aria-hidden="true">{published.length.toString().padStart(2, '0')}</span></div>
+      {!!published.length && <>
+        <div className="gallery-published-grid">{published.map(photo => <article key={photo.id}>
+          <button className="gallery-photo-open" aria-label={`Abrir foto ${photo.original_name ?? 'del álbum'}`} onClick={() => setViewer(photo.id)}>{photo.url ? <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Vista previa de ${photo.original_name ?? 'foto'}`} /> : <span className="gallery-placeholder">ABRIR FOTO</span>}<span>VER FOTO Y DESCARGAR ↗</span></button>
+          {managePublished && <label className="gallery-check"><input type="checkbox" disabled={busy} checked={selected.includes(photo.id)} onChange={e => setSelected(rows => e.target.checked ? [...rows, photo.id] : rows.filter(id => id !== photo.id))} /><span>{photo.original_name ?? 'Foto publicada'}</span></label>}
+        </article>)}</div>
+        <button className="original-file-help" aria-expanded={managePublished} onClick={() => { setManagePublished(value => !value); setSelected([]); setConfirm(null) }}>{managePublished ? 'CERRAR GESTIÓN DE PUBLICADAS' : 'GESTIONAR PUBLICADAS'}</button>
+        {managePublished && <div className="admin-actions"><button className="outline-btn" disabled={busy || !publishedSelection.length} onClick={() => setConfirm('draft')}>VOLVER A BORRADOR ({publishedSelection.length})</button></div>}
+      </>}
+    </section>
+    <div className="gallery-section-shortcuts" role="group" aria-label="Secciones del álbum"><button className="outline-btn" onClick={() => publishedAlbum.current?.scrollIntoView({ block: 'start' })}>PUBLICADAS</button><button className="outline-btn" onClick={() => draftArea.current?.scrollIntoView({ block: 'start' })}>BORRADORES</button></div>
+    <section ref={draftArea} className="gallery-draft-section" aria-label="Borradores del álbum">
+      <div className="admin-heading"><h3>Borradores <span>({drafts.length})</span></h3><span className="gallery-draft-label">SOLO ADMINISTRACIÓN</span></div>
+      <p className="gallery-saved-note">Estas fotos están guardadas. Selecciona las que quieras añadir al álbum publicado.</p>
+      {!loading && !drafts.length && <p className="gallery-page-summary">No hay borradores en esta página.</p>}
+      {!!drafts.length && <>
+        <label className="gallery-check"><input type="checkbox" disabled={busy || !draftReady.length} checked={!!draftReady.length && draftReady.every(p => selected.includes(p.id))} onChange={e => setSelected(rows => e.target.checked ? [...new Set([...rows, ...draftReady.map(p => p.id)])] : rows.filter(id => !draftReady.some(p => p.id === id)))} />Seleccionar las fotos listas de esta página</label>
+        <div className="gallery-review">{drafts.map(photo => <article key={photo.id}>
+          <button className="gallery-photo-open" disabled={!photo.upload_ready} aria-label={`Abrir foto ${photo.original_name ?? 'del álbum'}`} onClick={() => setViewer(photo.id)}>{photo.url ? <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Vista previa de ${photo.original_name ?? 'foto'}`} /> : <span className="gallery-placeholder">{photo.upload_ready ? 'ABRIR FOTO' : 'Carga pendiente'}</span>}<span>REVISAR FOTO ↗</span></button>
+          <label className="gallery-check"><input type="checkbox" disabled={busy || !photo.upload_ready} checked={selected.includes(photo.id)} onChange={e => setSelected(rows => e.target.checked ? [...rows, photo.id] : rows.filter(id => id !== photo.id))} /><span>{photo.original_name ?? 'Foto'}<small>{photo.upload_ready ? 'Borrador guardado' : 'Carga pendiente'}</small></span></label>
+        </article>)}</div>
+        <div className="admin-actions"><button className="primary-btn" disabled={busy || !draftSelection.length} onClick={() => setConfirm('published')}>PUBLICAR SELECCIONADAS ({draftSelection.length})</button></div>
+      </>}
+      {!!photos.filter(photo => photo.status === 'quarantined').length && <p className="account-note">Hay {photos.filter(photo => photo.status === 'quarantined').length} fotos ocultas para revisión en esta página.</p>}
+    </section>
+    {confirm && <div className="admin-confirm" role="dialog" aria-label="Confirmar fotos"><h3>{confirm === 'published' ? `¿Publicar ${confirmCount} fotos?` : `¿Guardar ${confirmCount} fotos en borrador?`}</h3><p>{confirm === 'published' ? 'Podrán verlas los asistentes con acceso cuando el evento esté publicado.' : 'Dejarán de aparecer en la galería de los asistentes.'}</p><div className="admin-actions"><button className="primary-btn" disabled={busy} onClick={() => { void changeState() }}>CONFIRMAR FOTOS</button><button className="outline-btn" disabled={busy} onClick={() => setConfirm(null)}>CANCELAR</button></div></div>}
     <div className="admin-actions gallery-pages"><button className="outline-btn" disabled={busy || loading || offset === 0} onClick={() => { setViewer(null); setOffset(n => Math.max(0, n - 60)) }}>PÁGINA ANTERIOR</button><span>Página {offset / 60 + 1}</span><button className="outline-btn" disabled={busy || loading || photos.length < 60} onClick={() => { setViewer(null); setOffset(n => n + 60) }}>SIGUIENTE PÁGINA</button></div>
-    {viewer && ready.some(p => p.id === viewer) && <AlbumPhotoViewer client={client} userId={userId} eventId={eventId} title={eventTitle} photos={ready} photoId={viewer} onPhoto={setViewer} onClose={() => setViewer(null)} />}
+    {viewer && ready.some(p => p.id === viewer) && <AlbumPhotoViewer client={client} userId={userId} eventId={eventId} title={eventTitle} photos={viewerPhotos} photoId={viewer} onPhoto={setViewer} onClose={() => setViewer(null)} />}
     <h3 className="gallery-upload-heading">Añadir fotos al álbum</h3>
     <p>Sube otra tanda y revísala antes de publicar. El archivo original se conserva para la descarga.</p>
     {usage && <div className="gallery-space"><strong>{mb(usage.used_bytes)} de {mb(usage.limit_bytes)}</strong><meter min={0} max={usage.limit_bytes} value={usage.used_bytes} aria-label="Espacio de fotos utilizado" /><small>Incluye archivos y reservas de cargas pendientes. Presupuesto inicial de la aplicación.</small></div>}

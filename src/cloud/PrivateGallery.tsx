@@ -14,7 +14,7 @@ export type PrivateGalleryProps = {
 }
 
 type Event = Pick<Database['public']['Tables']['danz_events']['Row'], 'id' | 'title' | 'starts_at'>
-type Photo = { id: string; path: string; previewPath: string; name: string | null; mime: string | null; url: string }
+type Photo = { id: string; path: string; previewPath: string; name: string | null; mime: string | null; bytes: number; sha256: string | null; url: string }
 type Scope = { client: SupabaseClient<Database> | null; owner: string | null }
 type EventState = Scope & { items: Event[]; loading: boolean; error: boolean }
 type PhotoState = Scope & { eventId: string; items: Photo[]; loading: boolean; error: boolean; expiresAt: number }
@@ -116,7 +116,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       try {
         // RLS checks attendance and publication; the event filter is an additional
         // query constraint, never a replacement for server authorization.
-        const { data, error } = await client!.from('danz_photos').select('id,storage_path,preview_path,original_name,mime_type')
+        const { data, error } = await client!.from('danz_photos').select('id,storage_path,preview_path,original_name,mime_type,original_bytes,sha256')
           .eq('event_id', eventId).eq('status', 'published').order('created_at').order('id').range(0, pageSize - 1).abortSignal(abort.signal)
         if (!current) return
         if (error) throw error
@@ -137,7 +137,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
             const entry = byPath.get(previewPath)
             const url = verifiedSignedUrl(client!, entry?.signedUrl ?? null)
             if (!url) throw new Error('Unavailable private photo')
-            return { id: row.id, path: row.storage_path, previewPath, name: row.original_name, mime: row.mime_type, url }
+            return { id: row.id, path: row.storage_path, previewPath, name: row.original_name, mime: row.mime_type, bytes: row.original_bytes, sha256: row.sha256, url }
           })
           clearTimeout(expiryTimer)
           expiryTimer = setTimeout(() => {
@@ -319,7 +319,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
         <button className="outline-btn" aria-label={ownZoom ? 'Restablecer tamaño de foto privada' : 'Ampliar foto privada'} aria-pressed={Boolean(ownZoom)} onClick={toggleZoom}>{ownZoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Siguiente foto privada" onClick={() => movePhoto(1)}>→</button>}
       </div>
-      <OriginalFileActions key={`${userId}:${eventId}:${shownPhoto.id}`} client={client} owner={userId} eventId={eventId} photoId={shownPhoto.id} path={shownPhoto.path} name={shownPhoto.name} mime={shownPhoto.mime} />
+      <OriginalFileActions key={`${userId}:${eventId}:${shownPhoto.id}`} client={client} owner={userId} eventId={eventId} photoId={shownPhoto.id} path={shownPhoto.path} name={shownPhoto.name} mime={shownPhoto.mime} bytes={shownPhoto.bytes} sha256={shownPhoto.sha256} />
     </div>}
   </div>
 }

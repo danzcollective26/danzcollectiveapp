@@ -164,7 +164,7 @@ test('authorized events use short-lived private URLs; viewer and blob download w
   const file = await downloaded
   expect(file.suggestedFilename()).toBe('first-private.png')
   expect(await readFile((await file.path())!)).toEqual(png)
-  await expect(viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true })).toHaveAttribute('href', /download=first-private.png/)
+  await expect(viewer.getByRole('link', { name: 'DESCARGAR PNG', exact: true })).toHaveAttribute('href', /^blob:/)
   await page.keyboard.press('Escape')
   await expect(viewer).not.toBeVisible()
   await expect(thumbnail).toBeFocused()

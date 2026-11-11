@@ -110,7 +110,7 @@ export default function AlbumPhotoViewer({ client, userId, eventId, title, photo
       <button className="outline-btn" aria-pressed={zoom} onClick={() => { setZoom(v => !v); setPan({ x: 0, y: 0 }) }}>{zoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
       {photos.length > 1 && <button className="outline-btn" onClick={() => move(1)} aria-label="Foto siguiente del álbum">→</button>}
     </div>
-    <OriginalFileActions key={`${userId}:${eventId}:${photo.id}`} client={client} owner={userId} eventId={eventId} photoId={photo.id} path={photo.storage_path} name={photo.original_name} mime={photo.mime_type} />
+    <OriginalFileActions key={`${userId}:${eventId}:${photo.id}`} client={client} owner={userId} eventId={eventId} photoId={photo.id} path={photo.storage_path} name={photo.original_name} mime={photo.mime_type} bytes={photo.original_bytes} sha256={photo.sha256} />
     {error && <p role="alert">{error}</p>}
   </div>
 }
