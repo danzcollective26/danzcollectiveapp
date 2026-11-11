@@ -832,3 +832,16 @@ Este registro y su captura son posteriores al despliegue y no cambian la app.
 - Se conserva el botón de instalación y su guía; MFA pendiente de la actuación privada del administrador.
 - Se esperan paleta y tipografía oficiales.
 - Comprobación interna anterior al último ajuste de navegación: 93 pruebas correctas. Se ejecutará el conjunto de navegador en CI sobre el árbol final antes de publicar.
+
+
+## Publicación 19 — Pasaporte visible y carátula industrial
+
+- Publicada correctamente el 2026-11-11T00:05:31.913630+00:00; URL: https://danz-collective-demo.right-vine-9666.chatgpt.site/.
+- Versión guardada: appgprj_6af1179413088191b92fa5b50e37fdb2~appgver_d26c307910c08191b41c598aa358d912.
+- Despliegue: appgdep_6af3b13e29f881918c768559e3dfe0a6.
+- Fuentes Sites: f44201136ece9548f6ba43d052d889f76b193b1a; GitHub probado: 3679bc13371bc2d284bfb9e3fa81e0ecf6802725; árbol común: b7a903571032d13146a04dc97c6c72ce1c9576e9.
+- CI 42927539320, trabajo 130217733847: 93 pruebas internas, 8 PWA y 189 de navegador correctas (290 en total).
+- El nuevo archivo de carátula se llama `idle-studio-industrial.webp`; se precachea y el anterior deja de referenciarse para evitar que las instalaciones muestren la imagen doméstica anterior.
+- Comprobado en navegador público: nueva pestaña y enlace `?seccion=pasaporte`, portada/libreta y botón de instalación accesible. Captura sin datos privados: `docs/evidence/passport.png`.
+- La limitación previa del navegador de nube al preparar el service worker publicado sigue sin equivaler a una comprobación física de modo avión en móvil. Las pruebas automáticas de PWA pasan sobre la compilación de producción. No se han eludido controles del navegador.
+- La nueva clave MFA de administración y la paleta/tipografía oficiales siguen pendientes del usuario. El futuro Idle debe progresar por niveles, mejoras y desbloqueo de puestos; el vídeo privado es inspiración del juego y no se publica.
