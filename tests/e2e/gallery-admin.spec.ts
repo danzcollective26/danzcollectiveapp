@@ -78,3 +78,55 @@ test('storage budget exhaustion stops the batch and keeps completed records',asy
   await expect(page.getByRole('alert').filter({hasText:'La tanda supera el espacio disponible.'})).toBeVisible()
   expect(reservations).toBe(1)
 })
+
+for (const denied of [{ status: 401, code: 'InvalidJWT' }, { status: 403, code: 'AccessDenied' }]) {
+  test(`Storage ${denied.status} pauses the remaining batch and retry preserves completed originals`, async ({ page }) => {
+    const bytes = await install(page)
+    const rows: any[] = []
+    const reservations: string[] = []
+    const uploads: string[] = []
+    let blocked = true
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_photos`, r => r.fulfill({ json: rows }))
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_prepare_photo`, async r => {
+      const p = r.request().postDataJSON()
+      reservations.push(p.p_name)
+      let row = rows.find(row => row.sha256 === p.p_sha256)
+      if (!row) {
+        row = { id: p.p_id, event_id: E, storage_path: `${E}/${p.p_id}/original.jpg`, preview_path: `${E}/${p.p_id}/preview.jpg`, original_name: p.p_name, status: 'draft', upload_ready: false, original_exists: false, preview_exists: false, sha256: p.p_sha256 }
+        rows.push(row)
+      }
+      await r.fulfill({ json: [row] })
+    })
+    await page.route(`${supabaseHost}/storage/v1/object/danz-event-photos/**`, async r => {
+      const path = new URL(r.request().url()).pathname
+      const row = rows.find(row => path.endsWith(row.storage_path) || path.endsWith(row.preview_path))
+      if (blocked && row.original_name === 'b.jpg') {
+        await r.fulfill({ status: denied.status, json: { statusCode: String(denied.status), code: denied.code, message: 'Synthetic denied upload' } })
+        return
+      }
+      uploads.push(row.original_name)
+      row[path.endsWith(row.storage_path) ? 'original_exists' : 'preview_exists'] = true
+      await r.fulfill({ json: { Key: 'synthetic-upload' } })
+    })
+    await page.route(`${supabaseHost}/rest/v1/rpc/danz_finish_photo`, async r => {
+      rows.find(row => row.id === r.request().postDataJSON().p_id).upload_ready = true
+      await r.fulfill({ json: null })
+    })
+    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos`, r => r.fulfill({ json: r.request().postDataJSON().paths.map((path: string) => ({ path, signedURL: `/object/sign/danz-event-photos/${path}?token=synthetic`, error: null })) }))
+    await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => r.fulfill({ contentType: 'image/jpeg', body: bytes }))
+    await page.getByLabel('Seleccionar fotos para subir', { exact: true }).setInputFiles(['a', 'b', 'c'].map(name => ({ name: `${name}.jpg`, mimeType: 'image/jpeg', buffer: Buffer.concat([bytes, Buffer.from(name)]) })))
+    await page.getByLabel('Confirmo que las fotos ya incluyen su marca de agua.', { exact: true }).check()
+    await page.getByRole('button', { name: 'SUBIR COMO BORRADORES', exact: true }).click()
+    await expect(page.getByRole('alert')).toContainText('Hay que volver a verificar la sesión y los permisos.')
+    await expect(page.getByText('1 de 3 completadas · Carga pausada · 1 pendientes de reintento', { exact: true })).toBeVisible()
+    expect(reservations).toEqual(['a.jpg', 'b.jpg'])
+    expect(uploads).toEqual(['a.jpg', 'a.jpg'])
+    blocked = false
+    await page.getByRole('button', { name: 'CONTINUAR CARGA', exact: true }).click()
+    await expect(page.getByText('3 de 3 completadas', { exact: true })).toBeVisible()
+    expect(reservations).toEqual(['a.jpg', 'b.jpg', 'b.jpg', 'c.jpg'])
+    expect(uploads).toEqual(['a.jpg', 'a.jpg', 'b.jpg', 'b.jpg', 'c.jpg', 'c.jpg'])
+    expect(rows).toHaveLength(3)
+    expect(rows.every(row => row.upload_ready && row.status === 'draft')).toBe(true)
+  })
+}

@@ -61,9 +61,19 @@ export async function uploadPhoto(client: SupabaseClient<Database>, eventId: str
   return 'uploaded' as const
 }
 
+function photoSessionError(error: unknown): boolean {
+  const value = error as { code?: string; status?: number; statusCode?: string }
+  return ['42501', 'InvalidJWT', 'AccessDenied'].includes(value?.code ?? '')
+    || [value?.status, Number(value?.statusCode)].some(status => status === 401 || status === 403)
+}
+
+export function photoBatchMustPause(error: unknown): boolean {
+  return (error as { code?: string })?.code === '54000' || photoSessionError(error)
+}
+
 export function photoError(error: unknown): string {
-  const value = error as { code?: string; statusCode?: string; message?: string }
+  const value = error as { code?: string; message?: string }
   if (value?.code === '54000') return 'La tanda supera el espacio disponible. Las fotos guardadas se conservan.'
-  if (value?.code === '42501' || value?.statusCode === '403') return 'Hay que volver a verificar la sesión y los permisos.'
+  if (photoSessionError(error)) return 'Hay que volver a verificar la sesión y los permisos. Después puedes continuar la carga.'
   return value?.message?.startsWith('La foto ') || value?.message?.startsWith('Usa archivos') ? value.message : 'No se completó esta foto. Puedes reintentar; las ya guardadas no se duplican.'
 }

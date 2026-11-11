@@ -17,6 +17,9 @@ de enlazar la web. La vía provisional sin DNS y sus pasos están en
 
 ## Material que falta recibir
 
+- Paleta de colores y tipografía oficiales. El propietario no quiere los marcos
+  de colores alrededor de los artistas; revisar su diseño al recibir estos
+  materiales, sin anteponer ese cambio a los procesos del evento (11 de noviembre).
 - Una foto por integrante, con su nombre o apodo y permiso para aparecer en
   el juego. No se necesitan sus credenciales ni cuentas de redes sociales.
 - La flor original para la cabeza de Snake, cuando se incorpore la marca final.

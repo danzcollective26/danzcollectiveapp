@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
+import DanzFlower from '../content/DanzFlower'
 import './PrivateGallery.css'
 
 export type PrivateGalleryProps = {
@@ -346,7 +347,16 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       </button>)}
     </div>
     <h2>{selectedEvent?.title}</h2>
-    {photosLoading ? <p role="status">Cargando fotografías…</p> : photosError ? <div role="alert"><p>No hemos podido abrir las fotografías de este evento.</p><button className="outline-btn" onClick={reload}>VOLVER A INTENTAR</button></div> : !photoItems.length ? <p>Todavía no hay fotografías publicadas para este evento.</p> : <div className="private-gallery-grid">
+    {photosLoading ? <p role="status">Cargando fotografías…</p> : photosError ? <div role="alert"><p>No hemos podido abrir las fotografías de este evento.</p><button className="outline-btn" onClick={reload}>VOLVER A INTENTAR</button></div> : !photoItems.length ? <section className="private-gallery-waiting" aria-labelledby="gallery-waiting-title">
+      <DanzFlower className="gallery-waiting-flower" />
+      <div>
+        <span className="gallery-waiting-label">DESPUÉS DE LA NOCHE</span>
+        <h3 id="gallery-waiting-title">Los recuerdos vienen de camino.</h3>
+        <p>Todavía no hay fotografías publicadas para este evento.</p>
+        <p>Cuando publiquemos la galería, podrás ver y descargar tus fotos aquí.</p>
+        <div className="gallery-waiting-actions"><button className="primary-btn" onClick={reload}>ACTUALIZAR FOTOS</button><a className="outline-btn external-btn" href="/?seccion=pasaporte">VER MI PASAPORTE</a></div>
+      </div>
+    </section> : <div className="private-gallery-grid">
       {photoItems.map((photo, index) => <button type="button" key={photo.id} onClick={() => setViewer({ owner: userId, eventId, photoId: photo.id })} aria-label={`Abrir foto privada ${index + 1}`}>
         <img src={photo.url} referrerPolicy="no-referrer" alt={`Fotografía ${index + 1} de ${selectedEvent?.title}`} loading="lazy" />
       </button>)}

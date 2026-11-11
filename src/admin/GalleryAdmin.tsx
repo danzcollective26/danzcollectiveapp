@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AdminPhoto, Database } from '../types/database'
-import { BATCH_LIMIT, mb, PHOTO_BUCKET, photoError, photoFileError, uploadPhoto } from './photoBatch'
+import { BATCH_LIMIT, mb, PHOTO_BUCKET, photoBatchMustPause, photoError, photoFileError, uploadPhoto } from './photoBatch'
 import { verifiedSignedUrl } from '../cloud/PrivateGallery'
 import './GalleryAdmin.css'
 
@@ -75,8 +75,7 @@ export default function GalleryAdmin({ client, eventId }: { client: SupabaseClie
         } catch (reason) {
           if (!alive.current) break
           update(i, { status: stopped.current ? 'pending' : 'error', error: stopped.current ? undefined : photoError(reason) })
-          const code = (reason as { code?: string })?.code
-          if (code === '54000' || code === '42501') { setError(photoError(reason)); break }
+          if (photoBatchMustPause(reason)) { stopped.current = true; setError(photoError(reason)); break }
         }
       }
     } finally {

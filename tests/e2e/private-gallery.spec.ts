@@ -114,6 +114,31 @@ test('private galleries require signing in and do not query event data for guest
   await expect(page.getByLabel('Correo electrónico', { exact: true })).toBeVisible()
 })
 
+test('the unpublished gallery explains the wait, refreshes published photos and links to the passport', async ({ page }) => {
+  await installGallery(page)
+  let published = false
+  let signed = 0
+  page.on('request', request => { if (request.url().includes('/storage/v1/object/sign/')) signed++ })
+  await page.route(`${supabaseHost}/rest/v1/danz_photos**`, route => route.fulfill({ json: published && new URL(route.request().url()).searchParams.get('event_id') === `eq.${EVENT_A}` ? [{ id: 'first-photo', storage_path: firstPath }] : [] }))
+  await openPrivateGallery(page)
+  const waiting = page.getByRole('region', { name: 'Los recuerdos vienen de camino.', exact: true })
+  await expect(waiting).toBeVisible()
+  await expect(waiting.getByText('Todavía no hay fotografías publicadas para este evento.', { exact: true })).toBeVisible()
+  await expect(waiting.getByRole('link', { name: 'VER MI PASAPORTE', exact: true })).toHaveAttribute('href', '/?seccion=pasaporte')
+  expect(signed).toBe(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  published = true
+  await waiting.getByRole('button', { name: 'ACTUALIZAR FOTOS', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Abrir foto privada 1', exact: true })).toBeVisible()
+  await expect(waiting).toHaveCount(0)
+  expect(signed).toBeGreaterThan(0)
+  await page.getByRole('button', { name: /Segunda fiesta privada/ }).click()
+  await expect(waiting).toBeVisible()
+  await waiting.getByRole('link', { name: 'VER MI PASAPORTE', exact: true }).click()
+  await expect(page).toHaveURL(/seccion=pasaporte/)
+  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte', exact: true })).toBeVisible()
+})
+
 test('authorized events use short-lived private URLs; viewer and blob download work', async ({ page }) => {
   await installGallery(page)
   const pageErrors: string[] = []

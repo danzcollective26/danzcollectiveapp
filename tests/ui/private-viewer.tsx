@@ -8,13 +8,14 @@ import '../../src/App.css'
 // Isolated visual QA. No session, real account, API request or private image.
 // This entry is not included in Vite's production index or deployment archive.
 const origin = window.location.origin
+const waiting = new URLSearchParams(window.location.search).has('espera')
 const client = {
   from(table: string) {
     const query = {
       select: () => query, in: () => query, eq: () => query, order: () => query, range: () => query,
       abortSignal: async () => ({ data: table === 'danz_events'
         ? [{ id: 'local-qa', title: 'Visor de prueba · Sin fotos reales', starts_at: null }]
-        : [1, 2, 3].map(n => ({ id: `local-${n}`, storage_path: `sample-${n}.svg`, preview_path: `sample-${n}.svg`, original_name: `prueba-${n}.svg` })), error: null }),
+        : waiting ? [] : [1, 2, 3].map(n => ({ id: `local-${n}`, storage_path: `sample-${n}.svg`, preview_path: `sample-${n}.svg`, original_name: `prueba-${n}.svg` })), error: null }),
     }
     return query
   },
