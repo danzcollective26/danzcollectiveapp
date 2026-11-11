@@ -16,13 +16,19 @@ type Candidate = { id: string; code: string; hash: string; eventId: string; expi
 const date = (value: string | null) => value ? new Date(value).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sin fecha'
 const statusLabel = (status: string) => ({ draft: 'BORRADOR', published: 'PUBLICADO', archived: 'ARCHIVADO' })[status] ?? status
 
-function Workspace({ client, permissions }: { client: Client; permissions: string[] }) {
+function savedAlbum(userId: string) {
+  const requested = new URLSearchParams(window.location.search).get('album')
+  if (requested) return requested
+  try { return sessionStorage.getItem(`danz-admin-album-${userId}`) ?? '' } catch { return '' }
+}
+
+function Workspace({ client, userId, permissions, albumsOnly }: { client: Client; userId: string; permissions: string[]; albumsOnly: boolean }) {
   const canEvents = permissions.includes('events.manage')
   const canCodes = permissions.includes('codes.manage')
   const [events, setEvents] = useState<AdminEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [reload, setReload] = useState(0)
-  const [selected, setSelected] = useState('')
+  const [selected, setSelected] = useState(() => savedAlbum(userId))
   const [form, setForm] = useState<EventForm | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -40,6 +46,26 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
   const abortActions = useRef(new Set<AbortController>())
   const event = events.find(item => item.id === selected) ?? events[0]
   const eventId = event?.id ?? ''
+
+  useEffect(() => {
+    const back = () => setSelected(savedAlbum(userId))
+    window.addEventListener('popstate', back)
+    return () => window.removeEventListener('popstate', back)
+  }, [userId])
+  useEffect(() => {
+    if (!eventId) return
+    try { sessionStorage.setItem(`danz-admin-album-${userId}`, eventId) } catch { /* The server still saves photos. */ }
+    const url = new URL(window.location.href)
+    url.searchParams.set('album', eventId)
+    try { window.history.replaceState(window.history.state, '', url) } catch { /* Restricted browser. */ }
+  }, [eventId, userId])
+  const selectAlbum = (id: string) => {
+    if (id !== eventId) {
+      const url = new URL(window.location.href); url.searchParams.set('album', id)
+      try { window.history.pushState(window.history.state, '', url) } catch { /* Selection still works. */ }
+    }
+    setSelected(id); setForm(null); setIssued(null); setCandidate(null); setConfirm(null); setError(''); setMessage('')
+  }
 
   useEffect(() => {
     setExpiry(localDateTime(suggestedPassExpiry(event?.ends_at ?? event?.starts_at ?? null)))
@@ -150,11 +176,11 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
     {message && <p className="account-success" role="status">{message}</p>}
     <div className="admin-layout">
       <section aria-labelledby="admin-events-title">
-        <div className="admin-heading"><h2 id="admin-events-title">Eventos</h2>{canEvents && <button className="primary-btn" disabled={busy} onClick={() => { setForm({ id: newId(), title: '', start: '', end: '', status: 'draft' }); setError(''); setMessage('') }}>NUEVO EVENTO</button>}</div>
+        <div className="admin-heading"><h2 id="admin-events-title">{albumsOnly ? 'Álbumes' : 'Eventos y álbumes'}</h2>{canEvents && !albumsOnly && <button className="primary-btn" disabled={busy} onClick={() => { setForm({ id: newId(), title: '', start: '', end: '', status: 'draft' }); setError(''); setMessage('') }}>NUEVO EVENTO</button>}</div>
         <button className="outline-btn" disabled={busy || loading} onClick={() => setReload(n => n + 1)}>ACTUALIZAR EVENTOS</button>
         {loading && <p role="status">Cargando eventos…</p>}
         {!loading && !events.length && <p>No hay eventos creados todavía.</p>}
-        <ul className="admin-events">{events.map(item => <li key={item.id}><button disabled={busy} aria-pressed={item.id === eventId} onClick={() => { setSelected(item.id); setForm(null); setIssued(null); setCandidate(null); setConfirm(null); setError(''); setMessage('') }}><strong>{item.title}</strong><small>{statusLabel(item.status)} · {date(item.starts_at)}</small></button></li>)}</ul>
+        <ul className="admin-events">{events.map(item => <li key={item.id}><button disabled={busy} aria-pressed={item.id === eventId} onClick={() => selectAlbum(item.id)}><strong>{item.title}</strong><small>{statusLabel(item.status)} · {date(item.starts_at)}</small><small>ABRIR ÁLBUM · BORRADORES Y PUBLICADAS ↗</small></button></li>)}</ul>
         {events.length === 200 && <p>Se muestran los 200 eventos más recientes.</p>}
       </section>
       <div>
@@ -166,8 +192,9 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
           <label htmlFor="admin-status">Visibilidad del evento</label><select id="admin-status" value={form.status} disabled={busy} onChange={e => setForm({ ...form, status: e.target.value })}><option value="draft">Borrador</option><option value="published">Publicado</option><option value="archived">Archivado</option></select>
           <p className="account-note">Un borrador no admite canjes. Archivar conserva los sellos y las fotos publicadas para sus asistentes, y detiene nuevos canjes.</p>
           <div className="admin-actions"><button className="primary-btn" disabled={busy}>{busy ? 'GUARDANDO…' : 'GUARDAR EVENTO'}</button><button className="outline-btn" type="button" disabled={busy} onClick={() => setForm(null)}>CANCELAR EDICIÓN</button></div>
-        </form></section> : event ? <section className="account-card"><h2>{event.title}</h2><p>{statusLabel(event.status)} · {date(event.starts_at)}</p>{canEvents && <button className="outline-btn" disabled={busy} onClick={() => setForm({ id: event.id, title: event.title, start: localDateTime(event.starts_at), end: localDateTime(event.ends_at), status: event.status })}>EDITAR EVENTO</button>}</section> : <div className="admin-state"><h2>Prepara la próxima noche.</h2><p>Crea el evento, publícalo y emite el pase que compartirás mediante QR.</p></div>}
-        {event && canCodes && <section className="account-card"><h2>Códigos y QR</h2>
+        </form></section> : event ? <section className="account-card"><h2>{event.title}</h2><p>Evento {statusLabel(event.status).toLowerCase()} · {date(event.starts_at)}</p>{canEvents && !albumsOnly && <button className="outline-btn" disabled={busy} onClick={() => setForm({ id: event.id, title: event.title, start: localDateTime(event.starts_at), end: localDateTime(event.ends_at), status: event.status })}>EDITAR EVENTO</button>}</section> : <div className="admin-state"><h2>Prepara la próxima noche.</h2><p>Crea el evento, publícalo y emite el pase que compartirás mediante QR.</p></div>}
+        {event && canEvents && <GalleryAdmin key={event.id} client={client} userId={userId} eventId={event.id} eventTitle={event.title} />}
+        {event && canCodes && !albumsOnly && <section className="account-card"><h2>Códigos y QR</h2>
           {event.status === 'archived' ? <p>Este evento está archivado. Puedes revisar o revocar sus códigos.</p> : <form className="account-form admin-form" onSubmit={issue}>
             <label htmlFor="admin-expiry">El código caduca el</label><input id="admin-expiry" type="datetime-local" required value={expiry} disabled={busy} onChange={e => { setExpiry(e.target.value); setCandidate(null) }} />
             <p className="account-note">Es la fecha límite para añadir el sello a una cuenta. Dejamos 14 días después de la fiesta como propuesta; puedes cambiarla. Mantén el evento publicado durante ese plazo.</p>
@@ -187,16 +214,15 @@ function Workspace({ client, permissions }: { client: Client; permissions: strin
           {codes.rows.length === 100 && <p>Se muestran los 100 códigos más recientes de este evento.</p>}
           {confirm && <div className="admin-confirm" role="dialog" aria-label="Confirmar revocación"><h3>¿Revocar este código?</h3><p>Dejará de admitir nuevos canjes. Los sellos ya guardados se conservan.</p><div className="admin-actions"><button className="primary-btn" disabled={busy} onClick={revoke}>CONFIRMAR REVOCACIÓN</button><button className="outline-btn" disabled={busy} onClick={() => setConfirm(null)}>CANCELAR</button></div></div>}
         </section>}
-        {event && canEvents && <GalleryAdmin key={event.id} client={client} eventId={event.id} />}
       </div>
     </div>
   </>
 }
 
-export default function AdminPanel({ client, userId, authLoading, access, setup, onSignIn }: { client: Client | null; userId: string | null; authLoading: boolean; access: AdminAccess; setup: AdminMfaSetupCache; onSignIn: () => void }) {
+export default function AdminPanel({ client, userId, authLoading, access, setup, onSignIn, albumsOnly = false }: { client: Client | null; userId: string | null; authLoading: boolean; access: AdminAccess; setup: AdminMfaSetupCache; onSignIn: () => void; albumsOnly?: boolean }) {
   const [verified, setVerified] = useState(false)
   const onVerified = useCallback(() => setVerified(true), [])
-  return <div className="admin-page"><div className="eyebrow">DANZ COLLECTIVE / ADMINISTRACIÓN</div><h1 className="page-title">DETRÁS<br /><em>DE LA NOCHE.</em></h1>
-    {!client ? <p>La conexión de las cuentas todavía no está disponible.</p> : authLoading || access.loading ? <p role="status">Comprobando acceso de administración…</p> : !userId ? <div className="admin-state"><p>Inicia sesión con tu cuenta de administración.</p><button className="primary-btn" onClick={onSignIn}>INICIAR SESIÓN</button></div> : access.error ? <p className="account-error" role="alert">No hemos podido comprobar los permisos. Recarga para volver a intentarlo.</p> : !access.member || !access.permissions.length ? <p>Esta cuenta no tiene permisos de administración.</p> : !verified ? <AdminMfa client={client} userId={userId} setup={setup} onVerified={onVerified} /> : <Workspace client={client} permissions={access.permissions} />}
+  return <div className="admin-page"><div className="eyebrow">DANZ COLLECTIVE / {albumsOnly ? 'TUS FOTOS' : 'ADMINISTRACIÓN'}</div>{albumsOnly ? <><h1 className="page-title">MIS<br /><em>ÁLBUMES.</em></h1><p>Borradores y fotos publicadas, guardados por evento. Abre un álbum para ver, descargar o añadir fotos.</p></> : <h1 className="page-title">DETRÁS<br /><em>DE LA NOCHE.</em></h1>}
+    {!client ? <p>La conexión de las cuentas todavía no está disponible.</p> : authLoading || access.loading ? <p role="status">Comprobando acceso de administración…</p> : !userId ? <div className="admin-state"><p>Inicia sesión con tu cuenta de administración.</p><button className="primary-btn" onClick={onSignIn}>INICIAR SESIÓN</button></div> : access.error ? <p className="account-error" role="alert">No hemos podido comprobar los permisos. Recarga para volver a intentarlo.</p> : !access.member || !access.permissions.length ? <p>Esta cuenta no tiene permisos de administración.</p> : !verified ? <AdminMfa client={client} userId={userId} setup={setup} onVerified={onVerified} /> : <Workspace client={client} userId={userId} permissions={access.permissions} albumsOnly={albumsOnly} />}
   </div>
 }

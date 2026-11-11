@@ -22,6 +22,13 @@ import DanzFlower from './content/DanzFlower'
 const collective = parseCollective(content)
 
 type Page = 'inicio' | 'pasaporte' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta' | 'admin'
+function locationPage(): Page {
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('panel') === 'admin') return 'admin'
+  const value = params.get('seccion')
+  if (value === 'musica') return 'danzin'
+  return ['inicio', 'pasaporte', 'fotos', 'arcade', 'danzers', 'danzin', 'danzflor', 'cuenta', 'admin'].includes(value ?? '') ? value as Page : 'inicio'
+}
 const pages: { id: Page; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'pasaporte', label: 'Pasaporte' },
@@ -45,7 +52,8 @@ export default function App() {
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
-    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : params.get('panel') === 'admin' ? 'admin' : params.get('seccion') === 'cuenta' ? 'cuenta' : params.get('seccion') === 'pasaporte' && !launchPass.invalid ? 'pasaporte' : params.get('seccion') === 'musica' && !launchPass.invalid ? 'danzin' : launchPass.code || launchPass.invalid ? 'danzers' : 'inicio'
+    const requested = locationPage()
+    return auth.error || emailCallbackPresent || params.has('code') || params.has('error') || /(?:access_token|error)=/.test(window.location.hash) ? 'cuenta' : requested !== 'inicio' && !launchPass.invalid ? requested : launchPass.code || launchPass.invalid ? 'danzers' : 'inicio'
   })
   const [pendingPasses, setPendingPasses] = useState(() => {
     const saved = readPendingPasses()
@@ -54,7 +62,8 @@ export default function App() {
   const pendingPass = pendingPasses.at(-1) ?? null
   const [passIssue, setPassIssue] = useState(launchPass.invalid ? 'El enlace del pase no contiene un código válido.' : !launchPass.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
   const [galleryEvent, setGalleryEvent] = useState('')
-  const [photoSource, setPhotoSource] = useState<'private' | 'local'>('private')
+  const [photoSource, setPhotoSource] = useState<'private' | 'attendance' | 'local'>('private')
+  const managesPhotos = admin.member && admin.permissions.includes('events.manage')
   const localGalleryOpened = useRef(false)
   if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
@@ -161,14 +170,20 @@ export default function App() {
   const go = (destination: Page) => {
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
     const url = new URL(window.location.href)
-    if (destination === 'danzin') url.searchParams.set('seccion', 'musica')
-    else if (destination === 'pasaporte') url.searchParams.set('seccion', 'pasaporte')
-    else if (destination === 'cuenta') url.searchParams.set('seccion', 'cuenta')
-    else url.searchParams.delete('seccion')
-    try { window.history.replaceState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
+    url.searchParams.delete('panel')
+    if (destination !== 'admin' && destination !== 'fotos') url.searchParams.delete('album')
+    if (destination === 'inicio') url.searchParams.delete('seccion')
+    else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
+    try { if (page !== destination) window.history.pushState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
     setPage(destination)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  useEffect(() => {
+    const back = () => { dispatch({ type: 'pause' }); setPage(locationPage()) }
+    window.addEventListener('popstate', back)
+    return () => window.removeEventListener('popstate', back)
+  }, [])
 
   return (
     <div className={`site-shell${quickArrival ? ' quick-arrival' : ''}`}>
@@ -240,11 +255,12 @@ export default function App() {
         {/* Se mantiene montada para conservar las fotos al cambiar entre secciones.
             El contenido solo es visible cuando estamos en Fotos. */}
         {page === 'fotos' && <div className="content photo-source-nav" role="group" aria-label="Elegir galerías">
-          <button type="button" className="outline-btn" aria-pressed={photoSource === 'private'} onClick={() => setPhotoSource('private')}>Galerías privadas</button>
+          <button type="button" className="outline-btn" aria-pressed={photoSource === 'private'} onClick={() => setPhotoSource('private')}>{managesPhotos ? 'Mis álbumes' : 'Galerías privadas'}</button>
+          {managesPhotos && <button type="button" className="outline-btn" aria-pressed={photoSource === 'attendance'} onClick={() => setPhotoSource('attendance')}>Galerías con mi sello</button>}
           <button type="button" className="outline-btn" aria-pressed={photoSource === 'local'} onClick={() => setPhotoSource('local')}>Álbumes de este navegador</button>
         </div>}
         {localGalleryOpened.current && <Suspense fallback={<p className="content" role="status">Abriendo tus álbumes…</p>}><PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} /></Suspense>}
-        {page === 'fotos' && photoSource === 'private' && <Suspense fallback={<p className="content" role="status">Abriendo las galerías…</p>}><PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} /></Suspense>}
+        {page === 'fotos' && photoSource !== 'local' && <Suspense fallback={<p className="content" role="status">Abriendo las galerías…</p>}>{admin.loading ? <p className="content" role="status">Comprobando tus álbumes…</p> : photoSource === 'private' && managesPhotos ? <section className="content inner-page"><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} albumsOnly /></section> : <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}</Suspense>}
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
@@ -307,7 +323,7 @@ export default function App() {
         {(page === 'pasaporte' || page === 'danzers') && (
           <section className="content inner-page passport-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('private'); go('fotos') }} />
+            <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
           </section>
         )}
 

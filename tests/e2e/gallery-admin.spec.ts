@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { makeSession, mockSupabase, sessionStorageKey, supabaseHost } from './helpers/supabase'
+import { readFile } from 'node:fs/promises'
 const E='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const event={id:E,title:'Galería de prueba',starts_at:'2026-11-09T20:00:00Z',ends_at:null,status:'published'}
 async function install(page:Page) {
@@ -21,6 +22,94 @@ async function install(page:Page) {
     return canvas.toDataURL('image/jpeg',0.9).split(',')[1]
   }),'base64')
 }
+
+async function savedAlbum(page: Page) {
+  const bytes = await install(page)
+  const second = { ...event, id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', title: 'Otra noche' }
+  const rows = [{ id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', event_id: E, storage_path: `${E}/original.jpg`, preview_path: `${E}/preview.jpg`, original_name: 'DANZ-original.jpg', status: 'draft', upload_ready: true }]
+  let signs = 0
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_events`, r => r.fulfill({ json: [second, event] }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_photos`, r => r.fulfill({ json: rows.filter(p => p.event_id === r.request().postDataJSON().p_event_id) }))
+  await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos`, r => { signs++; return r.fulfill({ json: r.request().postDataJSON().paths.map((path: string) => ({ path, signedURL: `/object/sign/danz-event-photos/${path}?token=synthetic-${signs}`, error: null })) }) })
+  await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, r => r.fulfill({ contentType: 'image/jpeg', body: bytes }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_photo_state`, r => { const request = r.request().postDataJSON(); for (const row of rows) if (request.p_ids.includes(row.id)) row.status = request.p_status; return r.fulfill({ json: request.p_ids.length }) })
+  await page.getByRole('button', { name: 'ACTUALIZAR EVENTOS', exact: true }).click()
+  await page.getByRole('button', { name: /Galería de prueba.*ABRIR ÁLBUM/ }).click()
+  await expect(page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true })).toBeVisible()
+  return { bytes, rows, signs: () => signs, second }
+}
+
+test('saved drafts stay in their album after Back, another section, reload and adding a second batch', async ({ page }) => {
+  const { rows, bytes } = await savedAlbum(page)
+  const opening = page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true })
+  await page.getByRole('button', { name: '← VOLVER AL INICIO', exact: true }).click()
+  await page.goBack()
+  await expect(opening).toBeVisible()
+  await page.getByRole('button', { name: 'Fotos', exact: true }).filter({ visible: true }).first().click()
+  await expect(page.getByRole('heading', { name: 'MIS ÁLBUMES.', exact: true })).toBeVisible()
+  await expect(opening).toBeVisible()
+  await page.reload()
+  await expect(opening).toBeVisible()
+  await page.getByRole('button', { name: 'BORRADORES', exact: true }).click()
+  await expect(opening).toBeVisible()
+  let uploads = 0
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_prepare_photo`, r => {
+    const p = r.request().postDataJSON()
+    rows.push({ id: p.p_id, event_id: E, storage_path: `${E}/${p.p_id}/original.jpg`, preview_path: `${E}/${p.p_id}/preview.jpg`, original_name: p.p_name, status: 'draft', upload_ready: false })
+    return r.fulfill({ json: [{ ...rows.at(-1), original_exists: false, preview_exists: false }] })
+  })
+  await page.route(`${supabaseHost}/storage/v1/object/danz-event-photos/**`, r => { uploads++; return r.fulfill({ json: { Key: 'synthetic' } }) })
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_finish_photo`, r => { rows.find(p => p.id === r.request().postDataJSON().p_id)!.upload_ready = true; return r.fulfill({ json: null }) })
+  await page.getByLabel('Seleccionar fotos para subir', { exact: true }).setInputFiles({ name: 'segunda-tanda.jpg', mimeType: 'image/jpeg', buffer: bytes })
+  await page.getByLabel('Confirmo que las fotos ya incluyen su marca de agua.', { exact: true }).check()
+  await page.getByRole('button', { name: 'SUBIR COMO BORRADORES', exact: true }).click()
+  await expect(page.getByText('1 de 1 completadas', { exact: true })).toBeVisible()
+  await expect(opening).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir foto segunda-tanda.jpg', exact: true })).toBeVisible()
+  expect(rows).toHaveLength(2); expect(uploads).toBe(2)
+})
+
+test('the admin can open and download an original without an attendance stamp, and phone Back closes only the photo', async ({ page }) => {
+  const { bytes } = await savedAlbum(page)
+  const opening = page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true })
+  await opening.click()
+  const viewer = page.getByRole('dialog', { name: 'Foto del álbum Galería de prueba', exact: true })
+  await expect(viewer).toBeVisible()
+  await expect(viewer.getByRole('img')).toHaveJSProperty('naturalWidth', 640)
+  const download = page.waitForEvent('download')
+  await viewer.getByRole('button', { name: 'DESCARGAR ORIGINAL', exact: true }).click()
+  const file = await download
+  expect(file.suggestedFilename()).toBe('DANZ-original.jpg')
+  expect(await readFile((await file.path())!)).toEqual(bytes)
+  await page.goBack()
+  await expect(viewer).toHaveCount(0)
+  await expect(opening).toBeVisible()
+  await opening.click()
+  await viewer.getByRole('button', { name: 'Cerrar foto del álbum', exact: true }).click()
+  await expect(viewer).toHaveCount(0)
+  await expect(opening).toBeVisible()
+})
+
+test('published photos remain visible in My albums and previews renew after a minute', async ({ page }) => {
+  await page.clock.install()
+  const album = await savedAlbum(page)
+  await page.getByLabel('Seleccionar las fotos listas de esta página', { exact: true }).check()
+  await page.getByRole('button', { name: 'PUBLICAR SELECCIONADAS (1)', exact: true }).click()
+  await page.getByRole('button', { name: 'CONFIRMAR FOTOS', exact: true }).click()
+  await expect(page.getByText('1 fotos publicadas.', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'PUBLICADAS', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true })).toBeVisible()
+  const before = album.signs()
+  await page.clock.fastForward(46_000)
+  await expect.poll(album.signs).toBeGreaterThan(before)
+  await page.clock.fastForward(16_000)
+  await expect(page.getByRole('img', { name: 'Vista previa de DANZ-original.jpg', exact: true })).toHaveJSProperty('naturalWidth', 640)
+  await page.getByRole('button', { name: /Otra noche.*ABRIR ÁLBUM/ }).click()
+  await expect(page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true })).toHaveCount(0)
+  await page.goBack()
+  await expect(page.getByRole('button', { name: 'Abrir foto DANZ-original.jpg', exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
 
 test('an uploaded original is preserved, drafts require confirmation, and reselecting the same file does not upload twice',async({page})=>{
   const bytes=await install(page)

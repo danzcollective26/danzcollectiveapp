@@ -1,5 +1,15 @@
 # Galería y almacenamiento
 
+## Álbumes persistentes y acceso del administrador — 11 de noviembre de 2026
+
+Las fotos completadas se conservan en el servidor dentro del evento, como borradores o publicadas. Salir del panel, volver atrás, recargar o elegir otra tanda no las borra. El álbum seleccionado se recuerda por cuenta en la sesión del navegador y se incluye en la URL; los archivos de una carga todavía incompleta deben reseleccionarse para continuarla.
+
+Fotos muestra «Mis álbumes» a administradores con events.manage. Permite abrir sus eventos sin tener que concederse un sello de asistente; usa los RPC administrativos y la misma comprobación MFA. «Galerías con mi sello» mantiene el recorrido habitual de asistentes. No se amplían permisos ni se hacen públicos borradores o archivos.
+
+La revisión del álbum aparece antes de los códigos/QR, con filtros de borradores/publicadas y acceso a añadir otra tanda. Las miniaturas renuevan su enlace privado antes de caducar. Al pulsar una foto se abre un visor dentro de DANZ, con zoom, cambio de foto y descarga del archivo original conservando sus bytes y nombre. Atrás cierra primero la foto y conserva el álbum. La navegación entre secciones también mantiene historial interno.
+
+Las pruebas de regresión cubren salida/vuelta/recarga, segunda tanda, publicación, renovación de enlaces, acceso administrativo sin asistencia, descarga exacta y Atrás desde el visor. Los datos de esas pruebas son sintéticos; no publican ni modifican fotos de producción.
+
 Objetivo del 9 de noviembre de 2026: primera versión utilizable el 16 de noviembre,
 centrada en Fotos, QR/sellos y Snake. Es una previsión, pendiente de correo real,
 primer acceso administrativo/MFA y pruebas en teléfonos reales.
