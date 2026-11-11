@@ -845,3 +845,13 @@ Este registro y su captura son posteriores al despliegue y no cambian la app.
 - Comprobado en navegador público: nueva pestaña y enlace `?seccion=pasaporte`, portada/libreta y botón de instalación accesible. Captura sin datos privados: `docs/evidence/passport.png`.
 - La limitación previa del navegador de nube al preparar el service worker publicado sigue sin equivaler a una comprobación física de modo avión en móvil. Las pruebas automáticas de PWA pasan sobre la compilación de producción. No se han eludido controles del navegador.
 - La nueva clave MFA de administración y la paleta/tipografía oficiales siguen pendientes del usuario. El futuro Idle debe progresar por niveles, mejoras y desbloqueo de puestos; el vídeo privado es inspiración del juego y no se publica.
+
+
+## Visor privado para móvil — comprobación previa
+
+- Gestos horizontales para cambiar entre las fotos cargadas; los movimientos cortos o verticales no cambian de imagen.
+- Doble toque y botón accesible para ampliar al doble; el arrastre recorre la foto y queda limitado al área de la imagen. Cambiar de foto o cerrar el visor restablece el encuadre.
+- Contador de posición sobre las fotos cargadas; no se presenta como total del evento cuando todavía se pueden cargar más.
+- Se mantienen las URLs privadas de 60 segundos, su renovación, la descarga del original y la limpieza al cerrar sesión o cambiar de cuenta/evento. No hay cambios de permisos, esquema ni carga por tandas.
+- Vista de prueba aislada en tests/ui, con gráficos sintéticos y cliente en memoria sin sesión ni API. No se incluye en el despliegue de producción.
+- Compilación correcta y 93 pruebas internas correctas antes de enviar las comprobaciones de navegador.

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import './PrivateGallery.css'
@@ -16,6 +16,8 @@ type Photo = { id: string; path: string; previewPath: string; name: string | nul
 type Scope = { client: SupabaseClient<Database> | null; owner: string | null }
 type EventState = Scope & { items: Event[]; loading: boolean; error: boolean }
 type PhotoState = Scope & { eventId: string; items: Photo[]; loading: boolean; error: boolean; expiresAt: number }
+type PhotoZoom = { owner: string; eventId: string; photoId: string; x: number; y: number }
+type PhotoGesture = { id: number; x: number; y: number; originX: number; originY: number; moved: boolean }
 const BUCKET = 'danz-event-photos'
 const URL_TTL_SECONDS = 60
 const REFRESH_MS = 45_000
@@ -56,6 +58,12 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   const downloadAbort = useRef<AbortController | null>(null)
   const downloadUrls = useRef(new Set<string>())
   const viewerRef = useRef<HTMLDivElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const [zoom, setZoom] = useState<PhotoZoom | null>(null)
+  const gesture = useRef<PhotoGesture | null>(null)
+  const activePointers = useRef(new Set<number>())
+  const lastTap = useRef<{ at: number; x: number; y: number } | null>(null)
+  const lastPointerType = useRef('mouse')
 
   const eventItems = !authLoading && sameAccount(events, client, userId) ? events.items : []
   const selectedEvent = eventItems.find((event) => choice.owner === userId && event.id === choice.id) ?? eventItems[0]
@@ -65,6 +73,8 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   const photoItems = !authLoading && visible && sameAccount(photos, client, userId) && photos.eventId === eventId && Date.now() < photos.expiresAt ? photos.items : []
   const shownPhoto = viewer?.owner === userId && viewer.eventId === eventId
     ? photoItems.find((photo) => photo.id === viewer.photoId) : undefined
+  const ownZoom = zoom?.owner === userId && zoom.eventId === eventId && zoom.photoId === shownPhoto?.id ? zoom : null
+  const photoIndex = shownPhoto ? photoItems.findIndex(photo => photo.id === shownPhoto.id) : -1
 
   useEffect(() => {
     const onVisibility = () => setVisible(document.visibilityState !== 'hidden')
@@ -154,6 +164,12 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
 
   useEffect(() => { setPageSize(60) }, [client, userId, eventId])
   useEffect(() => {
+    setZoom(null)
+    gesture.current = null
+    lastTap.current = null
+    activePointers.current.clear()
+  }, [client, userId, authLoading, eventId, shownPhoto?.id])
+  useEffect(() => {
     setFullPhoto(null)
     if (!client || !userId || !shownPhoto || shownPhoto.path === shownPhoto.previewPath) return
     let current = true
@@ -187,10 +203,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       if (event.key === 'Escape') setViewer(null)
       if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
         event.preventDefault()
-        const index = photoItems.findIndex((photo) => photo.id === shownPhoto.id)
-        const step = event.key === 'ArrowRight' ? 1 : -1
-        const next = photoItems[(index + step + photoItems.length) % photoItems.length]
-        if (next && userId) setViewer({ owner: userId, eventId, photoId: next.id })
+        movePhoto(event.key === 'ArrowRight' ? 1 : -1)
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -222,6 +235,61 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       if (previousFocus?.isConnected) previousFocus.focus()
     }
   }, [isViewerOpen])
+
+  function movePhoto(step: number) {
+    if (!shownPhoto || !userId) return
+    const next = photoItems[(photoIndex + step + photoItems.length) % photoItems.length]
+    if (next) setViewer({ owner: userId, eventId, photoId: next.id })
+  }
+
+  function toggleZoom() {
+    if (!shownPhoto || !userId) return
+    setZoom(ownZoom ? null : { owner: userId, eventId, photoId: shownPhoto.id, x: 0, y: 0 })
+    lastTap.current = null
+  }
+
+  function startPhotoGesture(event: PointerEvent<HTMLDivElement>) {
+    activePointers.current.add(event.pointerId)
+    lastPointerType.current = event.pointerType
+    if (activePointers.current.size > 1) { gesture.current = null; lastTap.current = null; return }
+    if (!event.isPrimary || event.button !== 0) return
+    gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, originX: ownZoom?.x ?? 0, originY: ownZoom?.y ?? 0, moved: false }
+    try { event.currentTarget.setPointerCapture(event.pointerId) } catch { /* Some embedded views cannot capture pointers; gestures inside the stage still work. */ }
+  }
+
+  function panPhoto(event: PointerEvent<HTMLDivElement>) {
+    const start = gesture.current
+    if (!start || start.id !== event.pointerId) return
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    if (Math.hypot(dx, dy) > 10) start.moved = true
+    if (!ownZoom) return
+    const stage = stageRef.current
+    const image = stage?.querySelector('img')
+    if (!stage || !image?.naturalWidth || !image.naturalHeight) return
+    const fit = Math.min(stage.clientWidth / image.naturalWidth, stage.clientHeight / image.naturalHeight)
+    const maxX = Math.max(0, (image.naturalWidth * fit * 2 - stage.clientWidth) / 2)
+    const maxY = Math.max(0, (image.naturalHeight * fit * 2 - stage.clientHeight) / 2)
+    setZoom({ ...ownZoom, x: Math.max(-maxX, Math.min(maxX, start.originX + dx)), y: Math.max(-maxY, Math.min(maxY, start.originY + dy)) })
+  }
+
+  function endPhotoGesture(event: PointerEvent<HTMLDivElement>) {
+    activePointers.current.delete(event.pointerId)
+    const start = gesture.current
+    if (!start || start.id !== event.pointerId) return
+    gesture.current = null
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    const tapped = !start.moved && Math.hypot(dx, dy) < 10
+    if (event.pointerType === 'touch' && tapped) {
+      const previous = lastTap.current
+      if (previous && event.timeStamp - previous.at < 320 && Math.hypot(event.clientX - previous.x, event.clientY - previous.y) < 24) toggleZoom()
+      else lastTap.current = { at: event.timeStamp, x: event.clientX, y: event.clientY }
+      return
+    }
+    lastTap.current = null
+    if (!ownZoom && Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.5) movePhoto(dx < 0 ? 1 : -1)
+  }
 
   async function downloadPhoto(photo: Photo) {
     if (!userId || !client || authLoading || !verifiedSignedUrl(client, photo.url)) return
@@ -285,18 +353,16 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     </div>}
     {!photosLoading && !photosError && photoItems.length === pageSize && <button className="outline-btn" onClick={() => setPageSize(n => n + 60)}>CARGAR MÁS FOTOS</button>}
     {shownPhoto && <div className="private-gallery-viewer" ref={viewerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`Foto privada de ${selectedEvent?.title}`}>
-      <div className="private-gallery-viewer-heading"><strong>{selectedEvent?.title}</strong><button className="outline-btn" onClick={() => setViewer(null)} aria-label="Cerrar foto privada">CERRAR ✕</button></div>
-      <img src={fullPhoto?.owner === userId && fullPhoto.eventId === eventId && fullPhoto.id === shownPhoto.id ? fullPhoto.url : shownPhoto.url} referrerPolicy="no-referrer" alt={`Fotografía de ${selectedEvent?.title}`} />
+      <div className="private-gallery-viewer-heading"><div><strong>{selectedEvent?.title}</strong><span className="private-photo-position" role="status">Foto {photoIndex + 1} de {photoItems.length}{photoItems.length === pageSize ? ' cargadas' : ''}</span></div><button className="outline-btn" onClick={() => setViewer(null)} aria-label="Cerrar foto privada">CERRAR ✕</button></div>
+      <div className={`private-gallery-viewer-stage${ownZoom ? ' is-zoomed' : ''}`} ref={stageRef} onPointerDown={startPhotoGesture} onPointerMove={panPhoto} onPointerUp={endPhotoGesture} onPointerCancel={event => { activePointers.current.delete(event.pointerId); gesture.current = null; lastTap.current = null }} onDoubleClick={() => { if (lastPointerType.current !== 'touch') toggleZoom() }}>
+        <img draggable={false} style={{ transform: ownZoom ? `translate(${ownZoom.x}px, ${ownZoom.y}px) scale(2)` : undefined }} src={fullPhoto?.owner === userId && fullPhoto.eventId === eventId && fullPhoto.id === shownPhoto.id ? fullPhoto.url : shownPhoto.url} referrerPolicy="no-referrer" alt={`Fotografía de ${selectedEvent?.title}`} />
+      </div>
+      <p className="private-viewer-hint">{ownZoom ? 'Arrastra para recorrer la foto · Doble toque para ajustar.' : 'Desliza para pasar de foto · Doble toque para ampliar.'}</p>
       <div className="private-gallery-viewer-actions">
-        {photoItems.length > 1 && <button className="outline-btn" aria-label="Anterior foto privada" onClick={() => {
-          const index = photoItems.findIndex((photo) => photo.id === shownPhoto.id)
-          setViewer({ owner: userId, eventId, photoId: photoItems[(index + photoItems.length - 1) % photoItems.length].id })
-        }}>←</button>}
+        {photoItems.length > 1 && <button className="outline-btn" aria-label="Anterior foto privada" onClick={() => movePhoto(-1)}>←</button>}
+        <button className="outline-btn" aria-label={ownZoom ? 'Restablecer tamaño de foto privada' : 'Ampliar foto privada'} aria-pressed={Boolean(ownZoom)} onClick={toggleZoom}>{ownZoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
         <button className="primary-btn" disabled={ownDownload?.busy} onClick={() => { void downloadPhoto(shownPhoto) }}>{ownDownload?.busy ? 'DESCARGANDO…' : 'DESCARGAR FOTO'}</button>
-        {photoItems.length > 1 && <button className="outline-btn" aria-label="Siguiente foto privada" onClick={() => {
-          const index = photoItems.findIndex((photo) => photo.id === shownPhoto.id)
-          setViewer({ owner: userId, eventId, photoId: photoItems[(index + 1) % photoItems.length].id })
-        }}>→</button>}
+        {photoItems.length > 1 && <button className="outline-btn" aria-label="Siguiente foto privada" onClick={() => movePhoto(1)}>→</button>}
       </div>
       {ownDownload?.error && <p role="alert">No se ha podido descargar la foto. Vuelve a intentarlo.</p>}
     </div>}

@@ -38,6 +38,71 @@ async function installGallery(page: Page) {
   await page.route(`${supabaseHost}/storage/v1/object/sign/danz-event-photos/**`, (route) => route.fulfill({ contentType: 'image/png', headers: { 'cache-control': 'no-store' }, body: png }))
 }
 
+async function installMultiplePhotos(page: Page) {
+  await installGallery(page)
+  await page.route(`${supabaseHost}/rest/v1/danz_photos**`, route => route.fulfill({ json: Array.from({ length: 3 }, (_, index) => ({ id: `photo-${index}`, storage_path: `${EVENT_A}/photo-${index}.png` })) }))
+}
+
+async function touchPhoto(page: Page, dx = 0, dy = 0) {
+  const stage = page.locator('.private-gallery-viewer-stage')
+  const box = (await stage.boundingBox())!
+  const start = { pointerId: 41, pointerType: 'touch', isPrimary: true, button: 0, clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 }
+  await stage.dispatchEvent('pointerdown', start)
+  await stage.dispatchEvent('pointermove', { ...start, clientX: start.clientX + dx, clientY: start.clientY + dy })
+  await stage.dispatchEvent('pointerup', { ...start, clientX: start.clientX + dx, clientY: start.clientY + dy })
+}
+
+test('private photos swipe horizontally, ignore short or vertical movements, and retain button and keyboard navigation', async ({ page }) => {
+  await installMultiplePhotos(page)
+  await openPrivateGallery(page)
+  await page.getByRole('button', { name: 'Abrir foto privada 1', exact: true }).click()
+  const viewer = page.getByRole('dialog')
+  await expect(viewer.getByRole('status')).toHaveText('Foto 1 de 3')
+  await touchPhoto(page, -100)
+  await expect(viewer.getByRole('status')).toHaveText('Foto 2 de 3')
+  await touchPhoto(page, 100)
+  await expect(viewer.getByRole('status')).toHaveText('Foto 1 de 3')
+  await touchPhoto(page, 15, -120)
+  await touchPhoto(page, -20)
+  await expect(viewer.getByRole('status')).toHaveText('Foto 1 de 3')
+  await viewer.getByRole('button', { name: 'Siguiente foto privada', exact: true }).click()
+  await expect(viewer.getByRole('status')).toHaveText('Foto 2 de 3')
+  await page.keyboard.press('ArrowRight')
+  await expect(viewer.getByRole('status')).toHaveText('Foto 3 de 3')
+  await page.keyboard.press('ArrowRight')
+  await expect(viewer.getByRole('status')).toHaveText('Foto 1 de 3')
+  await viewer.getByRole('button', { name: 'Anterior foto privada', exact: true }).click()
+  await expect(viewer.getByRole('status')).toHaveText('Foto 3 de 3')
+})
+
+test('double tap zooms, dragging pans instead of changing photos, and changing or closing a photo resets zoom', async ({ page }) => {
+  await installMultiplePhotos(page)
+  await openPrivateGallery(page)
+  await page.getByRole('button', { name: 'Abrir foto privada 1', exact: true }).click()
+  const viewer = page.getByRole('dialog')
+  const stage = page.locator('.private-gallery-viewer-stage')
+  const image = stage.locator('img')
+  await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
+  await touchPhoto(page)
+  await touchPhoto(page)
+  await expect(viewer.getByRole('button', { name: 'Restablecer tamaño de foto privada', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  const initial = await image.evaluate(element => getComputedStyle(element).transform)
+  await touchPhoto(page, -80, 60)
+  await expect(viewer.getByRole('status')).toHaveText('Foto 1 de 3')
+  await expect.poll(() => image.evaluate(element => getComputedStyle(element).transform)).not.toBe(initial)
+  await viewer.getByRole('button', { name: 'Siguiente foto privada', exact: true }).click()
+  await expect(viewer.getByRole('status')).toHaveText('Foto 2 de 3')
+  await expect(viewer.getByRole('button', { name: 'Ampliar foto privada', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await viewer.getByRole('button', { name: 'Ampliar foto privada', exact: true }).click()
+  await expect(stage).toHaveClass(/is-zoomed/)
+  await page.keyboard.press('Escape')
+  await expect(viewer).toHaveCount(0)
+  await page.getByRole('button', { name: 'Abrir foto privada 2', exact: true }).click()
+  await expect(stage).not.toHaveClass(/is-zoomed/)
+  await expect(viewer.getByRole('status')).toHaveText('Foto 2 de 3')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
 test('private galleries require signing in and do not query event data for guests', async ({ page }) => {
   await mockSupabase(page)
   let requestedEvents = false
