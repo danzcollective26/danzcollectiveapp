@@ -1,0 +1,32 @@
+name: Build DANZ Fotos Android
+on:
+  push:
+    branches: [main]
+    paths: ['native/android-photos/**', '.github/workflows/android-photos.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android-pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Install Android build packages
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Test and build pilot APK
+        working-directory: native/android-photos
+        run: gradle --no-daemon testDebugUnitTest assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DANZ-Fotos-Android-pilot
+          path: native/android-photos/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30

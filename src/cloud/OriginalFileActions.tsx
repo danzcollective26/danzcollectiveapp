@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { photoFileMime, photoFileName, photoFileType } from './photoFile'
 import { decodePhoto, photoDigest, photoFileSize, verifiedPhotoFile } from './originalPhoto'
+import { nativePhotosEnabled } from './nativePhoto'
+import NativePhotoActions from './NativePhotoActions'
 
 type Props = { client: SupabaseClient<Database>; owner: string; eventId: string; photoId: string; path: string; name: string | null; mime?: string | null; bytes?: number | null; sha256?: string | null }
 type Prepared = { scope: string; file: File; digest: string; url: string }
@@ -108,9 +110,11 @@ export default function OriginalFileActions({ client, owner, eventId, photoId, p
     } finally { if (own()) { pendingAction.current = false; setBusy(null) } }
   }
 
+  const native = nativePhotosEnabled()
   return <div className="original-file-actions">
+    {native && ready && <NativePhotoActions client={client} scope={key} path={path} file={ready.file} digest={ready.digest} />}
     <div className="private-gallery-viewer-actions">
-      {ready ? <a className="primary-btn external-btn" href={ready.url} download={ready.file.name} onClick={event => {
+      {ready ? <a className={`${native ? 'outline-btn' : 'primary-btn'} external-btn`} href={ready.url} download={ready.file.name} onClick={event => {
         if (busy) { event.preventDefault(); return }
         handedOff.current.add(ready.url)
         setMessage(`Descarga iniciada. Busca el ${type} por su nombre en las descargas del móvil.`); setActionError('')

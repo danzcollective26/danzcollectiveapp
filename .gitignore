@@ -19,3 +19,12 @@ playwright-report/
 playwright-pwa-report/
 test-results/
 supabase/.temp/
+
+# Android build output and signing material
+native/**/.gradle/
+native/**/build/
+native/**/local.properties
+*.keystore
+*.jks
+
+native/**/.pilot-build/
