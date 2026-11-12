@@ -4,7 +4,9 @@ const CACHE = PREFIX + BUILD.version
 const allowed = new Set(BUILD.paths)
 
 async function staticResponse(path) {
-  const response = await fetch(new URL(path, self.location.origin), { cache: 'reload', credentials: 'same-origin', redirect: 'error' })
+  // Hosting canonicalizes /index.html to /. Fetch that final URL directly,
+  // while retaining /index.html as the stable key used for offline reloads.
+  const response = await fetch(new URL(path === '/index.html' ? '/' : path, self.location.origin), { cache: 'reload', credentials: 'same-origin', redirect: 'error' })
   if (!response.ok || response.redirected || new URL(response.url).origin !== self.location.origin) throw new Error('Application file unavailable')
   const mime = response.headers.get('content-type') || ''
   // A private hosting sign-in page may be returned with status 200. Never save it.

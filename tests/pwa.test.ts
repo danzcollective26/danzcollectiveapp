@@ -11,7 +11,7 @@ const source = await readFile(new URL('../scripts/service-worker.js', import.met
 function worker() {
   const handlers = new Map<string, (event: any) => void>()
   const buckets = new Map<string, Map<string, Response>>()
-  const state = { offline: false, gate: false, skipped: 0, claimed: 0, fetched: [] as string[] }
+  const state = { offline: false, gate: false, canonicalIndex: false, skipped: 0, claimed: 0, fetched: [] as string[] }
   const key = (value: any) => new URL(typeof value === 'string' || value instanceof URL ? value : value.url, origin).pathname
   const caches = {
     keys: async () => [...buckets.keys()],
@@ -27,6 +27,7 @@ function worker() {
     state.fetched.push(url.href)
     if (state.offline) throw new Error('Offline')
     const path = url.pathname
+    if (state.canonicalIndex && path === '/index.html') throw new TypeError('Redirect rejected by redirect: error')
     const html = path === '/' || path === '/index.html'
     const body = state.gate ? '<html>Sign in with ChatGPT</html>' : html ? '<meta name="danz-shell" content="1"><div>DANZ</div>' : 'static asset'
     const mime = state.gate || html ? 'text/html' : path.endsWith('.js') ? 'text/javascript' : path.endsWith('.css') ? 'text/css' : path.endsWith('.png') ? 'image/png' : path.endsWith('.jpg') ? 'image/jpeg' : path.endsWith('.webp') ? 'image/webp' : 'application/manifest+json'
@@ -63,6 +64,16 @@ test('hosting sign-in pages cannot be installed as an offline app shell', async 
   const w = worker(); w.state.gate = true
   await assert.rejects(() => w.lifetime('install'))
   assert.equal(w.buckets.size, 0)
+})
+
+test('a host redirecting index.html to the canonical home still installs the complete offline shell', async () => {
+  const w = worker(); w.state.canonicalIndex = true
+  await w.lifetime('install')
+  assert.ok(w.state.fetched.includes(`${origin}/`))
+  assert.ok(!w.state.fetched.includes(`${origin}/index.html`))
+  assert.match(await w.buckets.get(prefix + 'current')!.get('/index.html')!.clone().text(), /danz-shell/)
+  w.state.offline = true
+  assert.match(await (await w.request('/', 'navigate')!).text(), /danz-shell/)
 })
 
 test('auth callbacks, signed photos, APIs, backups and non-GET requests bypass offline handling', () => {
