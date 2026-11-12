@@ -42,7 +42,7 @@ export function gameLevel(score: number): number {
   return Math.min(10, 1 + Math.floor(Math.max(0, score) / 50))
 }
 export function gameTickMs(score: number): number {
-  return 150 - (gameLevel(score) - 1) * 8
+  return 240 - (gameLevel(score) - 1) * 15
 }
 
 const RECORD_KEY = 'danz-snake-best-v1'
