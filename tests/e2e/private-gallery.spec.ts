@@ -14,7 +14,7 @@ const secondPath = `${EVENT_B}/second-private.png`
 
 async function openPrivateGallery(page: Page) {
   await page.goto('/')
-  await page.getByRole('navigation').getByRole('button', { name: 'Fotos', exact: true }).click()
+  await page.getByRole('navigation').getByRole('button', { name: 'FOTOS', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Galerías privadas', exact: true })).toHaveAttribute('aria-pressed', 'true')
 }
 

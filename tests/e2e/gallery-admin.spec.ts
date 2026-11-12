@@ -45,7 +45,7 @@ test('saved drafts stay in their album after Back, another section, reload and a
   await page.getByRole('button', { name: '← VOLVER AL INICIO', exact: true }).click()
   await page.goBack()
   await expect(opening).toBeVisible()
-  await page.getByRole('button', { name: 'Fotos', exact: true }).filter({ visible: true }).first().click()
+  await page.getByRole('button', { name: 'FOTOS', exact: true }).filter({ visible: true }).first().click()
   await expect(page.getByRole('heading', { name: 'MIS ÁLBUMES.', exact: true })).toBeVisible()
   await expect(opening).toBeVisible()
   await page.reload()

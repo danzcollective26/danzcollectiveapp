@@ -15,7 +15,7 @@ for (const path of artwork) {
     : bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP'
   if (!valid || bytes.length > 512 * 1024) throw new Error(`Invalid or oversized public collective image: ${path}`)
 }
-const paths = ['/index.html', '/manifest.webmanifest', '/icons/danz-flower-black-180.png', '/icons/danz-flower-black-192.png', '/icons/danz-flower-black-512.png', '/icons/danz-flower-black-maskable-512.png', '/brand/danz-flower.svg', '/brand/danz-collective-wordmark.png', '/brand/arcadanz-wordmark-v2.webp', '/arcade/idle-studio-industrial.webp', ...assets, ...artwork].sort()
+const paths = ['/index.html', '/manifest.webmanifest', '/icons/danz-flower-black-180.png', '/icons/danz-flower-black-192.png', '/icons/danz-flower-black-512.png', '/icons/danz-flower-black-maskable-512.png', '/brand/danz-flower.svg', '/brand/danz-collective-wordmark.png', '/brand/arcadanz-wordmark-v2.webp', '/arcade/idle-studio-industrial.webp', '/arcade/cable-escape-cover.webp', ...assets, ...artwork].sort()
 const digest = createHash('sha256').update(runtime)
 for (const path of paths) {
   const bytes = await readFile(resolve(root, `.${path}`))

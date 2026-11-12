@@ -3,7 +3,7 @@ import { installMockSession, makeSession, mockSupabase, supabaseHost, sessionSto
 
 async function account(page: Page) {
   await page.goto('/')
-  await page.getByRole('navigation').getByRole('button', { name: 'Cuenta', exact: true }).click()
+  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
 }
 
 async function profileMock(page: Page) {
@@ -86,7 +86,7 @@ test('rate-limit y errores callback son legibles sin reflejar texto externo', as
   await expect(page.getByText(/Has hecho varios intentos seguidos/)).toBeVisible()
   await expect(page.getByText(/untrusted server message/)).toHaveCount(0)
   await page.goto('/?error=access_denied&error_code=otp_expired&error_description=UNTRUSTED_CALLBACK&code=secret')
-  await page.getByRole('navigation').getByRole('button', { name: 'Cuenta', exact: true }).click()
+  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
   await expect(page.getByText(/El enlace o código ha caducado/)).toBeVisible()
   expect(page.url()).not.toMatch(/secret|error_description|otp_expired/)
   await expect(page.getByText(/UNTRUSTED_CALLBACK/)).toHaveCount(0)
@@ -146,7 +146,7 @@ test('enlace PKCE canjea el código, valida usuario y limpia la URL', async ({ p
     await route.fulfill({ json: makeSession() })
   })
   await page.goto('/?code=synthetic-code')
-  await page.getByRole('navigation').getByRole('button', { name: 'Cuenta', exact: true }).click()
+  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
   await expect(page.getByText('first@example.invalid', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
   expect(exchanges).toBe(1)
@@ -159,7 +159,7 @@ test('enlace abierto sin verificador no inicia sesión y elimina el código resi
   let exchanges = 0
   await page.route(`${supabaseHost}/auth/v1/token**`, async route => { exchanges += 1; await route.fulfill({ status: 400, json: { code: 'bad_code_verifier' } }) })
   await page.goto('/?code=missing-verifier-code&sb_flow_id=missing-flow')
-  await page.getByRole('navigation').getByRole('button', { name: 'Cuenta', exact: true }).click()
+  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
   await expect(page.getByText(/Este enlace necesita el navegador donde solicitaste/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Entra con tu correo' })).toBeVisible()
   expect(exchanges).toBe(0)
@@ -194,7 +194,7 @@ test('email token link works in a fresh browser without the requesting browser v
     expect(pkce).toBe(0)
     expect(other.url()).not.toMatch(/token_hash|synthetic-email|type=email/)
     await other.reload()
-    await other.getByRole('navigation').getByRole('button', { name: 'Cuenta', exact: true }).click()
+    await other.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
     await expect(other.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
     expect(verifies).toBe(1)
   } finally { await second.close() }

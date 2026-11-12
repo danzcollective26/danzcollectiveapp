@@ -9,6 +9,7 @@ import type { AdminMfaSetupCache } from './AdminMfa'
 import GalleryAdmin from './GalleryAdmin'
 import { suggestedPassExpiry } from '../events/pass'
 import './AdminPanel.css'
+import AdminPoints from '../points/AdminPoints'
 
 type Client = SupabaseClient<Database>
 type EventForm = { id: string; title: string; start: string; end: string; status: string }
@@ -193,6 +194,7 @@ function Workspace({ client, userId, permissions, albumsOnly }: { client: Client
           <p className="account-note">Un borrador no admite canjes. Archivar conserva los sellos y las fotos publicadas para sus asistentes, y detiene nuevos canjes.</p>
           <div className="admin-actions"><button className="primary-btn" disabled={busy}>{busy ? 'GUARDANDO…' : 'GUARDAR EVENTO'}</button><button className="outline-btn" type="button" disabled={busy} onClick={() => setForm(null)}>CANCELAR EDICIÓN</button></div>
         </form></section> : event ? <section className="account-card"><h2>{event.title}</h2><p>Evento {statusLabel(event.status).toLowerCase()} · {date(event.starts_at)}</p>{canEvents && !albumsOnly && <button className="outline-btn" disabled={busy} onClick={() => setForm({ id: event.id, title: event.title, start: localDateTime(event.starts_at), end: localDateTime(event.ends_at), status: event.status })}>EDITAR EVENTO</button>}</section> : <div className="admin-state"><h2>Prepara la próxima noche.</h2><p>Crea el evento, publícalo y emite el pase que compartirás mediante QR.</p></div>}
+        {event && canEvents && !albumsOnly && <AdminPoints key={`points-${event.id}`} client={client} eventId={event.id} />}
         {event && canEvents && <GalleryAdmin key={event.id} client={client} userId={userId} eventId={event.id} eventTitle={event.title} />}
         {event && canCodes && !albumsOnly && <section className="account-card"><h2>Códigos y QR</h2>
           {event.status === 'archived' ? <p>Este evento está archivado. Puedes revisar o revocar sus códigos.</p> : <form className="account-form admin-form" onSubmit={issue}>

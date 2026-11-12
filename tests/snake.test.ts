@@ -2,15 +2,16 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { GRID, MAZE_STAGES, mazeWalls, gameLevel, gameTickMs, gameReducer, initialGame, nextFood, swipeDirection, type Game } from '../src/snake.ts'
 
+const HX = 8, HY = 9
 const tick = (game: Game) => gameReducer(game, { type: 'tick', random: 0.4 })
 const running = () => gameReducer(initialGame(), { type: 'start' })
 
 test('mueve un paso, conserva longitud y no modifica el estado anterior', () => {
   const before = running()
   const after = tick(before)
-  assert.deepEqual(after.snake[0], { x: 6, y: 6 })
+  assert.deepEqual(after.snake[0], { x: HX + 1, y: HY })
   assert.equal(after.snake.length, before.snake.length)
-  assert.deepEqual(before.snake[0], { x: 5, y: 6 })
+  assert.deepEqual(before.snake[0], { x: HX, y: HY })
 })
 
 test('rechaza giro inverso y solo admite un giro por tick', () => {
@@ -19,15 +20,32 @@ test('rechaza giro inverso y solo admite un giro por tick', () => {
   const up = gameReducer(before, { type: 'turn', direction: 'up' })
   const double = gameReducer(up, { type: 'turn', direction: 'left' })
   const after = tick(double)
-  assert.deepEqual(after.snake[0], { x: 5, y: 5 })
+  assert.deepEqual(after.snake[0], { x: HX, y: HY - 1 })
   assert.equal(after.direction, 'up')
   assert.equal(after.queuedDirection, null)
   const next = tick(gameReducer(after, { type: 'turn', direction: 'left' }))
-  assert.deepEqual(next.snake[0], { x: 4, y: 5 })
+  assert.deepEqual(next.snake[0], { x: HX - 1, y: HY - 1 })
+})
+
+test('el primer giro de entrada mueve al instante y conserva una segunda esquina hasta el siguiente paso', () => {
+  const game = running()
+  const up = gameReducer(game, { type: 'input', direction: 'up', random: .4 })
+  assert.deepEqual(up.snake[0], { x: HX, y: HY - 1 })
+  assert.equal(up.steps, 1)
+  assert.equal(up.inputLocked, true)
+  assert.equal(gameReducer(up, { type: 'input', direction: 'down', random: .4 }), up)
+  const queued = gameReducer(up, { type: 'input', direction: 'left', random: .4 })
+  assert.deepEqual(queued.snake, up.snake)
+  assert.equal(queued.queuedDirection, 'left')
+  const next = tick(queued)
+  assert.deepEqual(next.snake[0], { x: HX - 1, y: HY - 1 })
+  assert.equal(next.inputLocked, false)
+  const paused = gameReducer(next, { type: 'pause' })
+  assert.deepEqual(gameReducer(paused, { type: 'input', direction: 'up', random: .4 }).snake, paused.snake)
 })
 
 test('come, crece, suma puntos y el nuevo objetivo está libre', () => {
-  const before = { ...running(), food: { x: 6, y: 6 } }
+  const before = { ...running(), food: { x: HX + 1, y: HY } }
   const after = tick(before)
   assert.equal(after.snake.length, 4)
   assert.equal(after.score, 10)
@@ -111,7 +129,7 @@ test('la progresión sube cada cinco objetivos y limita la velocidad máxima', (
   assert.equal(gameTickMs(1500), 78)
 })
 
-test('los tres laberintos tienen dificultad creciente, salida segura y todas las casillas conectadas', () => {
+test('los seis laberintos tienen dificultad creciente, salida segura y todas las casillas conectadas', () => {
   let previous = 0
   for (let stage = 1; stage <= MAZE_STAGES.length; stage++) {
     const game = initialGame('maze', stage)
@@ -136,7 +154,7 @@ test('los tres laberintos tienen dificultad creciente, salida segura y todas las
 })
 
 test('chocar con un obstáculo termina el laberinto y reiniciar conserva el recorrido elegido', () => {
-  const game = {...initialGame('maze', 2), running:true, snake:[{x:2,y:2}]}
+  const game = {...initialGame('maze', 2), running:true, snake:[{x:4,y:3}]}
   const after = tick(game)
   assert.equal(after.over, true)
   assert.equal(after.running, false)
@@ -146,7 +164,7 @@ test('chocar con un obstáculo termina el laberinto y reiniciar conserva el reco
 })
 
 test('cinco objetivos cambian el mapa entre niveles con pausa, puntuación conservada y salida libre', () => {
-  const before = {...initialGame('maze'),running:true,score:40,stageGoals:4,food:{x:6,y:6}}
+  const before = {...initialGame('maze'),running:true,score:40,stageGoals:4,food:{x:HX+1,y:HY}}
   const after = tick(before)
   assert.equal(after.stage,2);assert.equal(after.score,50);assert.equal(after.running,false)
   assert.equal(after.levelUp,true);assert.equal(after.stageGoals,0);assert.equal(after.over,false)
@@ -157,9 +175,9 @@ test('cinco objetivos cambian el mapa entre niveles con pausa, puntuación conse
 })
 
 test('el último laberinto continúa sin reiniciar y puede completarse llenando solo las casillas libres', () => {
-  const final=initialGame('maze',3)
-  const onward=tick({...final,running:true,score:140,stageGoals:4,food:{x:6,y:6}})
-  assert.equal(onward.stage,3);assert.equal(onward.running,true);assert.equal(onward.score,150)
+  const final=initialGame('maze',MAZE_STAGES.length)
+  const onward=tick({...final,running:true,score:140,stageGoals:4,food:{x:HX+1,y:HY}})
+  assert.equal(onward.stage,MAZE_STAGES.length);assert.equal(onward.running,true);assert.equal(onward.score,150)
   assert.equal(onward.snake.length,4)
   const walls=new Set(final.walls.map(p=>`${p.x},${p.y}`)),snake=[{x:0,y:0}]
   for(let y=0;y<GRID;y++)for(let x=0;x<GRID;x++)if((x!==0||y!==0)&&(x!==1||y!==0)&&!walls.has(`${x},${y}`))snake.push({x,y})
@@ -173,5 +191,5 @@ test('cambiar de modo o recorrido reinicia la partida sin mezclar reglas de clá
   assert.deepEqual(gameReducer(game,{type:'mode',mode:'classic'}),initialGame())
   assert.deepEqual(gameReducer(game,{type:'maze-level',stage:3}),initialGame('maze',3))
   assert.equal(initialGame('maze',NaN).stage,1)
-  assert.equal(initialGame('maze',999).stage,3)
+  assert.equal(initialGame('maze',999).stage,MAZE_STAGES.length)
 })

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import './App.css'
+import './arcade/gameScreen.css'
 import { useAuth } from './auth/AuthProvider'
 import { emailCallbackPresent } from './auth/client'
 import EventPassport from './events/EventPassport'
@@ -13,32 +14,35 @@ const Account = lazy(() => import('./auth/Account'))
 const PhotoGallery = lazy(() => import('./PhotoGallery'))
 const PrivateGallery = lazy(() => import('./cloud/PrivateGallery'))
 const DanzShop = lazy(() => import('./shop/DanzShop'))
+const DanzPoints = lazy(() => import('./points/DanzPoints'))
 import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
 import { parseCollective, snakeFace } from './content/collective'
 import DanzMusic from './content/DanzMusic'
 import SnakeArtwork from './content/SnakeArtwork'
 import DanzFlower from './content/DanzFlower'
+import { useGameScreen } from './arcade/useGameScreen'
 
 const collective = parseCollective(content)
 
-type Page = 'inicio' | 'pasaporte' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'cuenta' | 'admin'
+type Page = 'inicio' | 'pasaporte' | 'fotos' | 'arcade' | 'danzers' | 'danzin' | 'danzflor' | 'danzpoints' | 'cuenta' | 'admin'
 function locationPage(): Page {
   const params = new URLSearchParams(window.location.search)
   if (params.get('panel') === 'admin') return 'admin'
   const value = params.get('seccion')
   if (value === 'musica') return 'danzin'
-  return ['inicio', 'pasaporte', 'fotos', 'arcade', 'danzers', 'danzin', 'danzflor', 'cuenta', 'admin'].includes(value ?? '') ? value as Page : 'inicio'
+  return ['inicio', 'pasaporte', 'fotos', 'arcade', 'danzers', 'danzin', 'danzflor', 'danzpoints', 'cuenta', 'admin'].includes(value ?? '') ? value as Page : 'inicio'
 }
 const pages: { id: Page; label: string }[] = [
-  { id: 'inicio', label: 'Inicio' },
-  { id: 'pasaporte', label: 'Pasaporte' },
-  { id: 'fotos', label: 'Fotos' },
+  { id: 'inicio', label: 'INICIO' },
+  { id: 'pasaporte', label: 'PASAPORTE' },
+  { id: 'fotos', label: 'FOTOS' },
   { id: 'arcade', label: 'ARCADANZ' },
   { id: 'danzers', label: 'DANZERS' },
   { id: 'danzin', label: 'DANZ IN' },
   { id: 'danzflor', label: 'DANZFLOR' },
-  { id: 'cuenta', label: 'Cuenta' },
+  { id: 'danzpoints', label: 'DANZPOINTS' },
+  { id: 'cuenta', label: 'CUENTA' },
 ]
 
 function Arrow() { return <svg aria-hidden="true" className="arrow" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19 19 5M5 5h14v14" /></svg> }
@@ -68,6 +72,10 @@ export default function App() {
   const localGalleryOpened = useRef(false)
   if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
+  const gameScreen = useGameScreen(() => dispatch({ type: 'pause' }))
+  const turn = (direction: Direction) => dispatch({ type: 'input', direction, random: Math.random() })
+  const play = () => { if (!game.running) gameScreen.enter(); dispatch({ type: game.running ? 'pause' : 'start' }) }
+  useEffect(() => { if (page !== 'arcade') gameScreen.leave() }, [page])
   const [records, setRecords] = useState(() => ({ classic: readSnakeRecord(), maze: readSnakeRecord('maze') }))
   const record = records[game.mode]
   const [showControls, setShowControls] = useState(() => {
@@ -124,7 +132,16 @@ export default function App() {
     if (!start || start.pointerId !== event.pointerId) return
     gesture.current = null
     const direction = swipeDirection(event.clientX - start.x, event.clientY - start.y)
-    if (direction) dispatch({ type: 'turn', direction })
+    if (direction) turn(direction)
+  }
+  const moveGesture = (event: PointerEvent<HTMLDivElement>) => {
+    const start = gesture.current
+    if (!start || start.pointerId !== event.pointerId) return
+    const direction = swipeDirection(event.clientX - start.x, event.clientY - start.y)
+    if (!direction) return
+    event.preventDefault()
+    turn(direction)
+    gesture.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
   }
 
   useEffect(() => {
@@ -137,9 +154,9 @@ export default function App() {
 
   useEffect(() => {
     if (page !== 'arcade' || !game.running) return
-    const timer = window.setInterval(() => dispatch({ type: 'tick', random: Math.random() }), gameTickMs(game.score))
-    return () => window.clearInterval(timer)
-  }, [page, game.running, game.score])
+    const timer = window.setTimeout(() => dispatch({ type: 'tick', random: Math.random() }), gameTickMs(game.score))
+    return () => window.clearTimeout(timer)
+  }, [page, game.running, game.score, game.steps])
 
   useEffect(() => {
     if (game.score > record) setRecords(previous => ({ ...previous, [game.mode]: saveSnakeRecord(game.score, game.mode) }))
@@ -157,11 +174,11 @@ export default function App() {
       const direction = directions[event.key]
       if (direction) {
         event.preventDefault()
-        dispatch({ type: 'turn', direction })
+        turn(direction)
       }
       if (event.code === 'Space' && !event.repeat && !(target instanceof HTMLButtonElement)) {
         event.preventDefault()
-        dispatch({ type: game.running ? 'pause' : 'start' })
+        play()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -169,6 +186,7 @@ export default function App() {
   }, [page, game.running])
 
   const go = (destination: Page) => {
+    if (page === 'arcade' && destination !== 'arcade') gameScreen.leave()
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
     const url = new URL(window.location.href)
     url.searchParams.delete('panel')
@@ -199,7 +217,7 @@ export default function App() {
               {item.label}
             </button>
           ))}
-          {admin.member && !admin.loading && <button onClick={() => go('admin')} className={page === 'admin' ? 'active' : ''}>Administrar</button>}
+          {admin.member && !admin.loading && <button onClick={() => go('admin')} className={page === 'admin' ? 'active' : ''}>ADMINISTRAR</button>}
         </nav>
         <span className="build-tag"><span className="status-dot"/> {auth.user ? 'CONECTADO' : 'EN DESARROLLO'}</span>
       </header>
@@ -227,10 +245,7 @@ export default function App() {
               </button>
               <button className="feature arcade-feature" onClick={() => go('arcade')}>
                 <span className="feature-top"><span>02 / JUEGA</span><Arrow /></span>
-                <div className="snake-art" aria-hidden="true">
-                  <div className="pixel-snake">{Array.from({ length: 49 }, (_, i) => <span key={i} className={[9, 16, 23, 24, 25, 32].includes(i) ? 'lit' : i === 33 ? 'food' : ''}/>)}</div>
-                  <span className="snake-stamp">PRESS PLAY_</span>
-                </div>
+                <div className="snake-art cable-cover" aria-hidden="true"><img src="/arcade/cable-escape-cover.webp" alt="" width="1536" height="1024" /><span className="snake-stamp">PRESS PLAY_</span></div>
                 <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega a DANZ Snake.</small></span>
               </button>
             </section>
@@ -277,16 +292,18 @@ export default function App() {
               <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
               <div className="eyebrow">ARCADANZ / GAME 001</div>
               <h1 className="page-title">DANZ<br /><em>SNAKE.</em></h1>
-              <p className="page-lead">Tu ritmo, tus reglas. El clásico de siempre o tres laberintos para encontrar otro camino.</p>
+              <p className="page-lead">Un cable suelto, las caras del colectivo y seis laberintos. Que no te pillen.</p>
+              <img className="snake-cover" src="/arcade/cable-escape-cover.webp" alt="Un cable de sonido huye de una mano que intenta atraparlo en una sala de música" width="1536" height="1024" />
             </div>
-            <div className="game-panel">
+            <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}`}>
+              {gameScreen.active && <div className="game-screen-bar"><span>DANZ SNAKE · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={gameScreen.leave}>SALIR DEL JUEGO ↗</button></div>}
               <div className="game-modes" role="group" aria-label="Modo de Snake">
                 <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => dispatch({ type: 'mode', mode: 'classic' })}>CLÁSICO</button>
-                <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => dispatch({ type: 'mode', mode: 'maze' })}>LABERINTO <span>3 NIVELES</span></button>
+                <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => dispatch({ type: 'mode', mode: 'maze' })}>LABERINTO <span>{MAZE_STAGES.length} NIVELES</span></button>
               </div>
               {game.mode === 'maze' && <div className="maze-level-picker"><label htmlFor="maze-level">RECORRIDO</label><select id="maze-level" value={game.stage} onChange={event => dispatch({ type: 'maze-level', stage: Number(event.target.value) })}>{MAZE_STAGES.map((name, i) => <option key={name} value={i + 1}>{i + 1} · {name}</option>)}</select><span>{game.stage < MAZE_STAGES.length ? `${game.stageGoals}/5 OBJETIVOS` : 'MODO INFINITO'}</span></div>}
               <div className="game-heading"><span>PUNTOS <strong>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span>NIVEL {game.mode === 'maze' ? game.stage : gameLevel(game.score)}</span></div>
-              <div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} onPointerDown={startGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
+              <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
                 <svg className="snake-body-art" viewBox={`0 0 ${GRID} ${GRID}`} aria-hidden="true"><polyline points={game.snake.map(point => `${point.x + .5},${point.y + .5}`).join(' ')} /></svg>
                 {Array.from({ length: GRID * GRID }, (_, i) => {
                   const x = i % GRID
@@ -298,25 +315,24 @@ export default function App() {
                   const wall = game.walls.some(point => point.x === x && point.y === y)
                   const face = food ? snakeFace(collective.snake.faces, game.score) : body && !head ? snakeFace(collective.snake.faces, game.score, segment) : null
                   const artwork = head ? collective.snake.headImage : face?.image
-                  return <span key={i} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : wall ? 'cell wall' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} />}</span>
+                  return <span key={i} data-face={face?.id} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : wall ? 'cell wall' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} />}</span>
                 })}
                 {!game.running && <div className="game-overlay">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : game.levelUp ? `NIVEL ${game.stage}` : 'DANZ SNAKE'}<small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
-              </div>
+              </div></div>
               <div className="game-actions">
-                <button className="primary-btn" onClick={() => dispatch({ type: game.running ? 'pause' : 'start' })}>{game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
+                <button className="primary-btn" onClick={play}>{game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
                 <button className="outline-btn" onClick={() => dispatch({ type: 'reset' })}>REINICIAR</button>
               </div>
               <div className="game-control-options">
-                <p>Desliza sobre el tablero para girar.</p>
+                <p>Gira al deslizar, sin levantar el dedo.</p>
                 <button type="button" className="outline-btn" aria-pressed={showControls} onClick={toggleControls}>
                   {showControls ? 'OCULTAR BOTONES' : 'MOSTRAR BOTONES'} ⌘
                 </button>
               </div>
               {showControls && <div className="controls" aria-label="Controles para móvil">
-                <button aria-label="Arriba" onClick={() => dispatch({ type: 'turn', direction: 'up' })}>↑</button>
-                <div><button aria-label="Izquierda" onClick={() => dispatch({ type: 'turn', direction: 'left' })}>←</button><button aria-label="Abajo" onClick={() => dispatch({ type: 'turn', direction: 'down' })}>↓</button><button aria-label="Derecha" onClick={() => dispatch({ type: 'turn', direction: 'right' })}>→</button></div>
+                {(['up', 'left', 'down', 'right'] as Direction[]).map((direction, i) => <button key={direction} aria-label={['Arriba', 'Izquierda', 'Abajo', 'Derecha'][i]} onPointerDown={event => { event.preventDefault(); turn(direction) }} onClick={event => { if (event.detail === 0) turn(direction) }}>{['↑', '←', '↓', '→'][i]}</button>)}
               </div>}
-              <p className="game-local-note">{game.mode === 'maze' ? 'Recoge cinco objetivos para avanzar. En Circuito, sigue hasta donde llegues.' : 'La velocidad sube cada cinco objetivos.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
+              <p className="game-local-note">{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
             </div>
             <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
               <div className="idle-cover"><img src="/arcade/idle-studio-industrial.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
@@ -331,6 +347,8 @@ export default function App() {
             <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
           </section>
         )}
+
+        {page === 'danzpoints' && <section className="content inner-page points-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><div className="eyebrow">DANZ COLLECTIVE / RECOMPENSAS</div><h1 className="page-title">DANZ<br /><em>POINTS.</em></h1><Suspense fallback={<p role="status">Abriendo DANZPOINTS…</p>}><DanzPoints key={auth.user?.id??'guest'} onSignIn={()=>go('cuenta')} /></Suspense></section>}
 
         {page === 'danzin' && (
           <section className="content inner-page">

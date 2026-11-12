@@ -53,7 +53,7 @@ for (const provider of ['google', 'apple'] as const) {
     expect(emailRequests).toBe(0)
     expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBeNull()
     expect(page.url()).not.toMatch(/code=|synthetic-oauth/)
-    await expect(page.getByRole('button', { name: 'Administrar', exact: true })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'ADMINISTRAR', exact: true })).toHaveCount(0)
   })
 }
 

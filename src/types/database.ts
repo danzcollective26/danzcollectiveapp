@@ -230,6 +230,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      danz_points_summary: { Args: Record<string, never>; Returns: Json }
+      danz_points_suggest: { Args: { p_id: string; p_kind: string; p_body: string }; Returns: string }
+      danz_points_purchase: { Args: { p_event_id: string; p_code: string; p_reference: string; p_amount_cents: number }; Returns: string }
+      danz_points_admin: { Args: { p_event_id: string }; Returns: Json }
+      danz_points_void: { Args: { p_id: string }; Returns: undefined }
       danz_gallery_usage: { Args: Record<string, never>; Returns: { used_bytes: number; limit_bytes: number; photo_count: number }[] }
       danz_prepare_photo: { Args: { p_event_id: string; p_id: string; p_name: string; p_size: number; p_preview_size: number; p_mime: string; p_sha256: string }; Returns: PhotoReservation[] }
       danz_finish_photo: { Args: { p_id: string }; Returns: undefined }

@@ -16,6 +16,8 @@ export type Game = {
   over: boolean
   won: boolean
   score: number
+  steps: number
+  inputLocked: boolean
 }
 export type GameAction =
   | { type: 'mode'; mode: GameMode }
@@ -24,10 +26,11 @@ export type GameAction =
   | { type: 'pause' }
   | { type: 'reset' }
   | { type: 'turn'; direction: Direction }
+  | { type: 'input'; direction: Direction; random: number }
   // La aleatoriedad llega desde fuera: cada acción produce un estado reproducible.
   | { type: 'tick'; random: number }
 
-export const GRID = 13
+export const GRID = 19
 export function gameLevel(score: number): number {
   return Math.min(10, 1 + Math.floor(Math.max(0, score) / 50))
 }
@@ -48,31 +51,43 @@ export function saveSnakeRecord(score: number, mode: GameMode = 'classic'): numb
   try { localStorage.setItem(recordKey(mode), String(best)) } catch { /* The current game remains playable. */ }
   return best
 }
-export const MAZE_STAGES = ['Islas', 'Pasillos', 'Circuito'] as const
+export const MAZE_STAGES = ['Islas', 'Pasillos', 'Circuito', 'Puentes', 'Órbitas', 'Cruces'] as const
 const safeStage = (stage: number) => Number.isFinite(stage) ? Math.max(1, Math.min(MAZE_STAGES.length, Math.floor(stage))) : 1
 export function mazeWalls(stage: number): Point[] {
   const walls: Point[] = []
   if (safeStage(stage) === 1) {
-    for (const [left, top] of [[3, 3], [8, 8]]) for (let y = top; y < top + 2; y++) for (let x = left; x < left + 2; x++) walls.push({ x, y })
+    for (const [left, top] of [[3, 3], [GRID - 5, GRID - 5]]) for (let y = top; y < top + 2; y++) for (let x = left; x < left + 2; x++) walls.push({ x, y })
   } else if (safeStage(stage) === 2) {
-    for (const x of [3, 9]) for (let y = 2; y <= 10; y++) if (y !== 6 && y !== 9) walls.push({ x, y })
+    for (const x of [5, 13]) for (let y = 3; y <= 15; y++) if (y !== 9 && y !== 12) walls.push({ x, y })
+  } else if (safeStage(stage) === 3) {
+    for (const y of [4, 14]) for (let x = 3; x <= 15; x++) if (x !== 9) walls.push({ x, y })
+    for (const x of [3, 15]) for (let y = 5; y <= 13; y++) if (y !== 9) walls.push({ x, y })
+  } else if (safeStage(stage) === 4) {
+    for (const [i, y] of [3, 7, 11, 15].entries()) for (let x = 3; x <= 15; x++) if (x !== (i % 2 ? 13 : 5)) walls.push({ x, y })
+  } else if (safeStage(stage) === 5) {
+    for (const [low, high] of [[3, 15], [6, 12]]) {
+      for (let x = low; x <= high; x++) if (x !== 9) walls.push({ x, y: low }, { x, y: high })
+      for (let y = low + 1; y < high; y++) if (y !== 9) walls.push({ x: low, y }, { x: high, y })
+    }
   } else {
-    for (const y of [3, 9]) for (let x = 2; x <= 10; x++) if (x !== 6) walls.push({ x, y })
-    for (const x of [2, 10]) for (let y = 4; y <= 8; y++) if (y !== 6) walls.push({ x, y })
+    for (const x of [3, 7, 11, 15]) for (let y = 2; y <= 16; y++) if (![5, 9, 13].includes(y)) walls.push({ x, y })
+    for (const y of [3, 7, 11, 15]) for (let x = 2; x <= 16; x++) if (![5, 9, 13].includes(x) && !walls.some(p => p.x === x && p.y === y)) walls.push({ x, y })
   }
   return walls
 }
 export const initialGame = (mode: GameMode = 'classic', stage = 1): Game => ({
   mode, stage: mode === 'maze' ? safeStage(stage) : 1, stageGoals: 0, levelUp: false,
   walls: mode === 'maze' ? mazeWalls(stage) : [],
-  snake: [{ x: 5, y: 6 }, { x: 4, y: 6 }, { x: 3, y: 6 }],
-  food: { x: 9, y: 6 },
+  snake: [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }],
+  food: { x: 12, y: 9 },
   direction: 'right',
   queuedDirection: null,
   running: false,
   over: false,
   won: false,
   score: 0,
+  steps: 0,
+  inputLocked: false,
 })
 
 const move: Record<Direction, Point> = {
@@ -100,13 +115,19 @@ export function gameReducer(game: Game, action: GameAction): Game {
   switch (action.type) {
     case 'mode': return initialGame(action.mode)
     case 'maze-level': return initialGame('maze', action.stage)
-    case 'start': return game.over ? { ...initialGame(game.mode, game.stage), running: true } : { ...game, running: true, levelUp: false }
+    case 'start': return game.over ? { ...initialGame(game.mode, game.stage), running: true } : { ...game, running: true, levelUp: false, inputLocked: false }
     case 'pause': return { ...game, running: false }
     case 'reset': return initialGame(game.mode, game.stage)
     case 'turn':
       // Un único giro entre movimientos evita right → up → left en el mismo tick.
       if (game.over || game.queuedDirection || action.direction === game.direction || action.direction === opposite[game.direction]) return game
       return { ...game, queuedDirection: action.direction }
+    case 'input': {
+      const turned = gameReducer(game, { type: 'turn', direction: action.direction })
+      if (turned === game || !game.running || game.inputLocked) return turned
+      const moved = gameReducer(turned, { type: 'tick', random: action.random })
+      return { ...moved, inputLocked: moved.running }
+    }
     case 'tick': {
       if (!game.running || game.over) return game
       const direction = game.queuedDirection ?? game.direction
@@ -117,7 +138,7 @@ export function gameReducer(game: Game, action: GameAction): Game {
       const body = eating ? game.snake : game.snake.slice(0, -1)
       const collided = next.x < 0 || next.x >= GRID || next.y < 0 || next.y >= GRID ||
         body.some((p) => p.x === next.x && p.y === next.y) || game.walls.some(p => p.x === next.x && p.y === next.y)
-      if (collided) return { ...game, direction, queuedDirection: null, running: false, over: true }
+      if (collided) return { ...game, direction, queuedDirection: null, inputLocked: false, running: false, over: true }
       const snake = [next, ...game.snake.slice(0, eating ? undefined : -1)]
       const score = game.score + (eating ? 10 : 0)
       const stageGoals = game.stageGoals + (eating ? 1 : 0)
@@ -128,7 +149,7 @@ export function gameReducer(game: Game, action: GameAction): Game {
       }
       const won = snake.length === GRID * GRID - game.walls.length
       return {
-        ...game, snake, direction, queuedDirection: null,
+        ...game, snake, direction, queuedDirection: null, inputLocked: false, steps: game.steps + 1,
         food: won ? null : eating ? nextFood(snake, action.random, game.walls) : game.food,
         score, stageGoals,
         running: !won, over: won, won,
@@ -139,6 +160,6 @@ export function gameReducer(game: Game, action: GameAction): Game {
 
 /** Un gesto breve no cuenta como dirección y no interfiere al pulsar el tablero. */
 export function swipeDirection(dx: number, dy: number): Direction | null {
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return null
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 12) return null
   return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
 }
