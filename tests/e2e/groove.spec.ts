@@ -4,9 +4,10 @@ test.use({ hasTouch: true })
 async function openGroove(page: Page) {
   await page.addInitScript(() => { Element.prototype.requestFullscreen = () => Promise.reject(new DOMException('Unsupported', 'NotSupportedError')) })
   await page.clock.install({ time: new Date('2026-11-12T15:00:00Z') })
-  await page.clock.pauseAt(new Date('2026-11-12T15:00:01Z'))
   await page.goto('/?seccion=arcade&juego=groove-ninja')
   await expect(page.getByRole('heading', { name: 'GROOVE NINJA.', exact: true })).toBeVisible()
+  // React's lazy boundary must finish before freezing timers for input checks.
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000))
   await page.getByRole('button', { name: 'SONIDO ON', exact: true }).click()
 }
 async function start(page: Page) {
@@ -58,6 +59,7 @@ test('pause, tab hiding and exit freeze play; local record and sound choice surv
   await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
   await expect(page.locator('.gn-panel')).not.toHaveClass(/gn-immersive/)
   expect(await page.locator('body').evaluate(el => el.style.overflow)).not.toBe('hidden')
+  await page.clock.resume()
   await page.reload()
   await expect(page.getByRole('button', { name: 'SONIDO OFF', exact: true })).toBeVisible()
   await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 100')

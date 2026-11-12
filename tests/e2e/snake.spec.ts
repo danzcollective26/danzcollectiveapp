@@ -175,7 +175,7 @@ test('GROOVE NINJA conserva su portada y ofrece su primera sesión de práctica'
  await expect(card.getByRole('heading',{name:'GROOVE NINJA.',exact:true})).toBeVisible()
  await expect(card.locator('figcaption')).toContainText('GROOVE')
  await expect.poll(()=>card.getByRole('img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
- await expect(card.getByRole('button',{name:'ABRIR GROOVE NINJA ↗',exact:true})).toBeEnabled()
+ await expect(card.getByRole('button',{name:'ABRIR GROOVE NINJA',exact:true})).toBeEnabled()
  await expect(card).toContainText('sonido de ensayo')
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })
