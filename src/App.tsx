@@ -12,6 +12,7 @@ const AdminPanel = lazy(() => import('./admin/AdminPanel'))
 const Account = lazy(() => import('./auth/Account'))
 const PhotoGallery = lazy(() => import('./PhotoGallery'))
 const PrivateGallery = lazy(() => import('./cloud/PrivateGallery'))
+const DanzShop = lazy(() => import('./shop/DanzShop'))
 import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
 import { parseCollective, snakeFace } from './content/collective'
@@ -171,6 +172,7 @@ export default function App() {
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
     const url = new URL(window.location.href)
     url.searchParams.delete('panel')
+    if (destination !== 'danzflor') url.searchParams.delete('producto')
     if (destination !== 'admin' && destination !== 'fotos') url.searchParams.delete('album')
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
@@ -338,12 +340,12 @@ export default function App() {
         )}
 
         {page === 'danzflor' && (
-          <section className="content inner-page">
+          <section className="content inner-page shop-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
             <div className="eyebrow">DANZ COLLECTIVE / CLOTHING</div>
             <h1 className="page-title">DANZ<br /><em>FLOR.</em></h1>
-            <p className="page-lead">La ropa del colectivo. Estamos preparando el catálogo y las futuras colecciones de DANZ.</p>
-            {collective.websiteUrl && <a className="primary-btn external-btn" href={collective.websiteUrl} target="_blank" rel="noreferrer noopener">VISITAR LA WEB OFICIAL <Arrow /></a>}
+            <p className="page-lead">La ropa del colectivo. Diseñada para la música, hecha para llevarla contigo.</p>
+            <Suspense fallback={<p role="status">Abriendo DANZFLOR…</p>}><DanzShop /></Suspense>
           </section>
         )}
       </main>

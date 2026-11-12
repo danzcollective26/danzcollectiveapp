@@ -16,7 +16,7 @@ def run(args,**kw):
     print('Running '+str(args[0]).split('/')[-1],flush=True)
     subprocess.run([str(a) for a in args],check=True,**kw)
 run([tools/'aapt2','compile','--dir',app/'res','-o',root/'res/resources.zip'])
-run([tools/'aapt2','link','-o',root/'base.apk','-I',android,'--manifest',root/'AndroidManifest.xml','--min-sdk-version','29','--target-sdk-version','36','--version-code','2','--version-name','0.2.0-pilot','--java',root/'generated',root/'res/resources.zip'])
+run([tools/'aapt2','link','-o',root/'base.apk','-I',android,'--manifest',root/'AndroidManifest.xml','--min-sdk-version','29','--target-sdk-version','36','--version-code','3','--version-name','0.3.0-pilot','--java',root/'generated',root/'res/resources.zip'])
 sources=[*app.glob('java/**/*.java'),* (root/'generated').glob('**/*.java')]
 run(['java','com.sun.tools.javac.Main','-source','8','-target','8','-bootclasspath',str(tools/'core-lambda-stubs.jar')+os.pathsep+str(android),'-classpath',android,'-d',root/'classes',*sources])
 classes=list((root/'classes').rglob('*.class'))

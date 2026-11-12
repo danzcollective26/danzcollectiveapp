@@ -1,0 +1,46 @@
+{
+  "retrievedAt": "2026-11-11T23:30:02.294972+00:00",
+  "method": "Public Shopify Ajax Product API; manual snapshot, no runtime or admin connection.",
+  "products": [
+    {
+      "url": "https://danzcollective.com/products/club-house-tee.js",
+      "images": [
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/danz_cocktails_-_Artboard_21-5.png?v=1775758097",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/danz_cocktails_-_Artboard_21-4.png?v=1775758097",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/DSC02505.jpg?v=1779441079"
+      ]
+    },
+    {
+      "url": "https://danzcollective.com/products/disco-culture-tee.js",
+      "images": [
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/danz_cocktails_-_Artboard_21.png?v=1775758187",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/danz_cocktails_-_Artboard_21-2.png?v=1775758187",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/DSC03202.jpg?v=1779440786"
+      ]
+    },
+    {
+      "url": "https://danzcollective.com/products/tracks-cocktails-tee.js",
+      "images": [
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/danz_cocktails_-_Artboard_21-7.png?v=1775758157",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/danz_cocktails_-_Artboard_21-6.png?v=1775758157",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/DSC03962-Mejorado-NR.jpg?v=1779477781"
+      ]
+    },
+    {
+      "url": "https://danzcollective.com/products/swim-short.js",
+      "images": [
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/Retro_Elegant_Travelling_Magazine_Cover_-_illustrationImage-2.png?v=1779450401",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/Retro_Elegant_Travelling_Magazine_Cover_-_illustrationImage-3.png?v=1779450429",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/DSC02340-Mejorado-NR_92105661-5fa3-4412-822f-dc623f4521aa.jpg?v=1779457668"
+      ]
+    },
+    {
+      "url": "https://danzcollective.com/products/yepo-bag.js",
+      "images": [
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/GRAFICAS_TRACKS_AND_COCKTAILS_-_New_Group-7.png?v=1779559241",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/GRAFICAS_TRACKS_AND_COCKTAILS_-_New_Group-6.png?v=1779559304",
+        "//cdn.shopify.com/s/files/1/0991/7910/2555/files/DSC03473.jpg?v=1779441604"
+      ]
+    }
+  ]
+}

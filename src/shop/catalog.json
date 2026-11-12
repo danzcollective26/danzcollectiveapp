@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "syncedAt": "2026-11-11T23:30:02.294972+00:00",
+  "storeUrl": "https://danzcollective.com",
+  "collectionUrl": "https://danzcollective.com/pages/danzflor",
+  "collectionName": "Tracks & Cocktails",
+  "currency": "EUR",
+  "products": [
+    {
+      "handle": "club-house-tee",
+      "title": "Club House Tee",
+      "category": "Camisetas",
+      "summary": "Camiseta gris de algodón orgánico de 240 g/m², estampada en el estudio.",
+      "images": [
+        "/shop/club-house-tee-1-a08f13a1d3a6.webp",
+        "/shop/club-house-tee-2-ed86789d72ee.webp",
+        "/shop/club-house-tee-3-59127b8adce9.webp"
+      ],
+      "variants": [
+        {
+          "id": "52782613692763",
+          "title": "S",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782613725531",
+          "title": "M",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782613758299",
+          "title": "L",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782613791067",
+          "title": "XL",
+          "price": 3800,
+          "available": true
+        }
+      ]
+    },
+    {
+      "handle": "disco-culture-tee",
+      "title": "Disco Culture Tee",
+      "category": "Camisetas",
+      "summary": "Camiseta en blanco crema, de algodón orgánico de 240 g/m². Estampada en el estudio.",
+      "images": [
+        "/shop/disco-culture-tee-1-891fa3f30f26.webp",
+        "/shop/disco-culture-tee-2-28eb40a60d4c.webp",
+        "/shop/disco-culture-tee-3-d3dce93fbaac.webp"
+      ],
+      "variants": [
+        {
+          "id": "52782614806875",
+          "title": "XL",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782614839643",
+          "title": "L",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782614872411",
+          "title": "M",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782614905179",
+          "title": "S",
+          "price": 3800,
+          "available": true
+        }
+      ]
+    },
+    {
+      "handle": "tracks-cocktails-tee",
+      "title": "Tracks & Cocktails Tee",
+      "category": "Camisetas",
+      "summary": "Camiseta blanca de algodón orgánico de 240 g/m², estampada en el estudio.",
+      "images": [
+        "/shop/tracks-cocktails-tee-1-278b3af10a4b.webp",
+        "/shop/tracks-cocktails-tee-2-f045df45f516.webp",
+        "/shop/tracks-cocktails-tee-3-b6d9b879b280.webp"
+      ],
+      "variants": [
+        {
+          "id": "52782610186587",
+          "title": "S",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782610219355",
+          "title": "M",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782610252123",
+          "title": "L",
+          "price": 3800,
+          "available": true
+        },
+        {
+          "id": "52782610284891",
+          "title": "XL",
+          "price": 3800,
+          "available": true
+        }
+      ]
+    },
+    {
+      "handle": "swim-short",
+      "title": "YEPO SWIM SHORT",
+      "category": "Baño",
+      "summary": "Bañador de poliéster reciclado con estampado de la colección y forro de malla.",
+      "images": [
+        "/shop/swim-short-1-079848de2c4f.webp",
+        "/shop/swim-short-2-57dce4ff9b2b.webp",
+        "/shop/swim-short-3-51d0c1c4cc19.webp"
+      ],
+      "variants": [
+        {
+          "id": "52782619656539",
+          "title": "S",
+          "price": 4000,
+          "available": true
+        },
+        {
+          "id": "52782619689307",
+          "title": "M",
+          "price": 4000,
+          "available": true
+        },
+        {
+          "id": "52782619722075",
+          "title": "L",
+          "price": 4000,
+          "available": true
+        },
+        {
+          "id": "52782619754843",
+          "title": "XL",
+          "price": 4000,
+          "available": true
+        }
+      ]
+    },
+    {
+      "handle": "yepo-bag",
+      "title": "Yepo Bag",
+      "category": "Accesorios",
+      "summary": "Bolsa con cremallera de algodón orgánico de 280 g/m². Medidas publicadas: 40 × 35 cm.",
+      "images": [
+        "/shop/yepo-bag-1-9eba12d1a797.webp",
+        "/shop/yepo-bag-2-d381b950a990.webp",
+        "/shop/yepo-bag-3-0cce985e15ef.webp"
+      ],
+      "variants": [
+        {
+          "id": "52781398393179",
+          "title": "Única",
+          "price": 1400,
+          "available": false
+        }
+      ]
+    }
+  ]
+}

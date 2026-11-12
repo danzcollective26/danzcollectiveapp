@@ -12,6 +12,10 @@ Complemento piloto para Android 10 o posterior. La PWA conserva las cuentas, los
 
 La versión 0.2 (código 2) conserva el mismo paquete, firma y protocolo que la 0.1, para actualizar sobre la instalación existente. No recomprime, no cambia EXIF, no escribe fechas/dimensiones de solo lectura en MediaStore y no cambia orientación ni resolución. Una escritura verificada y la aparición en una galería concreta son estados distintos; si el índice tarda, la app lo explica y permite abrir el archivo igualmente.
 
+La versión 0.3 (código 3) corrige el icono de inicio: flor negra sobre fondo blanco opaco, con margen para el recorte del lanzador. Conserva paquete, firma y lógica de guardado de la 0.2. El propietario confirmó el 12/11/2026 que la galería y las descargas de la 0.2 funcionan en su teléfono. La nueva apariencia de la 0.3 aún debe actualizarse en ese dispositivo.
+
+La instalación principal sigue siendo la PWA mediante **INSTALAR DANZ**. Este complemento Android es opcional y no sustituye ese botón. La página de descarga ya entregada (`/android/danz-fotos-0.2`) conserva su URL y ofrece la actualización 0.3; el APK 0.2 se conserva como versión anterior.
+
 «Descargar JPG» y «Guardar como archivo» siguen disponibles para elegir otros destinos. Guardar en la galería del dispositivo no equivale a subir la foto a Google Fotos ni activa la copia de seguridad de ese servicio.
 
 ## Stories
@@ -38,6 +42,6 @@ El APK `app/build/outputs/apk/debug/app-debug.apk` o `.pilot-build/DANZ-Fotos-An
 - `PhotoRequestTest`: origen HTTPS/bucket fijo, límites de tamaño, parámetros repetidos y checksum.
 - La red rechaza redirecciones, cuerpos vacíos/parciales, MIME incorrecto, bytes distintos o exceso de tamaño.
 - La publicación en la galería se hace después de comprobar la escritura. El contenido no se recomprime.
-- Pendiente de prueba física: carpeta visible en el Android del propietario, abrir desde otra aplicación, retorno a Chrome/PWA y recepción en Stories.
+- Confirmación del propietario (12/11/2026): galería visible y descargas operativas con la 0.2. La prueba física del nuevo icono 0.3 y la ruta específica de Stories siguen pendientes.
 
 Referencias: [MediaStore](https://developer.android.com/training/data-storage/shared/media), [Intents desde Chrome](https://developer.chrome.com/docs/android/intents), [AGP 8.13](https://developer.android.com/build/releases/agp-8-13-0-release-notes).

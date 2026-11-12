@@ -13,14 +13,17 @@ def flower(canvas, box, colour="#f3f0e8"):
     circle(50,50,19.2,fill=colour)
 
 for name, size in [("danz-180", 180), ("danz-192", 192), ("danz-512", 512), ("danz-maskable-512", 512)]:
-    canvas = Image.new("RGB", (size * 3, size * 3), "#101011")
+    canvas = Image.new("RGB", (size * 3, size * 3), "#ffffff")
     # The full mark fits inside the maskable safe circle.
-    flower(canvas, (size*.42, size*.42, size*2.16))
+    flower(canvas, (size*.42, size*.42, size*2.16), colour="#000000")
     exported = canvas.resize((size, size), Image.Resampling.LANCZOS)
     exported.save(target / f"{name}.png", optimize=True)
     exported.save(target / f"{name.replace('danz-', 'danz-flower-')}.png", optimize=True)
+    # A new URL lets launchers detect the corrected icon; retain older aliases.
+    exported.save(target / f"{name.replace('danz-', 'danz-flower-black-')}.png", optimize=True)
 
 head = Image.new("RGBA", (768,768))
+# Snake keeps the light flower used on its dark game board.
 flower(head,(0,0,768))
 head_target=target.parent/'arcade'/'brand'
 head_target.mkdir(parents=True,exist_ok=True)

@@ -35,7 +35,7 @@ public final class MainActivity extends Activity {
         layout.setFitsSystemWindows(true);
         ImageView flower = new ImageView(this); flower.setImageResource(R.drawable.ic_danz);
         layout.addView(flower, new LinearLayout.LayoutParams(dp(80), dp(80)));
-        TextView title = new TextView(this); title.setText("DANZ FOTOS · 0.2"); title.setTextSize(28); title.setTextColor(Color.WHITE); title.setPadding(0,dp(26),0,dp(20));
+        TextView title = new TextView(this); title.setText("DANZ FOTOS · 0.3"); title.setTextSize(28); title.setTextColor(Color.WHITE); title.setPadding(0,dp(26),0,dp(20));
         layout.addView(title);
         status = new TextView(this); status.setTextColor(Color.rgb(200,200,200)); status.setTextSize(17); status.setLineSpacing(dp(5),1);
         layout.addView(status, new LinearLayout.LayoutParams(-1,-2));
