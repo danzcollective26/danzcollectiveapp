@@ -126,7 +126,12 @@ test('cara original como objetivo y como segmento después de recogerla', async 
   const image = page.locator('.cell.apple img')
   await expect(image).toHaveAttribute('src', '/arcade/faces/face-01.webp')
   await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
-  await page.clock.runFor(600)
+  // The next timeout is scheduled by React after each rendered movement.
+  // Settle each frame instead of advancing past effects that have not run yet.
+  for (let step=1;step<=4;step++) {
+    await page.clock.runFor(150)
+    await expect.poll(()=>headIndex(page)).toBe(index(spawn.x+step,spawn.y))
+  }
   await expect(page.locator('.cell.snake[data-face="face-01"] img')).toHaveCount(1)
   await expect(page.locator('.cell.apple img')).toHaveAttribute('src', '/arcade/faces/face-02.webp')
 })
