@@ -9,6 +9,9 @@ test('a fast swipe intersects the whole segment, awards once and advances a stre
   assert.equal(next.hits, 1); assert.equal(next.score, 100); assert.equal(next.combo, 1)
   assert.equal(cutGroove(next, { x: p.x - 100, y: p.y }, { x: p.x + 100, y: p.y }).score, 100)
   assert.equal(state.score, 0); assert.equal(state.discs.length, 1)
+  assert.equal(next.sparks[0].angle, 0)
+  assert.deepEqual(next.sparks[0].velocity, { x: disc.drift, y: -disc.launch + 570 * (state.elapsed - disc.born) / 1000 })
+  assert.equal(next.sparks[0].rotation, (state.elapsed - disc.born) * .035 + disc.spin * 40)
   assert.equal(segmentDistance({ x: 40, y: 12 }, { x: 0, y: 0 }, { x: 100, y: 0 }), 12)
 })
 test('keyboard cuts share hit validation; a tap or invalid coordinates cannot score', () => {

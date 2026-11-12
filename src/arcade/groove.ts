@@ -6,7 +6,7 @@ export type GrooveMode = 'cut' | 'scratch'
 export type GroovePoint = { x: number; y: number }
 export type GrooveDisc = { id: number; kind: 'vinyl' | 'feedback'; layer: number; born: number; x: number; drift: number; launch: number; spin: number }
 export type GrooveScratch = { id: number; until: number; turns: number; direction: number; anchor: number | null }
-export type GrooveSpark = { id: number; x: number; y: number; color: string; born: number; label: string; layer?: number; angle?: number }
+export type GrooveSpark = { id: number; x: number; y: number; color: string; born: number; label: string; layer?: number; angle?: number; rotation?: number; velocity?: GroovePoint }
 export type GrooveState = {
   status: 'ready' | 'playing' | 'paused' | 'over' | 'complete'; mode: GrooveMode; elapsed: number; score: number; combo: number; bestCombo: number;
   lives: number; hits: number; misses: number; scratches: number; nextScratchAt: number; discs: GrooveDisc[];
@@ -110,7 +110,11 @@ export function cutGroove(previous: GrooveState, from: GroovePoint, to: GroovePo
     else {
       const points = reward(state, 100); state.hits++; state.message = caught.length > 1 ? '¡VARIOS VINILOS DE UNA PASADA!' : 'CORTE LIMPIO. MANTÉN LA RACHA.'
       spark(state, position, GROOVE_COLORS[disc.layer], `+${points}`)
-      Object.assign(state.sparks.at(-1)!, { layer: disc.layer, angle: Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI })
+      Object.assign(state.sparks.at(-1)!, {
+        layer: disc.layer, angle: Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI,
+        rotation: (state.elapsed - disc.born) * .035 + disc.spin * 40,
+        velocity: { x: disc.drift, y: -disc.launch + 570 * (state.elapsed - disc.born) / 1000 },
+      })
     }
     if (state.status !== 'playing') break
   }

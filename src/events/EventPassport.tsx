@@ -5,6 +5,7 @@ import { clearPendingPass, normalizeEventCode, readPendingPass, savePendingPass 
 import type { PassRedemption } from './usePendingPassRedemption'
 import DanzFlower from '../content/DanzFlower'
 import PassArrivalGuide from './PassArrivalGuide'
+import { readWithDeadline } from '../cloud/readWithDeadline'
 import './EventPassport.css'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
@@ -46,7 +47,7 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
     setPassport({ owner: userId, items: [], loading: true, error: false })
     void (async () => {
       try {
-        const { data, error } = await client.rpc('danz_my_passport').abortSignal(abort.signal)
+        const { data, error } = await readWithDeadline(signal => client.rpc('danz_my_passport').abortSignal(signal), abort.signal)
         if (error) throw error
         if (current) setPassport({ owner: userId, items: data ?? [], loading: false, error: false })
       } catch {

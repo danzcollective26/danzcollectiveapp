@@ -44,6 +44,39 @@ async function installMultiplePhotos(page: Page) {
   await page.route(`${supabaseHost}/rest/v1/danz_photos**`, route => route.fulfill({ json: Array.from({ length: 3 }, (_, index) => ({ id: `photo-${index}`, storage_path: `${EVENT_A}/photo-${index}.png` })) }))
 }
 
+for (const step of ['events', 'photos', 'signing'] as const) {
+  test(`a stalled ${step} read offers a retry and ignores its late response`, async ({ page }) => {
+    await page.clock.install({ time: new Date() })
+    await installGallery(page)
+    const endpoint = step === 'events' ? `${supabaseHost}/rest/v1/danz_events**`
+      : step === 'photos' ? `${supabaseHost}/rest/v1/danz_photos**`
+      : `${supabaseHost}/storage/v1/object/sign/danz-event-photos`
+    let release!: () => void
+    const stalled = new Promise<void>(resolve => { release = resolve })
+    let requests = 0
+    await page.route(endpoint, async route => {
+      requests++
+      if (requests === 1) {
+        await stalled
+        await route.fulfill({ json: [] }).catch(() => {})
+      } else await route.fallback()
+    })
+    await openPrivateGallery(page)
+    await expect.poll(() => requests).toBe(1)
+    await expect(page.getByText(step === 'events' ? 'Cargando tus galerías…' : 'Cargando fotografías…', { exact: true })).toBeVisible()
+    await page.clock.fastForward(12_001)
+    const retry = page.getByRole('button', { name: 'VOLVER A INTENTAR', exact: true })
+    await expect(retry).toBeEnabled()
+    await expect(page.getByRole('button', { name: /^Abrir foto privada/ })).toHaveCount(0)
+    await retry.click()
+    const photo = page.getByRole('button', { name: 'Abrir foto privada 1', exact: true })
+    await expect(photo).toBeVisible()
+    release()
+    await expect(photo).toBeVisible()
+    await expect(photo.locator('img')).toHaveAttribute('src', /first-private.png/)
+  })
+}
+
 async function touchPhoto(page: Page, dx = 0, dy = 0) {
   const stage = page.locator('.private-gallery-viewer-stage')
   const box = (await stage.boundingBox())!

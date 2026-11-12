@@ -17,6 +17,16 @@ Puntuación y récord local separados por modo. Al perder: **PARTY OVER**. Al ll
 
 Práctica sin registro, sin DANZPOINTS ni clasificación oficial nueva. La competición y verificación del Snake se conservan. ARCADANZ añade accesos para elegir juego. Enlace: `?seccion=arcade&juego=groove-ninja`. Atrás/adelante respeta el juego seleccionado; Snake se pausa, conserva su modo y no recibe las teclas de Groove Ninja. Volver a otra sección retira el parámetro de juego.
 
+## Acabado visual — referencia Fruit Ninja aportada por el propietario
+
+El propietario aportó un ejemplo HTML/Canvas y pidió acercar los gráficos a Fruit Ninja. Se adapta esa dirección al juego existente: cabina de madera con vetas, herrajes dorados y platos; vinilos con relieve, surcos y reflejos; marcador con un disco de etiqueta dorada que gira durante la partida y se detiene al pausar.
+
+El corte conserva la dirección del gesto y la rotación y velocidad del vinilo. Sus dos mitades continúan el movimiento, se separan, giran y caen; la estela blanca/cian, las chispas y las notas musicales refuerzan el impacto. Los acoples se representan como altavoces sobrecargados. No se añade otra mecánica ni se altera la puntuación.
+
+Se mantiene SVG dentro de React, con física en tiempo transcurrido y Pointer Events para ratón, lápiz y táctil. No se copia el bucle Canvas incompleto ni sus errores de `touches`; se conservan los cortes por segmento completo, la pausa, el cierre de audio y los dos modos. Los efectos decorativos y el giro del marcador se desactivan con reduced-motion. Sin dependencias, fuentes remotas o pagos nuevos.
+
+Esta entrega aplica la nueva dirección visual a GROOVE NINJA. El plataformas que el propietario está creando en Grok conserva la instrucción de no rediseñarlo.
+
 ## En pausa — Reconstruye el tema
 
 La idea de reconstruir lanzamientos por capas queda aparcada hasta que el usuario entregue los stems. No fingirla con temas inventados ni presentarla como disponible. Las bromas, artistas, música y enlaces se concretarán con él. SoundCloud puede enlazar un lanzamiento; un enlace no equivale a tener pistas separadas para manipularlas. No se han conectado ni publicado temas reales.

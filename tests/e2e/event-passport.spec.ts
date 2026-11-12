@@ -11,6 +11,32 @@ const openPassport = async (page: import('@playwright/test').Page) => {
   await page.getByRole('button', { name: 'DANZERS', exact: true }).click()
 }
 
+test('a stalled passport load enables retry without accepting the old response', async ({ page }) => {
+  await page.clock.install({ time: new Date() })
+  await installMockSession(page)
+  let release!: () => void
+  const stalled = new Promise<void>(resolve => { release = resolve })
+  let requests = 0
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, async route => {
+    requests++
+    if (requests === 1) {
+      await stalled
+      await route.fulfill({ json: [] }).catch(() => {})
+    } else await route.fulfill({ json: [stamp(EA, 'Sello conservado')] })
+  })
+  await openPassport(page)
+  await expect.poll(() => requests).toBe(1)
+  await expect(page.getByText('Cargando tu pasaporte…', { exact: true })).toBeVisible()
+  await page.clock.fastForward(12_001)
+  await expect(page.getByText('No hemos podido cargar tus sellos.', { exact: false })).toBeVisible()
+  const retry = page.getByRole('button', { name: 'ACTUALIZAR SELLOS', exact: true })
+  await expect(retry).toBeEnabled()
+  await retry.click()
+  await expect(page.getByRole('heading', { name: 'Sello conservado', exact: true })).toBeVisible()
+  release()
+  await expect(page.getByRole('heading', { name: 'Mis sellos (1)', exact: true })).toBeVisible()
+})
+
 test('the passport has a primary tab, a reloadable link and only the account stamps', async ({ page }) => {
   await installMockSession(page)
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: [stamp(EA, 'Fiesta de prueba'), stamp(EB, 'Recuerdo archivado', 'archived')] }))

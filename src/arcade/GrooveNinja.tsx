@@ -6,13 +6,16 @@ import './groove.css'
 
 function Vinyl({ layer, radius = 56 }: { layer: number; radius?: number }) {
   return <g transform={`scale(${radius / 56})`}>
-    <circle r="56" fill="url(#gn-disc)" stroke="#474752" strokeWidth="2"/>
-    {[29, 35, 39, 43, 47, 51].map(radius => <circle key={radius} r={radius} fill="none" stroke="#72727c" strokeOpacity=".24" strokeWidth="1"/>)}
-    <path d="M-46-12A48 48 0 0 1 13-46L8-27A28 28 0 0 0-27-7Z" fill="#fff" opacity=".12"/>
-    <path d="M46 12A48 48 0 0 1-13 46L-8 27A28 28 0 0 0 27 7Z" fill="#fff" opacity=".07"/>
-    <circle r="25" fill={GROOVE_COLORS[layer]}/><circle r="17" fill="#16151d"/>
-    <image href="/brand/danz-flower.svg" x="-12" y="-12" width="24" height="24"/>
-    <circle r="2.5" fill="#f3f0e8"/>
+    <circle cy="3" r="57" fill="#030303" stroke="#000" strokeWidth="2"/>
+    <circle r="56" fill="url(#gn-disc)" stroke="#77776c" strokeWidth="1.5"/>
+    {Array.from({ length: 12 }, (_, i) => <circle key={i} r={29 + i * 2.1} fill="none" stroke={i % 3 ? '#99999a' : '#dedaca'} strokeOpacity={i % 3 ? '.2' : '.32'} strokeWidth=".65"/>)}
+    <path d="M-52-18A55 55 0 0 1 30-46L15-24A28 28 0 0 0-27-9Z" fill="url(#gn-reflection)"/>
+    <path d="M52 18A55 55 0 0 1-30 46L-15 24A28 28 0 0 0 27 9Z" fill="#b7c9d2" opacity=".14"/>
+    <circle r="26" fill={GROOVE_COLORS[layer]} stroke="#fff2c0" strokeOpacity=".7"/>
+    <circle r="23" fill="url(#gn-label)"/><circle r="19" fill="none" stroke="#1b1814" strokeOpacity=".45" strokeWidth=".7"/>
+    <path d="M-14-14A20 20 0 0 1 14-14M-14 14A20 20 0 0 0 14 14" fill="none" stroke="#211913" strokeWidth="1.5"/>
+    <circle r="13" fill="#1a1718"/><image href="/brand/danz-flower.svg" x="-9" y="-9" width="18" height="18"/>
+    <circle r="2.6" fill="#d5be91" stroke="#080808" strokeWidth="1"/>
   </g>
 }
 const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
@@ -159,39 +162,48 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
     <div ref={screen.panel} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status}>
       <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={screen.leave} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
-        <span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span>
+        <span className="gn-score"><i className="gn-hud-vinyl" aria-hidden="true"/><span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span></span>
         <span>COMBO<strong className="gn-combo">×{grooveMultiplier(game.combo)} <small>{game.combo} SEGUIDOS</small></strong></span>
         <span>TIEMPO<strong>{String(Math.ceil((GROOVE_DURATION - game.elapsed) / 1000)).padStart(2, '0')}<small>s</small></strong></span>
       </div>
       <div className="gn-play-area">
         <svg ref={board} className="gn-board" viewBox="0 0 640 760" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()}>
           <defs>
-            <radialGradient id="gn-disc" cx="35%" cy="25%"><stop stopColor="#414149"/><stop offset=".5" stopColor="#19191e"/><stop offset="1" stopColor="#08080b"/></radialGradient>
-            <linearGradient id="gn-floor" x2="0" y2="1"><stop stopColor="#20152f"/><stop offset="1" stopColor="#0c0b11"/></linearGradient>
-            <linearGradient id="gn-slash"><stop stopColor="#fff" stopOpacity="0"/><stop offset=".5" stopColor="#f6f2ff"/><stop offset="1" stopColor="#ff789f"/></linearGradient>
+            <radialGradient id="gn-disc" cx="32%" cy="22%" r="80%"><stop stopColor="#505258"/><stop offset=".3" stopColor="#1b1c21"/><stop offset=".66" stopColor="#303137"/><stop offset="1" stopColor="#050607"/></radialGradient>
+            <linearGradient id="gn-reflection" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f7f0d7" stopOpacity=".6"/><stop offset=".48" stopColor="#e2f2ff" stopOpacity=".08"/><stop offset="1" stopColor="#b5c9d3" stopOpacity=".3"/></linearGradient>
+            <linearGradient id="gn-label" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fff2b0" stopOpacity=".7"/><stop offset=".5" stopColor="#fff" stopOpacity="0"/><stop offset="1" stopColor="#30200c" stopOpacity=".4"/></linearGradient>
+            <linearGradient id="gn-floor" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#452615"/><stop offset=".47" stopColor="#73452b"/><stop offset="1" stopColor="#24150f"/></linearGradient>
+            <radialGradient id="gn-light"><stop stopColor="#f4b650" stopOpacity=".18"/><stop offset="1" stopColor="#130a05" stopOpacity=".6"/></radialGradient>
+            <linearGradient id="gn-metal" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#68655b"/><stop offset=".1" stopColor="#373932"/><stop offset=".18" stopColor="#181a18"/><stop offset="1" stopColor="#070b0a"/></linearGradient>
+            <linearGradient id="gn-brass"><stop stopColor="#745022"/><stop offset=".3" stopColor="#f9d992"/><stop offset=".55" stopColor="#b07a30"/><stop offset=".8" stopColor="#efd29a"/><stop offset="1" stopColor="#6c461d"/></linearGradient>
+            <linearGradient id="gn-slash"><stop stopColor="#a7faff" stopOpacity="0"/><stop offset=".5" stopColor="#fff"/><stop offset="1" stopColor="#87f3ff"/></linearGradient>
+            <pattern id="gn-grain" width="160" height="145" patternUnits="userSpaceOnUse"><path d="M0 1H160M0 144H160" stroke="#140b06" strokeWidth="4"/><path d="M0 5H160" stroke="#e1b27f" strokeOpacity=".17"/>{[18, 34, 63, 89, 114, 132].map((y, i) => <path key={y} d={`M-20 ${y}Q35 ${y - 12 - i} 85 ${y + 3}T180 ${y - 4}`} fill="none" stroke={i % 2 ? '#e4b781' : '#1c0d08'} strokeWidth={i % 2 ? '.7' : '1.3'} opacity=".2"/>)}<ellipse cx="93" cy="65" rx="28" ry="4" fill="none" stroke="#1a0c07" strokeOpacity=".22"/><path d="M20 5v135M22 5v135" stroke="#1d100a" strokeOpacity=".14"/></pattern>
             <filter id="gn-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
             <clipPath id="gn-half-a"><rect x="-60" y="-60" width="120" height="60"/></clipPath>
             <clipPath id="gn-half-b"><rect x="-60" y="0" width="120" height="60"/></clipPath>
           </defs>
           <rect width="640" height="760" fill="url(#gn-floor)"/>
-          <g opacity=".1" stroke="#ba9efa">{Array.from({ length: 13 }, (_, i) => <path key={`v${i}`} d={`M${i * 80 - 160} 760L${240 + i * 14} 220`}/>)}{[340, 410, 500, 620, 750].map(y => <path key={y} d={`M0 ${y}H640`}/>)}</g>
-          <path d="M0 0H640V150L0 320Z" fill="#ff789f" opacity=".035"/>
-          <path d="M640 0H590L0 500V400Z" fill="#d9ff6b" opacity=".035"/>
-          <text x="32" y="48" fill="#d3c5dd" fontSize="15" letterSpacing="3">{STAGES[stage - 1]}</text>
-          <text x="608" y="48" textAnchor="end" fill="#d9ff6b" fontSize="16">0{stage} / 03</text>
-          <path d="M32 66H608" stroke="#44354d" strokeWidth="3"/><path d={`M32 66H${32 + progress * 5.76}`} stroke="#ff789f" strokeWidth="3"/>
-          <g transform="translate(0 665)" opacity=".8">
-            <path d="M0 0Q320-50 640 0V95H0Z" fill="#17131e" stroke="#49384f"/>
-            {[112, 528].map(x => <g key={x} transform={`translate(${x} 44)`}><circle r="68" fill="#08080d" stroke="#54475c"/><circle r="49" fill="none" stroke="#302438"/><circle r="20" fill="#282030" stroke="#7c5a7f"/><circle r="5" fill="#ff789f"/></g>)}
-            {[268, 294, 320, 346, 372].map((x, i) => <g key={x}><path d={`M${x} 0v54`} stroke="#4b3f53" strokeWidth="3"/><path d={`M${x - 6} ${16 + i % 3 * 8}h12`} stroke={GROOVE_COLORS[i % 4]} strokeWidth="5"/></g>)}
-            <text x="320" y="80" textAnchor="middle" fill="#86788e" fontSize="10" letterSpacing="5">DANZ SOUND SYSTEM</text>
+          <rect width="640" height="760" fill="url(#gn-grain)"/><rect width="640" height="760" fill="url(#gn-light)"/>
+          <g opacity=".08" transform="translate(320 350)"><circle r="159" fill="none" stroke="#ffe0a2" strokeWidth="3"/><circle r="148" fill="none" stroke="#ffe0a2"/><image href="/brand/danz-flower.svg" x="-70" y="-70" width="140" height="140"/><text y="115" textAnchor="middle" fill="#ffe0a2" fontSize="15" fontWeight="900" letterSpacing="7">SOUND DOJO</text></g>
+          <rect x="13" y="13" width="614" height="734" rx="8" fill="none" stroke="#c89d5c" strokeOpacity=".38"/>
+          {[26, 614].flatMap(x => [27, 733].map(y => <g key={`${x}-${y}`} transform={`translate(${x} ${y})`}><circle r="5" fill="url(#gn-brass)"/><path d="M-2 2 2-2" stroke="#553816" strokeWidth="1.5"/></g>))}
+          <path d="M32 20H608V78H32Z" fill="#160d09" opacity=".75"/>
+          <text x="48" y="48" fill="#f4d8a6" fontSize="15" fontWeight="800" letterSpacing="2">{STAGES[stage - 1]}</text>
+          <text x="592" y="48" textAnchor="end" fill="#f9cc6b" fontSize="16" fontWeight="900">0{stage} / 03</text>
+          <path d="M48 66H592" stroke="#624323" strokeWidth="3"/><path d={`M48 66H${48 + progress * 5.44}`} stroke="#edbe63" strokeWidth="3"/>
+          <g transform="translate(0 665)" opacity=".95">
+            <path d="M0 0Q320-40 640 0V95H0Z" fill="url(#gn-metal)" stroke="#b99b67" strokeWidth="2"/>
+            {[112, 528].map(x => <g key={x} transform={`translate(${x} 43)`}><circle r="65" fill="#080b09" stroke="url(#gn-brass)" strokeWidth="4"/><circle r="55" fill="url(#gn-disc)" stroke="#737264" strokeDasharray="2 5" strokeWidth="3"/><circle r="38" fill="none" stroke="#4c4d46"/><circle r="19" fill="#c09b54"/><circle r="7" fill="#141711"/><path d="M35-40 50-26 36 16 22 20" fill="none" stroke="#bcbab0" strokeWidth="5" strokeLinejoin="round"/><circle cx="35" cy="-40" r="6" fill="#4d4d43" stroke="#e0c58d"/></g>)}
+            <rect x="247" y="-5" width="146" height="71" rx="4" fill="#090d0c" stroke="#5b5d4d"/>
+            {[268, 294, 320, 346, 372].map((x, i) => <g key={x}><path d={`M${x} 9v43`} stroke="#4f5546" strokeWidth="3"/><rect x={x - 7} y={20 + i % 3 * 8} width="14" height="6" rx="1" fill="url(#gn-brass)"/>{[0, 1, 2].map(n => <rect key={n} x={x - 2} y={n * 5 - 2} width="4" height="3" fill={n === 2 ? '#ef7a5e' : '#d9ff6b'}/>)}</g>)}
+            <text x="320" y="83" textAnchor="middle" fill="#b6b2a1" fontSize="9" fontWeight="800" letterSpacing="4">DANZ SOUND SYSTEM</text>
           </g>
           {game.status === 'ready' && <g opacity=".45"><g transform="translate(155 325) rotate(-22)"><Vinyl layer={0} radius={74}/></g><g transform="translate(465 400) rotate(18)"><Vinyl layer={1} radius={85}/></g></g>}
           {game.discs.map(disc => {
             const p = discPosition(disc, game.elapsed)
             return <g key={disc.id} className={`gn-target gn-${disc.kind}`} data-disc-id={disc.id} data-layer={disc.layer} data-x={p.x.toFixed(1)} data-y={p.y.toFixed(1)} transform={`translate(${p.x} ${p.y})`}>
-              {disc.kind === 'vinyl' ? <><ellipse cy="12" rx="63" ry="58" fill={GROOVE_COLORS[disc.layer]} opacity=".12"/><g transform={`rotate(${(game.elapsed - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer}/></g><rect x="-43" y="62" width="86" height="27" rx="13" fill={GROOVE_COLORS[disc.layer]}/><text y="81" textAnchor="middle" fill="#151219" fontSize="16" fontWeight="900">{GROOVE_VINYLS[disc.layer]}</text></>
-                : <><path d="M0-55 54-18 35 47-35 47-54-18Z" fill="#6c1827" stroke="#ff645f" strokeWidth="4"/><circle r="25" fill="#23121d" stroke="#ff789f"/><text y="11" textAnchor="middle" fill="#fff1e4" fontSize="37" fontWeight="900">!</text><text y="76" textAnchor="middle" fill="#ff8e89" fontSize="17" fontWeight="900">ACOPLE</text></>}
+              {disc.kind === 'vinyl' ? <><ellipse cy="15" rx="61" ry="54" fill="#050303" opacity=".4"/><g transform={`rotate(${(game.elapsed - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer}/></g><rect x="-35" y="62" width="70" height="24" rx="4" fill="#1a130e" stroke={GROOVE_COLORS[disc.layer]} strokeOpacity=".8"/><text y="79" textAnchor="middle" fill={GROOVE_COLORS[disc.layer]} fontSize="14" fontWeight="900">{GROOVE_VINYLS[disc.layer]}</text></>
+                : <g className="gn-feedback-speaker"><path d="M-38-48-48-35V43L-35 52H36L47 40V-36L36-48Z" fill="url(#gn-metal)" stroke="#ff645f" strokeWidth="3"/><rect x="-34" y="-38" width="68" height="80" rx="7" fill="#270c0b" stroke="#952e25"/><circle cy="9" r="26" fill="#120b09" stroke="#c54630" strokeWidth="3"/><circle cy="9" r="18" fill="#4b1712"/><circle cy="9" r="10" fill="url(#gn-brass)"/><circle cy="-23" r="7" fill="#fb6c49"/><path d="M-54-27-62-11-53-3M54-27 62-11 53-3" fill="none" stroke="#ffb775" strokeWidth="3"/><path d="M-8-64 0-79 4-68 13-82" fill="none" stroke="#f7d55e" strokeWidth="3"/><text y="77" textAnchor="middle" fill="#ff9a78" stroke="#20110a" strokeWidth="4" paintOrder="stroke" fontSize="17" fontWeight="900">! ACOPLE</text></g>}
             </g>
           })}
           {game.scratch && <g className="gn-scratch" data-turns={game.scratch.turns} transform="translate(320 355)">
@@ -203,14 +215,20 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
             <path d="M-100 215H100" stroke="#49374b" strokeWidth="6"/><path d={`M-100 215H${-100 + Math.max(0, Math.min(1, (game.scratch.until - game.elapsed) / [3800, 3200, 2600][stage - 1])) * 200}`} stroke="#ff789f" strokeWidth="6"/>
           </g>}
           {game.sparks.map(spark => {
-            const age = (game.elapsed - spark.born) / 750
+            const seconds = (game.elapsed - spark.born) / 1000
+            const age = seconds / .75
             return <g key={spark.id} transform={`translate(${spark.x} ${spark.y})`} opacity={1 - age}>
-              {spark.layer !== undefined && <g className="gn-cut-pieces" transform={`rotate(${spark.angle ?? 0})`}>{[-1, 1].map(sign => <g key={sign} transform={`translate(${age * sign * 65} ${age * sign * 82 + age * age * 85}) rotate(${age * sign * 48})`} clipPath={`url(#gn-half-${sign < 0 ? 'a' : 'b'})`}><Vinyl layer={spark.layer!}/></g>)}</g>}
-              <g className="gn-fragments">{Array.from({ length: 8 }, (_, i) => <path key={i} d={`M${Math.cos(i * Math.PI / 4) * age * 115} ${Math.sin(i * Math.PI / 4) * age * 115}l${Math.cos(i * Math.PI / 4) * 11} ${Math.sin(i * Math.PI / 4) * 11}`} stroke={spark.color} strokeWidth={4 * (1 - age)} strokeLinecap="round"/>)}</g>
+              {spark.layer !== undefined && <g className="gn-cut-pieces" transform={`translate(${(spark.velocity?.x ?? 0) * seconds} ${(spark.velocity?.y ?? -90) * seconds + 370 * seconds * seconds}) rotate(${spark.angle ?? 0})`}>{[-1, 1].map(sign => <g key={sign} transform={`translate(0 ${sign * (5 + seconds * 175)}) rotate(${age * sign * 100})`}><g clipPath={`url(#gn-half-${sign < 0 ? 'a' : 'b'})`}><g transform={`rotate(${(spark.rotation ?? 0) - (spark.angle ?? 0)})`}><Vinyl layer={spark.layer!}/></g></g><path d={`M-52 0H52`} stroke="#f9dc9d" strokeOpacity=".7" strokeWidth="1.5"/></g>)}</g>}
+              <g className="gn-fragments">{Array.from({ length: 12 }, (_, i) => {
+                const angle = i * Math.PI / 6, distance = age * (85 + i % 3 * 36)
+                const x = Math.cos(angle) * distance, y = Math.sin(angle) * distance + age * age * 52
+                return i % 4 === 0 ? <text key={i} className="gn-music-note" transform={`translate(${x} ${y}) rotate(${i * 25 + age * 75})`} fill={spark.color} stroke="#1b1008" strokeWidth="2" paintOrder="stroke" fontSize="24" fontWeight="900">{i % 8 ? '♫' : '♪'}</text>
+                  : <path key={i} d={`M${x} ${y}l${Math.cos(angle) * 12} ${Math.sin(angle) * 12}`} stroke={i % 2 ? spark.color : '#ffe6a9'} strokeWidth={5 * (1 - age)} strokeLinecap="round"/>
+              })}</g>
               <text y={-28 - age * 55} textAnchor="middle" fill={spark.color} stroke="#120e1b" strokeWidth="4" paintOrder="stroke" fontSize="31" fontWeight="900">{spark.label}</text>
             </g>
           })}
-          {path && <g className="gn-trail" fill="none" strokeLinejoin="round" strokeLinecap="round"><polyline points={path} stroke="#ff789f" strokeWidth="22" opacity=".4" filter="url(#gn-glow)"/><polyline points={path} stroke="url(#gn-slash)" strokeWidth="9"/><polyline points={path} stroke="#fff" strokeWidth="3"/></g>}
+          {path && <g className="gn-trail" fill="none" strokeLinejoin="round" strokeLinecap="round"><polyline points={path} stroke="#72ecff" strokeWidth="25" opacity=".5" filter="url(#gn-glow)"/><polyline points={path} stroke="#a7faff" strokeWidth="14" opacity=".4"/><polyline points={path} stroke="url(#gn-slash)" strokeWidth="8"/><polyline points={path} stroke="#fff" strokeWidth="3"/></g>}
           <text x="32" y="734" fill="#ae9cb5" fontSize="13" letterSpacing="2">{game.mode === 'scratch' ? 'CAMBIA DE DIRECCIÓN 3 VECES' : 'DESLIZA PARA CORTAR'}</text>
           <text x="608" y="734" textAnchor="end" fill="#ff789f" fontSize="17" fontWeight="900">{'♥'.repeat(game.lives)}{'♡'.repeat(5 - game.lives)}</text>
         </svg>

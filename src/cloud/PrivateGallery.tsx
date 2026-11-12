@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import DanzFlower from '../content/DanzFlower'
 import OriginalFileActions from './OriginalFileActions'
+import { readWithDeadline } from './readWithDeadline'
 import './PrivateGallery.css'
 
 export type PrivateGalleryProps = {
@@ -89,8 +90,8 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     setEvents({ client, owner: userId, items: [], loading: true, error: false })
     void (async () => {
       try {
-        const { data, error } = await client.from('danz_events').select('id,title,starts_at')
-          .in('status', ['published', 'archived']).order('starts_at', { ascending: false, nullsFirst: false }).abortSignal(abort.signal)
+        const { data, error } = await readWithDeadline(signal => client.from('danz_events').select('id,title,starts_at')
+          .in('status', ['published', 'archived']).order('starts_at', { ascending: false, nullsFirst: false }).abortSignal(signal), abort.signal)
         if (!current) return
         if (error) throw error
         setEvents({ client, owner: userId, items: data ?? [], loading: false, error: false })
@@ -116,37 +117,39 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       try {
         // RLS checks attendance and publication; the event filter is an additional
         // query constraint, never a replacement for server authorization.
-        const { data, error } = await client!.from('danz_photos').select('id,storage_path,preview_path,original_name,mime_type,original_bytes,sha256')
-          .eq('event_id', eventId).eq('status', 'published').order('created_at').order('id').range(0, pageSize - 1).abortSignal(abort.signal)
-        if (!current) return
-        if (error) throw error
-        const rows = data ?? []
-        if (!rows.length) clearTimeout(expiryTimer)
-        let items: Photo[] = []
-        let expiresAt = 0
-        if (rows.length) {
-          const signedAt = Date.now()
-          expiresAt = signedAt + URL_TTL_SECONDS * 1000
+        // Metadata and URL signing share one deadline. Late SDK results never
+        // reach state, even when Storage cannot cancel its underlying request.
+        const { items, expiresAt } = await readWithDeadline(async signal => {
+          const { data, error } = await client!.from('danz_photos').select('id,storage_path,preview_path,original_name,mime_type,original_bytes,sha256')
+            .eq('event_id', eventId).eq('status', 'published').order('created_at').order('id').range(0, pageSize - 1).abortSignal(signal)
+          if (signal.aborted) throw new DOMException('Read cancelled', 'AbortError')
+          if (error) throw error
+          const rows = data ?? []
+          if (!rows.length) return { items: [] as Photo[], expiresAt: 0 }
+          const expiresAt = Date.now() + URL_TTL_SECONDS * 1000
           const { data: signed, error: signingError } = await client!.storage.from(BUCKET)
-            .createSignedUrls(rows.map((row) => row.preview_path ?? row.storage_path), URL_TTL_SECONDS)
-          if (!current) return
+            .createSignedUrls(rows.map(row => row.preview_path ?? row.storage_path), URL_TTL_SECONDS)
           if (signingError || !signed) throw signingError
           const byPath = new Map(signed.filter(item => !item.error).map(item => [item.path, item]))
-          items = rows.map((row) => {
+          const items = rows.map(row => {
             const previewPath = row.preview_path ?? row.storage_path
-            const entry = byPath.get(previewPath)
-            const url = verifiedSignedUrl(client!, entry?.signedUrl ?? null)
+            const url = verifiedSignedUrl(client!, byPath.get(previewPath)?.signedUrl ?? null)
             if (!url) throw new Error('Unavailable private photo')
             return { id: row.id, path: row.storage_path, previewPath, name: row.original_name, mime: row.mime_type, bytes: row.original_bytes, sha256: row.sha256, url }
           })
-          clearTimeout(expiryTimer)
-          expiryTimer = setTimeout(() => {
-            if (current) setPhotos({ ...scope, items: [], loading: false, error: true })
-          }, Math.max(0, signedAt + URL_TTL_SECONDS * 1000 - Date.now()))
-        }
+          return { items, expiresAt }
+        }, abort.signal)
+        if (!current) return
+        clearTimeout(expiryTimer)
+        if (expiresAt) expiryTimer = setTimeout(() => {
+          if (current) setPhotos({ ...scope, items: [], loading: false, error: true })
+        }, Math.max(0, expiresAt - Date.now()))
         setPhotos({ ...scope, items, loading: false, error: false, expiresAt })
       } catch {
-        if (current) setPhotos({ ...scope, items: [], loading: false, error: true })
+        if (current) {
+          clearTimeout(expiryTimer)
+          setPhotos({ ...scope, items: [], loading: false, error: true })
+        }
       }
       if (current) refreshTimer = setTimeout(() => { void refresh() }, REFRESH_MS)
     }
@@ -169,13 +172,14 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   useEffect(() => {
     setFullPhoto(null)
     if (!client || !userId || !shownPhoto || shownPhoto.path === shownPhoto.previewPath) return
+    const abort = new AbortController()
     let current = true
     const id = shownPhoto.id
-    void client.storage.from(BUCKET).createSignedUrls([shownPhoto.path], URL_TTL_SECONDS).then(({ data, error }) => {
+    void readWithDeadline(() => client.storage.from(BUCKET).createSignedUrls([shownPhoto.path], URL_TTL_SECONDS), abort.signal).then(({ data, error }) => {
       const url = !error ? verifiedSignedUrl(client, data?.[0]?.signedUrl ?? null) : null
       if (current && url) setFullPhoto({ owner: userId, eventId, id, url })
-    })
-    return () => { current = false }
+    }).catch(() => { /* Keep the authorized preview if the full-size read fails. */ })
+    return () => { current = false; abort.abort() }
   }, [client, userId, eventId, shownPhoto?.id, shownPhoto?.url])
 
   useEffect(() => { setViewer(null) }, [client, userId, authLoading, eventId])
