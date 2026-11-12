@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { advanceGroove, cutGroove, discPosition, GROOVE_DURATION, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, segmentDistance, setGroovePlaying } from '../src/arcade/groove.ts'
+import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_DURATION, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, segmentDistance, setGroovePlaying } from '../src/arcade/groove.ts'
 
 function atVinyl() { let state = setGroovePlaying(initialGroove(), true); for (let i = 0; i < 12; i++) state = advanceGroove(state, 50); return state }
 test('a fast swipe intersects the whole segment, awards once and advances a streak', () => {
@@ -32,24 +32,73 @@ test('missing a vinyl counts once, ends at zero lives and paused time is frozen'
   const paused = setGroovePlaying(atVinyl(), false)
   assert.equal(advanceGroove(paused, 100), paused)
 })
-test('scratch requires three real reversals, rewards once and release cannot manufacture a reversal', () => {
-  let state = { ...setGroovePlaying(initialGroove(27, 'scratch'), true), scratch: { id: 1, until: 4000, turns: 0, direction: 0, anchor: null as number | null } }
-  for (const x of [200, 280, 200, 280]) state = scratchGroove(state, x) as typeof state
-  assert.equal(state.scratch?.turns, 2); assert.equal(state.scratches, 0)
-  state = scratchGroove(state, 200) as typeof state
-  assert.equal(state.scratches, 1); assert.equal(state.scratch, null); assert.equal(state.score, 400)
-  assert.equal(scratchGroove(state, 280).score, 400)
-  const started = { ...setGroovePlaying(initialGroove(27, 'scratch'), true), scratch: { id: 1, until: 4000, turns: 1, direction: 1, anchor: 250 as number | null } }
-  const released = scratchGroove(started, 250, true)
-  assert.equal(released.scratch?.turns, 1); assert.equal(scratchGroove(released, 180).scratch?.turns, 1)
+function scratchAtStart() { return advanceGroove(setGroovePlaying(initialGroove(27, 'scratch'), true), 50) }
+function moveAt(state: ReturnType<typeof initialGroove>, time: number, x: number) { while (state.elapsed < time) state = advanceGroove(state, Math.min(50, time - state.elapsed)); return scratchGroove(state, x) }
+test('scratch follows direction, distance and beat; random reversals do not complete a phrase', () => {
+  let state = scratchAtStart(), x = 250
+  state = scratchGroove(state, x)
+  for (const n of [340, 250, 340, 250]) state = scratchGroove(state, n)
+  assert.equal(state.scratches, 0); assert.equal(state.scratch?.turns, 0)
+  assert.equal(state.judgement, 'ESPERA EL PULSO')
+  state = scratchGroove(state, 250, true); state = scratchGroove(state, x)
+  const challenge = state.scratch!, steps = SCRATCH_PATTERNS[challenge.pattern].steps
+  for (const note of steps) { x += note.direction * note.distance; state = moveAt(state, challenge.firstAt + note.offset, x) }
+  assert.equal(state.scratches, 1); assert.equal(state.scratch, null); assert.equal(state.score, 500)
+  assert.equal(state.perfects, 4); assert.equal(scratchGroove(state, 350).score, 500)
 })
-test('scratch windows are deterministic, do not overlap vinyls, and expire once', () => {
-  let a = setGroovePlaying(initialGroove(82, 'scratch'), true), b = setGroovePlaying(initialGroove(82, 'scratch'), true)
-  for (let i = 0; i < 20; i++) { a = advanceGroove({ ...a, lives: 100 }, 50); b = advanceGroove({ ...b, lives: 100 }, 50) }
-  assert.deepEqual(a, b); assert.ok(a.scratch); assert.equal(a.discs.length, 0)
-  const misses = a.misses
-  for (let i = 0; i < 61; i++) a = advanceGroove(a, 50)
-  assert.equal(a.misses, misses + 1); assert.equal(a.scratch, null)
+test('short motions cannot satisfy a long pull; release never manufactures a gesture', () => {
+  let state = advanceGroove({ ...setGroovePlaying(initialGroove(27, 'scratch'), true), scratches: 1 }, 50)
+  const first = state.scratch!.firstAt
+  state = moveAt(scratchGroove(state, 350), first, 294)
+  assert.equal(state.scratch?.turns, 0)
+  state = scratchGroove(state, 250); assert.equal(state.scratch?.turns, 1)
+  state = scratchGroove(state, 250, true); state = scratchGroove(state, 350)
+  assert.equal(state.scratch?.turns, 1)
+  const paused = setGroovePlaying(state, false)
+  assert.equal(paused.scratch?.anchor, null); assert.equal(paused.scratch?.turns, 1)
+})
+test('scratch misses the next pulse once, is deterministic and has no flying vinyls', () => {
+  let a = scratchAtStart(), b = scratchAtStart()
+  const expiry = a.scratch!.firstAt + a.scratch!.window + 1
+  while (a.elapsed < expiry) { const ms = Math.min(50, expiry - a.elapsed); a = advanceGroove(a, ms); b = advanceGroove(b, ms) }
+  assert.deepEqual(a, b); assert.equal(a.misses, 1); assert.equal(a.scratch, null); assert.equal(a.discs.length, 0)
+  a = advanceGroove(a, 50); assert.equal(a.misses, 1)
+})
+test('weapons change reach, hazard radius and points without resetting the session', () => {
+  const state = atVinyl(), disc = state.discs[0], p = discPosition(disc, state.flightTime)
+  const from = { x: p.x - 10, y: p.y + 72 }, to = { x: p.x + 10, y: p.y + 72 }
+  assert.equal(cutGroove(state, from, to), state)
+  assert.equal(cutGroove(selectGrooveWeapon(state, 'twin'), from, to).score, 80)
+  assert.equal(keyCutGroove(selectGrooveWeapon(state, 'needle'), disc.layer).score, 125)
+  assert.ok(GROOVE_WEAPONS.twin.hazard > GROOVE_WEAPONS.katana.hazard)
+  assert.equal(selectGrooveWeapon(state, 'needle').elapsed, state.elapsed)
+})
+test('gold scores triple and a third gold grants its one-time goal; ice slows only flight time', () => {
+  const state = atVinyl(); state.golds = 2; state.discs[0] = { ...state.discs[0], special: 'gold' }
+  const gold = keyCutGroove(state, state.discs[0].layer)
+  assert.equal(gold.score, 1050); assert.equal(gold.golds, 3)
+  const ice = atVinyl(); ice.discs[0] = { ...ice.discs[0], special: 'freeze' }
+  const frozen = keyCutGroove(ice, ice.discs[0].layer), next = advanceGroove(frozen, 100)
+  assert.equal(next.elapsed - frozen.elapsed, 100); assert.equal(next.flightTime - frozen.flightTime, 50)
+})
+test('arrow vinyl rejects the wrong axis and multiple cuts award a separate gesture bonus', () => {
+  const state = atVinyl(); state.discs[0] = { ...state.discs[0], special: 'arrow', axis: 'y' }
+  const wrong = keyCutGroove(state, state.discs[0].layer)
+  assert.equal(wrong.hits, 0); assert.equal(wrong.discs.length, 1)
+  assert.equal(keyCutGroove(state, state.discs[0].layer, 'y').score, 200)
+  const pair = atVinyl(); pair.discs.push({ ...pair.discs[0], id: 999, x: pair.discs[0].x + 90 })
+  const p = discPosition(pair.discs[0], pair.flightTime), cut = cutGroove(pair, { x: p.x - 90, y: p.y }, { x: p.x + 180, y: p.y })
+  assert.equal(cut.hits, 2); assert.equal(cut.multiCuts, 1); assert.equal(cut.score, 300)
+})
+test('later waves contain varied layouts and all special vinyls', () => {
+  let state = setGroovePlaying(initialGroove(), true)
+  const types = new Set<string>(), counts = new Set<number>()
+  for (let i = 0; i < 1000; i++) {
+    state = advanceGroove({ ...state, lives: 1000 }, 50)
+    for (const disc of state.discs) if (disc.kind === 'vinyl') types.add(disc.special!)
+    counts.add(state.discs.length)
+  }
+  assert.deepEqual([...types].sort(), ['arrow', 'freeze', 'gold', 'normal']); assert.ok(counts.size > 3)
 })
 test('three stages finish at one minute and over/complete do not keep moving', () => {
   let state = setGroovePlaying(initialGroove(), true)
@@ -76,4 +125,39 @@ test('practice records are distinct for both modes and reject invalid values', (
     assert.equal(readGrooveRecord('cut'), 100); assert.equal(readGrooveRecord('scratch'), 400)
     assert.equal(saveGrooveRecord(NaN, 'cut'), 100); assert.equal(saveGrooveRecord(-1, 'scratch'), 400)
   } finally { if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor); else Reflect.deleteProperty(globalThis, 'localStorage') }
+})
+
+test('a continuous swipe awards multicuts across pointer samples; separate swipes do not', () => {
+  const base = atVinyl()
+  const first = { ...base.discs[0], x: 190, drift: 0 }
+  const second = { ...first, id: 999, x: 420 }
+  const pair = { ...base, discs: [first, second] }
+  const y = discPosition(first, pair.flightTime).y
+  const a = cutGroove(beginGrooveCut(pair), { x: 110, y }, { x: 270, y })
+  assert.equal(a.hits, 1); assert.equal(a.multiCuts, 0)
+  const b = cutGroove(a, { x: 270, y }, { x: 500, y })
+  assert.equal(b.hits, 2); assert.equal(b.score, 300); assert.equal(b.multiCuts, 1)
+  const separate = cutGroove(beginGrooveCut(a), { x: 340, y }, { x: 500, y })
+  assert.equal(separate.score, 200); assert.equal(separate.multiCuts, 0)
+})
+test('ice expiry splits an update between slow and ordinary flight', () => {
+  const base = { ...atVinyl(), freezeUntil: 650 }
+  const next = advanceGroove(base, 100)
+  assert.equal(next.elapsed - base.elapsed, 100)
+  assert.equal(next.flightTime - base.flightTime, 75)
+})
+test('the four scratch patterns complete using their actual timed distances', () => {
+  for (let pattern = 0; pattern < SCRATCH_PATTERNS.length; pattern++) {
+    let state = advanceGroove({ ...setGroovePlaying(initialGroove(27, 'scratch'), true), elapsed: 25000, scratches: pattern }, 50)
+    const challenge = state.scratch!
+    assert.equal(challenge.pattern, pattern)
+    let x = 320
+    state = scratchGroove(state, x)
+    for (const step of SCRATCH_PATTERNS[pattern].steps) {
+      x += step.direction * step.distance
+      state = moveAt(state, challenge.firstAt + step.offset, x)
+    }
+    assert.equal(state.scratches, pattern + 1); assert.equal(state.scratch, null)
+    assert.equal(state.perfects, SCRATCH_PATTERNS[pattern].steps.length)
+  }
 })

@@ -3,20 +3,36 @@ export const GROOVE_BEAT = 500
 export const GROOVE_VINYLS = ['CUT 01', 'CUT 02', 'CUT 03', 'CUT 04'] as const
 export const GROOVE_COLORS = ['#d9ff6b', '#ff789f', '#ba9efa', '#8dd8c8'] as const
 export type GrooveMode = 'cut' | 'scratch'
+export type GrooveWeapon = 'katana' | 'twin' | 'needle'
+export const GROOVE_WEAPONS = {
+  katana: { name: 'KATANA', detail: 'EQUILIBRADA', radius: 61, hazard: 45, points: 100, color: '#9cf6ff' },
+  twin: { name: 'DOBLE FILO', detail: 'MÁS ALCANCE', radius: 84, hazard: 68, points: 80, color: '#ffafdc' },
+  needle: { name: 'AGUJA', detail: 'PRECISIÓN +25%', radius: 43, hazard: 36, points: 125, color: '#f7da81' },
+} as const
+export type GrooveSpecial = 'normal' | 'gold' | 'freeze' | 'arrow'
 export type GroovePoint = { x: number; y: number }
-export type GrooveDisc = { id: number; kind: 'vinyl' | 'feedback'; layer: number; born: number; x: number; drift: number; launch: number; spin: number }
-export type GrooveScratch = { id: number; until: number; turns: number; direction: number; anchor: number | null }
-export type GrooveSpark = { id: number; x: number; y: number; color: string; born: number; label: string; layer?: number; angle?: number; rotation?: number; velocity?: GroovePoint }
+export type GrooveDisc = { id: number; kind: 'vinyl' | 'feedback'; layer: number; born: number; x: number; drift: number; launch: number; spin: number; special?: GrooveSpecial; axis?: 'x' | 'y' }
+export type ScratchStep = { direction: number; distance: number; offset: number }
+export const SCRATCH_PATTERNS = [
+  { name: 'BABY SCRATCH', steps: [{ direction: 1, distance: 56, offset: 0 }, { direction: -1, distance: 56, offset: 500 }, { direction: 1, distance: 56, offset: 1000 }, { direction: -1, distance: 56, offset: 1500 }] },
+  { name: 'LONG PULL', steps: [{ direction: -1, distance: 100, offset: 0 }, { direction: 1, distance: 100, offset: 1000 }, { direction: -1, distance: 56, offset: 1500 }] },
+  { name: 'DOUBLE TIME', steps: [{ direction: 1, distance: 56, offset: 0 }, { direction: -1, distance: 56, offset: 250 }, { direction: 1, distance: 56, offset: 1000 }, { direction: -1, distance: 56, offset: 1250 }] },
+  { name: 'BOOMERANG', steps: [{ direction: 1, distance: 100, offset: 0 }, { direction: -1, distance: 56, offset: 500 }, { direction: 1, distance: 56, offset: 1000 }, { direction: -1, distance: 100, offset: 1750 }] },
+] as const
+export type GrooveScratch = { id: number; until: number; turns: number; direction: number; anchor: number | null; pointer: number; pattern: number; firstAt: number; window: number; perfect: number }
+export type GrooveSpark = { id: number; x: number; y: number; color: string; born: number; label: string; layer?: number; angle?: number; rotation?: number; velocity?: GroovePoint; special?: GrooveSpecial }
 export type GrooveState = {
   status: 'ready' | 'playing' | 'paused' | 'over' | 'complete'; mode: GrooveMode; elapsed: number; score: number; combo: number; bestCombo: number;
   lives: number; hits: number; misses: number; scratches: number; nextScratchAt: number; discs: GrooveDisc[];
   scratch: GrooveScratch | null; sparks: GrooveSpark[]; seed: number; nextId: number; beat: number; message: string;
+  weapon: GrooveWeapon; flightTime: number; freezeUntil: number; nextWaveAt: number; wave: number; golds: number; multiCuts: number; strokeHits: number; perfects: number; judgement: string;
 }
 
-export function initialGroove(seed = 27, mode: GrooveMode = 'cut'): GrooveState {
+export function initialGroove(seed = 27, mode: GrooveMode = 'cut', weapon: GrooveWeapon = 'katana'): GrooveState {
   return { status: 'ready', mode, elapsed: 0, score: 0, combo: 0, bestCombo: 0, lives: 5, hits: 0, misses: 0, scratches: 0, nextScratchAt: 0,
     discs: [], scratch: null, sparks: [], seed: Math.max(1, Math.floor(seed) % 2147483647), nextId: 1, beat: -1,
-    message: mode === 'cut' ? 'CORTA VINILOS. ESQUIVA LOS ACOPLES.' : 'SUJETA EL DISCO. CAMBIA DE DIRECCIÓN.' }
+    weapon, flightTime: 0, freezeUntil: 0, nextWaveAt: 0, wave: 0, golds: 0, multiCuts: 0, strokeHits: 0, perfects: 0, judgement: '',
+    message: mode === 'cut' ? 'DORADOS ×3 · HIELO RALENTIZA · SIGUE LAS FLECHAS.' : 'SIGUE LAS FLECHAS Y TERMINA CADA GESTO EN SU PULSO.' }
 }
 export function grooveStage(time: number) { return Math.min(3, 1 + Math.floor(time / 20_000)) }
 export function grooveMultiplier(combo: number) { return Math.min(4, 1 + Math.floor(combo / 5)) }
@@ -31,14 +47,23 @@ export function segmentDistance(point: GroovePoint, from: GroovePoint, to: Groov
   return Math.hypot(point.x - from.x - ratio * dx, point.y - from.y - ratio * dy)
 }
 function random(state: GrooveState) { state.seed = state.seed * 48271 % 2147483647; return state.seed / 2147483647 }
-function spawn(state: GrooveState, beat: number, extra = false) {
+function spawnWave(state: GrooveState) {
   const stage = grooveStage(state.elapsed)
-  const feedback = !extra && beat >= 16 && beat % (stage === 1 ? 12 : 7) === 0
-  const layer = Math.floor(random(state) * 4)
-  const lane = Math.floor(random(state) * 4)
-  state.discs.push({ id: state.nextId++, kind: feedback ? 'feedback' : 'vinyl', layer,
-    born: beat * GROOVE_BEAT, x: 105 + lane * 140, drift: (320 - (105 + lane * 140)) * .23,
-    launch: 680 + random(state) * 45, spin: random(state) * 5 })
+  const wave = state.wave++, layout = wave % 5
+  const count = layout === 0 ? 1 : layout === 3 ? Math.min(3, stage + 1) : 2
+  const center = 230 + random(state) * 180
+  for (let i = 0; i < count; i++) {
+    const x = count === 1 ? 105 + Math.floor(random(state) * 4) * 140 : center + (i - (count - 1) / 2) * (layout === 1 ? 96 : 145)
+    const special: GrooveSpecial = wave === 0 ? 'normal' : i === 0 && wave % 4 === 2 ? 'gold' : i === 0 && wave % 9 === 4 ? 'freeze' : i === count - 1 && wave % 4 === 3 ? 'arrow' : 'normal'
+    state.discs.push({ id: state.nextId++, kind: 'vinyl', special, axis: wave % 2 ? 'y' : 'x', layer: Math.floor(random(state) * 4),
+      born: state.flightTime, x, drift: (320 - x) * (layout === 4 ? .38 : .12),
+      launch: 665 + random(state) * 80 + (layout === 2 ? i * 35 : 0), spin: random(state) * 5 })
+  }
+  if (wave >= 5 && wave % (stage === 1 ? 5 : 3) === 0) {
+    const x = center > 320 ? 115 : 525
+    state.discs.push({ id: state.nextId++, kind: 'feedback', layer: 0, born: state.flightTime, x, drift: 0, launch: 720, spin: 0 })
+  }
+  state.nextWaveAt = state.elapsed + [1400, 1200, 1000][stage - 1] + (layout === 3 ? 250 : 0)
 }
 function clone(state: GrooveState): GrooveState {
   return { ...state, discs: [...state.discs], sparks: [...state.sparks], scratch: state.scratch ? { ...state.scratch } : null }
@@ -61,28 +86,28 @@ export function advanceGroove(previous: GrooveState, milliseconds: number): Groo
   if (previous.status !== 'playing' || !Number.isFinite(milliseconds) || milliseconds <= 0) return previous
   const state = clone(previous)
   state.elapsed = Math.min(GROOVE_DURATION, previous.elapsed + Math.min(100, milliseconds))
+  const slowed = Math.max(0, Math.min(state.elapsed, previous.freezeUntil) - previous.elapsed)
+  state.flightTime += state.elapsed - previous.elapsed - slowed * .5
   const beat = Math.floor(state.elapsed / GROOVE_BEAT)
-  for (let current = state.beat + 1; current <= beat; current++) {
-    if (state.mode === 'cut' && (grooveStage(state.elapsed) > 1 || current % 2 === 0)) {
-      spawn(state, current)
-      if (grooveStage(state.elapsed) === 3 && current % 6 === 2) spawn(state, current, true)
-    }
-  }
+  if (state.mode === 'cut' && state.elapsed >= state.nextWaveAt) spawnWave(state)
   state.beat = beat
   if (state.mode === 'scratch' && !state.scratch && state.elapsed >= state.nextScratchAt) {
-    const window = [3800, 3200, 2600][grooveStage(state.elapsed) - 1]
-    state.scratch = { id: state.nextId++, until: state.elapsed + window, turns: 0, direction: 0, anchor: null }
-    state.nextScratchAt = state.elapsed + window + 500
-    state.message = 'SCRATCH: IDA Y VUELTA, SIN SOLTAR.'
+    const pattern = (state.scratches + state.misses) % (grooveStage(state.elapsed) === 1 ? 2 : 4)
+    const firstAt = Math.ceil((state.elapsed + 1000) / GROOVE_BEAT) * GROOVE_BEAT
+    const window = [230, 190, 160][grooveStage(state.elapsed) - 1]
+    const steps = SCRATCH_PATTERNS[pattern].steps
+    state.scratch = { id: state.nextId++, until: firstAt + steps.at(-1)!.offset + window, turns: 0, direction: 0, anchor: null, pointer: 320, pattern, firstAt, window, perfect: 0 }
+    state.judgement = 'PREPARA EL GESTO'
+    state.message = `${SCRATCH_PATTERNS[pattern].name}: ${steps.length} GESTOS AL PULSO. CORTO O LARGO SEGÚN LA FLECHA.`
   }
-  if (state.scratch && state.elapsed >= state.scratch.until) {
-    state.scratch = null; miss(state, 'SE ESCAPÓ EL SCRATCH. A POR EL SIGUIENTE.')
+  if (state.scratch && state.elapsed > state.scratch.firstAt + SCRATCH_PATTERNS[state.scratch.pattern].steps[state.scratch.turns].offset + state.scratch.window) {
+    state.scratch = null; state.nextScratchAt = state.elapsed + 750; state.judgement = 'FUERA DE TIEMPO'; miss(state, 'SE ESCAPÓ EL PULSO. PREPARA LA SIGUIENTE FRASE.')
   }
   if (state.status === 'playing') {
     const remaining: GrooveDisc[] = []
     for (const disc of state.discs) {
-      const position = discPosition(disc, state.elapsed)
-      if (state.elapsed - disc.born > 450 && position.y > 860) {
+      const position = discPosition(disc, state.flightTime)
+      if (state.flightTime - disc.born > 450 && position.y > 860) {
         if (disc.kind === 'vinyl') miss(state, 'VINILO FUERA. RECUPERA LA RACHA.')
       } else remaining.push(disc)
       if (state.status !== 'playing') break
@@ -98,52 +123,83 @@ export function advanceGroove(previous: GrooveState, milliseconds: number): Groo
 export function cutGroove(previous: GrooveState, from: GroovePoint, to: GroovePoint): GrooveState {
   if (previous.status !== 'playing' || previous.mode !== 'cut' || ![from.x, from.y, to.x, to.y].every(Number.isFinite) || Math.hypot(to.x - from.x, to.y - from.y) < 7) return previous
   const caught = previous.discs.filter(disc => {
-    const p = discPosition(disc, previous.elapsed)
-    return p.y > 45 && p.y < 745 && segmentDistance(p, from, to) <= (disc.kind === 'vinyl' ? 61 : 45)
+    const p = discPosition(disc, previous.flightTime), weapon = GROOVE_WEAPONS[previous.weapon]
+    return p.y > 80 && p.y < 650 && segmentDistance(p, from, to) <= (disc.kind === 'vinyl' ? weapon.radius : weapon.hazard)
   })
   if (!caught.length) return previous
   const state = clone(previous)
-  state.discs = state.discs.filter(disc => !caught.some(hit => hit.id === disc.id))
+  let cutCount = 0
   for (const disc of caught) {
-    const position = discPosition(disc, state.elapsed)
+    const position = discPosition(disc, state.flightTime)
+    if (disc.special === 'arrow' && (disc.axis === 'x' ? Math.abs(to.x - from.x) < Math.abs(to.y - from.y) * 1.4 : Math.abs(to.y - from.y) < Math.abs(to.x - from.x) * 1.4)) {
+      state.message = 'SIGUE LA FLECHA DEL DISCO: CORTE ' + (disc.axis === 'x' ? 'HORIZONTAL.' : 'VERTICAL.')
+      continue
+    }
+    state.discs = state.discs.filter(item => item.id !== disc.id)
     if (disc.kind === 'feedback') { miss(state, '¡ACOPLE! CUIDADO CON LOS ROJOS.'); spark(state, position, '#ff645f', 'ACOPLE') }
     else {
-      const points = reward(state, 100); state.hits++; state.message = caught.length > 1 ? '¡VARIOS VINILOS DE UNA PASADA!' : 'CORTE LIMPIO. MANTÉN LA RACHA.'
+      cutCount++
+      const points = reward(state, GROOVE_WEAPONS[state.weapon].points * (disc.special === 'gold' ? 3 : disc.special === 'arrow' ? 2 : 1)); state.hits++
+      state.message = disc.special === 'gold' ? '¡DORADO! TRIPLE PUNTUACIÓN.' : disc.special === 'freeze' ? '¡HIELO! VUELO A CÁMARA LENTA DURANTE 3 SEGUNDOS.' : disc.special === 'arrow' ? '¡CORTE DE PRECISIÓN! DOBLE PUNTUACIÓN.' : 'CORTE LIMPIO. BUSCA UN DOBLE CORTE.'
+      if (disc.special === 'freeze') state.freezeUntil = state.elapsed + 3000
+      if (disc.special === 'gold') { state.golds++; if (state.golds === 3) { state.score += 750; state.message = '¡RETO DORADO COMPLETO! +750' } }
       spark(state, position, GROOVE_COLORS[disc.layer], `+${points}`)
       Object.assign(state.sparks.at(-1)!, {
+        special: disc.special,
         layer: disc.layer, angle: Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI,
-        rotation: (state.elapsed - disc.born) * .035 + disc.spin * 40,
-        velocity: { x: disc.drift, y: -disc.launch + 570 * (state.elapsed - disc.born) / 1000 },
+        rotation: (state.flightTime - disc.born) * .035 + disc.spin * 40,
+        velocity: { x: disc.drift, y: -disc.launch + 570 * (state.flightTime - disc.born) / 1000 },
       })
     }
     if (state.status !== 'playing') break
   }
+  if (cutCount && state.status === 'playing') {
+    state.strokeHits += cutCount
+    if (state.strokeHits > 1) {
+      const bonus = 100 * (cutCount - (previous.strokeHits === 0 ? 1 : 0))
+      state.score += bonus
+      if (previous.strokeHits < 2) state.multiCuts++
+      state.message = `¡${state.strokeHits} DE UNA PASADA! BONUS +${bonus}`
+      spark(state, to, GROOVE_WEAPONS[state.weapon].color, `MULTICORTE +${bonus}`)
+    }
+  }
   return state
 }
+export function beginGrooveCut(state: GrooveState): GrooveState { return state.mode === 'cut' && state.status === 'playing' ? { ...state, strokeHits: 0 } : state }
 // Keyboard alternative uses the visible layer number; it never awards DANZPOINTS.
-export function keyCutGroove(previous: GrooveState, layer: number) {
-  const disc = previous.discs.find(item => item.kind === 'vinyl' && item.layer === layer && discPosition(item, previous.elapsed).y < 745)
+export function keyCutGroove(previous: GrooveState, layer: number, axis: 'x' | 'y' = 'x') {
+  const disc = previous.discs.find(item => item.kind === 'vinyl' && item.layer === layer && discPosition(item, previous.flightTime).y < 650)
   if (!disc) return previous
-  const p = discPosition(disc, previous.elapsed)
-  return cutGroove(previous, { x: p.x - 8, y: p.y }, { x: p.x + 8, y: p.y })
+  const p = discPosition(disc, previous.flightTime)
+  const state = beginGrooveCut(previous)
+  return axis === 'y' ? cutGroove(state, { x: p.x, y: p.y - 8 }, { x: p.x, y: p.y + 8 }) : cutGroove(state, { x: p.x - 8, y: p.y }, { x: p.x + 8, y: p.y })
 }
 export function scratchGroove(previous: GrooveState, x: number, release = false): GrooveState {
   if (previous.status !== 'playing' || previous.mode !== 'scratch' || !previous.scratch || !Number.isFinite(x)) return previous
   const state = clone(previous), scratch = state.scratch!
-  if (release) { scratch.anchor = null; scratch.direction = 0; return state }
+  if (release) { scratch.anchor = null; scratch.direction = 0; state.judgement = 'SUJETA DE NUEVO EL DISCO'; return state }
+  scratch.pointer = x
   if (scratch.anchor === null) { scratch.anchor = x; return state }
   const delta = x - scratch.anchor
-  if (Math.abs(delta) < 42) return previous
-  const direction = Math.sign(delta)
-  if (scratch.direction && direction !== scratch.direction) scratch.turns++
-  scratch.direction = direction; scratch.anchor = x
-  if (scratch.turns >= 3) {
-    const points = reward(state, 400); state.scratches++; state.scratch = null
-    state.nextScratchAt = state.elapsed + [700, 550, 400][grooveStage(state.elapsed) - 1]
-    state.message = 'SCRATCH LIMPIO. VIENE OTRO PLATO.'; spark(state, { x: 320, y: 330 }, '#ff789f', `SCRATCH +${points}`)
+  const steps = SCRATCH_PATTERNS[scratch.pattern].steps, step = steps[scratch.turns]
+  const timing = state.elapsed - scratch.firstAt - step.offset
+  if (Math.abs(delta) < step.distance) return state
+  if (Math.sign(delta) !== step.direction) { scratch.anchor = x; state.judgement = 'AL OTRO LADO'; return state }
+  if (timing < -scratch.window) { state.judgement = 'ESPERA EL PULSO'; return state }
+  if (timing > scratch.window) return state
+  scratch.anchor = x; scratch.turns++; scratch.direction = Math.sign(delta)
+  const perfect = Math.abs(timing) <= 95
+  if (perfect) { scratch.perfect++; state.perfects++ }
+  state.judgement = perfect ? 'PERFECTO' : 'A TIEMPO'
+  // Points are awarded for a complete phrase, so random partial gestures cannot farm a record.
+  if (scratch.turns === steps.length) {
+    const points = reward(state, 200 + scratch.perfect * 75); state.scratches++; state.scratch = null
+    state.nextScratchAt = state.elapsed + 650
+    state.message = `¡FRASE COMPLETA! ${scratch.perfect}/${steps.length} PERFECTOS. VIENE OTRO PATRÓN.`; spark(state, { x: 320, y: 330 }, '#ff789f', `SCRATCH +${points}`)
   }
   return state
 }
+export function selectGrooveWeapon(state: GrooveState, weapon: GrooveWeapon): GrooveState { return state.mode === 'cut' && weapon in GROOVE_WEAPONS ? { ...state, weapon } : state }
 export function setGroovePlaying(state: GrooveState, playing: boolean): GrooveState {
   if (playing && (state.status === 'ready' || state.status === 'paused')) return { ...state, status: 'playing' }
   if (!playing && state.status === 'playing') return { ...state, status: 'paused', scratch: state.scratch ? { ...state.scratch, anchor: null, direction: 0 } : null }

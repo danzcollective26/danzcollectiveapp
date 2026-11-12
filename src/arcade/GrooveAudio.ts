@@ -11,6 +11,7 @@ export class GrooveAudio {
   private muted = false
   private generation = 0
   private closed = false
+  private lastScratchAt = -1
 
   async start(elapsed: number, muted: boolean) {
     const generation = ++this.generation
@@ -92,7 +93,10 @@ export class GrooveAudio {
   }
   slice(layer: number) { if (this.context && !this.muted) this.tone(this.context.currentTime + .005, 600 + layer * 90, .065, .1, 'sine', 180) }
   scratch(direction: number) {
-    if (this.context && !this.muted) this.tone(this.context.currentTime + .003, direction > 0 ? 170 : 700, .075, .08, 'sawtooth', direction > 0 ? 700 : 170)
+    if (this.context && !this.muted && this.context.currentTime - this.lastScratchAt >= .055) {
+      this.lastScratchAt = this.context.currentTime
+      this.tone(this.context.currentTime + .003, direction > 0 ? 170 : 700, .075, .08, 'sawtooth', direction > 0 ? 700 : 170)
+    }
   }
   stumble() { if (this.context && !this.muted) this.tone(this.context.currentTime + .005, 150, .18, .1, 'triangle', 55) }
 }
