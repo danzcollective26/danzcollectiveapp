@@ -129,7 +129,7 @@ test('la progresión sube cada cinco objetivos y limita la velocidad máxima', (
   assert.equal(gameTickMs(1500), 78)
 })
 
-test('los seis laberintos tienen dificultad creciente, salida segura y todas las casillas conectadas', () => {
+test('los doce laberintos tienen dificultad creciente, salida segura y todas las casillas conectadas', () => {
   let previous = 0
   for (let stage = 1; stage <= MAZE_STAGES.length; stage++) {
     const game = initialGame('maze', stage)
@@ -179,9 +179,9 @@ test('el último laberinto continúa sin reiniciar y puede completarse llenando 
   const onward=tick({...final,running:true,score:140,stageGoals:4,foods:[{x:HX+1,y:HY,face:4}]})
   assert.equal(onward.stage,MAZE_STAGES.length);assert.equal(onward.running,true);assert.equal(onward.score,150)
   assert.equal(onward.snake.length,4)
-  const walls=new Set(final.walls.map(p=>`${p.x},${p.y}`)),snake=[{x:0,y:0}]
-  for(let y=0;y<GRID;y++)for(let x=0;x<GRID;x++)if((x!==0||y!==0)&&(x!==1||y!==0)&&!walls.has(`${x},${y}`))snake.push({x,y})
-  const won=tick({...final,running:true,snake,foods:[{x:1,y:0,face:0}]})
+  const walls=new Set(final.walls.map(p=>`${p.x},${p.y}`)),snake=[{x:8,y:9}]
+  for(let y=0;y<GRID;y++)for(let x=0;x<GRID;x++)if((x!==8||y!==9)&&(x!==9||y!==9)&&!walls.has(`${x},${y}`))snake.push({x,y})
+  const won=tick({...final,running:true,snake,foods:[{x:9,y:9,face:0}]})
   assert.equal(won.won,true);assert.deepEqual(won.foods,[])
   assert.equal(won.snake.length,GRID*GRID-final.walls.length)
 })

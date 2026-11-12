@@ -22,6 +22,8 @@ import DanzMusic from './content/DanzMusic'
 import SnakeArtwork from './content/SnakeArtwork'
 import DanzFlower from './content/DanzFlower'
 import { useGameScreen } from './arcade/useGameScreen'
+import SnakeCompetition from './arcade/SnakeCompetition'
+import { useSnakeCompetition } from './arcade/useSnakeCompetition'
 import GameCover, { GAME_TITLE, GAME_SHORT_TITLE } from './arcade/GameCover'
 
 const collective = parseCollective(content)
@@ -74,8 +76,9 @@ export default function App() {
   if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
   const gameScreen = useGameScreen(() => dispatch({ type: 'pause' }))
-  const turn = (direction: Direction) => dispatch({ type: 'input', direction, random: Math.random() })
-  const play = () => { if (!game.running) gameScreen.enter(); dispatch({ type: game.running ? 'pause' : 'start' }) }
+  const competition=useSnakeCompetition(game,(mode,seed)=>{dispatch({type:'ranked',mode,seed});gameScreen.enter()},()=>dispatch({type:'pause'}))
+  const turn = (direction: Direction) => {if(game.seed!==undefined&&competition.run?.status!=='active')return;dispatch({ type: 'input', direction, random: Math.random() })}
+  const play = () => { if(game.seed!==undefined&&competition.run?.status!=='active'){if(competition.run?.status!=='saving'&&competition.run?.status!=='error')void competition.start(game.mode);return} if (!game.running) gameScreen.enter(); dispatch({ type: game.running ? 'pause' : 'start' }) }
   useEffect(() => { if (page !== 'arcade') gameScreen.leave() }, [page])
   const [records, setRecords] = useState(() => ({ classic: readSnakeRecord(), maze: readSnakeRecord('maze') }))
   const record = records[game.mode]
@@ -184,7 +187,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [page, game.running])
+  }, [page, game.running, game.seed, competition.run?.status, competition.busy, competition.alias])
 
   const go = (destination: Page) => {
     if (page === 'arcade' && destination !== 'arcade') gameScreen.leave()
@@ -293,16 +296,16 @@ export default function App() {
               <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
               <div className="eyebrow">ARCADANZ / GAME 001</div>
               <h1 className="page-title arcade-game-title">LA QUE HAS<br /><em>LIAO, JACK.</em></h1>
-              <p className="page-lead">Un cable suelto, las caras del colectivo y seis laberintos. Que no te pillen.</p>
+              <p className="page-lead">Un cable suelto, las caras del colectivo y doce laberintos. Que no te pillen.</p>
               <GameCover className="snake-cover" />
             </div>
             <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}`}>
               {gameScreen.active && <div className="game-screen-bar"><span>{GAME_SHORT_TITLE} · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={gameScreen.leave}>SALIR DEL JUEGO ↗</button></div>}
               <div className="game-modes" role="group" aria-label="Modo de Snake">
-                <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => dispatch({ type: 'mode', mode: 'classic' })}>CLÁSICO</button>
-                <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => dispatch({ type: 'mode', mode: 'maze' })}>LABERINTO <span>{MAZE_STAGES.length} NIVELES</span></button>
+                <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'classic' })}}>CLÁSICO</button>
+                <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'maze' })}}>LABERINTO <span>{MAZE_STAGES.length} NIVELES</span></button>
               </div>
-              {game.mode === 'maze' && <div className="maze-level-picker"><label htmlFor="maze-level">RECORRIDO</label><select id="maze-level" value={game.stage} onChange={event => dispatch({ type: 'maze-level', stage: Number(event.target.value) })}>{MAZE_STAGES.map((name, i) => <option key={name} value={i + 1}>{i + 1} · {name}</option>)}</select><span>{game.stage < MAZE_STAGES.length ? `${game.stageGoals}/5 OBJETIVOS` : 'MODO INFINITO'}</span></div>}
+              {game.mode === 'maze' && <div className="maze-level-picker"><label htmlFor="maze-level">RECORRIDO</label><select id="maze-level" value={game.stage} onChange={event => {competition.clear();dispatch({ type: 'maze-level', stage: Number(event.target.value) })}}>{MAZE_STAGES.map((name, i) => <option key={name} value={i + 1}>{i + 1} · {name}</option>)}</select><span>{game.stage < MAZE_STAGES.length ? `${game.stageGoals}/5 OBJETIVOS` : 'MODO INFINITO'}</span></div>}
               <div className="game-heading"><span>PUNTOS <strong>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span>NIVEL {game.mode === 'maze' ? game.stage : gameLevel(game.score)}</span></div>
               <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
                 <svg className="snake-body-art" viewBox={`0 0 ${GRID} ${GRID}`} aria-hidden="true"><polyline points={game.snake.map(point => `${point.x + .5},${point.y + .5}`).join(' ')} /></svg>
@@ -324,9 +327,12 @@ export default function App() {
                 {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : game.levelUp ? `NIVEL ${game.stage}` : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
               </div></div>
               <div className="game-actions">
-                <button className="primary-btn" onClick={play}>{game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
-                <button className="outline-btn" onClick={() => dispatch({ type: 'reset' })}>REINICIAR</button>
+                <button className="primary-btn" disabled={competition.busy||(game.seed!==undefined&&['saving','error'].includes(competition.run?.status??''))} onClick={play}>{game.seed!==undefined&&['saved','expired'].includes(competition.run?.status??'')?'VOLVER A COMPETIR':game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
+                <button className="outline-btn" onClick={() => {competition.clear();dispatch({ type: 'reset' })}}>REINICIAR</button>
+                {competition.run?.status==='active'&&Boolean(game.replay)&&!game.over&&<button className="outline-btn ranked-finish" onClick={()=>void competition.save()}>TERMINAR Y GUARDAR</button>}
+                {competition.run?.status==='error'&&<button className="outline-btn ranked-finish" onClick={()=>void competition.save()}>REINTENTAR GUARDADO</button>}
               </div>
+              {game.seed!==undefined&&<p className="game-competition-status" role="status">{competition.message}</p>}
               <div className="game-control-options">
                 <p>Gira al deslizar, sin levantar el dedo.</p>
                 <button type="button" className="outline-btn" aria-pressed={showControls} onClick={toggleControls}>
@@ -336,8 +342,13 @@ export default function App() {
               {showControls && <div className="controls" aria-label="Controles para móvil">
                 {(['up', 'left', 'down', 'right'] as Direction[]).map((direction, i) => <button key={direction} aria-label={['Arriba', 'Izquierda', 'Abajo', 'Derecha'][i]} onPointerDown={event => { event.preventDefault(); turn(direction) }} onClick={event => { if (event.detail === 0) turn(direction) }}>{['↑', '←', '↓', '→'][i]}</button>)}
               </div>}
-              <p className="game-local-note">Aparece un objetivo más cada cinco caras recogidas, hasta cinco a la vez. Diez personas, tres expresiones cada una: no se agotan.<br />{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
+              <p className="game-local-note">Aparece un objetivo más cada cinco caras recogidas, hasta cinco a la vez. Diez personas, tres expresiones cada una: no se agotan.<br />{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Práctica: récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador. Entra desde COMPETIR para registrar una partida en tu cuenta.</p>
             </div>
+            <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
+            <article className="arcade-coming-soon groove-coming-soon" aria-label="GROOVE NINJA, próximamente">
+              <figure className="groove-cover"><img src="/arcade/groove-ninja-cover-v1.webp" alt="Carátula de GROOVE NINJA: un DJ hace scratch entre vinilos que vuelan y estelas de sonido" width="1200" height="800" loading="lazy"/><figcaption className="game-cover-caption"><span>ARCADANZ / GAME 003</span><strong>GROOVE<br/>NINJA</strong></figcaption></figure>
+              <div className="idle-copy"><span className="idle-status"><DanzFlower/> AL RITMO DEL COLECTIVO</span><h2>GROOVE<br/><em>NINJA.</em></h2><p>Corta sonidos, encadena scratches y reconstruye nuestros temas capa a capa. Cada acierto acerca la mezcla a su versión original.</p><span className="idle-coming">PRÓXIMAMENTE <span aria-hidden="true">↗</span></span><small>En preparación. Los temas y sus pistas se incorporarán más adelante.</small></div>
+            </article>
             <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
               <div className="idle-cover"><img src="/arcade/idle-studio-industrial.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
               <div className="idle-copy"><span className="idle-status"><DanzFlower /> EN EL ESTUDIO</span><h2>DANZ<br /><em>IDLE STUDIO.</em></h2><p>Un puesto, mil ideas. Música, moda, vídeo y diseño: el estudio del colectivo, a tu ritmo.</p><span className="idle-coming">PRÓXIMAMENTE <span aria-hidden="true">↗</span></span><small>Nombre y carátula provisionales.</small></div>

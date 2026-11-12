@@ -230,6 +230,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      danz_snake_start: { Args: {p_id:string;p_mode:string;p_alias:string}; Returns:Json }
+      danz_snake_submit: { Args: {p_id:string;p_moves:string}; Returns:Json }
+      danz_snake_board: { Args: {p_mode:string;p_period:string}; Returns:Json }
       danz_points_summary: { Args: Record<string, never>; Returns: Json }
       danz_points_suggest: { Args: { p_id: string; p_kind: string; p_body: string }; Returns: string }
       danz_points_purchase: { Args: { p_event_id: string; p_code: string; p_reference: string; p_amount_cents: number }; Returns: string }

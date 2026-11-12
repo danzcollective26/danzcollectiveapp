@@ -106,7 +106,7 @@ test('ocultar la pestaña pausa y no reanuda automáticamente', async ({ page })
   await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
 })
 
-test('seis laberintos seleccionables conservan el recorrido al reiniciar', async ({ page }) => {
+test('doce laberintos seleccionables conservan el recorrido al reiniciar', async ({ page }) => {
   await openArcade(page)
   await page.getByRole('button', { name: /^LABERINTO/ }).click()
   const select = page.getByLabel('RECORRIDO', { exact: true })
@@ -117,8 +117,8 @@ test('seis laberintos seleccionables conservan el recorrido al reiniciar', async
     expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
   }
   await page.getByRole('button', { name: 'REINICIAR', exact: true }).click()
-  await expect(select).toHaveValue('6')
-  await page.getByRole('button', { name: 'CLÁSICO', exact: true }).click()
+  await expect(select).toHaveValue(String(MAZE_STAGES.length))
+  await page.locator('.game-modes').getByRole('button', { name: 'CLÁSICO', exact: true }).click()
   await expect(page.locator('.game-board > .wall')).toHaveCount(0)
 })
 
