@@ -8,7 +8,7 @@ La edición se hizo con generación de imágenes incorporada. Los diez originale
 
 Cada objetivo conserva un ordinal: determina persona y expresión. Cada persona rota por las tres expresiones en rondas sucesivas; la cola conserva exactamente la variante recogida. La secuencia no se agota. Se empieza con un objetivo y aparece uno más cada cinco recogidos, hasta cinco simultáneos. Se reponen en casillas libres sin solaparse con cuerpo, paredes u otros objetivos; al cambiar de laberinto se mantiene la secuencia y se reinicia con posición segura.
 
-La carátula conserva el arte aprobado del cable huyendo, con título HTML superpuesto para que siga nítido y legible. El nombre también aparece en Inicio, título y pantalla de espera; el HUD usa LIAO, JACK para caber en móvil. Las tarjetas de DANZ IN tienen fotos en blanco y negro, bordes finos neutros, fondo limpio y enlaces redondeados. Se retiraron los marcos de color de 9 px y los acentos distintos por artista; los perfiles/enlaces siguen siendo los mismos.
+La carátula conserva el arte aprobado del cable huyendo, con título HTML superpuesto para que siga nítido y legible. El nombre también aparece en Inicio, título y pantalla de espera; el HUD usa LIAO, JACK para caber en móvil. Las tarjetas de DANZ IN conservan el color original de las fotos, con un contraste muy leve, bordes finos neutros, fondo limpio y enlaces redondeados. El usuario aclaró que las fotos podían conservar color: el acabado elegante se aplica a la composición y los marcos, sin forzar blanco y negro. Se retiraron los marcos de color de 9 px y los acentos distintos por artista; los perfiles/enlaces siguen siendo los mismos.
 
 ## Prompt común de las tres expresiones
 
