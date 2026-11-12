@@ -18,7 +18,7 @@ async function navigate(page: Page, section: string) {
 }
 
 async function openGallery(page: Page) {
-  await navigate(page, 'Fotos')
+  await navigate(page, 'FOTOS')
   await page.getByRole('button', { name: 'Álbumes de este navegador', exact: true }).click()
   await expect(page.getByText('✓ GUARDADO LOCAL ACTIVADO', { exact: true })).toBeVisible()
 }
