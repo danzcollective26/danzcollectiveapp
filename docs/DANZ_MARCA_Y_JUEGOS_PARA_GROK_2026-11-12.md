@@ -89,12 +89,14 @@ Concepto: estudio del colectivo con música, ropa, vídeo, diseño y 3D. Empezar
 
 Primer entregable recomendable: bucle jugable pequeño (tocar para producir, mejora con coste correcto, desbloqueo del segundo puesto, guardado/carga robustos, salida y pausa). Probar fondos insuficientes, doble pulsación, recarga, guardado corrupto y pestaña oculta. El contrato adjunto es una base de integración propuesta, no una API de premios.
 
-## 7. Juego 003: GROOVE NINJA — concepto elegido
-Nombre confirmado: **GROOVE NINJA**, guiño a Fruit Ninja con temática DANZ. Cortar vinilos/sonidos, ida y vuelta para scratch, combos que construyen una mezcla y situaciones divertidas de cabina. Ideas compatibles: salvar una mezcla, proteger el USB, evitar acoples/cables y reaccionar al público. Elegir un núcleo claro antes de añadir todos los modos.
+## 7. Juego 003: GROOVE NINJA — primera sesión jugable
+Nombre confirmado: **GROOVE NINJA**, guiño a Fruit Ninja con temática DANZ. VINYL CUT ya tiene una sesión de práctica de 60 segundos: cortar vinilos al vuelo, combos hasta ×4, cinco vidas, acoples que esquivar y tres ventanas de scratch por ida y vuelta. Hay tres tramos de intensidad, récord local, sonido opcional, pausa y pantalla completa con alternativa para móvil. Los vinilos se parten por la dirección del gesto, con estela y fragmentos. La derrota dice PARTY OVER.
 
-Modo favorito: **Reconstruye el tema**. Cada acierto añade o limpia una capa (batería, bajo, voz…) hasta escuchar el lanzamiento original como debe sonar. Los errores pueden disparar un sonido o fragmento cómico; esas bromas aún no se han decidido. El propietario puede aportar los temas por capas en su mayoría más adelante. Enlazar lanzamientos a SoundCloud y al DJ; para manipular capas durante la partida se requieren los archivos/pistas, no solo un enlace de escucha.
+La base sonora actual es **sintetizada para ensayo**: beat, bajo, sinte y aire se van construyendo con aciertos. No contiene temas, voces o stems reales del colectivo. La sesión es práctica, no otorga DANZPOINTS ni tiene competición oficial. El selector de ARCADANZ y el parámetro `juego=groove-ninja` permiten abrirla sin mezclar controles con Snake. El código propio utiliza SVG y Web Audio; no ha requerido añadir dependencias o un plan de pago.
 
-Un modo tipo Guitar Hero se ha sugerido como variante futura; el propietario prefiere el núcleo de cortes y scratch. Aún no hay música cargada, stems, lógica jugable ni publicación de canciones en la app. Mostrar PRÓXIMAMENTE hasta que exista un juego real.
+**Reconstruye el tema** sigue siendo la fase musical favorita: cada acierto añade o limpia batería, bajo, voz… hasta escuchar el lanzamiento original. El propietario puede aportar temas por capas más adelante. Las bromas sonoras, artistas, lanzamientos y sus enlaces SoundCloud aún no están definidos; no inventarlos. Un enlace de escucha no equivale a los archivos necesarios para manipular pistas.
+
+Un modo tipo Guitar Hero es una variante futura; se priorizan cortes y scratch. No afirmar que el juego ya reconstruye música real. Idle Studio y el plataformas son proyectos independientes que el propietario está creando en Grok; no rehacerlos ni rediseñarlos como parte de este juego.
 
 ## 8. Comportamiento común que debe conservar Grok
 1. Móvil primero, legible a 320 px, táctil inmediato, objetivos de toque de al menos 44 px y soporte horizontal.

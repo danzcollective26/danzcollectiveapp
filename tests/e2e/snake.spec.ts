@@ -168,13 +168,14 @@ test('Idle Studio muestra una carátula provisional sin fingir que el juego est�
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)
 })
 
-test('GROOVE NINJA tiene portada propia y nombre definitivo sin presentar el juego como disponible',async({page})=>{
+test('GROOVE NINJA conserva su portada y ofrece su primera sesión de práctica',async({page})=>{
  await openArcade(page)
- const card=page.getByRole('article',{name:'GROOVE NINJA, próximamente',exact:true})
+ const card=page.getByRole('article',{name:'GROOVE NINJA, jugar',exact:true})
  await card.scrollIntoViewIfNeeded()
  await expect(card.getByRole('heading',{name:'GROOVE NINJA.',exact:true})).toBeVisible()
  await expect(card.locator('figcaption')).toContainText('GROOVE')
  await expect.poll(()=>card.getByRole('img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
- await expect(card.getByRole('button')).toHaveCount(0)
+ await expect(card.getByRole('button',{name:'ABRIR GROOVE NINJA ↗',exact:true})).toBeEnabled()
+ await expect(card).toContainText('sonido de ensayo')
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })

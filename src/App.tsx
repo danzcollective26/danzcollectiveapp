@@ -15,6 +15,7 @@ const PhotoGallery = lazy(() => import('./PhotoGallery'))
 const PrivateGallery = lazy(() => import('./cloud/PrivateGallery'))
 const DanzShop = lazy(() => import('./shop/DanzShop'))
 const DanzPoints = lazy(() => import('./points/DanzPoints'))
+const GrooveNinja = lazy(() => import('./arcade/GrooveNinja'))
 import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
 import { parseCollective, snakeFace, snakeExpression } from './content/collective'
@@ -51,6 +52,7 @@ const pages: { id: Page; label: string }[] = [
 
 function Arrow() { return <svg aria-hidden="true" className="arrow" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19 19 5M5 5h14v14" /></svg> }
 const launchPass = captureLaunchPass()
+function locationGame() { return new URLSearchParams(window.location.search).get('juego') === 'groove-ninja' ? 'groove' : 'snake' }
 
 export default function App() {
   const auth = useAuth()
@@ -76,11 +78,12 @@ export default function App() {
   const localGalleryOpened = useRef(false)
   if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
+  const [arcadeGame, setArcadeGame] = useState(locationGame)
   const gameScreen = useGameScreen(() => dispatch({ type: 'pause' }))
   const competition=useSnakeCompetition(game,(mode,seed)=>{dispatch({type:'ranked',mode,seed});gameScreen.enter()},()=>dispatch({type:'pause'}))
   const turn = (direction: Direction) => {if(game.seed!==undefined&&competition.run?.status!=='active')return;dispatch({ type: 'input', direction, random: Math.random() })}
   const play = () => { if(game.seed!==undefined&&competition.run?.status!=='active'){if(competition.run?.status!=='saving'&&competition.run?.status!=='error')void competition.start(game.mode);return} if (!game.running) gameScreen.enter(); dispatch({ type: game.running ? 'pause' : 'start' }) }
-  useEffect(() => { if (page !== 'arcade') gameScreen.leave() }, [page])
+  useEffect(() => { if (page !== 'arcade' || arcadeGame !== 'snake') gameScreen.leave() }, [page, arcadeGame])
   const [records, setRecords] = useState(() => ({ classic: readSnakeRecord(), maze: readSnakeRecord('maze') }))
   const record = records[game.mode]
   const [showControls, setShowControls] = useState(() => {
@@ -158,17 +161,17 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (page !== 'arcade' || !game.running) return
+    if (page !== 'arcade' || arcadeGame !== 'snake' || !game.running) return
     const timer = window.setTimeout(() => dispatch({ type: 'tick', random: Math.random() }), gameTickMs(game.score))
     return () => window.clearTimeout(timer)
-  }, [page, game.running, game.score, game.steps])
+  }, [page, arcadeGame, game.running, game.score, game.steps])
 
   useEffect(() => {
     if (game.score > record) setRecords(previous => ({ ...previous, [game.mode]: saveSnakeRecord(game.score, game.mode) }))
   }, [game.score, game.mode, record])
 
   useEffect(() => {
-    if (page !== 'arcade') return
+    if (page !== 'arcade' || arcadeGame !== 'snake') return
     const directions: Record<string, Direction> = {
       ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
       w: 'up', s: 'down', a: 'left', d: 'right',
@@ -188,24 +191,34 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [page, game.running, game.seed, competition.run?.status, competition.busy, competition.alias])
+  }, [page, arcadeGame, game.running, game.seed, competition.run?.status, competition.busy, competition.alias])
 
   const go = (destination: Page) => {
     if (page === 'arcade' && destination !== 'arcade') gameScreen.leave()
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
     const url = new URL(window.location.href)
     url.searchParams.delete('panel')
+    url.searchParams.delete('juego')
     if (destination !== 'danzflor') url.searchParams.delete('producto')
     if (destination !== 'admin' && destination !== 'fotos') url.searchParams.delete('album')
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
-    try { if (page !== destination) window.history.pushState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
+    try { if (page !== destination || arcadeGame !== 'snake') window.history.pushState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
+    setArcadeGame('snake')
     setPage(destination)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const openGroove = () => {
+    dispatch({ type: 'pause' }); gameScreen.leave()
+    const url = new URL(window.location.href)
+    url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'groove-ninja')
+    try { window.history.pushState(window.history.state, '', url) } catch { /* In-memory navigation remains available. */ }
+    setPage('arcade'); setArcadeGame('groove'); window.scrollTo({ top: 0 })
+  }
+
   useEffect(() => {
-    const back = () => { dispatch({ type: 'pause' }); setPage(locationPage()) }
+    const back = () => { dispatch({ type: 'pause' }); setPage(locationPage()); setArcadeGame(locationGame()) }
     window.addEventListener('popstate', back)
     return () => window.removeEventListener('popstate', back)
   }, [])
@@ -290,9 +303,11 @@ export default function App() {
         </section>}
         {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
-        {page === 'arcade' && (
+        {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="content inner-page" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja onBack={() => go('arcade')} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'snake' && (
           <section className="content inner-page arcade-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+            <div className="arcade-game-switcher" role="group" aria-label="Elegir juego de ARCADANZ"><button type="button" className="outline-btn" aria-pressed="true">LA QUE HAS LIAO, JACK</button><button type="button" className="outline-btn" onClick={openGroove}>GROOVE NINJA ↗</button></div>
             <div className="arcade-intro">
               <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
               <div className="eyebrow">ARCADANZ / GAME 001</div>
@@ -346,9 +361,9 @@ export default function App() {
               <p className="game-local-note">Aparece un objetivo más cada cinco caras recogidas, hasta cinco a la vez. Diez personas, tres expresiones cada una: no se agotan.<br />{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Práctica: récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador. {COMPETITION_ENABLED?'Entra desde COMPETIR para registrar una partida en tu cuenta.':'La clasificación entre cuentas y sus premios están en preparación.'}</p>
             </div>
             <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
-            <article className="arcade-coming-soon groove-coming-soon" aria-label="GROOVE NINJA, próximamente">
+            <article className="arcade-coming-soon groove-coming-soon" aria-label="GROOVE NINJA, jugar">
               <figure className="groove-cover"><img src="/arcade/groove-ninja-cover-v1.webp" alt="Carátula de GROOVE NINJA: un DJ hace scratch entre vinilos que vuelan y estelas de sonido" width="1200" height="800" loading="lazy"/><figcaption className="game-cover-caption"><span>ARCADANZ / GAME 003</span><strong>GROOVE<br/>NINJA</strong></figcaption></figure>
-              <div className="idle-copy"><span className="idle-status"><DanzFlower/> AL RITMO DEL COLECTIVO</span><h2>GROOVE<br/><em>NINJA.</em></h2><p>Corta sonidos, encadena scratches y reconstruye nuestros temas capa a capa. Cada acierto acerca la mezcla a su versión original.</p><span className="idle-coming">PRÓXIMAMENTE <span aria-hidden="true">↗</span></span><small>En preparación. Los temas y sus pistas se incorporarán más adelante.</small></div>
+              <div className="idle-copy"><span className="idle-status"><DanzFlower/> AL RITMO DEL COLECTIVO</span><h2>GROOVE<br/><em>NINJA.</em></h2><p>Corta vinilos al vuelo, encadena scratches y levanta la mezcla. Un minuto, cinco vidas y toda la cabina por delante.</p><button type="button" className="primary-btn gn-open" onClick={openGroove}>ABRIR GROOVE NINJA <span aria-hidden="true">↗</span></button><small>Primera sesión jugable con sonido de ensayo. Los temas y las pistas del colectivo llegarán después.</small></div>
             </article>
             <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
               <div className="idle-cover"><img src="/arcade/idle-studio-industrial.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
