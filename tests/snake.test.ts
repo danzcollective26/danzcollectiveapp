@@ -123,10 +123,10 @@ test('la progresión sube cada cinco objetivos y limita la velocidad máxima', (
   assert.equal(gameLevel(0), 1)
   assert.equal(gameLevel(40), 1)
   assert.equal(gameLevel(50), 2)
-  assert.equal(gameTickMs(0), 150)
-  assert.equal(gameTickMs(50), 142)
+  assert.equal(gameTickMs(0), 240)
+  assert.equal(gameTickMs(50), 225)
   assert.equal(gameLevel(1500), 10)
-  assert.equal(gameTickMs(1500), 78)
+  assert.equal(gameTickMs(1500), 105)
 })
 
 test('los doce laberintos tienen dificultad creciente, salida segura y todas las casillas conectadas', () => {
