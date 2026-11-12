@@ -1,6 +1,10 @@
 {
   "websiteUrl": null,
-  "artists": [
+  "snake": {
+    "headImage": "/arcade/brand/danz-flower.png",
+    "faces": []
+  },
+  "members": [
     {
       "id": "chicharro-es",
       "name": "Chicharro (ES)",
@@ -9,7 +13,10 @@
         "https://open.spotify.com/artist/38ToIIgwwXERo4ZNMplyf5",
         "https://www.instagram.com/chicharro.dnz/"
       ],
-      "image": "/artists/chicharro-es.jpg"
+      "image": "/artists/chicharro-es.jpg",
+      "roles": [
+        "DJ"
+      ]
     },
     {
       "id": "tonydawgs",
@@ -22,7 +29,10 @@
         "https://www.youtube.com/@DanzInRecords",
         "https://www.mavelpoint.com/artist/tonydawgs/overview"
       ],
-      "image": "/artists/tonydawgs.jpg"
+      "image": "/artists/tonydawgs.jpg",
+      "roles": [
+        "DJ"
+      ]
     },
     {
       "id": "wizme",
@@ -33,7 +43,10 @@
         "https://www.instagram.com/wizme.music/",
         "https://www.youtube.com/@wizme."
       ],
-      "image": "/artists/wizme.jpg"
+      "image": "/artists/wizme.jpg",
+      "roles": [
+        "DJ"
+      ]
     },
     {
       "id": "leon",
@@ -43,11 +56,10 @@
         "https://open.spotify.com/artist/7FJQJvMRK8RPZ4HMjXCr55",
         "https://www.instagram.com/lionromero_/"
       ],
-      "image": "/artists/leon.jpg"
+      "image": "/artists/leon.jpg",
+      "roles": [
+        "DJ"
+      ]
     }
-  ],
-  "snake": {
-    "headImage": "/arcade/brand/danz-flower.png",
-    "faces": []
-  }
+  ]
 }

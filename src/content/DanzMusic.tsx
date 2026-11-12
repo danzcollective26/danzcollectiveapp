@@ -14,16 +14,18 @@ function rememberMusic() {
   } catch { /* Restricted previews may deny history writes; navigation still works. */ }
 }
 
-export default function DanzMusic({ artists }: { artists: Artist[] }) {
+export default function DanzMusic({ artists, onProfile }: { artists: Artist[]; onProfile?: (id: string) => void }) {
   if (!artists.length) return <div className="empty-state"><span className="empty-icon">♫</span><div><h2>El sonido de DANZ</h2><p>Próximamente, los DJs del colectivo y sus perfiles oficiales de Spotify, SoundCloud y YouTube.</p></div><span className="pill">PRÓXIMAMENTE</span></div>
-  return <div className="artist-grid" aria-label="DJs del colectivo">
-    {artists.map((artist, index) => <article className="artist-card" data-artist={artist.id} key={artist.id} aria-label={artist.name}>
+  return <div className="artist-grid music-list" aria-label="Música del colectivo">
+    {artists.map((artist, index) => <article className="artist-card music-entry" data-artist={artist.id} key={artist.id} aria-label={artist.name}>
+      <div className="music-entry-heading">
       <div className="artist-heading"><span>DANZ COLLECTIVE</span><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
       <a className="artist-profile" href={(artist.links.find(link => link.label === 'SoundCloud') ?? artist.links[0]).href} target="_blank" rel="noopener noreferrer" onClick={rememberMusic} aria-label={`Escuchar a ${artist.name}`}>
-        {artist.image && <div className="artist-portrait"><img src={artist.image} alt={`Retrato de ${artist.name}`} width="640" height="640" decoding="async" /><span className="artist-photo-label" aria-hidden="true">DANZ IN / ARTIST</span></div>}
         <h2>{artist.name}<ExternalArrow /></h2>
         <span className="artist-listen">ESCUCHAR AL ARTISTA <ExternalArrow /></span>
       </a>
+      {onProfile && <button type="button" className="member-profile-link" onClick={() => onProfile(artist.id)} aria-label={`Ver la ficha de ${artist.name}`}>VER FICHA DEL EQUIPO ↗</button>}
+      </div>
       <div className="artist-links">{artist.links.map(link => <a className="outline-btn external-btn" key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" onClick={rememberMusic} aria-label={`${artist.name} en ${link.label}${link.label === 'YouTube' && artist.youtubeChannelName ? ` · ${artist.youtubeChannelName}` : ''}`}><span>{link.label}{link.label === 'YouTube' && artist.youtubeChannelName && <small>{artist.youtubeChannelName}</small>}</span><ExternalArrow /></a>)}</div>
     </article>)}
   </div>

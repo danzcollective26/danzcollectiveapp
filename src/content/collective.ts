@@ -1,7 +1,8 @@
 export type MusicLink = { label: string; href: string }
 export type Artist = { id: string; name: string; links: MusicLink[]; youtubeChannelName?: string; image?: string }
+export type Member = Artist & { roles: string[]; bio?: string }
 export type SnakeFace = { id: string; name: string; image: string }
-export type Collective = { websiteUrl: string | null; artists: Artist[]; snake: { headImage: string | null; faces: SnakeFace[] } }
+export type Collective = { websiteUrl: string | null; members: Member[]; artists: Member[]; snake: { headImage: string | null; faces: SnakeFace[] } }
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Expected a content object')
@@ -58,17 +59,26 @@ function uniqueIds<T extends { id: string }>(values: T[]): T[] {
 export function parseCollective(input: unknown): Collective {
   const source = record(input)
   const snake = record(source.snake)
-  if (!Array.isArray(source.artists) || !Array.isArray(snake.faces)) throw new Error('Artists and faces must be lists')
+  const legacy = source.members === undefined
+  if (!legacy && source.artists !== undefined) throw new Error('Use one member registry, not two profile lists')
+  const people = legacy ? source.artists : source.members
+  if (!Array.isArray(people) || !Array.isArray(snake.faces)) throw new Error('Members and faces must be lists')
+  const members = uniqueIds(people.map(value => {
+    const artist = record(value)
+    const rawRoles = legacy ? ['DJ'] : artist.roles
+    if (!Array.isArray(rawRoles) || !rawRoles.length || rawRoles.length > 8) throw new Error('A member needs 1–8 roles')
+    const roles = [...new Set(rawRoles.map(text))]
+    if (!Array.isArray(artist.links) || (roles.includes('DJ') && !artist.links.length)) throw new Error('A DJ needs at least one official profile')
+    const platforms = ['SoundCloud', 'Spotify', 'Instagram', 'YouTube', 'MavelPoint']
+    const links = [...new Map(artist.links.map(musicLink).map(link => [link.href, link])).values()].sort((a, b) => platforms.indexOf(a.label) - platforms.indexOf(b.label))
+    if (artist.image !== undefined && (typeof artist.image !== 'string' || !/^\/(?:artists|team)\/[a-z0-9][a-z0-9-]*\.(?:png|jpe?g|webp)$/.test(artist.image))) throw new Error('Use a bundled public member portrait')
+    if (artist.bio !== undefined && (typeof artist.bio !== 'string' || !artist.bio.trim() || artist.bio.trim().length > 600)) throw new Error('Invalid member biography')
+    return { id: identifier(artist.id), name: text(artist.name), roles, links, ...(artist.bio === undefined ? {} : { bio: (artist.bio as string).trim() }), ...(artist.youtubeChannelName === undefined ? {} : { youtubeChannelName: text(artist.youtubeChannelName) }), ...(artist.image === undefined ? {} : { image: artist.image as string }) }
+  }))
   return {
     websiteUrl: source.websiteUrl === null ? null : httpsUrl(source.websiteUrl).href,
-    artists: uniqueIds(source.artists.map(value => {
-      const artist = record(value)
-      if (!Array.isArray(artist.links) || !artist.links.length) throw new Error('An artist needs at least one official profile')
-      const platforms = ['SoundCloud', 'Spotify', 'Instagram', 'YouTube', 'MavelPoint']
-      const links = [...new Map(artist.links.map(musicLink).map(link => [link.href, link])).values()].sort((a, b) => platforms.indexOf(a.label) - platforms.indexOf(b.label))
-      if (artist.image !== undefined && (typeof artist.image !== 'string' || !/^\/artists\/[a-z0-9][a-z0-9-]*\.(?:png|jpe?g|webp)$/.test(artist.image))) throw new Error('Use a bundled artist portrait')
-      return { id: identifier(artist.id), name: text(artist.name), links, ...(artist.youtubeChannelName === undefined ? {} : { youtubeChannelName: text(artist.youtubeChannelName) }), ...(artist.image === undefined ? {} : { image: artist.image as string }) }
-    })),
+    members,
+    artists: members.filter(member => member.roles.includes('DJ')),
     snake: {
       headImage: snake.headImage === null ? null : image(snake.headImage, 'brand'),
       faces: uniqueIds(snake.faces.map(value => {
@@ -82,7 +92,7 @@ export function arcadeAssets(collective: Collective): string[] {
   return [...new Set([collective.snake.headImage, ...collective.snake.faces.map(face => face.image)].filter((path): path is string => path !== null))]
 }
 export function collectiveAssets(collective: Collective): string[] {
-  return [...new Set([...arcadeAssets(collective), ...collective.artists.flatMap(artist => artist.image ? [artist.image] : [])])]
+  return [...new Set([...arcadeAssets(collective), ...collective.members.flatMap(member => member.image ? [member.image] : [])])]
 }
 
 /** Each eaten item adds one segment. The initial body remains plain. */
