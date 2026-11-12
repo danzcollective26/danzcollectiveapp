@@ -1,20 +1,22 @@
 export const GROOVE_DURATION = 60_000
 export const GROOVE_BEAT = 500
-export const GROOVE_LAYERS = ['BEAT', 'BAJO', 'SINTE', 'AIRE'] as const
+export const GROOVE_VINYLS = ['CUT 01', 'CUT 02', 'CUT 03', 'CUT 04'] as const
 export const GROOVE_COLORS = ['#d9ff6b', '#ff789f', '#ba9efa', '#8dd8c8'] as const
+export type GrooveMode = 'cut' | 'scratch'
 export type GroovePoint = { x: number; y: number }
 export type GrooveDisc = { id: number; kind: 'vinyl' | 'feedback'; layer: number; born: number; x: number; drift: number; launch: number; spin: number }
 export type GrooveScratch = { id: number; until: number; turns: number; direction: number; anchor: number | null }
 export type GrooveSpark = { id: number; x: number; y: number; color: string; born: number; label: string; layer?: number; angle?: number }
 export type GrooveState = {
-  status: 'ready' | 'playing' | 'paused' | 'over' | 'complete'; elapsed: number; score: number; combo: number; bestCombo: number;
-  lives: number; hits: number; misses: number; scratches: number; levels: number[]; discs: GrooveDisc[];
+  status: 'ready' | 'playing' | 'paused' | 'over' | 'complete'; mode: GrooveMode; elapsed: number; score: number; combo: number; bestCombo: number;
+  lives: number; hits: number; misses: number; scratches: number; nextScratchAt: number; discs: GrooveDisc[];
   scratch: GrooveScratch | null; sparks: GrooveSpark[]; seed: number; nextId: number; beat: number; message: string;
 }
 
-export function initialGroove(seed = 27): GrooveState {
-  return { status: 'ready', elapsed: 0, score: 0, combo: 0, bestCombo: 0, lives: 5, hits: 0, misses: 0, scratches: 0,
-    levels: [0, 0, 0, 0], discs: [], scratch: null, sparks: [], seed: Math.max(1, Math.floor(seed) % 2147483647), nextId: 1, beat: -1, message: 'CORTA EL VINILO. ENCIENDE LA MEZCLA.' }
+export function initialGroove(seed = 27, mode: GrooveMode = 'cut'): GrooveState {
+  return { status: 'ready', mode, elapsed: 0, score: 0, combo: 0, bestCombo: 0, lives: 5, hits: 0, misses: 0, scratches: 0, nextScratchAt: 0,
+    discs: [], scratch: null, sparks: [], seed: Math.max(1, Math.floor(seed) % 2147483647), nextId: 1, beat: -1,
+    message: mode === 'cut' ? 'CORTA VINILOS. ESQUIVA LOS ACOPLES.' : 'SUJETA EL DISCO. CAMBIA DE DIRECCIÓN.' }
 }
 export function grooveStage(time: number) { return Math.min(3, 1 + Math.floor(time / 20_000)) }
 export function grooveMultiplier(combo: number) { return Math.min(4, 1 + Math.floor(combo / 5)) }
@@ -39,21 +41,20 @@ function spawn(state: GrooveState, beat: number, extra = false) {
     launch: 680 + random(state) * 45, spin: random(state) * 5 })
 }
 function clone(state: GrooveState): GrooveState {
-  return { ...state, levels: [...state.levels], discs: [...state.discs], sparks: [...state.sparks], scratch: state.scratch ? { ...state.scratch } : null }
+  return { ...state, discs: [...state.discs], sparks: [...state.sparks], scratch: state.scratch ? { ...state.scratch } : null }
 }
 function spark(state: GrooveState, point: GroovePoint, color: string, label: string) {
   state.sparks.push({ id: state.nextId++, ...point, color, born: state.elapsed, label })
   state.sparks = state.sparks.slice(-14)
 }
-function miss(state: GrooveState, layer: number | null, message: string) {
+function miss(state: GrooveState, message: string) {
   state.lives = Math.max(0, state.lives - 1); state.misses++; state.combo = 0; state.message = message
-  if (layer !== null) state.levels[layer] = Math.max(0, state.levels[layer] - .2)
   if (!state.lives) { state.status = 'over'; state.discs = []; state.scratch = null }
 }
-function reward(state: GrooveState, layer: number, base: number) {
+function reward(state: GrooveState, base: number) {
   state.combo++; state.bestCombo = Math.max(state.bestCombo, state.combo)
   const points = base * grooveMultiplier(state.combo)
-  state.score += points; state.levels[layer] = Math.min(1, state.levels[layer] + .25)
+  state.score += points
   return points
 }
 export function advanceGroove(previous: GrooveState, milliseconds: number): GrooveState {
@@ -62,25 +63,27 @@ export function advanceGroove(previous: GrooveState, milliseconds: number): Groo
   state.elapsed = Math.min(GROOVE_DURATION, previous.elapsed + Math.min(100, milliseconds))
   const beat = Math.floor(state.elapsed / GROOVE_BEAT)
   for (let current = state.beat + 1; current <= beat; current++) {
-    const isScratch = current === 20 || current === 60 || current === 100
-    if (isScratch) {
-      state.discs = []; state.scratch = { id: state.nextId++, until: current * GROOVE_BEAT + 4000, turns: 0, direction: 0, anchor: null }
-      state.message = 'SCRATCH: IDA Y VUELTA, SIN SOLTAR.'
-    } else if (!state.scratch && (grooveStage(state.elapsed) > 1 || current % 2 === 0)) {
+    if (state.mode === 'cut' && (grooveStage(state.elapsed) > 1 || current % 2 === 0)) {
       spawn(state, current)
       if (grooveStage(state.elapsed) === 3 && current % 6 === 2) spawn(state, current, true)
     }
   }
   state.beat = beat
+  if (state.mode === 'scratch' && !state.scratch && state.elapsed >= state.nextScratchAt) {
+    const window = [3800, 3200, 2600][grooveStage(state.elapsed) - 1]
+    state.scratch = { id: state.nextId++, until: state.elapsed + window, turns: 0, direction: 0, anchor: null }
+    state.nextScratchAt = state.elapsed + window + 500
+    state.message = 'SCRATCH: IDA Y VUELTA, SIN SOLTAR.'
+  }
   if (state.scratch && state.elapsed >= state.scratch.until) {
-    state.scratch = null; miss(state, null, 'SE ESCAPÓ EL SCRATCH. SIGUE EL BEAT.')
+    state.scratch = null; miss(state, 'SE ESCAPÓ EL SCRATCH. A POR EL SIGUIENTE.')
   }
   if (state.status === 'playing') {
     const remaining: GrooveDisc[] = []
     for (const disc of state.discs) {
       const position = discPosition(disc, state.elapsed)
       if (state.elapsed - disc.born > 450 && position.y > 860) {
-        if (disc.kind === 'vinyl') miss(state, disc.layer, 'VINILO FUERA. RECUPERA LA MEZCLA.')
+        if (disc.kind === 'vinyl') miss(state, 'VINILO FUERA. RECUPERA LA RACHA.')
       } else remaining.push(disc)
       if (state.status !== 'playing') break
     }
@@ -93,7 +96,7 @@ export function advanceGroove(previous: GrooveState, milliseconds: number): Groo
   return state
 }
 export function cutGroove(previous: GrooveState, from: GroovePoint, to: GroovePoint): GrooveState {
-  if (previous.status !== 'playing' || previous.scratch || ![from.x, from.y, to.x, to.y].every(Number.isFinite) || Math.hypot(to.x - from.x, to.y - from.y) < 7) return previous
+  if (previous.status !== 'playing' || previous.mode !== 'cut' || ![from.x, from.y, to.x, to.y].every(Number.isFinite) || Math.hypot(to.x - from.x, to.y - from.y) < 7) return previous
   const caught = previous.discs.filter(disc => {
     const p = discPosition(disc, previous.elapsed)
     return p.y > 45 && p.y < 745 && segmentDistance(p, from, to) <= (disc.kind === 'vinyl' ? 61 : 45)
@@ -103,9 +106,9 @@ export function cutGroove(previous: GrooveState, from: GroovePoint, to: GroovePo
   state.discs = state.discs.filter(disc => !caught.some(hit => hit.id === disc.id))
   for (const disc of caught) {
     const position = discPosition(disc, state.elapsed)
-    if (disc.kind === 'feedback') { miss(state, null, '¡ACOPLE! CUIDADO CON LOS ROJOS.'); spark(state, position, '#ff645f', 'ACOPLE') }
+    if (disc.kind === 'feedback') { miss(state, '¡ACOPLE! CUIDADO CON LOS ROJOS.'); spark(state, position, '#ff645f', 'ACOPLE') }
     else {
-      const points = reward(state, disc.layer, 100); state.hits++; state.message = `${GROOVE_LAYERS[disc.layer]} A LA MEZCLA`
+      const points = reward(state, 100); state.hits++; state.message = caught.length > 1 ? '¡VARIOS VINILOS DE UNA PASADA!' : 'CORTE LIMPIO. MANTÉN LA RACHA.'
       spark(state, position, GROOVE_COLORS[disc.layer], `+${points}`)
       Object.assign(state.sparks.at(-1)!, { layer: disc.layer, angle: Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI })
     }
@@ -121,7 +124,7 @@ export function keyCutGroove(previous: GrooveState, layer: number) {
   return cutGroove(previous, { x: p.x - 8, y: p.y }, { x: p.x + 8, y: p.y })
 }
 export function scratchGroove(previous: GrooveState, x: number, release = false): GrooveState {
-  if (previous.status !== 'playing' || !previous.scratch || !Number.isFinite(x)) return previous
+  if (previous.status !== 'playing' || previous.mode !== 'scratch' || !previous.scratch || !Number.isFinite(x)) return previous
   const state = clone(previous), scratch = state.scratch!
   if (release) { scratch.anchor = null; scratch.direction = 0; return state }
   if (scratch.anchor === null) { scratch.anchor = x; return state }
@@ -131,9 +134,9 @@ export function scratchGroove(previous: GrooveState, x: number, release = false)
   if (scratch.direction && direction !== scratch.direction) scratch.turns++
   scratch.direction = direction; scratch.anchor = x
   if (scratch.turns >= 3) {
-    const points = reward(state, 2, 400); state.scratches++; state.scratch = null
-    state.levels = state.levels.map(level => Math.min(1, level + .15))
-    state.message = 'SCRATCH LIMPIO. ¡VUELVE A LOS CORTES!'; spark(state, { x: 320, y: 330 }, '#ff789f', `SCRATCH +${points}`)
+    const points = reward(state, 400); state.scratches++; state.scratch = null
+    state.nextScratchAt = state.elapsed + [700, 550, 400][grooveStage(state.elapsed) - 1]
+    state.message = 'SCRATCH LIMPIO. VIENE OTRO PLATO.'; spark(state, { x: 320, y: 330 }, '#ff789f', `SCRATCH +${points}`)
   }
   return state
 }
@@ -143,11 +146,11 @@ export function setGroovePlaying(state: GrooveState, playing: boolean): GrooveSt
   return state
 }
 const RECORD_KEY = 'danz-groove-ninja-record-v1'
-export function readGrooveRecord() {
-  try { const value = Number(localStorage.getItem(RECORD_KEY)); return Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000 ? value : 0 } catch { return 0 }
+export function readGrooveRecord(mode: GrooveMode = 'cut') {
+  try { const value = Number(localStorage.getItem(`${RECORD_KEY}-${mode}`) ?? (mode === 'cut' ? localStorage.getItem(RECORD_KEY) : null)); return Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000 ? value : 0 } catch { return 0 }
 }
-export function saveGrooveRecord(score: number) {
-  const record = Math.max(readGrooveRecord(), Number.isSafeInteger(score) && score >= 0 && score <= 1_000_000 ? score : 0)
-  try { localStorage.setItem(RECORD_KEY, String(record)) } catch { /* Optional practice record. */ }
+export function saveGrooveRecord(score: number, mode: GrooveMode = 'cut') {
+  const record = Math.max(readGrooveRecord(mode), Number.isSafeInteger(score) && score >= 0 && score <= 1_000_000 ? score : 0)
+  try { localStorage.setItem(`${RECORD_KEY}-${mode}`, String(record)) } catch { /* Optional practice record. */ }
   return record
 }

@@ -96,6 +96,20 @@ test('offline reloads can open the static app; online navigations still enforce 
   assert.match(await (await w.request('/arcade/faces/synthetic.webp')!).text(), /static asset/)
   assert.equal(w.request('/?code=synthetic', 'navigate'), null)
 })
+test('exact public arcade links reopen the shell offline without caching query URLs', async () => {
+  const w = worker(); await w.lifetime('install'); w.state.offline = true
+  for (const path of ['/?seccion=arcade', '/?seccion=arcade&juego=groove-ninja', '/?juego=groove-ninja&seccion=arcade']) {
+    assert.match(await (await w.request(path, 'navigate')!).text(), /danz-shell/)
+  }
+  assert.deepEqual([...w.buckets.get(prefix + 'current')!.keys()].sort(), [...paths].sort())
+  w.state.offline = false; w.state.gate = true
+  assert.match(await (await w.request('/?seccion=arcade&juego=groove-ninja', 'navigate')!).text(), /Sign in with ChatGPT/)
+})
+test('game links with credentials, unknown/duplicate parameters or a non-navigation request still bypass', () => {
+  const w = worker()
+  for (const path of ['/?seccion=arcade&code=secret', '/?seccion=arcade&juego=groove-ninja&token_hash=secret', '/?seccion=arcade&pase=secret', '/?seccion=arcade&seccion=arcade', '/?seccion=arcade&juego=groove-ninja&juego=groove-ninja', '/?seccion=cuenta', '/?seccion=arcade&juego=unknown', '/assets/app-123.js?seccion=arcade']) assert.equal(w.request(path, 'navigate'), null, path)
+  assert.equal(w.request('/?seccion=arcade&juego=groove-ninja', 'cors'), null)
+})
 
 test('activation preserves another app cache and one earlier DANZ build', async () => {
   const w = worker()

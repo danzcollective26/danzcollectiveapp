@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { GrooveAudio } from './GrooveAudio'
-import { advanceGroove, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DURATION, GROOVE_LAYERS, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, setGroovePlaying, type GroovePoint, type GrooveState } from './groove'
+import { advanceGroove, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DURATION, GROOVE_VINYLS, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, setGroovePlaying, type GrooveMode, type GroovePoint, type GrooveState } from './groove'
 import { useGameScreen } from './useGameScreen'
 import './groove.css'
 
@@ -38,19 +38,22 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
     const previous = current.current
     if (next === previous) return
     current.current = next; setGame(next)
-    sound.current?.update(next.levels)
     if (next.hits > previous.hits) sound.current?.slice(next.sparks.at(-1)?.layer ?? 0)
     if (next.misses > previous.misses) sound.current?.stumble()
     if (next.status !== 'playing') sound.current?.pause()
   }
   function pause() { gesture.current = null; trail.current = []; commit(setGroovePlaying(current.current, false)); sound.current?.pause() }
+  function chooseMode(mode: GrooveMode) {
+    if (mode === current.current.mode) return
+    screen.leave(); pause(); commit(initialGroove(Date.now(), mode)); setRecord(readGrooveRecord(mode))
+  }
   function play() {
     if (current.current.status === 'playing') { pause(); return }
     const previous = current.current
-    const next = setGroovePlaying(previous.status === 'over' || previous.status === 'complete' ? initialGroove(Date.now()) : previous, true)
+    const next = setGroovePlaying(previous.status === 'over' || previous.status === 'complete' ? initialGroove(Date.now(), previous.mode) : previous, true)
     commit(next); screen.enter()
     if (!muted) {
-      sound.current ??= new GrooveAudio(); sound.current.update(next.levels)
+      sound.current ??= new GrooveAudio()
       void sound.current.start(next.elapsed, false).then(ok => { if (ok === false && current.current.status === 'playing') setAudioIssue(true) })
     }
   }
@@ -59,14 +62,14 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
     try { localStorage.setItem('danz-groove-muted', String(next)) } catch { /* Optional preference. */ }
     if (next) sound.current?.mute(true)
     else if (current.current.status === 'playing') {
-      sound.current ??= new GrooveAudio(); sound.current.update(current.current.levels)
+      sound.current ??= new GrooveAudio()
       void sound.current.start(current.current.elapsed, false).then(ok => { if (ok !== null) setAudioIssue(!ok) })
     }
   }
   useEffect(() => { heading.current?.focus({ preventScroll: true }); return () => { sound.current?.destroy(); sound.current = null } }, [])
   useEffect(() => {
-    if (game.score > record) setRecord(saveGrooveRecord(game.score))
-  }, [game.score, record])
+    if (game.score > record) setRecord(saveGrooveRecord(game.score, game.mode))
+  }, [game.score, game.mode, record])
   useEffect(() => {
     const hidden = () => { if (document.hidden) pause() }
     const blur = () => pause()
@@ -144,23 +147,24 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
   const progress = Math.round(game.elapsed / GROOVE_DURATION * 100)
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
+    <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>IDA Y VUELTA</small></button></div>
     <div className="gn-intro">
       <div className="eyebrow">ARCADANZ / GAME 003 · PRIMERA SESIÓN</div>
       <h1 ref={heading} tabIndex={-1}>GROOVE<br/><em>NINJA.</em></h1>
-      <p>Vinilos al vuelo. Cortes al beat.<br/>La cabina es tuya.</p>
+      <p>{game.mode === 'cut' ? <>Vinilos al vuelo. Cortes al beat.</> : <>Un plato, tus manos y una buena racha.</>}<br/>La cabina es tuya.</p>
       <figure className="gn-cover"><img src="/arcade/groove-ninja-cover-v1.webp" alt="DJ entre vinilos al vuelo y estelas de sonido" width="1200" height="800"/><figcaption>CORTA. MEZCLA. REPITE.</figcaption></figure>
-      <p className="gn-practice">PRÁCTICA · Récord en este navegador. Esta sesión no otorga DANZPOINTS.</p>
-      <p className="gn-sound-note">Base de ensayo sintetizada. Los temas y las capas de nuestros DJs llegarán después.</p>
+      <p className="gn-practice">PRÁCTICA · Récord separado para cada modo, en este navegador. Esta sesión no otorga DANZPOINTS.</p>
+      <p className="gn-sound-note">Música de ensayo. Los temas del colectivo llegarán después.</p>
     </div>
     <div ref={screen.panel} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status}>
-      <div className="gn-top"><span>GROOVE NINJA <small>VINYL CUT</small></span>{screen.active && <button type="button" onClick={screen.leave} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
+      <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={screen.leave} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
         <span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span>
         <span>COMBO<strong className="gn-combo">×{grooveMultiplier(game.combo)} <small>{game.combo} SEGUIDOS</small></strong></span>
         <span>TIEMPO<strong>{String(Math.ceil((GROOVE_DURATION - game.elapsed) / 1000)).padStart(2, '0')}<small>s</small></strong></span>
       </div>
       <div className="gn-play-area">
-        <svg ref={board} className="gn-board" viewBox="0 0 640 760" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()}>
+        <svg ref={board} className="gn-board" viewBox="0 0 640 760" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()}>
           <defs>
             <radialGradient id="gn-disc" cx="35%" cy="25%"><stop stopColor="#414149"/><stop offset=".5" stopColor="#19191e"/><stop offset="1" stopColor="#08080b"/></radialGradient>
             <linearGradient id="gn-floor" x2="0" y2="1"><stop stopColor="#20152f"/><stop offset="1" stopColor="#0c0b11"/></linearGradient>
@@ -186,7 +190,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
           {game.discs.map(disc => {
             const p = discPosition(disc, game.elapsed)
             return <g key={disc.id} className={`gn-target gn-${disc.kind}`} data-disc-id={disc.id} data-layer={disc.layer} data-x={p.x.toFixed(1)} data-y={p.y.toFixed(1)} transform={`translate(${p.x} ${p.y})`}>
-              {disc.kind === 'vinyl' ? <><ellipse cy="12" rx="63" ry="58" fill={GROOVE_COLORS[disc.layer]} opacity=".12"/><g transform={`rotate(${(game.elapsed - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer}/></g><rect x="-43" y="62" width="86" height="27" rx="13" fill={GROOVE_COLORS[disc.layer]}/><text y="81" textAnchor="middle" fill="#151219" fontSize="16" fontWeight="900">{disc.layer + 1} · {GROOVE_LAYERS[disc.layer]}</text></>
+              {disc.kind === 'vinyl' ? <><ellipse cy="12" rx="63" ry="58" fill={GROOVE_COLORS[disc.layer]} opacity=".12"/><g transform={`rotate(${(game.elapsed - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer}/></g><rect x="-43" y="62" width="86" height="27" rx="13" fill={GROOVE_COLORS[disc.layer]}/><text y="81" textAnchor="middle" fill="#151219" fontSize="16" fontWeight="900">{GROOVE_VINYLS[disc.layer]}</text></>
                 : <><path d="M0-55 54-18 35 47-35 47-54-18Z" fill="#6c1827" stroke="#ff645f" strokeWidth="4"/><circle r="25" fill="#23121d" stroke="#ff789f"/><text y="11" textAnchor="middle" fill="#fff1e4" fontSize="37" fontWeight="900">!</text><text y="76" textAnchor="middle" fill="#ff8e89" fontSize="17" fontWeight="900">ACOPLE</text></>}
             </g>
           })}
@@ -196,7 +200,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
             <text y="-152" textAnchor="middle" fill="#ffb0c8" fontSize="24" fontWeight="900" letterSpacing="3">SCRATCH ↔</text>
             <text y="157" textAnchor="middle" fill="#f3f0e8" fontSize="21" fontWeight="800">IDA Y VUELTA · {game.scratch.turns}/3</text>
             <text y="188" textAnchor="middle" fill="#ac9db7" fontSize="17">SUJETA EL VINILO SIN SOLTAR</text>
-            <path d="M-100 215H100" stroke="#49374b" strokeWidth="6"/><path d={`M-100 215H${-100 + Math.max(0, (game.scratch.until - game.elapsed) / 4000) * 200}`} stroke="#ff789f" strokeWidth="6"/>
+            <path d="M-100 215H100" stroke="#49374b" strokeWidth="6"/><path d={`M-100 215H${-100 + Math.max(0, Math.min(1, (game.scratch.until - game.elapsed) / [3800, 3200, 2600][stage - 1])) * 200}`} stroke="#ff789f" strokeWidth="6"/>
           </g>}
           {game.sparks.map(spark => {
             const age = (game.elapsed - spark.born) / 750
@@ -207,22 +211,22 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
             </g>
           })}
           {path && <g className="gn-trail" fill="none" strokeLinejoin="round" strokeLinecap="round"><polyline points={path} stroke="#ff789f" strokeWidth="22" opacity=".4" filter="url(#gn-glow)"/><polyline points={path} stroke="url(#gn-slash)" strokeWidth="9"/><polyline points={path} stroke="#fff" strokeWidth="3"/></g>}
-          <text x="32" y="734" fill="#ae9cb5" fontSize="13" letterSpacing="2">{game.scratch ? 'CAMBIA DE DIRECCIÓN 3 VECES' : 'DESLIZA PARA CORTAR'}</text>
+          <text x="32" y="734" fill="#ae9cb5" fontSize="13" letterSpacing="2">{game.mode === 'scratch' ? 'CAMBIA DE DIRECCIÓN 3 VECES' : 'DESLIZA PARA CORTAR'}</text>
           <text x="608" y="734" textAnchor="end" fill="#ff789f" fontSize="17" fontWeight="900">{'♥'.repeat(game.lives)}{'♡'.repeat(5 - game.lives)}</text>
         </svg>
         {!running && <div className={`gn-overlay${ended ? ' gn-result' : ''}`}>
-          <span className="gn-overlay-kicker">{ended ? 'TU SESIÓN' : game.status === 'paused' ? 'LA CABINA TE ESPERA' : 'VINYL CUT / 60 SEGUNDOS'}</span>
-          <strong>{game.status === 'over' ? 'PARTY OVER' : game.status === 'complete' ? 'BUENA SESIÓN.' : game.status === 'paused' ? 'EN PAUSA.' : <>CORTA<br/>EL GROOVE.</>}</strong>
+          <span className="gn-overlay-kicker">{ended ? 'TU SESIÓN' : game.status === 'paused' ? 'LA CABINA TE ESPERA' : `${game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'} / 60 SEGUNDOS`}</span>
+          <strong>{game.status === 'over' ? 'PARTY OVER' : game.status === 'complete' ? 'BUENA SESIÓN.' : game.status === 'paused' ? 'EN PAUSA.' : game.mode === 'cut' ? <>CORTA<br/>EL GROOVE.</> : <>DALE<br/>AL SCRATCH.</>}</strong>
           {ended ? <><span className="gn-final-score">{game.score.toLocaleString('es-ES')}</span><span className="gn-result-details">{game.hits} CORTES · {game.scratches} SCRATCH · COMBO {game.bestCombo}</span></>
-            : <p>{game.status === 'paused' ? 'Reanuda cuando quieras.' : 'Desliza sobre los vinilos. Esquiva los acoples rojos. Cuando aparezca SCRATCH, haz ida y vuelta.'}</p>}
+            : <p>{game.status === 'paused' ? 'Reanuda cuando quieras.' : game.mode === 'cut' ? 'Desliza sobre los vinilos al vuelo. Corta varios en una pasada y esquiva los acoples rojos.' : 'Sujeta el plato y cambia de dirección tres veces sin soltar. Encadena scratches antes de que se agote el tiempo.'}</p>}
         </div>}
       </div>
-      <div className="gn-mixer" aria-label="Capas de la mezcla">{GROOVE_LAYERS.map((layer, i) => <div key={layer}><span>{layer}</span><div role="meter" aria-label={`Capa ${layer}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(game.levels[i] * 100)}><i style={{ width: `${game.levels[i] * 100}%`, background: GROOVE_COLORS[i] }}/></div></div>)}</div>
+      <div className="gn-flow"><span>FLOW</span><div role="meter" aria-label="Racha de la sesión" aria-valuemin={0} aria-valuemax={20} aria-valuenow={Math.min(20, game.combo)}><i style={{ width: `${Math.min(100, game.combo * 5)}%` }}/></div><strong>×{grooveMultiplier(game.combo)}</strong></div>
       <p className="gn-message" role="status">{game.message}</p>
       <div className="gn-actions"><button type="button" className="primary-btn" onClick={play}>{running ? 'PAUSAR' : ended ? 'OTRA SESIÓN' : game.status === 'paused' ? 'REANUDAR' : 'JUGAR GROOVE NINJA'} <span>↗</span></button><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted ? 'SONIDO OFF' : 'SONIDO ON'}</button></div>
       <div className="gn-bottom"><span>RÉCORD LOCAL {record.toLocaleString('es-ES')}</span><button type="button" onClick={() => setShowHelp(!showHelp)} aria-expanded={showHelp}>CÓMO JUGAR {showHelp ? '−' : '+'}</button></div>
       {audioIssue && <p className="gn-audio-issue" role="status">No se pudo activar el audio. Puedes seguir jugando sin sonido o volver a pulsar SONIDO.</p>}
     </div>
-    {showHelp && <div className="gn-help"><h2>HAZ QUE SUENE.</h2><p>Corta los vinilos deslizando el dedo o el ratón. Puedes cortar varios en una pasada. Cada cinco aciertos seguidos sube el multiplicador, hasta ×4.</p><p>Los discos llenan cuatro capas. Si uno se escapa, pierdes una vida y parte de su capa. Evita los acoples rojos. Tienes cinco vidas y un minuto para construir tu sesión.</p><p>En SCRATCH, toca el disco grande y cambia de dirección tres veces sin soltar. En teclado: 1–4 cortan la capa del mismo número; ← y → alternan el scratch; espacio pausa; Esc sale de pantalla completa.</p><p>El sonido es una base de ensayo creada por síntesis. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS. La música del colectivo y la competición de este juego se incorporarán más adelante.</p></div>}
+    {showHelp && <div className="gn-help"><h2>LA CABINA ES TUYA.</h2><p>VINYL CUT: corta los discos al vuelo deslizando el dedo o el ratón. Puedes cortar varios en una pasada. Si uno se escapa o cortas un acople rojo, pierdes una vida y tu racha.</p><p>SCRATCH SESSION: sujeta el disco grande y cambia de dirección tres veces sin soltar. Encadena platos: el tiempo para cada scratch se reduce a medida que avanza la sesión.</p><p>Cada cinco aciertos seguidos sube el multiplicador, hasta ×4. Tienes cinco vidas y un minuto en cada modo, con récords separados.</p><p>En teclado: 1–4 cortan vinilos del número marcado; ← y → alternan el scratch; espacio pausa; Esc sale de pantalla completa.</p><p>La música de ensayo acompaña la partida y no depende de los aciertos. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS. Los temas del colectivo se incorporarán cuando estén disponibles.</p></div>}
   </section>
 }

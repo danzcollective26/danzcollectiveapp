@@ -24,11 +24,11 @@ async function slice(page: Page) {
   await page.mouse.move(p.x - p.dx, p.y); await page.mouse.down(); await page.mouse.move(p.x + p.dx, p.y, { steps: 1 }); await page.mouse.up()
 }
 
-test('a fast swipe cuts immediately, splits a vinyl and adds a layer exactly once', async ({ page }) => {
+test('a fast swipe cuts immediately, splits a vinyl and advances its streak exactly once', async ({ page }) => {
   await openGroove(page); await start(page); await slice(page)
   await expect(page.getByTestId('groove-score')).toHaveText('00100')
   await expect(page.locator('.gn-cut-pieces')).toHaveCount(1)
-  expect(await page.getByRole('meter').evaluateAll(meters => meters.map(m => Number(m.getAttribute('aria-valuenow'))))).toContain(25)
+  await expect(page.getByRole('meter', { name: 'Racha de la sesión' })).toHaveAttribute('aria-valuenow', '1')
   await page.clock.runFor(900)
   await expect(page.locator('.gn-cut-pieces')).toHaveCount(0)
   await expect(page.getByTestId('groove-score')).toHaveText('00100')
@@ -64,11 +64,9 @@ test('pause, tab hiding and exit freeze play; local record and sound choice surv
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'ready')
 })
 test('scratch is earned through three pointer reversals without releasing', async ({ page }) => {
-  await openGroove(page); await start(page)
-  for (let i = 0; i < 19; i++) {
-    for (const key of ['1', '2', '3', '4']) await page.keyboard.press(key)
-    await page.clock.runFor(500)
-  }
+  await openGroove(page)
+  await page.locator('.gn-mode-picker').getByRole('button', { name: /^SCRATCH SESSION/ }).click()
+  await start(page)
   await expect(page.locator('.gn-scratch')).toBeVisible()
   const previous = Number(await page.getByTestId('groove-score').textContent())
   const rect = await page.locator('.gn-board').boundingBox()
@@ -87,7 +85,7 @@ test('playfield, mixer and primary controls fit 320px portrait and short landsca
   await openGroove(page); await start(page)
   for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size)
-    for (const selector of ['.gn-top', '.gn-hud', '.gn-play-area', '.gn-mixer', '.gn-actions']) {
+    for (const selector of ['.gn-top', '.gn-hud', '.gn-play-area', '.gn-flow', '.gn-actions']) {
       const r = await page.locator(selector).boundingBox()
       expect(r!.x).toBeGreaterThanOrEqual(0); expect(r!.y).toBeGreaterThanOrEqual(0)
       expect(r!.x + r!.width).toBeLessThanOrEqual(size.width + 1); expect(r!.y + r!.height).toBeLessThanOrEqual(size.height + 1)
@@ -120,7 +118,7 @@ test('an unattended session ends with PARTY OVER and offers a clean new session'
   await page.getByRole('button', { name: 'OTRA SESIÓN ↗', exact: true }).click()
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'playing')
   await expect(page.getByTestId('groove-score')).toHaveText('00000')
-  await expect(page.locator('.gn-board')).toHaveAttribute('aria-label', 'Cabina de Groove Ninja, 0 cortes, 5 vidas')
+  await expect(page.locator('.gn-board')).toHaveAttribute('aria-label', 'Cabina de Groove Ninja, 0 cortes, 0 scratches, 5 vidas')
 })
 test('audio starts only from play, suspends on pause and closes when leaving the game', async ({ page }) => {
   await page.addInitScript(() => {
@@ -144,4 +142,19 @@ test('audio starts only from play, suspends on pause and closes when leaving the
   await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
   await page.getByRole('button', { name: '← VOLVER A ARCADANZ', exact: true }).click()
   await expect.poll(() => page.evaluate(() => (window as any).__grooveContexts[0]?.state)).toBe('closed')
+})
+test('changing modes starts the selected challenge and keeps each local record separate', async ({ page }) => {
+  await openGroove(page); await start(page); await slice(page)
+  await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
+  await page.locator('.gn-mode-picker').getByRole('button', { name: /^SCRATCH SESSION/ }).click()
+  await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 0')
+  await start(page)
+  await expect(page.locator('.gn-vinyl')).toHaveCount(0)
+  for (const key of ['ArrowRight', 'ArrowLeft', 'ArrowRight', 'ArrowLeft']) await page.keyboard.press(key)
+  await expect(page.getByTestId('groove-score')).toHaveText('00400')
+  await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
+  await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 400')
+  await page.locator('.gn-mode-picker').getByRole('button', { name: /^VINYL CUT/ }).click()
+  await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 100')
+  await expect(page.getByTestId('groove-score')).toHaveText('00000')
 })

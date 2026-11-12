@@ -3,6 +3,15 @@ const PREFIX = 'danz-shell-v1-'
 const CACHE = PREFIX + BUILD.version
 const allowed = new Set(BUILD.paths)
 
+function publicGameNavigation(url) {
+  if (url.pathname !== '/' && url.pathname !== '/index.html') return false
+  if (!url.search) return true
+  const params = url.searchParams
+  if (new Set(params.keys()).size !== [...params].length) return false
+  if (params.get('seccion') !== 'arcade') return false
+  return params.size === 1 || (params.size === 2 && params.get('juego') === 'groove-ninja')
+}
+
 async function staticResponse(path) {
   // Hosting canonicalizes /index.html to /. Fetch that final URL directly,
   // while retaining /index.html as the stable key used for offline reloads.
@@ -51,7 +60,10 @@ self.addEventListener('message', event => {
 self.addEventListener('fetch', event => {
   const request = event.request
   const url = new URL(request.url)
-  if (request.method !== 'GET' || url.origin !== self.location.origin || url.search) return
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return
+  // Only explicit public game navigation can carry a query. Never callbacks,
+  // passes, photo signatures, arbitrary parameters or duplicate parameters.
+  if (url.search && (request.mode !== 'navigate' || !publicGameNavigation(url))) return
   if (request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html')) {
     event.respondWith((async () => {
       // Online requests always reach hosting, including its private-access gate.

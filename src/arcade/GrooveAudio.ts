@@ -4,7 +4,8 @@ export class GrooveAudio {
   private master: GainNode | null = null
   private noise: AudioBuffer | null = null
   private timer: ReturnType<typeof setInterval> | null = null
-  private levels = [0, 0, 0, 0]
+  // A full backing loop, independent of score. Song reconstruction is parked.
+  private readonly levels = [.85, .75, .65, .65]
   private anchor = 0
   private step = 0
   private muted = false
@@ -36,7 +37,6 @@ export class GrooveAudio {
       return this.context.state === 'running'
     } catch { return false }
   }
-  update(levels: number[]) { this.levels = levels }
   mute(value: boolean) {
     this.muted = value
     if (this.context && this.master) this.master.gain.setTargetAtTime(value ? 0 : .42, this.context.currentTime, .025)
