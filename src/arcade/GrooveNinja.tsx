@@ -1,3 +1,5 @@
+import ArcadeChooser from './ArcadeChooser'
+import ArcadeLaunch from './ArcadeLaunch'
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { GrooveAudio } from './GrooveAudio'
 import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DURATION, GROOVE_VINYLS, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, setGroovePlaying, type GrooveMode, type GrooveSpecial, type GrooveWeapon, type GroovePoint, type GrooveState } from './groove'
@@ -189,6 +191,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
   const progress = Math.round(game.elapsed / GROOVE_DURATION * 100)
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
+    <ArcadeChooser active="groove" onSelect={choice => { if (choice === "snake") onBack() }} />
     <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>PATRONES AL RITMO</small></button></div>
     <div className="gn-intro">
       <div className="eyebrow">ARCADANZ / GAME 003 · PRIMERA SESIÓN</div>
@@ -199,6 +202,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
       <p className="gn-sound-note">Música de ensayo. Los temas del colectivo llegarán después.</p>
     </div>
     <div ref={screen.panel} data-weapon={game.weapon} data-stage={stage} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status} data-mode={game.mode} data-elapsed={game.elapsed.toFixed(1)}>
+      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} />}
       <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={screen.leave} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
         <span className="gn-score"><i className="gn-hud-vinyl" aria-hidden="true"/><span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span></span>
