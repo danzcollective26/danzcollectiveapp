@@ -27,6 +27,8 @@ import { COMPETITION_ENABLED } from './arcade/competitionConfig'
 import SnakeCompetition from './arcade/SnakeCompetition'
 import { useSnakeCompetition } from './arcade/useSnakeCompetition'
 import GameCover, { GAME_TITLE, GAME_SHORT_TITLE } from './arcade/GameCover'
+import ArcadeChooser from './arcade/ArcadeChooser'
+import ArcadeLaunch from './arcade/ArcadeLaunch'
 
 const collective = parseCollective(content)
 
@@ -162,7 +164,7 @@ export default function App() {
 
   useEffect(() => {
     if (page !== 'arcade' || arcadeGame !== 'snake' || !game.running) return
-    const timer = window.setTimeout(() => dispatch({ type: 'tick', random: Math.random() }), gameTickMs(game.score))
+    const timer = window.setTimeout(() => dispatch({ type: 'tick', random: Math.random() }), (game.seed === undefined ? gameTickMs(game.score) : 150 - (gameLevel(game.score) - 1) * 8))
     return () => window.clearTimeout(timer)
   }, [page, arcadeGame, game.running, game.score, game.steps])
 
@@ -307,7 +309,7 @@ export default function App() {
         {page === 'arcade' && arcadeGame === 'snake' && (
           <section className="content inner-page arcade-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <div className="arcade-game-switcher" role="group" aria-label="Elegir juego de ARCADANZ"><button type="button" className="outline-btn" aria-pressed="true">LA QUE HAS LIAO, JACK</button><button type="button" className="outline-btn" onClick={openGroove}>GROOVE NINJA ↗</button></div>
+            <ArcadeChooser active="snake" onSelect={choice => { if (choice === "groove") openGroove() }} />
             <div className="arcade-intro">
               <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
               <div className="eyebrow">ARCADANZ / GAME 001</div>
@@ -316,6 +318,7 @@ export default function App() {
               <GameCover className="snake-cover" />
             </div>
             <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}${game.seed!==undefined?' is-ranked':''}${competition.run?.status==='active'?' is-ranked-live':game.seed!==undefined?' is-ranked-result':''}`}>
+              {gameScreen.active && <ArcadeLaunch game="snake" />}
               {gameScreen.active && <div className="game-screen-bar"><span>{GAME_SHORT_TITLE} · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={gameScreen.leave}>SALIR DEL JUEGO ↗</button></div>}
               <div className="game-modes" role="group" aria-label="Modo de Snake">
                 <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'classic' })}}>CLÁSICO</button>
