@@ -2,9 +2,11 @@ import { expect, test } from '@playwright/test'
 import { installMockSession, mockSupabase, supabaseHost, switchMockSession } from './helpers/supabase'
 
 test('DANZPOINTS es una pestaña en mayúsculas con recompensas pendientes y acceso al buzón',async({page})=>{
+  await page.setViewportSize({width:320,height:568})
   await mockSupabase(page)
   await page.goto('/?seccion=danzpoints')
   await expect(page.getByRole('heading',{name:'LA BASE DEL DÍA 13',exact:true})).toBeVisible()
+  expect(await page.locator('.points-page .page-title').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true)
   const labels=await page.getByRole('navigation').getByRole('button').allTextContents()
   expect(labels.every(label=>label===label.toUpperCase())).toBe(true)
   await expect(page.getByText('POR DESVELAR',{exact:true})).toHaveCount(4)
