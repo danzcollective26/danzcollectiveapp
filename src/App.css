@@ -36,27 +36,29 @@
 .photo-source-nav{display:flex;gap:12px;flex-wrap:wrap;padding-top:28px}
 .photo-source-nav button{letter-spacing:.04em;text-transform:uppercase}
 .photo-source-nav button[aria-pressed=true]{border-color:var(--acid);color:var(--acid)}
-.artist-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.artist-card{border:1px solid var(--line);background:#19191a;padding:28px;min-width:0;display:flex;flex-direction:column;gap:28px}
-.artist-heading{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.15em}
-.artist-heading span:last-child{color:var(--acid)}
+.artist-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:36px}
+.artist-card{border:0;border-top:1px solid #3c3c3f;background:transparent;padding:22px 0 28px;min-width:0;display:flex;flex-direction:column;gap:22px}
+.artist-heading{display:flex;justify-content:space-between;gap:12px;color:#999;font-size:10px;font-weight:700;letter-spacing:.15em}
+.artist-heading span:last-child{color:#bbb}
 .artist-card h2{margin:0;overflow-wrap:anywhere;font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:clamp(32px,4.5vw,64px);font-weight:900;letter-spacing:-.035em;line-height:1.1}
 .artist-profile{display:block;color:var(--white);text-decoration:none;min-width:0}
-.artist-profile h2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:24px}
+.artist-profile h2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px}
 .artist-arrow{flex-shrink:0}
-.artist-profile h2 .artist-arrow{width:24px;height:24px;color:var(--acid)}
-.artist-listen{display:flex;align-items:center;gap:10px;color:var(--acid);font-size:10px;font-weight:800;letter-spacing:.12em;margin-top:14px}
-.artist-portrait{position:relative;aspect-ratio:1;overflow:hidden;background:#29292a;isolation:isolate;border-bottom:2px solid var(--acid)}
-.artist-portrait img{display:block;width:100%;height:100%;object-fit:cover;filter:saturate(1.08) contrast(1.025)}
-.artist-portrait:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#10101114 40%,#101011b3 100%),linear-gradient(130deg,#ffffff0d,transparent 60%)}
-.artist-photo-label{position:absolute;z-index:1;left:16px;bottom:16px;color:var(--acid);font-size:9px;font-weight:800;letter-spacing:.16em}
+.artist-profile h2 .artist-arrow{width:24px;height:24px;color:#c6c6c3}
+.artist-listen{display:flex;align-items:center;gap:10px;color:#ccc;font-size:10px;font-weight:700;letter-spacing:.12em;margin-top:14px}
+.artist-portrait{position:relative;aspect-ratio:1;overflow:hidden;background:#19191b;isolation:isolate;border:1px solid #39393b;border-radius:10px}
+.artist-portrait img{display:block;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.04)}
+.artist-portrait:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 72%,#10101166)}
+.artist-photo-label{position:absolute;z-index:1;left:16px;bottom:16px;color:#f0efe8;font-size:9px;font-weight:700;letter-spacing:.16em;background:#111b;padding:8px 10px;border-radius:3px}
 .artist-card[data-artist=tonydawgs] .artist-portrait img{transform:scale(1.65);transform-origin:50% 24%}
-.artist-profile:focus-visible{outline:2px solid var(--acid);outline-offset:5px}
-.artist-profile:hover h2{color:var(--acid)}
-.artist-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto}
-.artist-links a{font-size:11px;letter-spacing:.04em;display:flex;justify-content:space-between;align-items:center;gap:8px;max-width:none;padding:14px 12px;min-height:55px}
+.artist-profile:focus-visible{outline:2px solid #eee;outline-offset:6px;border-radius:10px}
+.artist-profile:hover h2{color:#fff}
+.artist-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:auto}
+.artist-links a{font-size:11px;letter-spacing:.02em;display:flex;justify-content:space-between;align-items:center;gap:8px;max-width:none;padding:12px 14px;min-height:48px;border:1px solid #424246;border-radius:24px;background:#161617;color:#d5d5d3}
+.artist-links a:hover{background:#242426;border-color:#aaa;color:#fff}
 .artist-links small{display:block;font-size:9px;font-weight:500;letter-spacing:0;color:var(--muted);margin-top:5px}
-@media(max-width:700px){.artist-grid{grid-template-columns:1fr}.artist-card{padding:22px}}
+@media(max-width:700px){.artist-grid{grid-template-columns:1fr;gap:24px}.artist-card{padding:18px 0 24px}}
+
 .cell{overflow:hidden;position:relative}
 .cell img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .cell.snake img{opacity:.35;filter:grayscale(1);mix-blend-mode:luminosity}
@@ -103,18 +105,6 @@
 .module:nth-child(2){background:linear-gradient(135deg,#2c2338,#19191a)}
 .module:nth-child(3){background:linear-gradient(135deg,#30222b,#19191a)}
 .module:nth-child(1) .arrow{color:var(--acid)}.module:nth-child(2) .arrow{color:var(--violet)}.module:nth-child(3) .arrow{color:var(--rose)}
-.artist-card{--artist-accent:var(--rose);border-top:3px solid var(--artist-accent);background:linear-gradient(155deg,color-mix(in srgb,var(--artist-accent) 10%,#19191a),#19191a 65%)}
-.artist-card[data-artist=tonydawgs]{--artist-accent:var(--aqua)}
-.artist-card[data-artist=wizme]{--artist-accent:var(--violet)}
-.artist-card[data-artist=leon]{--artist-accent:var(--acid)}
-.artist-heading span:last-child,.artist-profile h2 .artist-arrow,.artist-listen{color:var(--artist-accent)}
-.artist-portrait{border-bottom:0}
-.artist-portrait:before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border:9px solid var(--artist-accent)}
-.artist-portrait:after{background:linear-gradient(180deg,transparent 60%,#10101170)}
-.artist-photo-label{z-index:3;background:var(--artist-accent);color:#101011;padding:8px 10px;left:18px;bottom:18px}
-.artist-links a{border-color:color-mix(in srgb,var(--artist-accent) 38%,#414145)}
-.artist-links a:hover{background:color-mix(in srgb,var(--artist-accent) 14%,#19191a);border-color:var(--artist-accent)}
-.artist-profile:hover h2{color:var(--artist-accent)}
 .game-panel{border-top:3px solid var(--acid);background:linear-gradient(150deg,#21261e,#19191b 38%)}
 .game-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 20px}
 .game-modes button{min-height:47px;padding:11px 8px;border:1px solid #56565b;background:transparent;color:var(--white);font:800 11px Arial,sans-serif;letter-spacing:.08em;cursor:pointer}

@@ -17,11 +17,12 @@ const DanzShop = lazy(() => import('./shop/DanzShop'))
 const DanzPoints = lazy(() => import('./points/DanzPoints'))
 import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
-import { parseCollective, snakeFace } from './content/collective'
+import { parseCollective, snakeFace, snakeExpression } from './content/collective'
 import DanzMusic from './content/DanzMusic'
 import SnakeArtwork from './content/SnakeArtwork'
 import DanzFlower from './content/DanzFlower'
 import { useGameScreen } from './arcade/useGameScreen'
+import GameCover, { GAME_TITLE, GAME_SHORT_TITLE } from './arcade/GameCover'
 
 const collective = parseCollective(content)
 
@@ -245,8 +246,8 @@ export default function App() {
               </button>
               <button className="feature arcade-feature" onClick={() => go('arcade')}>
                 <span className="feature-top"><span>02 / JUEGA</span><Arrow /></span>
-                <div className="snake-art cable-cover" aria-hidden="true"><img src="/arcade/cable-escape-cover.webp" alt="" width="1536" height="1024" /><span className="snake-stamp">PRESS PLAY_</span></div>
-                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega a DANZ Snake.</small></span>
+                <GameCover className="snake-art cable-cover" decorative />
+                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega a {GAME_TITLE}.</small></span>
               </button>
             </section>
 
@@ -291,12 +292,12 @@ export default function App() {
             <div className="arcade-intro">
               <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
               <div className="eyebrow">ARCADANZ / GAME 001</div>
-              <h1 className="page-title">DANZ<br /><em>SNAKE.</em></h1>
+              <h1 className="page-title arcade-game-title">LA QUE HAS<br /><em>LIAO, JACK.</em></h1>
               <p className="page-lead">Un cable suelto, las caras del colectivo y seis laberintos. Que no te pillen.</p>
-              <img className="snake-cover" src="/arcade/cable-escape-cover.webp" alt="Un cable de sonido huye de una mano que intenta atraparlo en una sala de música" width="1536" height="1024" />
+              <GameCover className="snake-cover" />
             </div>
             <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}`}>
-              {gameScreen.active && <div className="game-screen-bar"><span>DANZ SNAKE · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={gameScreen.leave}>SALIR DEL JUEGO ↗</button></div>}
+              {gameScreen.active && <div className="game-screen-bar"><span>{GAME_SHORT_TITLE} · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={gameScreen.leave}>SALIR DEL JUEGO ↗</button></div>}
               <div className="game-modes" role="group" aria-label="Modo de Snake">
                 <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => dispatch({ type: 'mode', mode: 'classic' })}>CLÁSICO</button>
                 <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => dispatch({ type: 'mode', mode: 'maze' })}>LABERINTO <span>{MAZE_STAGES.length} NIVELES</span></button>
@@ -311,13 +312,16 @@ export default function App() {
                   const head = game.snake[0].x === x && game.snake[0].y === y
                   const segment = game.snake.findIndex((p) => p.x === x && p.y === y)
                   const body = segment >= 0
-                  const food = game.food?.x === x && game.food?.y === y
+                  const target = game.foods.find(food => food.x === x && food.y === y)
+                  const food = Boolean(target)
                   const wall = game.walls.some(point => point.x === x && point.y === y)
-                  const face = food ? snakeFace(collective.snake.faces, game.score) : body && !head ? snakeFace(collective.snake.faces, game.score, segment) : null
+                  const collected = game.eatenFaces[segment - 1]
+                  const face = target ? snakeFace(collective.snake.faces, target.face * 10) : body && !head && collected !== undefined ? snakeFace(collective.snake.faces, collected * 10) : null
                   const artwork = head ? collective.snake.headImage : face?.image
-                  return <span key={i} data-face={face?.id} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : wall ? 'cell wall' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} />}</span>
+                  const expression = face ? snakeExpression(face, target?.face ?? collected, collective.snake.faces.length) : 0
+                  return <span key={i} data-face={face?.id} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : wall ? 'cell wall' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} frames={face?.frames} frame={expression} />}</span>
                 })}
-                {!game.running && <div className="game-overlay">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : game.levelUp ? `NIVEL ${game.stage}` : 'DANZ SNAKE'}<small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
+                {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : game.levelUp ? `NIVEL ${game.stage}` : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
               </div></div>
               <div className="game-actions">
                 <button className="primary-btn" onClick={play}>{game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
@@ -332,7 +336,7 @@ export default function App() {
               {showControls && <div className="controls" aria-label="Controles para móvil">
                 {(['up', 'left', 'down', 'right'] as Direction[]).map((direction, i) => <button key={direction} aria-label={['Arriba', 'Izquierda', 'Abajo', 'Derecha'][i]} onPointerDown={event => { event.preventDefault(); turn(direction) }} onClick={event => { if (event.detail === 0) turn(direction) }}>{['↑', '←', '↓', '→'][i]}</button>)}
               </div>}
-              <p className="game-local-note">{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
+              <p className="game-local-note">Aparece un objetivo más cada cinco caras recogidas, hasta cinco a la vez. Diez personas, tres expresiones cada una: no se agotan.<br />{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador · Puntos todavía sin premios.</p>
             </div>
             <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
               <div className="idle-cover"><img src="/arcade/idle-studio-industrial.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>

@@ -1,6 +1,6 @@
 export type MusicLink = { label: string; href: string }
 export type Artist = { id: string; name: string; links: MusicLink[]; youtubeChannelName?: string; image?: string }
-export type SnakeFace = { id: string; name: string; image: string }
+export type SnakeFace = { id: string; name: string; image: string; frames?: 3 }
 export type Collective = { websiteUrl: string | null; artists: Artist[]; snake: { headImage: string | null; faces: SnakeFace[] } }
 
 function record(value: unknown): Record<string, unknown> {
@@ -73,7 +73,8 @@ export function parseCollective(input: unknown): Collective {
       headImage: snake.headImage === null ? null : image(snake.headImage, 'brand'),
       faces: uniqueIds(snake.faces.map(value => {
         const face = record(value)
-        return { id: identifier(face.id), name: text(face.name), image: image(face.image, 'faces') }
+        if (face.frames !== undefined && face.frames !== 3) throw new Error('Use a static face or a three-expression sheet')
+        return { id: identifier(face.id), name: text(face.name), image: image(face.image, 'faces'), ...(face.frames === 3 ? { frames: 3 as const } : {}) }
       })),
     },
   }
@@ -90,4 +91,10 @@ export function snakeFace(faces: SnakeFace[], score: number, segment = 0): Snake
   const eaten = Math.floor(score / 10)
   if (!faces.length || segment < 0 || segment > eaten) return null
   return faces[(eaten - segment) % faces.length]
+}
+
+/** Each person changes expression on the next round; expressions are mixed within a round. */
+export function snakeExpression(face: SnakeFace, ordinal: number, people: number): number {
+  if (!face.frames || !Number.isSafeInteger(ordinal) || ordinal < 0 || people < 1) return 0
+  return (Math.floor(ordinal / people) + ordinal % people) % face.frames
 }

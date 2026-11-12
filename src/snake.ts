@@ -1,6 +1,7 @@
 /** Reglas locales de Snake, independientes de React y de la representación. */
 export type Direction = 'up' | 'down' | 'left' | 'right'
 export type Point = { x: number; y: number }
+export type Food = Point & { face: number }
 export type GameMode = 'classic' | 'maze'
 export type Game = {
   mode: GameMode
@@ -9,7 +10,9 @@ export type Game = {
   levelUp: boolean
   walls: Point[]
   snake: Point[]
-  food: Point | null
+  foods: Food[]
+  nextFace: number
+  eatenFaces: number[]
   direction: Direction
   queuedDirection: Direction | null
   running: boolean
@@ -31,6 +34,7 @@ export type GameAction =
   | { type: 'tick'; random: number }
 
 export const GRID = 19
+export const foodCount = (score: number) => Math.min(5, 1 + Math.floor(Math.max(0, score) / 50))
 export function gameLevel(score: number): number {
   return Math.min(10, 1 + Math.floor(Math.max(0, score) / 50))
 }
@@ -79,7 +83,9 @@ export const initialGame = (mode: GameMode = 'classic', stage = 1): Game => ({
   mode, stage: mode === 'maze' ? safeStage(stage) : 1, stageGoals: 0, levelUp: false,
   walls: mode === 'maze' ? mazeWalls(stage) : [],
   snake: [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }],
-  food: { x: 12, y: 9 },
+  foods: [{ x: 12, y: 9, face: 0 }],
+  nextFace: 1,
+  eatenFaces: [],
   direction: 'right',
   queuedDirection: null,
   running: false,
@@ -111,6 +117,18 @@ export function nextFood(snake: Point[], random: number, walls: Point[] = []): P
   return available[Math.min(available.length - 1, Math.floor(fraction * available.length))]
 }
 
+function replenish(game: Game, random: number): Game {
+  const foods = [...game.foods]
+  let nextFace = game.nextFace
+  const fraction = Number.isFinite(random) ? Math.max(0, Math.min(1, random)) : 0
+  while (foods.length < foodCount(game.score)) {
+    const point = nextFood(game.snake, (fraction + foods.length * .61803398875) % 1, [...game.walls, ...foods])
+    if (!point) break
+    foods.push({ ...point, face: nextFace++ })
+  }
+  return { ...game, foods, nextFace }
+}
+
 export function gameReducer(game: Game, action: GameAction): Game {
   switch (action.type) {
     case 'mode': return initialGame(action.mode)
@@ -134,7 +152,8 @@ export function gameReducer(game: Game, action: GameAction): Game {
       const head = game.snake[0]
       const delta = move[direction]
       const next = { x: head.x + delta.x, y: head.y + delta.y }
-      const eating = game.food !== null && next.x === game.food.x && next.y === game.food.y
+      const picked = game.foods.find(food => food.x === next.x && food.y === next.y)
+      const eating = Boolean(picked)
       const body = eating ? game.snake : game.snake.slice(0, -1)
       const collided = next.x < 0 || next.x >= GRID || next.y < 0 || next.y >= GRID ||
         body.some((p) => p.x === next.x && p.y === next.y) || game.walls.some(p => p.x === next.x && p.y === next.y)
@@ -145,15 +164,18 @@ export function gameReducer(game: Game, action: GameAction): Game {
       if (game.mode === 'maze' && eating && stageGoals >= 5 && game.stage < MAZE_STAGES.length) {
         // Start the next map at a safe spawn; new walls never appear on the
         // existing snake while it is moving. The player resumes explicitly.
-        return { ...initialGame('maze', game.stage + 1), score, levelUp: true }
+        const nextStage = initialGame('maze', game.stage + 1)
+        return replenish({ ...nextStage, score, levelUp: true, foods: [{ ...nextStage.foods[0], face: game.nextFace }], nextFace: game.nextFace + 1 }, action.random)
       }
       const won = snake.length === GRID * GRID - game.walls.length
-      return {
+      const moved: Game = {
         ...game, snake, direction, queuedDirection: null, inputLocked: false, steps: game.steps + 1,
-        food: won ? null : eating ? nextFood(snake, action.random, game.walls) : game.food,
+        foods: won ? [] : game.foods.filter(food => food !== picked),
+        eatenFaces: picked ? [picked.face, ...game.eatenFaces].slice(0, snake.length - 1) : game.eatenFaces,
         score, stageGoals,
         running: !won, over: won, won,
       }
+      return won ? moved : replenish(moved, action.random)
     }
   }
 }

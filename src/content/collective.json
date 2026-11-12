@@ -52,52 +52,62 @@
       {
         "id": "face-01",
         "name": "Cara 01",
-        "image": "/arcade/faces/face-01.webp"
+        "image": "/arcade/faces/face-01-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-02",
         "name": "Cara 02",
-        "image": "/arcade/faces/face-02.webp"
+        "image": "/arcade/faces/face-02-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-03",
         "name": "Cara 03",
-        "image": "/arcade/faces/face-03.webp"
+        "image": "/arcade/faces/face-03-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-04",
         "name": "Cara 04",
-        "image": "/arcade/faces/face-04.webp"
+        "image": "/arcade/faces/face-04-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-05",
         "name": "Cara 05",
-        "image": "/arcade/faces/face-05.webp"
+        "image": "/arcade/faces/face-05-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-06",
         "name": "Cara 06",
-        "image": "/arcade/faces/face-06.webp"
+        "image": "/arcade/faces/face-06-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-07",
         "name": "Cara 07",
-        "image": "/arcade/faces/face-07.webp"
+        "image": "/arcade/faces/face-07-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-08",
         "name": "Cara 08",
-        "image": "/arcade/faces/face-08.webp"
+        "image": "/arcade/faces/face-08-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-09",
         "name": "Cara 09",
-        "image": "/arcade/faces/face-09.webp"
+        "image": "/arcade/faces/face-09-emotions-v1.webp",
+        "frames": 3
       },
       {
         "id": "face-10",
         "name": "Cara 10",
-        "image": "/arcade/faces/face-10.webp"
+        "image": "/arcade/faces/face-10-emotions-v1.webp",
+        "frames": 3
       }
     ]
   }

@@ -18,6 +18,8 @@ async function openArcade(page: Page) {
 test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', async ({ page }) => {
   await openArcade(page)
   await expect(page.locator('.game-board > .cell')).toHaveCount(GRID * GRID)
+  await expect(page.locator('.snake-cover figcaption')).toContainText('LA QUE HAS LIAO,')
+  await expect(page.locator('.snake-cover figcaption')).toContainText('JACK')
   await page.getByRole('button', { name: /^JUGAR/ }).click()
   await page.keyboard.press('ArrowUp')
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
@@ -124,7 +126,7 @@ test('cara original como objetivo y como segmento después de recogerla', async 
   await openArcade(page)
   await page.getByRole('button', { name: /^JUGAR/ }).click()
   const image = page.locator('.cell.apple img')
-  await expect(image).toHaveAttribute('src', '/arcade/faces/face-01.webp')
+  await expect(image).toHaveAttribute('src', '/arcade/faces/face-01-emotions-v1.webp')
   await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
   // The next timeout is scheduled by React after each rendered movement.
   // Settle each frame instead of advancing past effects that have not run yet.
@@ -133,7 +135,9 @@ test('cara original como objetivo y como segmento después de recogerla', async 
     await expect.poll(()=>headIndex(page)).toBe(index(spawn.x+step,spawn.y))
   }
   await expect(page.locator('.cell.snake[data-face="face-01"] img')).toHaveCount(1)
-  await expect(page.locator('.cell.apple img')).toHaveAttribute('src', '/arcade/faces/face-02.webp')
+  await expect(page.locator('.cell.apple img')).toHaveAttribute('src', '/arcade/faces/face-02-emotions-v1.webp')
+  await expect(page.locator('.cell.snake[data-face="face-01"] .snake-face-frame')).toHaveAttribute('data-expression','0')
+  await expect(page.locator('.cell.apple .snake-face-frame')).toHaveAttribute('data-expression','1')
 })
 
 test('tablero y controles caben en móvil vertical y horizontal', async ({ page }) => {
