@@ -1,0 +1,14 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DANZFLOR · prueba de conexión</title><style>body{margin:0}.qa-toolbar{padding:14px;background:#eee;color:#111;font:14px Arial;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.qa-toolbar button{min-height:44px;padding:8px 16px}.qa-shell{padding:28px 20px;background:#101011;color:#f3f0e8;max-width:100%;min-height:100vh}</style></head><body><div class="qa-toolbar"><strong>SIMULACIÓN LOCAL</strong><button id="qa-fail">Respuesta: sin conexión</button><button id="qa-live">Respuesta: precio de prueba 45,50 €</button><span id="qa-mode">Sin conexión</span></div><div id="root" class="site-shell qa-shell"></div><script type="module">
+import {createElement} from 'react';
+import {createRoot} from 'react-dom/client';
+import DanzShop from '../../src/shop/DanzShop.tsx';
+import '../../src/index.css';
+import '../../src/App.css';
+const fixture=await (await fetch('/tests/fixtures/storefront-catalog.json')).json();
+for(const variant of fixture.data.collection.products.nodes[0].variants.nodes){variant.price.amount='45.50';variant.availableForSale=false;}
+const originalFetch=window.fetch.bind(window);let available=false;
+window.fetch=(url,options)=>url==='https://danzcolective.myshopify.com/api/2026-10/graphql.json' ? available ? Promise.resolve(new Response(JSON.stringify(fixture),{headers:{'Content-Type':'application/json'}})) : Promise.reject(new TypeError('Simulated offline connection')) : originalFetch(url,options);
+document.getElementById('qa-fail').onclick=()=>{available=false;document.getElementById('qa-mode').textContent='Sin conexión';};
+document.getElementById('qa-live').onclick=()=>{available=true;document.getElementById('qa-mode').textContent='Datos de prueba disponibles';};
+createRoot(document.getElementById('root')).render(createElement(DanzShop));
+</script></body></html>

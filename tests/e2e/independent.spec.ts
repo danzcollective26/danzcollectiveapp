@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test'
 
 test('the app opens its own sections without connecting to the collective website or music platforms', async ({ page }) => {
+  // Catalog refresh may be unavailable; the bundled shop must remain usable.
+  await page.route('https://danzcolective.myshopify.com/api/2026-10/graphql.json', route => route.abort())
   const externalRequests: string[] = []
   page.on('request', request => {
     if (/danzcollective\.com|spotify\.com|soundcloud\.com|youtube\.com|instagram\.com|mavelpoint\.com/.test(new URL(request.url()).hostname)) externalRequests.push(request.url())

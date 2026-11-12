@@ -14,15 +14,22 @@ function unique<T>(values: T[], id: (value: T) => string): T[] {
   if (new Set(values.map(id)).size !== values.length) throw new Error('Duplicate catalog entry')
   return values
 }
-export function parseShopCatalog(input: unknown): ShopCatalog {
+export function storeImage(value: unknown): value is string {
+  if (typeof value !== 'string') return false
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && url.hostname === 'cdn.shopify.com' && !url.username && !url.password && !url.port && !url.hash && /^\/s\/files\/1\/0991\/7910\/2555\/files\/[^/]+\.(?:png|jpe?g|webp)$/i.test(url.pathname)
+  } catch { return false }
+}
+export function parseShopCatalog(input: unknown, allowStoreImages = false): ShopCatalog {
   const c = record(input)
-  if (c.schemaVersion !== 1 || c.currency !== 'EUR' || c.storeUrl !== 'https://danzcollective.com' || c.collectionUrl !== 'https://danzcollective.com/pages/danzflor' || typeof c.syncedAt !== 'string' || !Number.isFinite(Date.parse(c.syncedAt)) || !Array.isArray(c.products) || !c.products.length) throw new Error('Invalid catalog source')
+  if (c.schemaVersion !== 1 || c.currency !== 'EUR' || c.storeUrl !== 'https://danzcollective.com' || c.collectionUrl !== 'https://danzcollective.com/pages/danzflor' || typeof c.syncedAt !== 'string' || !Number.isFinite(Date.parse(c.syncedAt)) || !Array.isArray(c.products)) throw new Error('Invalid catalog source')
   const products = c.products.map(raw => {
     const p = record(raw)
     const handle = text(p.handle, 80)
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(handle) || !Array.isArray(p.images) || !p.images.length || !Array.isArray(p.variants) || !p.variants.length) throw new Error('Invalid product')
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(handle) || !Array.isArray(p.images) || !Array.isArray(p.variants) || !p.variants.length) throw new Error('Invalid product')
     const images = p.images.map(value => {
-      if (typeof value !== 'string' || !/^\/shop\/[a-z0-9-]+\.(?:jpg|png|webp)$/.test(value)) throw new Error('Use a bundled product image')
+      if (typeof value !== 'string' || (!/^\/shop\/[a-z0-9-]+\.(?:jpg|png|webp)$/.test(value) && !(allowStoreImages && storeImage(value)))) throw new Error('Use a public DANZ product image')
       return value
     })
     const variants = unique(p.variants.map(raw => {
