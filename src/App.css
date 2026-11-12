@@ -79,8 +79,10 @@
 .arcade-page .page-title{font-size:clamp(64px,8vw,110px);margin-bottom:20px}
 .arcade-page .page-lead{font-size:16px;max-width:600px;margin-bottom:26px;line-height:1.5}
 .arcade-page .back{margin-bottom:26px}
+.arcadanz-brand{width:min(100%,540px);aspect-ratio:5.1;overflow:hidden;margin:0 0 24px;min-width:0}.arcadanz-brand img{display:block;width:100%;height:100%;object-fit:cover}
+.arcade-feature .feature-bottom{flex-direction:column;align-items:flex-start;gap:10px}.arcade-feature .feature-bottom strong{font-size:clamp(42px,6.5vw,84px);letter-spacing:-.045em}.arcade-feature .feature-bottom small{align-self:flex-start;margin:0;white-space:normal}
 .game-local-note{margin:22px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
-@media(min-width:900px){.arcade-page{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);column-gap:64px;align-content:start;align-items:start}.arcade-page>.back{grid-column:1/-1;justify-self:start}.arcade-page>.eyebrow,.arcade-page>.page-title,.arcade-page>.page-lead{grid-column:1}.arcade-page>.game-panel{grid-column:2;grid-row:2/span 3;width:100%}.arcade-page>.page-title{align-self:start;margin-top:22px}.arcade-page>.page-lead{align-self:start}}
+@media(min-width:900px){.arcade-page{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);column-gap:64px;align-content:start;align-items:start}.arcade-page>.back{grid-column:1/-1;justify-self:start}.arcade-page>.arcade-intro{grid-column:1;grid-row:2;min-width:0}.arcade-page>.game-panel{grid-column:2;grid-row:2;width:100%}.arcade-intro .page-title{margin-top:22px}}
 @media(max-width:700px){.snake-body-art{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}.arcade-page{padding-top:24px}.arcade-page .page-title{font-size:64px}.game-heading strong{font-size:20px}.quick-arrival .passport-receipt h1{font-size:clamp(46px,13vw,72px)}}
 @media(max-width:700px){.photo-source-nav button{flex:1;min-width:135px;padding:13px 10px;font-size:10px}}
 

@@ -124,7 +124,7 @@ test('rejects unsupported files without changing an album', async ({ page }) => 
 })
 
 test('main sections and photo viewer fit the current viewport', async ({ page }) => {
-  for (const section of ['Inicio', 'Fotos', 'Arcade', 'DANZERS', 'DANZ IN', 'DANZFLOR', 'Cuenta']) {
+  for (const section of ['Inicio', 'Fotos', 'ARCADANZ', 'DANZERS', 'DANZ IN', 'DANZFLOR', 'Cuenta']) {
     await navigate(page, section)
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   }

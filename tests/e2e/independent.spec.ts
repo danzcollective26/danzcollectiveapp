@@ -24,7 +24,7 @@ test('the app opens its own sections without connecting to the collective websit
   const links = await page.locator('.artist-card a').evaluateAll(anchors => anchors.map(anchor => ({ href: (anchor as HTMLAnchorElement).href, target: (anchor as HTMLAnchorElement).target, rel: (anchor as HTMLAnchorElement).rel })))
   expect(links.every(link => !new URL(link.href).search && link.target === '_blank' && link.rel.includes('noreferrer') && link.rel.includes('noopener'))).toBe(true)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  await nav.getByRole('button', { name: 'Arcade', exact: true }).click()
+  await nav.getByRole('button', { name: 'ARCADANZ', exact: true }).click()
   await expect(page.locator('.game-board > .cell')).toHaveCount(169)
   const head = page.locator('.game-board .head img')
   await expect(head).toHaveAttribute('src', '/arcade/brand/danz-flower.png')

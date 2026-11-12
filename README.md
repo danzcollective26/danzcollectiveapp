@@ -1,7 +1,7 @@
 # DANZ Collective
 
 Prototipo React + TypeScript + Vite recuperado de los pasos 5/6/9/10 y continuado
-en Codex. Fotos y Arcade son las dos áreas principales. El historial de recuperación
+en Codex. Fotos y ARCADANZ son las dos áreas principales. El historial de recuperación
 está en `DANZ-TRASPASO-CODEX.md` y `docs/VERIFICACION_CODEX.md`.
 
 ## Demo DANZ

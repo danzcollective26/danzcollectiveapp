@@ -34,7 +34,7 @@ const pages: { id: Page; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'pasaporte', label: 'Pasaporte' },
   { id: 'fotos', label: 'Fotos' },
-  { id: 'arcade', label: 'Arcade' },
+  { id: 'arcade', label: 'ARCADANZ' },
   { id: 'danzers', label: 'DANZERS' },
   { id: 'danzin', label: 'DANZ IN' },
   { id: 'danzflor', label: 'DANZFLOR' },
@@ -231,7 +231,7 @@ export default function App() {
                   <div className="pixel-snake">{Array.from({ length: 49 }, (_, i) => <span key={i} className={[9, 16, 23, 24, 25, 32].includes(i) ? 'lit' : i === 33 ? 'food' : ''}/>)}</div>
                   <span className="snake-stamp">PRESS PLAY_</span>
                 </div>
-                <span className="feature-bottom"><strong>ARCADE</strong><small>Juega a DANZ Snake.</small></span>
+                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega a DANZ Snake.</small></span>
               </button>
             </section>
 
@@ -273,9 +273,12 @@ export default function App() {
         {page === 'arcade' && (
           <section className="content inner-page arcade-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <div className="eyebrow">DANZ ARCADE / GAME 001</div>
-            <h1 className="page-title">DANZ<br /><em>SNAKE.</em></h1>
-            <p className="page-lead">Tu ritmo, tus reglas. El clásico de siempre o tres laberintos para encontrar otro camino.</p>
+            <div className="arcade-intro">
+              <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
+              <div className="eyebrow">ARCADANZ / GAME 001</div>
+              <h1 className="page-title">DANZ<br /><em>SNAKE.</em></h1>
+              <p className="page-lead">Tu ritmo, tus reglas. El clásico de siempre o tres laberintos para encontrar otro camino.</p>
+            </div>
             <div className="game-panel">
               <div className="game-modes" role="group" aria-label="Modo de Snake">
                 <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => dispatch({ type: 'mode', mode: 'classic' })}>CLÁSICO</button>

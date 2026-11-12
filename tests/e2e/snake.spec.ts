@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 test.use({ hasTouch: true })
 
-const arcade = (page: Page) => page.getByRole('navigation').getByRole('button', { name: 'Arcade', exact: true }).click()
+const arcade = (page: Page) => page.getByRole('navigation').getByRole('button', { name: 'ARCADANZ', exact: true }).click()
 const headIndex = (page: Page) => page.locator('.game-board > .cell').evaluateAll(cells => cells.findIndex(cell => cell.classList.contains('head')))
 
 async function openArcade(page: Page) {
