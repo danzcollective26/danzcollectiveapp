@@ -7,6 +7,8 @@ import { authErrorMessage } from './config'
 import { accountBrowserUrl, type SocialProvider } from './oauth'
 import { readPendingPass } from '../events/pass'
 import './Account.css'
+import InstagramLink from './InstagramLink'
+import {notifyIdentity} from './useIdentity'
 
 type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_id' | 'display_name' | 'instagram_handle'>
 
@@ -72,7 +74,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       setProfile(result.data)
       setName(result.data.display_name ?? '')
       setInstagram(result.data.instagram_handle ?? '')
-      setMessage('Perfil guardado.')
+      setMessage('Perfil guardado.');notifyIdentity()
     } catch {
       if (mounted.current) setError('No se pudo guardar tu perfil. Comprueba la conexión.')
     } finally {
@@ -92,7 +94,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
         <input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={80} autoComplete="nickname" disabled={busy} />
         <label htmlFor="profile-instagram">Instagram (opcional)</label>
         <input id="profile-instagram" value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={31} autoComplete="off" placeholder="@tuusuario" disabled={busy} aria-describedby="instagram-help" />
-        <p id="instagram-help" className="account-note">Es un nombre que añades tú; no verifica ni conecta tu cuenta de Instagram.</p>
+        <p id="instagram-help" className="account-note">Este campo no verifica la titularidad. Para puntos y competición, completa la vinculación de Instagram de abajo.</p>
         <button className="primary-btn" type="submit" disabled={busy || loadFailed}>{busy ? 'GUARDANDO…' : 'GUARDAR PERFIL'}</button>
       </form>
       {message && <p role="status" className="account-success">{message}</p>}
@@ -239,6 +241,7 @@ export default function Account() {
         </div>
         {error && <p role="alert" className="account-error">{error}</p>}
         <ProfileForm key={user.id} client={client} user={user} />
+        <InstagramLink key={`instagram-${user.id}`} />
       </> : <div className="account-card">
         <h2>{providers.length || providersLoading ? 'Entra en DANZ' : 'Entra con tu correo'}</h2>
         {providersLoading && <p className="account-note" role="status">Comprobando las formas de acceso…</p>}

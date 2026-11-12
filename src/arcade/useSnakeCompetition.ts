@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import {useIdentity} from '../auth/useIdentity'
 import { useAuth } from '../auth/AuthProvider'
 import type { Game, GameMode } from '../snake'
+import { COMPETITION_ENABLED } from './competitionConfig'
 import type { Json } from '../types/database'
 export type CompetitionRun={id:string;owner:string;status:'active'|'saving'|'saved'|'error'|'expired';expiresAt:string;score?:number}
 export const valueObject=(v:unknown):Record<string,unknown>=>v&&typeof v==='object'&&!Array.isArray(v)?v as Record<string,unknown>:{}
 export function useSnakeCompetition(game:Game,onStart:(mode:GameMode,seed:number)=>void,onPause:()=>void){
+ const identity=useIdentity()
  const auth=useAuth(),[run,setRun]=useState<CompetitionRun|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[revision,setRevision]=useState(0),[alias,setAlias]=useState('')
  const generation=useRef(0),current=useRef<CompetitionRun|null>(null),action=useRef<AbortController|null>(null),pending=useRef<{id:string;mode:GameMode;alias:string}|null>(null),alive=useRef(true)
  function update(next:CompetitionRun|null){current.current=next;setRun(next)}
@@ -12,7 +15,7 @@ export function useSnakeCompetition(game:Game,onStart:(mode:GameMode,seed:number
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;generation.current++;action.current?.abort()}},[])
  useEffect(()=>{clear();setAlias(auth.user?`DANZER-${auth.user.id.slice(0,4).toUpperCase()}`:'');if(game.seed!==undefined)onPause()},[auth.user?.id])
  async function start(mode:GameMode){
-  if(!auth.client||!auth.user||action.current)return
+  if(!COMPETITION_ENABLED||!identity.data?.verified||!auth.client||!auth.user||action.current)return
   onPause();const client=auth.client,owner=auth.user.id,version=++generation.current,abort=new AbortController();action.current=abort;setBusy(true);setMessage('Preparando tu partida de competición…')
   if(!pending.current||pending.current.mode!==mode||pending.current.alias!==alias.trim())pending.current={id:crypto.randomUUID(),mode,alias:alias.trim()}
   const request=pending.current,timer=setTimeout(()=>abort.abort(),10000)
@@ -43,12 +46,12 @@ export function useSnakeCompetition(game:Game,onStart:(mode:GameMode,seed:number
   const timer=setTimeout(()=>{if(current.current?.id===run.id&&current.current.status!=='saved'){onPause();update({...run,status:'expired'});setMessage('La partida ha caducado. Empieza otra para competir.')}},Math.max(0,Date.parse(run.expiresAt)-Date.now()))
   return()=>clearTimeout(timer)
  },[run?.id,run?.status])
- return{run:run?.owner===auth.user?.id?run:null,busy,message,revision,alias,setAlias,start,save,clear,registered:Boolean(auth.user),loading:auth.loading,client:auth.client,userId:auth.user?.id??null}
+ return{identity,verified:identity.data?.verified===true,run:run?.owner===auth.user?.id?run:null,busy,message,revision,alias,setAlias,start,save,clear,registered:Boolean(auth.user),loading:auth.loading,client:auth.client,userId:auth.user?.id??null}
 }
 export type SnakeCompetitionController=ReturnType<typeof useSnakeCompetition>
 export function boardResponse(value:Json){
  const v=valueObject(value)
  const row=(raw:unknown)=>{const r=valueObject(raw);if(!Number.isSafeInteger(r.rank)||Number(r.rank)<1||typeof r.alias!=='string'||r.alias.length>24||!Number.isSafeInteger(r.score)||Number(r.score)<=0||!Number.isSafeInteger(r.stage)||typeof r.mine!=='boolean')throw Error('Invalid ranking');return{rank:Number(r.rank),alias:r.alias,score:Number(r.score),stage:Number(r.stage),mine:r.mine}}
  if(!Array.isArray(v.rows)||v.rows.length>20||typeof v.closesAt!=='string'||!Number.isFinite(Date.parse(v.closesAt))||!Array.isArray(v.awards))throw Error('Invalid board')
- return{rows:v.rows.map(row),mine:v.mine===null?null:row(v.mine),closesAt:v.closesAt,awards:v.awards.map(raw=>{const a=valueObject(raw);if(typeof a.week!=='string'||typeof a.alias!=='string'||!Number.isSafeInteger(a.score)||![0,50].includes(Number(a.points))||!['awarded','streak-limit','year-limit'].includes(String(a.reason)))throw Error('Invalid award');return{week:a.week,alias:a.alias,points:Number(a.points),reason:String(a.reason)}})}
+ return{rows:v.rows.map(row),mine:v.mine===null?null:row(v.mine),closesAt:v.closesAt,awards:v.awards.map(raw=>{const a=valueObject(raw);if(typeof a.week!=='string'||typeof a.alias!=='string'||!Number.isSafeInteger(a.score)||![0,10,25,50].includes(Number(a.points))||!['awarded','streak-limit','year-limit'].includes(String(a.reason)))throw Error('Invalid award');return{week:a.week,place:Number.isSafeInteger(a.place)?Number(a.place):1,alias:a.alias,points:Number(a.points),reason:String(a.reason)}})}
 }

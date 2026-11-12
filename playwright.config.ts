@@ -21,6 +21,7 @@ export default defineConfig({
   ],
   webServer: {
     env: {
+      VITE_SNAKE_COMPETITION_ENABLED: 'true',
       VITE_SUPABASE_URL: 'https://danz-test.supabase.co',
       VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_danz_test_key',
     },

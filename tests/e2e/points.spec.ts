@@ -17,7 +17,7 @@ test('DANZPOINTS es una pestaña en mayúsculas con recompensas pendientes y acc
 
 test('saldo privado, reintento sin duplicar sugerencias y limpieza al salir de la cuenta',async({page})=>{
   await installMockSession(page)
-  await page.route(`${supabaseHost}/rest/v1/rpc/danz_points_summary`,route=>route.fulfill({json:{code:'DNZ-ABCDEF123456',available:0,pending:1100,events:[{title:'DANZERS WORLD',attendance:1000,clothing:100,active:false}]}}))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_points_summary`,route=>route.fulfill({json:{identityVerified:true,code:'DNZ-ABCDEF123456',available:0,pending:1100,events:[{title:'DANZERS WORLD',attendance:1000,clothing:100,active:false}]}}))
   const sends:Record<string,unknown>[]=[]
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_points_suggest`,async route=>{
     sends.push(route.request().postDataJSON())

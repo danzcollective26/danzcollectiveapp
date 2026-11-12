@@ -22,6 +22,7 @@ import DanzMusic from './content/DanzMusic'
 import SnakeArtwork from './content/SnakeArtwork'
 import DanzFlower from './content/DanzFlower'
 import { useGameScreen } from './arcade/useGameScreen'
+import { COMPETITION_ENABLED } from './arcade/competitionConfig'
 import SnakeCompetition from './arcade/SnakeCompetition'
 import { useSnakeCompetition } from './arcade/useSnakeCompetition'
 import GameCover, { GAME_TITLE, GAME_SHORT_TITLE } from './arcade/GameCover'
@@ -299,7 +300,7 @@ export default function App() {
               <p className="page-lead">Un cable suelto, las caras del colectivo y doce laberintos. Que no te pillen.</p>
               <GameCover className="snake-cover" />
             </div>
-            <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}`}>
+            <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}${game.seed!==undefined?' is-ranked':''}${competition.run?.status==='active'?' is-ranked-live':game.seed!==undefined?' is-ranked-result':''}`}>
               {gameScreen.active && <div className="game-screen-bar"><span>{GAME_SHORT_TITLE} · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={gameScreen.leave}>SALIR DEL JUEGO ↗</button></div>}
               <div className="game-modes" role="group" aria-label="Modo de Snake">
                 <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'classic' })}}>CLÁSICO</button>
@@ -324,7 +325,7 @@ export default function App() {
                   const expression = face ? snakeExpression(face, target?.face ?? collected, collective.snake.faces.length) : 0
                   return <span key={i} data-face={face?.id} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : wall ? 'cell wall' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} frames={face?.frames} frame={expression} />}</span>
                 })}
-                {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'GAME OVER' : game.levelUp ? `NIVEL ${game.stage}` : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
+                {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'PARTY OVER' : game.levelUp ? `NIVEL ${game.stage}` : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
               </div></div>
               <div className="game-actions">
                 <button className="primary-btn" disabled={competition.busy||(game.seed!==undefined&&['saving','error'].includes(competition.run?.status??''))} onClick={play}>{game.seed!==undefined&&['saved','expired'].includes(competition.run?.status??'')?'VOLVER A COMPETIR':game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
@@ -342,7 +343,7 @@ export default function App() {
               {showControls && <div className="controls" aria-label="Controles para móvil">
                 {(['up', 'left', 'down', 'right'] as Direction[]).map((direction, i) => <button key={direction} aria-label={['Arriba', 'Izquierda', 'Abajo', 'Derecha'][i]} onPointerDown={event => { event.preventDefault(); turn(direction) }} onClick={event => { if (event.detail === 0) turn(direction) }}>{['↑', '←', '↓', '→'][i]}</button>)}
               </div>}
-              <p className="game-local-note">Aparece un objetivo más cada cinco caras recogidas, hasta cinco a la vez. Diez personas, tres expresiones cada una: no se agotan.<br />{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Práctica: récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador. Entra desde COMPETIR para registrar una partida en tu cuenta.</p>
+              <p className="game-local-note">Aparece un objetivo más cada cinco caras recogidas, hasta cinco a la vez. Diez personas, tres expresiones cada una: no se agotan.<br />{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Práctica: récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador. {COMPETITION_ENABLED?'Entra desde COMPETIR para registrar una partida en tu cuenta.':'La clasificación entre cuentas y sus premios están en preparación.'}</p>
             </div>
             <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
             <article className="arcade-coming-soon groove-coming-soon" aria-label="GROOVE NINJA, próximamente">

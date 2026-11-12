@@ -3,14 +3,16 @@ import { before,beforeEach,afterEach,after,test } from 'node:test'
 import { readFile,readdir } from 'node:fs/promises'
 import { PGlite } from '@electric-sql/pglite'
 import { gameReducer,initialGame,mazeWalls,type Direction } from '../src/snake.ts'
-const db=new PGlite(),A='10000000-0000-4000-8000-000000000001',B='10000000-0000-4000-8000-000000000002'
+const db=new PGlite(),A='10000000-0000-4000-8000-000000000001',B='10000000-0000-4000-8000-000000000002',C='10000000-0000-4000-8000-000000000003'
 const read=(p:string)=>readFile(new URL(`../${p}`,import.meta.url),'utf8')
 before(async()=>{
- await db.exec(await read('supabase/tests/platform.sql'));await db.exec("create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$");await db.exec(await read('supabase/tests/baseline.sql'))
+ await db.exec(await read('supabase/tests/platform.sql'));await db.exec('alter table auth.users add column email text,add column email_confirmed_at timestamptz');await db.exec("create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$");await db.exec(await read('supabase/tests/baseline.sql'))
  const files=await readdir(new URL('../supabase/migrations',import.meta.url))
  for(const suffix of ['_danz_private_gallery_client_access.sql','_danz_event_passport.sql','_danz_admin_events_codes.sql','_danzpoints_event_pilot.sql'])await db.exec(await read(`supabase/migrations/${files.find(f=>f.endsWith(suffix))}`))
  await db.exec(await read('supabase/tests/data.sql'));await db.exec('create schema cron;create function cron.schedule(text,text,text) returns bigint language sql as $$select 1::bigint$$')
  const file=files.find(f=>f.endsWith('_danz_snake_competition.sql')),sql=await read(file?`supabase/migrations/${file}`:'supabase/proposals/snake_competition.sql');await db.exec(sql.replace('create extension if not exists pg_cron;','-- Hosted cron dependency checked separately.'))
+ const podium=files.find(f=>f.endsWith('_danz_snake_podium_identity.sql'));await db.exec(await read(podium?`supabase/migrations/${podium}`:'supabase/proposals/snake_podium_identity.sql'));await db.query('insert into auth.users(id) values($1)',[C])
+ for(const [id,handle] of [[A,'fixture_a'],[B,'fixture_b'],[C,'fixture_c']]){await db.query("update auth.users set email=$2,email_confirmed_at=now() where id=$1",[id,handle+'@example.invalid']);await db.query("insert into danz_private.instagram_links(user_id,handle,status,challenge,verified_at) values($1,$2,'verified','local-fixture',now())",[id,handle]);await db.query('insert into public.danz_profiles(user_id,instagram_handle) values($1,$2) on conflict(user_id) do update set instagram_handle=excluded.instagram_handle',[id,handle])}
 })
 beforeEach(async()=>{await db.exec('begin')});afterEach(async()=>{await db.exec('rollback')});after(async()=>{await db.close()})
 async function user<T>(id:string|null,fn:()=>Promise<T>,role='authenticated'){
@@ -55,11 +57,24 @@ async function historical(week:string,id=A,score=100,alias='Campeón'){
 }
 test('weekly payouts are idempotent and tie-safe, with a break after three paid wins',async()=>{
  for(const w of ['2025-03-03','2025-03-10','2025-03-17','2025-03-24','2025-03-31'])await historical(w);await historical('2025-03-03',B,100,'Empate posterior');await db.exec('select danz_private.snake_settle();select danz_private.snake_settle()')
- const w=(await db.query<any>('select * from danz_private.snake_weeks order by week_start')).rows;assert.deepEqual(w.map(r=>r.points),[50,50,50,0,50]);assert.equal(w[0].user_id,A);assert.equal(w[3].reason,'streak-limit')
- const sum=(await user(A,()=>db.query<{v:any}>('select public.danz_points_summary() v'))).rows[0].v;assert.equal(sum.arcade,200);assert.equal(sum.available,200);assert.equal((await user(B,()=>db.query<{v:any}>('select public.danz_points_summary() v'))).rows[0].v.arcade,0)
+ const w=(await db.query<any>('select * from danz_private.snake_weeks where user_id=$1 order by week_start',[A])).rows;assert.deepEqual(w.map(r=>r.points),[50,50,50,0,50]);assert.equal(w[0].user_id,A);assert.equal(w[3].reason,'streak-limit')
+ const sum=(await user(A,()=>db.query<{v:any}>('select public.danz_points_summary() v'))).rows[0].v;assert.equal(sum.arcade,200);assert.equal(sum.available,200);assert.equal((await user(B,()=>db.query<{v:any}>('select public.danz_points_summary() v'))).rows[0].v.arcade,25)
 })
 test('annual awards stop at twenty and restart in the year of closure; maze has its own board',async()=>{
  for(let i=0;i<42;i+=2)await historical(new Date(Date.UTC(2024,0,1+i*7)).toISOString().slice(0,10));await historical('2024-12-30');await db.exec('select danz_private.snake_settle()')
  assert.deepEqual((await db.query<any>('select reward_year,sum(points)::integer as points,count(*) filter(where points>0)::integer as wins from danz_private.snake_weeks group by reward_year order by reward_year')).rows,[{reward_year:2024,points:1000,wins:20},{reward_year:2025,points:50,wins:1}])
  const r=await user(B,()=>start(crypto.randomUUID(),'maze'));await db.query("update danz_private.snake_runs set started_at=clock_timestamp()-interval '10 seconds' where id=$1",[r.id]);await user(B,()=>db.query("select public.danz_snake_submit($1,'RRRR')",[r.id]));assert.equal((await user(B,()=>board('maze'))).mine.score,10);assert.equal((await user(B,()=>board())).mine,null)
+})
+
+test('the podium awards 50/25/10 to three different accounts using each personal best',async()=>{
+ await historical('2025-04-07',A,300);await historical('2025-04-07',A,350);await historical('2025-04-07',B,200,'Segundo');await historical('2025-04-07',C,100,'Tercero');await db.exec('select danz_private.snake_settle();select danz_private.snake_settle()')
+ const rows=(await db.query<any>('select place,user_id,score,points from danz_private.snake_weeks order by place')).rows
+ assert.deepEqual(rows,[{place:1,user_id:A,score:350,points:50},{place:2,user_id:B,score:200,points:25},{place:3,user_id:C,score:100,points:10}])
+ for(const [id,points] of [[A,50],[B,25],[C,10]] as const){const s=(await user(id,()=>db.query<{v:any}>('select public.danz_points_summary() v'))).rows[0].v;assert.equal(s.arcade,points)}
+})
+test('streak limits follow the person even when they change podium position',async()=>{
+ for(const [week,score] of [['2025-05-05',300],['2025-05-12',150],['2025-05-19',50],['2025-05-26',300]] as const){await historical(week,A,score);await historical(week,B,200,'Segundo');await historical(week,C,100,'Tercero')}
+ await db.exec('select danz_private.snake_settle()')
+ const rows=(await db.query<any>('select place,points,reason from danz_private.snake_weeks where user_id=$1 order by week_start',[A])).rows
+ assert.deepEqual(rows.map(r=>r.place),[1,2,3,1]);assert.deepEqual(rows.map(r=>r.points),[50,25,10,0]);assert.equal(rows[3].reason,'streak-limit')
 })

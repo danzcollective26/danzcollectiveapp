@@ -108,7 +108,7 @@ test('ocultar la pestaña pausa y no reanuda automáticamente', async ({ page })
 
 test('doce laberintos seleccionables conservan el recorrido al reiniciar', async ({ page }) => {
   await openArcade(page)
-  await page.getByRole('button', { name: /^LABERINTO/ }).click()
+  await page.locator('.game-modes').getByRole('button', { name: /^LABERINTO/ }).click()
   const select = page.getByLabel('RECORRIDO', { exact: true })
   await expect(select.locator('option')).toHaveCount(MAZE_STAGES.length)
   for (let stage = 1; stage <= MAZE_STAGES.length; stage++) {
@@ -166,4 +166,15 @@ test('Idle Studio muestra una carátula provisional sin fingir que el juego est�
   await expect.poll(()=>cover.evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
   await expect(coming.getByRole('button')).toHaveCount(0)
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)
+})
+
+test('GROOVE NINJA tiene portada propia y nombre definitivo sin presentar el juego como disponible',async({page})=>{
+ await openArcade(page)
+ const card=page.getByRole('article',{name:'GROOVE NINJA, próximamente',exact:true})
+ await card.scrollIntoViewIfNeeded()
+ await expect(card.getByRole('heading',{name:'GROOVE NINJA.',exact:true})).toBeVisible()
+ await expect(card.locator('figcaption')).toContainText('GROOVE')
+ await expect.poll(()=>card.getByRole('img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
+ await expect(card.getByRole('button')).toHaveCount(0)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })

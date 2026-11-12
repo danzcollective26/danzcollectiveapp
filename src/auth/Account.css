@@ -6,3 +6,4 @@
 .account-social-apple{background:#000;color:#fff}
 .account-browser-login{border-left:3px solid var(--acid);padding:0 0 4px 18px;margin:24px 0}
 .account-browser-login .primary-btn{font-size:11px;white-space:normal}
+.instagram-proof{margin:22px 0;padding:20px 0;border-top:1px solid var(--line);line-height:1.8}.instagram-proof label{display:block;font-size:11px;font-weight:800;margin-bottom:10px}.instagram-proof input{width:100%;box-sizing:border-box;background:#151518;color:var(--white);border:1px solid #555;padding:14px;font-size:18px;letter-spacing:.08em}.instagram-proof ol{padding-left:20px;font-size:13px;overflow-wrap:anywhere}.instagram-proof li{margin-bottom:12px}.instagram-link>.outline-btn{margin-top:14px}

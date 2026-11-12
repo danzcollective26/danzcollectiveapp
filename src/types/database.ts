@@ -230,6 +230,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      danz_identity_status: { Args:Record<string,never>; Returns:Json }
+      danz_instagram_request: { Args:{p_handle:string}; Returns:Json }
+      danz_instagram_admin: { Args:Record<string,never>; Returns:Json }
+      danz_instagram_review: { Args:{p_user:string;p_code:string;p_approve:boolean}; Returns:undefined }
       danz_snake_start: { Args: {p_id:string;p_mode:string;p_alias:string}; Returns:Json }
       danz_snake_submit: { Args: {p_id:string;p_moves:string}; Returns:Json }
       danz_snake_board: { Args: {p_mode:string;p_period:string}; Returns:Json }

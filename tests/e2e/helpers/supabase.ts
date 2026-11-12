@@ -37,6 +37,7 @@ export async function mockSupabase(page: Page) {
       }
       return
     }
+    if(path==='/rest/v1/rpc/danz_identity_status'){await route.fulfill({json:{verified:true,emailVerified:true,status:'verified',handle:'danz_test',profileHandle:'danz_test',code:null,expiresAt:null}});return}
     if (path === '/auth/v1/logout' && request.method() === 'POST') {
       await route.fulfill({ status: 204, body: '' })
       return
