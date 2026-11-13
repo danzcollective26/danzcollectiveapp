@@ -34,3 +34,6 @@
 @keyframes danz-vinyl-rotate{to{transform:rotate(360deg)}}
 @media(max-width:540px){.danz-radio{width:min(288px,calc(100vw - 22px))}.danz-radio-player{padding:10px}.danz-radio-art{height:62px;width:62px}.danz-radio-track-info strong{font-size:13px}.danz-radio-buttons{gap:6px}.danz-radio-buttons button{width:39px;height:38px}.danz-radio-buttons .danz-radio-play{width:46px;height:43px}}
 @media(prefers-reduced-motion:reduce){.danz-radio-art svg,.danz-radio-notice{animation:none}}
+
+/* Fullscreen photo viewers and other modal workflows always have priority. */
+body:has([aria-modal="true"]) .danz-radio{display:none}
