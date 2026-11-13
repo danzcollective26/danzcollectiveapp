@@ -1,4 +1,4 @@
-import {yeppoMessage,type YeppoCategory,type YeppoVariables} from './messages'
+import {yeppoMessage,type YeppoCategory,type YeppoVariables} from './messages.ts'
 export type YeppoEvent={kind:YeppoCategory;variables?:YeppoVariables;verified?:boolean}
 export type YeppoLedger={day:string;count:number;lastAt:number;dismissals:number;suppressedUntil:number}
 const KEY='danz-yeppo-ledger-v1'
