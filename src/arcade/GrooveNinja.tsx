@@ -82,7 +82,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   function pause() { gesture.current = null; trail.current = []; commit(setGroovePlaying(current.current, false)); sound.current?.pause() }
   function chooseMode(mode: GrooveMode) {
     if (mode === current.current.mode) return
-    screen.leave(); pause(); commit(initialGroove(Date.now(), mode, current.current.weapon)); setRecord(readGrooveRecord(mode))
+    pause(); commit(initialGroove(Date.now(), mode, current.current.weapon)); setRecord(readGrooveRecord(mode))
   }
   function play() {
     if (current.current.status === 'playing') { pause(); return }
@@ -281,6 +281,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           <text x="608" y="734" textAnchor="end" fill="#ff789f" fontSize="17" fontWeight="900">{'♥'.repeat(game.lives)}{'♡'.repeat(5 - game.lives)}</text>
         </svg>
         {!running && <div className={`gn-overlay${ended ? ' gn-result' : ''}`}>
+          {game.status === 'ready' && screen.active && <div className="gn-quick-modes" role="group" aria-label="Elegir modo antes de jugar"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}>VINYL CUT</button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}>SCRATCH SESSION</button></div>}
           <span className="gn-overlay-kicker">{ended ? 'TU SESIÓN' : game.status === 'paused' ? 'LA CABINA TE ESPERA' : `${game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'} / 60 SEGUNDOS`}</span>
           <strong>{game.status === 'over' ? 'PARTY OVER' : game.status === 'complete' ? 'BUENA SESIÓN.' : game.status === 'paused' ? 'EN PAUSA.' : game.mode === 'cut' ? <>CORTA<br/>EL GROOVE.</> : <>DALE<br/>AL SCRATCH.</>}</strong>
           {ended ? <><span className="gn-final-score">{game.score.toLocaleString('es-ES')}</span><span className="gn-result-details">{game.mode === 'cut' ? `${game.hits} CORTES · ${game.multiCuts} MULTICORTES · ${game.golds} DORADOS` : `${game.scratches} FRASES · ${game.perfects} GESTOS PERFECTOS`} · COMBO {game.bestCombo}</span></>
