@@ -161,3 +161,14 @@ test('an iCloud email can use the email flow and link its pass without Google or
   expect(redemptions).toBe(1)
   expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBeNull()
 })
+
+test('iPhone guest sees Safari handoff guidance before starting Google login',async({page})=>{
+ await mockSupabase(page)
+ await page.route(`${supabaseHost}/auth/v1/settings`,route=>route.fulfill({json:{external:{google:true,apple:false}}}))
+ await page.goto('/?seccion=cuenta')
+ await expect(page.getByRole('button',{name:'Continuar con Google',exact:true})).toBeVisible()
+ await expect(page.getByText(/Cámara de un iPhone/)).toBeVisible()
+ const direct=page.getByRole('link',{name:'ABRIR DANZ EN EL NAVEGADOR'})
+ await expect(direct).toHaveAttribute('target','_blank')
+ await expect(direct).toHaveAttribute('href',/seccion=cuenta/)
+})
