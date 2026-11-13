@@ -1,0 +1,1 @@
+.danz-radio-upload input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}.danz-radio-upload input:focus-visible+label{outline:3px solid #dfff79}.danz-radio-upload label{display:inline-block;cursor:pointer;margin:10px 0}.danz-radio-upload label:hover{border-color:#dfff79}.danz-radio-upload p{line-height:1.5}
