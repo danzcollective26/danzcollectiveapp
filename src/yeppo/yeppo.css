@@ -27,3 +27,7 @@
 @keyframes yeppo-intro-face{from{transform:translateY(70px) rotate(-90deg)}to{transform:translateY(0) rotate(8deg)}}
 @media(max-width:420px){.yeppo.yeppo-welcome{bottom:calc(env(safe-area-inset-bottom) + 66px)}.yeppo-welcome-copy{gap:8px;padding:12px 14px}.yeppo-welcome-copy dl>div{grid-template-columns:80px minmax(0,1fr)}.yeppo-welcome-copy dt,.yeppo-welcome-copy dd{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.yeppo-first-peek,.yeppo-stolen-tab,.yeppo.yeppo-welcome,.yeppo-welcome-face{animation:none}}
+
+.yeppo-tab-trick{animation:yeppo-tab-hijack .82s ease-in-out!important}
+@keyframes yeppo-tab-hijack{0%,100%{opacity:1;transform:translateY(0) scale(1)}35%,72%{opacity:0;transform:translateY(-18px) scale(.86)}}
+@media(prefers-reduced-motion:reduce){.yeppo-tab-trick{animation:none!important}}
