@@ -49,6 +49,8 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
    const control=target.closest<HTMLElement>('nav button,.feature,.module,.passport-home-link')
    if(!control||control.closest('.yeppo'))return
    const rect=control.getBoundingClientRect()
+   control.classList.add('yeppo-tab-trick')
+   window.setTimeout(()=>control.classList.remove('yeppo-tab-trick'),850)
    const title=(control.textContent||'DANZ').trim().slice(0,24)
    welcomeUsed.current=true
    markYeppoWelcomeDone()
