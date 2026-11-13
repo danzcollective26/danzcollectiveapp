@@ -1,5 +1,5 @@
 /** User-supplied DANZ radio edits. Audio files are deployed separately from Git. */
-export type DanzTrack={id:string;title:string;artist:string;src:string}
+export type DanzTrack={id:string;title:string;artist:string;src:string;cover?:string}
 export const DANZ_TRACKS:DanzTrack[]=[
  {id:'sashi',title:'Sashi Mixed',artist:'Chicharro (ES)',src:'/music/track-1.mp3'},
  {id:'bacalaik',title:'Bacalaik',artist:'LEÖN · Chicharro (ES) · TonyDawgs',src:'/music/track-2.mp3'},
