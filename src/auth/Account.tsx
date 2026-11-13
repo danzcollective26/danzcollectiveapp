@@ -204,6 +204,13 @@ export default function Account() {
 
   const enterWithProvider = async (provider: SocialProvider) => {
     if (!client || action.current || embedded || !providers.includes(provider)) return
+    // A PKCE verifier cannot cross origins. First move from an old QR demo or
+    // preview to production, *then* create the OAuth verifier in that browser.
+    const canonical = danzAuthOrigin(window.location.origin)
+    if (window.location.origin !== canonical) {
+      window.location.assign(accountBrowserUrl(canonical, readPendingPass()))
+      return
+    }
     action.current = true
     setBusy(true)
     setOpeningProvider(provider)
@@ -255,6 +262,8 @@ export default function Account() {
           <a className="primary-btn external-btn" href={accountBrowserUrl(danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR DANZ PARA ENTRAR</a>
         </div> : <div className="account-social" role="group" aria-label="Acceso con tu cuenta">
           {providers.map(provider => <button className={`account-social-button account-social-${provider}`} key={provider} type="button" disabled={busy} aria-busy={openingProvider === provider} onClick={() => { void enterWithProvider(provider) }}>{openingProvider === provider ? 'Abriendo ' : 'Continuar con '}{provider === 'google' ? 'Google' : 'Apple'}{openingProvider === provider ? '…' : ''}</button>)}
+          <p className="account-note">¿Has abierto el QR desde la Cámara de un iPhone o desde Instagram? Si Google muestra un error, abre DANZ directamente en Safari o Chrome antes de pulsar «Continuar con Google». No continúes desde un navegador integrado.</p>
+          <a className="account-browser-direct" href={accountBrowserUrl(danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR DANZ EN EL NAVEGADOR ↗</a>
           <p className="account-note">O utiliza tu correo electrónico.</p>
         </div>)}
         <p>También puedes entrar con cualquier correo: iCloud, Gmail, Outlook u otro. Sin crear contraseña.</p>
