@@ -31,3 +31,8 @@
 .yeppo-tab-trick{animation:yeppo-tab-hijack .82s ease-in-out!important}
 @keyframes yeppo-tab-hijack{0%,100%{opacity:1;transform:translateY(0) scale(1)}35%,72%{opacity:0;transform:translateY(-18px) scale(.86)}}
 @media(prefers-reduced-motion:reduce){.yeppo-tab-trick{animation:none!important}}
+
+/* Only the dismiss button catches taps; Yeppo's tutorial never blocks app buttons underneath. */
+.yeppo.yeppo-welcome,.yeppo-welcome-copy,.yeppo-welcome-face{pointer-events:none}
+.yeppo-welcome-continue{pointer-events:auto}
+.yeppo-first-peek,.yeppo-first-peek>*{pointer-events:none}
