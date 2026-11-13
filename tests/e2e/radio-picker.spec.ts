@@ -1,10 +1,10 @@
 import {test,expect} from '@playwright/test'
-import {installMockSession,mockSupabase,USER_A,supabaseHost} from './helpers/supabase'
+import {installMockSession,mockSupabase,supabaseHost} from './helpers/supabase'
 
 test('radio picker is explicitly clickable on Android and shows selected file',async({page})=>{
  await mockSupabase(page)
  await installMockSession(page)
- await page.route(`${supabaseHost}/rest/v1/danz_admins**`,route=>route.fulfill({json:[{user_id:USER_A}]}))
+ await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_context`,route=>route.fulfill({json:[{is_admin:true,permissions:['events.manage']}]}))
  await page.goto('/?seccion=cuenta')
  const upload=page.getByRole('region',{name:'Publicar hilo musical'})
  await expect(upload.getByRole('button',{name:'ABRIR ARCHIVOS DEL MÓVIL'})).toBeVisible()
