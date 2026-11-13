@@ -1,44 +1,109 @@
-import {useState, type ChangeEvent} from 'react'
+import {useCallback,useEffect,useRef,useState, type ChangeEvent} from 'react'
 import {useAuth} from '../auth/AuthProvider'
 import {useAdminAccess} from '../admin/access'
 import {DANZ_TRACKS} from './playlist'
 import './upload.css'
-/** Browser-side upload. Server RLS independently checks membership in danz_admins. */
+
+const MAX_BYTES=12*1024*1024
+type UploadPhase='idle'|'selected'|'uploading'|'done'|'error'
+function slot(file:File){const match=/^track-([1-6])\.mp3$/i.exec(file.name);return match?Number(match[1]):null}
+function selectionIssue(files:File[]):string|null {
+ if(!files.length)return 'No se ha seleccionado ningún archivo.'
+ if(files.length>6)return 'Selecciona como máximo 6 canciones.'
+ const seen=new Set<number>()
+ for(const file of files){
+  const number=slot(file)
+  if(number===null)return 'Nombre no reconocido: '+file.name+'. Utiliza track-1.mp3 hasta track-6.mp3.'
+  if(seen.has(number))return 'Has seleccionado dos veces track-'+number+'.mp3.'
+  seen.add(number)
+  if(file.size===0)return file.name+' está vacío.'
+  if(file.size>MAX_BYTES)return file.name+' supera el límite de 12 MB.'
+ }
+ return null
+}
+
+/** Native file picker on Android, explicit confirmation and server-side RLS for admin uploads. */
 export default function RadioUpload(){
  const {client,user,loading}=useAuth()
  const access=useAdminAccess(client,user?.id??null,loading)
- const [busy,setBusy]=useState(false)
+ const inputRef=useRef<HTMLInputElement>(null)
+ const [selected,setSelected]=useState<File[]>([])
+ const [phase,setPhase]=useState<UploadPhase>('idle')
  const [status,setStatus]=useState('')
- const [progress,setProgress]=useState(0)
- if(!user||!access.member)return null
- const upload=async(event:ChangeEvent<HTMLInputElement>)=>{
-  if(!client||busy)return
-  const input=event.currentTarget
-  const files=Array.from(input.files??[])
-  if(!files.length)return
-  const chosen=files.map(file=>({file,match:/^track-([1-6])\.mp3$/i.exec(file.name)}))
-  if(chosen.some(item=>!item.match||!item.file.type.includes('audio')&&!item.file.name.toLowerCase().endsWith('.mp3')||item.file.size>12*1024*1024)){
-   setStatus('Selecciona los MP3 preparados: track-1.mp3 a track-6.mp3, máximo 12 MB cada uno.');input.value='';return
-  }
-  setBusy(true);setProgress(0);setStatus('Publicando audio…')
-  try{
-   for(let i=0;i<chosen.length;i++){
-    const {file}=chosen[i]
-    const {error}=await client.storage.from('danz-radio').upload(file.name.toLowerCase(),file,{contentType:'audio/mpeg',upsert:true,cacheControl:'3600'})
-    if(error)throw new Error('No se pudo subir '+file.name+'. Comprueba la sesión y los permisos.')
-    setProgress(i+1)
-   }
-   setStatus('Listo: '+chosen.length+' archivo(s) publicado(s). Actualiza la app para escuchar el hilo musical.')
-  }catch(reason){setStatus(reason instanceof Error?reason.message:'Error subiendo el audio.')}
-  finally{setBusy(false);input.value=''}
+ const [completed,setCompleted]=useState(0)
+ const [current,setCurrent]=useState('')
+ const [uploaded,setUploaded]=useState<number[]>([])
+ const [checking,setChecking]=useState(false)
+ const [refresh,setRefresh]=useState(0)
+ const mounted=useRef(true)
+ useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[])
+ const checkFiles=useCallback(async()=>{
+  if(!client||!user||!access.member)return
+  setChecking(true)
+  const {data,error}=await client.storage.from('danz-radio').list('',{limit:20})
+  if(!mounted.current)return
+  if(!error&&data)setUploaded(data.map(f=>Number(/^track-([1-6])\.mp3$/i.exec(f.name)?.[1])).filter(n=>Number.isInteger(n)&&n>=1&&n<=6))
+  setChecking(false)
+ },[client,user?.id,access.member])
+ useEffect(()=>{void checkFiles()},[checkFiles,refresh])
+ const select=(event:ChangeEvent<HTMLInputElement>)=>{
+  const files=Array.from(event.currentTarget.files??[])
+  setSelected(files)
+  setCompleted(0)
+  setCurrent('')
+  if(!files.length){setPhase('idle');setStatus('No has elegido archivos.');return}
+  const issue=selectionIssue(files)
+  if(issue){setPhase('error');setStatus(issue)}
+  else {setPhase('selected');setStatus(files.length+' archivo(s) seleccionado(s). Pulsa PUBLICAR para empezar.')}
  }
+ const upload=async()=>{
+  if(!client||!user||!access.member||phase==='uploading')return
+  const files=[...selected]
+  const issue=selectionIssue(files)
+  if(issue){setStatus(issue);setPhase('error');return}
+  setPhase('uploading');setCompleted(0);setStatus('Comenzando publicación…')
+  let done=0
+  for(const file of files){
+   if(!mounted.current)return
+   setCurrent(file.name)
+   setStatus('Subiendo '+file.name+' ('+(done+1)+' de '+files.length+')…')
+   try{
+    const {error}=await client.storage.from('danz-radio').upload(file.name.toLowerCase(),file,{contentType:'audio/mpeg',upsert:true,cacheControl:'3600'})
+    if(!mounted.current)return
+    if(error){setPhase('error');setStatus('No se pudo publicar '+file.name+': '+error.message+' (código '+(error.statusCode||'sin código')+'). Los '+done+' archivos anteriores se han conservado.');setCurrent('');return}
+   }catch(reason){
+    if(!mounted.current)return
+    setPhase('error')
+    setStatus('Error de conexión al subir '+file.name+': '+(reason instanceof Error?reason.message:'desconocido'))
+    setCurrent('')
+    return
+   }
+   done++
+   setCompleted(done)
+  }
+  if(!mounted.current)return
+  setPhase('done');setCurrent('')
+  setStatus('¡Publicado! '+done+' archivo(s) subido(s). Abre Inicio y toca ▶ en el hilo musical.')
+  setRefresh(value=>value+1)
+  setSelected([])
+  if(inputRef.current)inputRef.current.value=''
+ }
+ if(!user||!access.member)return null
  return <section className="account-card danz-radio-upload" aria-label="Publicar hilo musical">
-   <h2>Hilo musical · administración</h2>
-   <p className="account-note">Solo administradores: publica los seis MP3 optimizados. La música se escuchará en la app cuando estén cargados. Utiliza únicamente temas con derechos autorizados.</p>
-   <input type="file" id="danz-radio-upload-files" accept=".mp3,audio/mpeg" multiple disabled={busy} onChange={event=>{void upload(event)}}/>
-   <label htmlFor="danz-radio-upload-files" className="outline-btn">SELECCIONAR LOS 6 MP3</label>
-   <p className="account-note">{DANZ_TRACKS.map((track,n)=>((n+1)+'. '+track.title)).join(' · ')}</p>
-   {busy&&<p role="status">Subiendo {progress}/{6} archivos…</p>}
-   {status&&<p role="status">{status}</p>}
+  <h2>Hilo musical · administración</h2>
+  <p className="account-note">Selecciona uno o varios MP3 desde tu móvil. Solo administradores pueden publicarlos. Publica únicamente música cuya difusión esté autorizada.</p>
+  <label className="danz-radio-file-label" htmlFor="danz-radio-upload-files">Elegir MP3 (uno, varios o los seis)</label>
+  <input ref={inputRef} type="file" id="danz-radio-upload-files" accept=".mp3,audio/mpeg" multiple disabled={phase==='uploading'} onChange={select}/>
+  {selected.length>0&&<ul className="danz-radio-selection">{selected.map(file=><li key={file.name}>{file.name} · {(file.size/1024/1024).toFixed(1)} MB</li>)}</ul>}
+  {phase==='selected'&&<button type="button" className="primary-btn" onClick={()=>{void upload()}}>PUBLICAR {selected.length} MP3</button>}
+  {phase==='error'&&selected.length>0&&<button type="button" className="outline-btn" onClick={()=>{void upload()}}>REINTENTAR SUBIDA</button>}
+  {phase==='uploading'&&<progress max={selected.length} value={completed} aria-label="Progreso de subida"/>}
+  <p className="danz-radio-upload-status" role="status" aria-live="polite">{status||'Todavía no has seleccionado ningún MP3.'}</p>
+  {phase==='uploading'&&<p role="status">Archivo actual: {current} · {completed}/{selected.length} completados. Mantén abierta esta pantalla.</p>}
+  <div className="danz-radio-upload-library">
+    <strong>Temas publicados: {uploaded.length} / 6 {checking?'(comprobando…)':''}</strong>
+    <button type="button" className="outline-btn" disabled={checking||phase==='uploading'} onClick={()=>setRefresh(n=>n+1)}>COMPROBAR CANCIONES</button>
+    <ol>{DANZ_TRACKS.map((track,n)=><li key={track.id}>{uploaded.includes(n+1)?'✓':'○'} {track.title} {uploaded.includes(n+1)?'· PUBLICADO':'· PENDIENTE'}</li>)}</ol>
+  </div>
  </section>
 }
