@@ -87,7 +87,7 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
       </div>}
       {!installed && (isPreviewHost()
         ? <a className="outline-btn" href={productionUrl}>ABRIR DANZ PARA INSTALAR ↗</a>
-        : <button className="outline-btn" disabled={busy} onClick={() => { void install() }}>INSTALAR DANZ</button>)}
+        : <button className="outline-btn" disabled={busy} title={canInstall ? "Instalar directamente en el móvil" : "Abrir opciones de instalación"} onClick={() => { void install() }}>INSTALAR DANZ</button>)}
       {update && <button className="outline-btn" onClick={() => setOpen('update')}>VERSIÓN NUEVA DISPONIBLE</button>}
     </div>}
     <dialog className="pwa-dialog" ref={dialog} aria-labelledby="pwa-dialog-title" onCancel={() => setOpen(null)} onClose={() => setOpen(null)}>
