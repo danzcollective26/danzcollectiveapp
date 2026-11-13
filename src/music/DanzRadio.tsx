@@ -4,7 +4,7 @@ import {DANZ_TRACKS} from './playlist'
 import './radio.css'
 
 const PREF='danz-radio-enabled-v1'
-const HIDDEN='danz-radio-minimized-v1'
+const HIDDEN='danz-radio-minimized-v2'
 function readBool(key:string,fallback=false){try{const v=localStorage.getItem(key);return v===null?fallback:v==='true'}catch{return fallback}}
 function clock(seconds:number){const n=Number.isFinite(seconds)?Math.max(0,Math.floor(seconds)):0;return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')}
 
