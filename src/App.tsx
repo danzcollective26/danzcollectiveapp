@@ -81,6 +81,7 @@ export default function App() {
   if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
   const [arcadeGame, setArcadeGame] = useState(locationGame)
+  const [launchGroove, setLaunchGroove] = useState(false)
   const gameScreen = useGameScreen(() => dispatch({ type: 'pause' }))
   const competition=useSnakeCompetition(game,(mode,seed)=>{dispatch({type:'ranked',mode,seed});gameScreen.enter()},()=>dispatch({type:'pause'}))
   const turn = (direction: Direction) => {if(game.seed!==undefined&&competition.run?.status!=='active')return;dispatch({ type: 'input', direction, random: Math.random() })}
@@ -211,7 +212,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const openGroove = () => {
+  const openGroove = (immersive = false) => {
+    setLaunchGroove(immersive)
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'groove-ninja')
@@ -305,11 +307,11 @@ export default function App() {
         </section>}
         {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
-        {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="content inner-page" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja onBack={() => go('arcade')} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="content inner-page" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'snake' && (
           <section className="content inner-page arcade-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <ArcadeChooser active="snake" onSelect={choice => { if (choice === "groove") openGroove() }} />
+            <ArcadeChooser active="snake" onSelect={choice => { if (choice === "groove") openGroove(true); else gameScreen.enter() }} />
             <div className="arcade-intro">
               <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
               <div className="eyebrow">ARCADANZ / GAME 001</div>
@@ -366,7 +368,7 @@ export default function App() {
             <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
             <article className="arcade-coming-soon groove-coming-soon" aria-label="GROOVE NINJA, jugar">
               <figure className="groove-cover"><img src="/arcade/groove-ninja-cover-v1.webp" alt="Carátula de GROOVE NINJA: un DJ hace scratch entre vinilos que vuelan y estelas de sonido" width="1200" height="800" loading="lazy"/><figcaption className="game-cover-caption"><span>ARCADANZ / GAME 003</span><strong>GROOVE<br/>NINJA</strong></figcaption></figure>
-              <div className="idle-copy"><span className="idle-status"><DanzFlower/> AL RITMO DEL COLECTIVO</span><h2>GROOVE<br/><em>NINJA.</em></h2><p>Corta vinilos al vuelo o encadena scratches. Dos modos, un minuto y toda la cabina por delante.</p><button type="button" className="primary-btn gn-open" onClick={openGroove}>ABRIR GROOVE NINJA <span aria-hidden="true">↗</span></button><small>Primera sesión jugable con sonido de ensayo. Los temas y las pistas del colectivo llegarán después.</small></div>
+              <div className="idle-copy"><span className="idle-status"><DanzFlower/> AL RITMO DEL COLECTIVO</span><h2>GROOVE<br/><em>NINJA.</em></h2><p>Corta vinilos al vuelo o encadena scratches. Dos modos, un minuto y toda la cabina por delante.</p><button type="button" className="primary-btn gn-open" onClick={() => openGroove(true)}>ABRIR GROOVE NINJA <span aria-hidden="true">↗</span></button><small>Primera sesión jugable con sonido de ensayo. Los temas y las pistas del colectivo llegarán después.</small></div>
             </article>
             <article className="arcade-coming-soon" aria-label="DANZ Idle Studio, próximamente">
               <div className="idle-cover"><img src="/arcade/idle-studio-industrial.webp" alt="Ilustración provisional de un taller industrial creativo con música, ropa, cámara y diseño" width="1200" height="900" loading="lazy" /><span>GAME 002 / PRÓXIMAMENTE</span></div>
