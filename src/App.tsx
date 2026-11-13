@@ -30,6 +30,7 @@ import GameCover, { GAME_TITLE, GAME_SHORT_TITLE } from './arcade/GameCover'
 import ArcadeChooser from './arcade/ArcadeChooser'
 import ArcadeLaunch from './arcade/ArcadeLaunch'
 import Yeppo from './yeppo/Yeppo'
+import DanzRadio from './music/DanzRadio'
 
 const collective = parseCollective(content)
 
@@ -408,6 +409,7 @@ export default function App() {
         )}
       </main>
 
+      <DanzRadio arcadeActive={page==='arcade'} />
       <Yeppo page={page} gameActive={page==='arcade'&&((arcadeGame==='snake'&&gameScreen.active)||(arcadeGame==='groove'&&launchGroove))} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
