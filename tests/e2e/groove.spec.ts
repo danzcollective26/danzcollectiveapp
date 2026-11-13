@@ -187,6 +187,7 @@ test('browser back and forward restore the selected game and never reset Snake m
   await expect(page.getByLabel('RECORRIDO', { exact: true })).toHaveValue('8')
   await page.goForward()
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'ready')
+  await expect(page.locator('.gn-panel')).not.toHaveClass(/gn-immersive/)
   await page.getByRole('navigation').getByRole('button', { name: 'INICIO', exact: true }).click()
   await expect(page).not.toHaveURL(/juego=/)
 })
