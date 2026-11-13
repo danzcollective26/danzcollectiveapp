@@ -53,7 +53,7 @@ function ScratchDeck({ game }: { game: GrooveState }) {
 }
 const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
 
-export default function GrooveNinja({ onBack }: { onBack: () => void }) {
+export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () => void; autoEnter?: boolean }) {
   const [game, setGame] = useState(initialGroove)
   const current = useRef(game)
   const [record, setRecord] = useState(readGrooveRecord)
@@ -66,6 +66,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
   const trail = useRef<(GroovePoint & { at: number })[]>([])
   const heading = useRef<HTMLHeadingElement>(null)
   const screen = useGameScreen(pause)
+  useEffect(() => { if (autoEnter) screen.enter() }, [autoEnter])
   const ended = game.status === 'over' || game.status === 'complete'
   const running = game.status === 'playing'
   const stage = grooveStage(game.elapsed)
