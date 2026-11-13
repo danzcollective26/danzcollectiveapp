@@ -1,1 +1,29 @@
 .yeppo{position:fixed;bottom:max(88px,calc(env(safe-area-inset-bottom) + 78px));right:max(8px,env(safe-area-inset-right));z-index:42;display:flex;align-items:end;flex-direction:column;gap:8px;max-width:min(260px,70vw);pointer-events:none;animation:yeppo-pop .45s cubic-bezier(.17,.9,.2,1.3) both}.yeppo>*{pointer-events:auto}.yeppo-avatar{background:transparent;border:0;padding:0;display:flex;align-items:center;flex-direction:column;gap:1px;color:#fff;filter:drop-shadow(0 5px 12px #0008);cursor:pointer;transform-origin:50% 80%;animation:yeppo-float 2.8s ease-in-out infinite}.yeppo-flower{display:block;width:76px;height:76px;max-width:19vw;color:#fff}.yeppo-avatar>span{font-size:9px;font-weight:900;letter-spacing:.2em;color:#e3ff90;text-shadow:0 2px 3px #000}.yeppo-bubble{position:relative;background:#17171c;border:1px solid #dcff7b;box-shadow:0 10px 24px #0005;color:#fff;padding:12px 34px 12px 13px;max-width:250px;font-size:12px;line-height:1.45;font-weight:750;border-radius:12px}.yeppo-bubble button{position:absolute;right:4px;top:3px;border:0;background:transparent;color:#fff;font-size:22px;min-width:26px;min-height:30px;cursor:pointer}.yeppo-menu{position:absolute;right:75px;bottom:4px;display:flex;flex-direction:column;gap:4px;background:#111;border:1px solid #dfff73;border-radius:10px;padding:6px}.yeppo-menu button{background:none;color:#fff;text-align:left;border:0;font-size:11px;white-space:nowrap;padding:10px;cursor:pointer}.yeppo-menu button:hover{color:#dfff73}@keyframes yeppo-pop{from{opacity:0;transform:translateX(100px) rotate(15deg)}to{opacity:1;transform:translateX(0) rotate(0)}}@keyframes yeppo-float{50%{transform:translateY(-7px) rotate(-5deg)}}@media(max-width:500px){.yeppo{bottom:calc(env(safe-area-inset-bottom) + 82px)}.yeppo-flower{width:58px;height:58px}.yeppo-bubble{font-size:11px;max-width:205px}}@media(prefers-reduced-motion:reduce){.yeppo,.yeppo-avatar{animation:none}}
+/* First visit: a little mischief, then a concise introduction. */
+.yeppo-first-peek{bottom:calc(env(safe-area-inset-bottom) + 72px);max-width:150px;animation:yeppo-peek-in .7s ease-out both;opacity:.95}
+.yeppo-peek-avatar{display:flex;align-items:center;flex-direction:column;filter:drop-shadow(0 4px 8px #0009);transform:translateX(14px) rotate(-9deg)}
+.yeppo-peek-avatar .yeppo-flower{width:55px;height:55px}
+.yeppo-peek-avatar>span{font-size:8px;color:#deff78;font-weight:900;letter-spacing:.12em}
+.yeppo-peek-text{font-size:10px;color:#fff;background:#15141ac9;border:1px solid #dfff79;border-radius:15px;padding:8px 10px;max-width:140px}
+.yeppo-stolen-tab{position:fixed;z-index:96;pointer-events:none;background:#dfff79;color:#171717;padding:10px;text-align:center;font-size:11px;letter-spacing:.04em;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:yeppo-steal .9s ease-in both;box-shadow:0 5px 25px #0009}
+.yeppo.yeppo-welcome{right:max(12px,env(safe-area-inset-right));bottom:calc(env(safe-area-inset-bottom) + 75px);max-width:min(360px,calc(100vw - 24px));width:min(360px,calc(100vw - 24px));padding:0;align-items:center;gap:0;z-index:95;animation:yeppo-welcome-enter .6s cubic-bezier(.22,1.4,.42,1) both}
+.yeppo-welcome-copy{order:2;border:2px solid #dfff79;background:linear-gradient(165deg,#191a1cfa,#0d1011f8);box-shadow:0 12px 30px #000c;border-radius:14px;padding:15px 17px;width:100%;color:#fff;display:flex;flex-direction:column;gap:10px}
+.yeppo-welcome-face{order:1;align-self:end;margin-right:18px;margin-bottom:-12px;z-index:1;filter:drop-shadow(0 4px 8px #000c);animation:yeppo-intro-face 1s ease-out both}
+.yeppo-welcome-face svg{width:75px;height:75px;max-width:none}
+.yeppo-welcome-copy>small:first-child{color:#dfff79;letter-spacing:.2em;font-size:9px;font-weight:900}
+.yeppo-welcome-copy>strong{font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:clamp(22px,6vw,29px);line-height:1.03}
+.yeppo-welcome-copy>strong span{color:#dfff79}
+.yeppo-welcome-copy>p{font-size:12px;line-height:1.4;margin:0}
+.yeppo-welcome-copy dl{margin:0;display:flex;flex-direction:column;gap:6px}
+.yeppo-welcome-copy dl>div{display:grid;grid-template-columns:95px minmax(0,1fr);gap:8px;border-top:1px solid #444a39;padding-top:7px}
+.yeppo-welcome-copy dt{font-size:11px;color:#dfff79;letter-spacing:.07em;font-weight:900}
+.yeppo-welcome-copy dd{margin:0;font-size:11px;line-height:1.35}
+.yeppo-welcome-continue{background:#dfff79;color:#111;border:0;border-radius:5px;padding:12px;font-weight:900;font-size:11px;min-height:43px;cursor:pointer}
+.yeppo-welcome-continue:focus-visible{outline:3px solid white;outline-offset:3px}
+.yeppo-welcome-copy>small:last-child{font-size:9px;opacity:.72}
+@keyframes yeppo-peek-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes yeppo-steal{0%{transform:translate(0,0) scale(1);opacity:1}50%{transform:translate(0,-12px) scale(.93) rotate(-5deg)}100%{transform:translate(90px,-90px) scale(.04) rotate(20deg);opacity:0}}
+@keyframes yeppo-welcome-enter{from{opacity:0;transform:translateY(35px) rotate(5deg) scale(.82)}to{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+@keyframes yeppo-intro-face{from{transform:translateY(70px) rotate(-90deg)}to{transform:translateY(0) rotate(8deg)}}
+@media(max-width:420px){.yeppo.yeppo-welcome{bottom:calc(env(safe-area-inset-bottom) + 66px)}.yeppo-welcome-copy{gap:8px;padding:12px 14px}.yeppo-welcome-copy dl>div{grid-template-columns:80px minmax(0,1fr)}.yeppo-welcome-copy dt,.yeppo-welcome-copy dd{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.yeppo-first-peek,.yeppo-stolen-tab,.yeppo.yeppo-welcome,.yeppo-welcome-face{animation:none}}
