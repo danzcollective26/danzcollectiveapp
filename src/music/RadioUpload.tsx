@@ -28,6 +28,7 @@ export default function RadioUpload(){
  const access=useAdminAccess(client,user?.id??null,loading)
  const inputRef=useRef<HTMLInputElement>(null)
  const [selected,setSelected]=useState<File[]>([])
+ const [chooserOpened,setChooserOpened]=useState(false)
  const [phase,setPhase]=useState<UploadPhase>('idle')
  const [status,setStatus]=useState('')
  const [completed,setCompleted]=useState(0)
@@ -46,8 +47,14 @@ export default function RadioUpload(){
   setChecking(false)
  },[client,user?.id,access.member])
  useEffect(()=>{void checkFiles()},[checkFiles,refresh])
+ const openPicker=()=>{
+  setStatus('Abriendo archivos del teléfono… Si no aparece el selector, abre DANZ directamente en Chrome con el enlace de abajo.')
+  setChooserOpened(true)
+  inputRef.current?.click()
+ }
  const select=(event:ChangeEvent<HTMLInputElement>)=>{
   const files=Array.from(event.currentTarget.files??[])
+  setChooserOpened(false)
   setSelected(files)
   setCompleted(0)
   setCurrent('')
@@ -93,7 +100,10 @@ export default function RadioUpload(){
   <h2>Hilo musical · administración</h2>
   <p className="account-note">Selecciona uno o varios MP3 desde tu móvil. Solo administradores pueden publicarlos. Publica únicamente música cuya difusión esté autorizada.</p>
   <label className="danz-radio-file-label" htmlFor="danz-radio-upload-files">Elegir MP3 (uno, varios o los seis)</label>
-  <input ref={inputRef} type="file" id="danz-radio-upload-files" accept=".mp3,audio/mpeg" multiple disabled={phase==='uploading'} onChange={select}/>
+  <button type="button" className="primary-btn danz-radio-picker-button" disabled={phase==='uploading'} onClick={openPicker}>ABRIR ARCHIVOS DEL MÓVIL</button>
+  <input ref={inputRef} type="file" id="danz-radio-upload-files" accept=".mp3,audio/mpeg" multiple disabled={phase==='uploading'} onChange={select} aria-label="Elegir archivos MP3 con el selector nativo"/>
+  {chooserOpened&&<p className="danz-radio-upload-hint" role="status">¿No aparece ninguna ventana? Puede ser el navegador integrado. Abre la aplicación en Google Chrome directamente, no dentro de ChatGPT o Gmail.</p>}
+  <a className="outline-btn danz-radio-chrome-link" href="https://danzcollectiveapp.vercel.app/?seccion=cuenta" target="_blank" rel="noopener noreferrer">ABRIR DANZ EN OTRA PESTAÑA ↗</a>
   {selected.length>0&&<ul className="danz-radio-selection">{selected.map(file=><li key={file.name}>{file.name} · {(file.size/1024/1024).toFixed(1)} MB</li>)}</ul>}
   {phase==='selected'&&<button type="button" className="primary-btn" onClick={()=>{void upload()}}>PUBLICAR {selected.length} MP3</button>}
   {phase==='error'&&selected.length>0&&<button type="button" className="outline-btn" onClick={()=>{void upload()}}>REINTENTAR SUBIDA</button>}
