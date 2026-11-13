@@ -6,15 +6,18 @@ type Page='inicio'|'pasaporte'|'fotos'|'arcade'|'danzers'|'danzin'|'danzflor'|'d
 type Expression='neutral'|'smirk'|'wink'|'surprised'|'sleepy'|'eyebrow'
 const expressions:Expression[]=['neutral','smirk','wink','surprised','sleepy','eyebrow']
 const INTRO_KEY='danz-yeppo-welcome-v1'
+const VISIT_KEY='danz-yeppo-visit-peek-v1'
+function visitPeekAvailable(){try{return !sessionStorage.getItem(VISIT_KEY)}catch{return false}}
 export const yeppoWelcomePending=()=>{try{return localStorage.getItem(INTRO_KEY)!=='done'}catch{return false}}
 export const markYeppoWelcomeDone=()=>{try{localStorage.setItem(INTRO_KEY,'done')}catch{/* Private browsing may disable storage. */}}
 type Prank={title:string;left:number;top:number;width:number}
 function Face({expression}:{expression:Expression}){
  const sleepy=expression==='sleepy',wink=expression==='wink',brow=expression==='eyebrow'
- return <svg viewBox="0 0 100 100" className="yeppo-flower" aria-hidden="true">
+ return <svg viewBox="0 0 100 100" className={`yeppo-flower yeppo-expression-${expression}`} aria-hidden="true">
+  <g className="yeppo-sparkles" fill="#dfff79"><path d="M12 12l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path d="M84 7l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/><circle cx="94" cy="53" r="2"/></g>
   <g stroke="currentColor" strokeWidth="4.5" fill="#fff">{[[50,20],[76,35],[76,65],[50,80],[24,65],[24,35]].map(([cx,cy])=><circle key={cx+'-'+cy} cx={cx} cy={cy} r="17.8"/>)}</g>
-  <circle cx="50" cy="50" r="21" fill="#dbff74" stroke="#171717" strokeWidth="2.5"/>
-  <g stroke="#171717" strokeWidth="3.2" fill="none" strokeLinecap="round">
+  <circle className="yeppo-face-core" cx="50" cy="50" r="21" fill="#dbff74" stroke="#171717" strokeWidth="2.5"/>
+  <g className="yeppo-features" stroke="#171717" strokeWidth="3.2" fill="none" strokeLinecap="round">
    {brow&&<path d="M36 38l13-5"/>}
    {sleepy?<><path d="M35 47q6 4 12 0M55 47q6 4 12 0"/></>:<><path d={wink?'M35 48q5 3 11 0':'M40 44v5'}/><path d="M60 44v5"/></>}
    {expression==='surprised'?<ellipse cx="50" cy="60" rx="4" ry="6"/>:<path d={expression==='smirk'||brow?'M40 58q12 11 23-3':'M40 59q10 9 20 0'}/>}
@@ -24,6 +27,7 @@ function Face({expression}:{expression:Expression}){
 export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameActive?:boolean;events?:YeppoEvent[]}){
  const [enabled,setEnabled]=useState(readYeppoEnabled)
  const [visible,setVisible]=useState(false)
+ const [visitPeek,setVisitPeek]=useState(()=>readYeppoEnabled()&&page==='inicio'&&!yeppoWelcomePending()&&visitPeekAvailable())
  const [line,setLine]=useState('')
  const [expression,setExpression]=useState<Expression>('smirk')
  const [menu,setMenu]=useState(false)
@@ -34,9 +38,10 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
  const welcomeUsed=useRef(!yeppoWelcomePending())
  const active=useRef(0),lastActivity=useRef(Date.now()),lastTick=useRef(Date.now()),sectionAt=useRef(Date.now()),previousPage=useRef(page)
  const until=useRef(0)
- useEffect(()=>{if(previousPage.current!==page){previousPage.current=page;sectionAt.current=Date.now()}},[page])
+ useEffect(()=>{if(previousPage.current!==page){previousPage.current=page;sectionAt.current=Date.now();setVisitPeek(false)}},[page])
+ useEffect(()=>{if(!visitPeek)return;try{sessionStorage.setItem(VISIT_KEY,'done')}catch{}const timer=window.setTimeout(()=>setVisitPeek(false),4500);return()=>window.clearTimeout(timer)},[visitPeek])
  useEffect(()=>{
-  const refresh=()=>{const next=readYeppoEnabled();setEnabled(next);if(!next){setVisible(false);setWelcome('off')}}
+  const refresh=()=>{const next=readYeppoEnabled();setEnabled(next);if(!next){setVisible(false);setWelcome('off');setVisitPeek(false)}}
   window.addEventListener(YEPPO_PREFERENCE_EVENT,refresh);window.addEventListener('storage',refresh)
   return()=>{window.removeEventListener(YEPPO_PREFERENCE_EVENT,refresh);window.removeEventListener('storage',refresh)}
  },[])
@@ -75,7 +80,7 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
   const interval=window.setInterval(()=>{
    const now=Date.now(),delta=Math.max(0,Math.min(1500,now-lastTick.current));lastTick.current=now
    if(document.visibilityState==='visible'&&now-lastActivity.current<90_000)active.current+=delta
-   if(!enabled||welcome!=='off'||!welcomeUsed.current||visible||now<readYeppoSilencedUntil()||now<until.current||gameActive||page==='admin'||page==='cuenta'||document.hidden)return
+   if(!enabled||welcome!=='off'||visitPeek||!welcomeUsed.current||visible||now<readYeppoSilencedUntil()||now<until.current||gameActive||page==='admin'||page==='cuenta'||document.hidden)return
    if(document.querySelector('[aria-modal="true"],.is-immersive,.gn-immersive,.passport-receipt,.private-gallery-viewer,.gallery-lightbox'))return
    const ledger=readLedger(now)
    if(!mayAppear(ledger,now,active.current))return
@@ -89,7 +94,7 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
    until.current=now+5500
   },1000)
   return()=>{clearInterval(interval);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)}
- },[page,gameActive,events,enabled,visible,welcome])
+ },[page,gameActive,events,enabled,visible,welcome,visitPeek])
  useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},5500);return()=>clearTimeout(id)},[visible,line])
  const close=()=>{writeLedger(dismissed(readLedger(),Date.now()));setVisible(false);setMenu(false)}
  const leaveWelcome=()=>{setWelcome('off');setPrank(null)}
@@ -97,6 +102,10 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
  if(welcome==='peek'&&page==='inicio')return <aside className="yeppo yeppo-first-peek" aria-label="Yeppo asomándose">
    <div className="yeppo-peek-text">Psst… ¿a dónde vas, figura?</div>
    <div className="yeppo-peek-avatar"><Face expression="smirk"/><span>YEPPO</span></div>
+ </aside>
+ if(visitPeek&&page==='inicio'&&welcome==='off')return <aside className="yeppo yeppo-visit-peek" aria-label="Yeppo te saluda">
+   <div className="yeppo-visit-line">¡Epa! Vuelves a DANZ. Yo vigilo el cotarro.</div>
+   <div className="yeppo-peek-avatar"><Face expression="wink"/><span>YEPPO</span></div>
  </aside>
  if(welcome==='intro')return <>
    {prank&&<div className="yeppo-stolen-tab" style={{left:prank.left,top:prank.top,width:prank.width}} aria-hidden="true">{prank.title}</div>}
@@ -110,7 +119,7 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
        <button className="yeppo-welcome-continue" onClick={leaveWelcome}>VALE, YEPPO. DÉJAME VIVIR ↗</button>
        <small>Tranquilo, solo hago esto una vez.</small>
      </div>
-     <div className="yeppo-welcome-face"><Face expression="wink"/></div>
+     <div className="yeppo-welcome-face"><Face expression="wink"/><span className="yeppo-welcome-stars" aria-hidden="true">✦ ✧</span></div>
    </aside>
  </>
  if(!visible)return null

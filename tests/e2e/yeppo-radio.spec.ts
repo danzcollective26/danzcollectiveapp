@@ -38,3 +38,18 @@ test('radio starts minimized, opens a six-track queue and minimizes without bloc
  await page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true}).click()
  await expect(page.getByRole('button',{name:'ACTUALIZAR FOTOS',exact:true})).toBeVisible()
 })
+
+test('returning visitor gets one lightweight Yeppo wink without a blocking welcome',async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('danz-yeppo-welcome-v1','done')
+  localStorage.setItem('danz-yeppo-enabled-v1','true')
+  sessionStorage.removeItem('danz-yeppo-visit-peek-v1')
+ })
+ await page.goto('/')
+ await expect(page.getByLabel('Yeppo te saluda')).toBeVisible()
+ await expect(page.getByRole('region',{name:'Yeppo te presenta DANZ'})).toHaveCount(0)
+ await page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true}).click()
+ await expect(page.getByLabel('Yeppo te saluda')).toHaveCount(0)
+ await page.reload()
+ await expect(page.getByLabel('Yeppo te saluda')).toHaveCount(0)
+})
