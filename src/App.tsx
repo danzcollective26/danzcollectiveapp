@@ -409,7 +409,7 @@ export default function App() {
         )}
       </main>
 
-      <DanzRadio arcadeActive={page==='arcade'} />
+      <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
       <Yeppo page={page} gameActive={page==='arcade'} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
