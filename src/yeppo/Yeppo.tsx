@@ -47,7 +47,7 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
    const phrase=nextPhrase(category,verified?.variables,ledger.count+Math.floor(now/60000)%9)
    if(!phrase)return
    setLine(phrase);setExpression(expressions[(ledger.count+Math.floor(now/1000))%expressions.length]);setVisible(true);setMenu(false)
-   writeLedger({...ledger,count:ledger.count+1,lastAt:now,dismissals:0})
+   writeLedger({...ledger,count:ledger.count+1,lastAt:now})
    until.current=now+5500
   },1000)
   return()=>{clearInterval(interval);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)}
