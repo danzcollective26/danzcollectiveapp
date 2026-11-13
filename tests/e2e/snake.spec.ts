@@ -15,6 +15,17 @@ async function openArcade(page: Page) {
   await arcade(page)
 }
 
+test('elegir una portada abre Snake inmersivo sin iniciar la partida', async ({ page }) => {
+  await openArcade(page)
+  await page.locator('.arcade-chooser').getByRole('button', { name: /LA QUE HAS LIAO, JACK/ }).click()
+  await expect(page.locator('.game-panel')).toHaveClass(/is-immersive/)
+  await expect(page.locator('.arcade-launch')).toBeAttached()
+  await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
+  expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
+  await page.getByRole('button', { name: /SALIR DEL JUEGO/ }).click()
+  await expect(page.locator('.game-panel')).not.toHaveClass(/is-immersive/)
+})
+
 test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', async ({ page }) => {
   await openArcade(page)
   await expect(page.locator('.game-board > .cell')).toHaveCount(GRID * GRID)
