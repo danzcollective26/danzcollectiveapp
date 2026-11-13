@@ -47,12 +47,12 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
    const phrase=nextPhrase(category,verified?.variables,ledger.count+Math.floor(now/60000)%9)
    if(!phrase)return
    setLine(phrase);setExpression(expressions[(ledger.count+Math.floor(now/1000))%expressions.length]);setVisible(true);setMenu(false)
-   writeLedger({...ledger,count:ledger.count+1,lastAt:now})
+   writeLedger({...ledger,count:ledger.count+1,lastAt:now});active.current=0
    until.current=now+5500
   },1000)
   return()=>{clearInterval(interval);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)}
  },[page,gameActive,events,enabled,visible])
- useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{setVisible(false);setMenu(false)},5500);return()=>clearTimeout(id)},[visible,line])
+ useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},5500);return()=>clearTimeout(id)},[visible,line])
  const close=()=>{writeLedger(dismissed(readLedger(),Date.now()));setVisible(false);setMenu(false)}
  if(!enabled||!visible||gameActive)return null
  return <aside className="yeppo" aria-label="Yeppo, la flor de DANZ">
