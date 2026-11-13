@@ -62,7 +62,7 @@ export default function DanzRadio({arcadeActive=false}:{arcadeActive?:boolean}){
    <section className="danz-radio-player">
      <div className="danz-radio-heading"><span>♪ HILO MUSICAL / DANZ</span><button type="button" onClick={()=>{setOn(false);setMinimized(true)}} aria-label="Quitar reproductor de la pantalla">×</button></div>
      <div className="danz-radio-track">
-       <div className="danz-radio-art" data-track={current.id} aria-label="Identidad visual de DANZ"><DanzFlower /></div>
+       <div className="danz-radio-art" data-track={current.id} aria-label={current.cover?'Carátula de '+current.title:'Identidad visual de DANZ'}>{current.cover?<img src={current.cover} alt="" loading="lazy" />:<DanzFlower />}</div>
        <div className="danz-radio-track-info"><strong title={current.title}>{current.title}</strong><span title={current.artist}>{current.artist}</span><small>{index+1} / {DANZ_TRACKS.length} · {playing?'REPRODUCIENDO':checking?'COMPROBANDO AUDIO':available?'EN PAUSA':'AUDIO PENDIENTE'}</small></div>
      </div>
      <div className="danz-radio-timeline"><input type="range" min={0} max={Math.max(1,duration)} step={1} value={Math.min(position,Math.max(1,duration))} disabled={!available||!duration} onChange={event=>seek(Number(event.target.value))} aria-label="Posición de la canción"/><div><span>{time(position)}</span><span>{time(duration)}</span></div></div>
