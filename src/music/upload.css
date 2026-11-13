@@ -10,3 +10,7 @@
 .danz-radio-upload .danz-radio-upload-library strong{display:block;color:#deff83;font-size:15px;margin-bottom:10px}
 .danz-radio-upload .danz-radio-upload-library ol{font-size:12px;line-height:1.8;padding-left:20px}
 .danz-radio-upload .danz-radio-upload-library button{min-height:42px;margin-bottom:6px}
+
+.danz-radio-upload .danz-radio-picker-button{display:block;margin:12px 0;width:100%;min-height:52px}
+.danz-radio-upload .danz-radio-chrome-link{display:inline-block;margin:12px 0 0;padding:12px;font-size:12px}
+.danz-radio-upload .danz-radio-upload-hint{padding:12px;background:#393028;border-left:3px solid #ffcc79;font-size:12px;line-height:1.5}
