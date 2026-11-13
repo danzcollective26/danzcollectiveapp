@@ -29,6 +29,8 @@ import { useSnakeCompetition } from './arcade/useSnakeCompetition'
 import GameCover, { GAME_TITLE, GAME_SHORT_TITLE } from './arcade/GameCover'
 import ArcadeChooser from './arcade/ArcadeChooser'
 import ArcadeLaunch from './arcade/ArcadeLaunch'
+import Yeppo from './yeppo/Yeppo'
+import DanzRadio from './music/DanzRadio'
 
 const collective = parseCollective(content)
 
@@ -320,7 +322,7 @@ export default function App() {
               <GameCover className="snake-cover" />
             </div>
             <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}${game.seed!==undefined?' is-ranked':''}${competition.run?.status==='active'?' is-ranked-live':game.seed!==undefined?' is-ranked-result':''}`}>
-              {gameScreen.active && <ArcadeLaunch game="snake" />}
+              {gameScreen.active && <ArcadeLaunch game="snake" running={game.running} onPlay={play} />}
               {gameScreen.active && <div className="game-screen-bar"><span>{GAME_SHORT_TITLE} · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={gameScreen.leave}>SALIR DEL JUEGO ↗</button></div>}
               <div className="game-modes" role="group" aria-label="Modo de Snake">
                 <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'classic' })}}>CLÁSICO</button>
@@ -407,6 +409,8 @@ export default function App() {
         )}
       </main>
 
+      <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
+      <Yeppo page={page} gameActive={page==='arcade'} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )

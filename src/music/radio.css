@@ -1,0 +1,39 @@
+.danz-radio{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));width:min(320px,calc(100vw - 20px));z-index:28;color:#fff;font-family:inherit}
+.danz-radio-player{border:1px solid #b5ca62;border-radius:14px;background:#111116f5;box-shadow:0 12px 32px #000a;padding:12px 13px;backdrop-filter:blur(12px)}
+.danz-radio-heading{display:flex;align-items:center;justify-content:space-between;color:#dcff76;font-size:9px;letter-spacing:.16em;font-weight:900}
+.danz-radio-heading button{font-size:23px;background:transparent;color:#fff;border:0;width:36px;height:36px;cursor:pointer}
+.danz-radio-track{display:flex;align-items:center;gap:12px;margin:7px 0}
+.danz-radio-art{display:grid;place-items:center;width:75px;height:75px;flex-shrink:0;border-radius:6px;background:linear-gradient(145deg,#d6ff76,#5e725c 85%);color:#141414;overflow:hidden}
+.danz-radio-art[data-track="bacalaik"],.danz-radio-art[data-track="promiscuous"]{background:linear-gradient(135deg,#fa94d6,#74569d)}
+.danz-radio-art[data-track="rush"],.danz-radio-art[data-track="feeling"]{background:linear-gradient(135deg,#a5ddff,#39818d)}
+.danz-radio-art img{width:100%;height:100%;object-fit:cover}.danz-radio-art svg{width:49px;height:49px;animation:danz-vinyl-rotate 9s linear infinite}
+.danz-radio-track-info{min-width:0;display:flex;flex-direction:column;gap:5px;flex:1}
+.danz-radio-track-info strong{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.danz-radio-track-info>span{font-size:11px;color:#e3dbe3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.danz-radio-track-info small{color:#d5f899;letter-spacing:.05em;font-weight:800;font-size:8px}
+.danz-radio-timeline input{width:100%;margin:4px 0;accent-color:#d5ff75;cursor:pointer}
+.danz-radio-timeline>div{display:flex;justify-content:space-between;color:#d9d9d9;font-size:9px;font-variant-numeric:tabular-nums}
+.danz-radio-buttons{display:flex;justify-content:center;align-items:center;gap:9px;margin-top:8px}
+.danz-radio-buttons button{width:43px;height:40px;display:grid;place-items:center;border:1px solid #63665a;background:#1d1d24;color:#fff;border-radius:8px;font-size:19px;cursor:pointer}
+.danz-radio-buttons button:disabled{opacity:.4;cursor:not-allowed}
+.danz-radio-buttons .danz-radio-play{width:51px;height:46px;background:#daff79;color:#141414;font-weight:900;border-color:#daff79;font-size:22px}
+.danz-radio-queue{list-style:none;margin:13px 0 0;padding:0;max-height:168px;overflow:auto}
+.danz-radio-queue li{margin:0}
+.danz-radio-queue li button{display:flex;text-align:left;gap:9px;align-items:center;width:100%;padding:8px 4px;background:none;color:#fff;border:0;border-top:1px solid #45454d;cursor:pointer}
+.danz-radio-queue li button[aria-current=true]{color:#daff79}
+.danz-radio-queue li button>span:last-child{display:flex;min-width:0;flex-direction:column;gap:2px}
+.danz-radio-queue strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.danz-radio-queue small{font-size:9px;opacity:.7}
+.danz-radio-offline,.danz-radio-error{font-size:10px;line-height:1.4;color:#ffcbdb;margin:8px 0 0}
+.danz-radio-notice{position:absolute;left:0;bottom:100%;max-width:260px;margin-bottom:8px;display:flex;flex-direction:column;gap:3px;background:#15151aea;border:1px solid #daff79;border-radius:8px;padding:10px;box-shadow:0 8px 24px #0009;animation:radio-arrive .3s ease-out}
+.danz-radio-notice small{font-size:9px;letter-spacing:.12em;color:#daff79}
+.danz-radio-notice strong{font-size:14px}
+.danz-radio-notice span{font-size:10px}
+.danz-radio-mini{width:auto}.danz-radio-reopen{width:48px;height:48px;border-radius:50%;background:#1d1d23;color:#daff79;border:1px solid #d6ff79;font-size:26px;cursor:pointer;box-shadow:0 3px 20px #0008}
+@keyframes radio-arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes danz-vinyl-rotate{to{transform:rotate(360deg)}}
+@media(max-width:540px){.danz-radio{width:min(288px,calc(100vw - 22px))}.danz-radio-player{padding:10px}.danz-radio-art{height:62px;width:62px}.danz-radio-track-info strong{font-size:13px}.danz-radio-buttons{gap:6px}.danz-radio-buttons button{width:39px;height:38px}.danz-radio-buttons .danz-radio-play{width:46px;height:43px}}
+@media(prefers-reduced-motion:reduce){.danz-radio-art svg,.danz-radio-notice{animation:none}}
+
+/* Fullscreen photo viewers and other modal workflows always have priority. */
+body:has([aria-modal="true"]) .danz-radio{display:none}

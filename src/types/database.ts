@@ -209,18 +209,21 @@ export type Database = {
           created_at: string
           display_name: string | null
           instagram_handle: string | null
+          yeppo_enabled: boolean
           user_id: string
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           instagram_handle?: string | null
+          yeppo_enabled?: boolean
           user_id: string
         }
         Update: {
           created_at?: string
           display_name?: string | null
           instagram_handle?: string | null
+          yeppo_enabled?: boolean
           user_id?: string
         }
         Relationships: []
