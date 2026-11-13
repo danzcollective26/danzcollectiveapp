@@ -29,7 +29,7 @@ export default function DanzRadio({arcadeActive=false}:{arcadeActive?:boolean}){
  const next=()=>{setIndex(n=>(n+1)%DANZ_TRACKS.length);setError('')}
  const prev=()=>{setIndex(n=>(n+DANZ_TRACKS.length-1)%DANZ_TRACKS.length);setError('')}
  const toggle=()=>{if(!available)return;setOn(v=>!v);setError('')}
- if(!available)return null
+ if(!available)return <aside className="danz-radio" aria-label="Hilo musical de DANZ"><div className="danz-radio-control"><span aria-hidden="true" style={{padding:'8px 9px',fontSize:19}}>♫</span><div><small>HILO MUSICAL · DANZ</small><strong>6 TEMAS · AUDIO PENDIENTE</strong></div></div></aside>
  return <aside className="danz-radio" aria-label="Hilo musical de DANZ">
    <audio ref={ref} src={current.src} preload="none" onEnded={next} onError={()=>{setOn(false);setError('Este tema no está disponible.') }}/>
    {notice&&on&&!arcadeActive&&<div className="danz-radio-notice" role="status"><span>AHORA SUENA EN DANZ</span><strong>{current.title}</strong><small>{current.artist}</small></div>}
