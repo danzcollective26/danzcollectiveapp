@@ -37,3 +37,26 @@
 
 /* Fullscreen photo viewers and other modal workflows always have priority. */
 body:has([aria-modal="true"]) .danz-radio{display:none}
+
+/* Compact musical tab: never occupies the photo cards or the bottom navigation. */
+.danz-radio-mini{width:auto;max-width:min(190px,54vw);bottom:calc(env(safe-area-inset-bottom) + 66px);left:max(6px,env(safe-area-inset-left));z-index:23}
+.danz-radio-tab{display:flex;align-items:stretch;gap:0;background:#121216ef;border:1px solid #bddf65;border-radius:0 12px 12px 0;box-shadow:0 2px 12px #0009;backdrop-filter:blur(10px);overflow:hidden;max-width:190px}
+.danz-radio-tab button{border:0;cursor:pointer;min-height:44px}
+.danz-radio-tab-open{display:flex;align-items:center;gap:6px;min-width:0;max-width:152px;background:transparent;color:#fff;text-align:left;padding:7px 8px}
+.danz-radio-tab-open>span:first-child{font-size:19px;color:#e3ff86}
+.danz-radio-tab-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.danz-radio-tab-copy strong{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}
+.danz-radio-tab-copy small{font-size:8px;color:#dcff84;letter-spacing:.04em;white-space:nowrap}
+.danz-radio-tab-play{background:#dfff79;color:#111;padding:0 10px;min-width:35px;font-weight:900;font-size:14px}
+.danz-radio-suspended{display:none}
+.danz-radio:not(.danz-radio-mini){bottom:calc(env(safe-area-inset-bottom) + 66px)}
+.danz-radio-tab button:focus-visible{outline:3px solid #fff;outline-offset:-4px}
+@media(max-width:430px){.danz-radio-mini{max-width:167px}.danz-radio-tab{max-width:167px}.danz-radio-tab-open{max-width:130px}.danz-radio-tab-copy strong{max-width:90px}}
+
+/* The floating frame never catches accidental taps outside its actual controls. */
+.danz-radio{pointer-events:none}
+.danz-radio button,.danz-radio input,.danz-radio-player,.danz-radio-tab{pointer-events:auto}
+.danz-radio-mini{right:0;left:auto;bottom:calc(env(safe-area-inset-bottom) + 75px);max-width:158px}
+.danz-radio-tab{border-radius:12px 0 0 12px;max-width:158px;border-right:0}
+.danz-radio-tab-open{max-width:124px}.danz-radio-tab-copy strong{max-width:80px}
+@media(max-width:430px){.danz-radio-mini,.danz-radio-tab{max-width:142px}.danz-radio-tab-open{max-width:108px}.danz-radio-tab-copy strong{max-width:63px}}
