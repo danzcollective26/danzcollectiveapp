@@ -14,7 +14,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
 import qrcode
 
-APP_URL = 'https://danz-collective-demo.right-vine-9666.chatgpt.site/'
+APP_URL = 'https://danzcollectiveapp.vercel.app/'
 ROOT = Path(__file__).resolve().parents[1]
 
 
