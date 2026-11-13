@@ -14,7 +14,7 @@ export function readLedger(now=Date.now()):YeppoLedger{
 }
 export function writeLedger(value:YeppoLedger){try{localStorage.setItem(KEY,JSON.stringify(value))}catch{}}
 export function mayAppear(ledger:YeppoLedger,now:number,activeMs:number):boolean{
- if(ledger.count>=DAILY_MAX||now<ledger.suppressedUntil||activeMs<75_000)return false
+ if(ledger.count>=DAILY_MAX||now<ledger.suppressedUntil||activeMs<MIN_GAP_MS)return false
  const stagger=MIN_GAP_MS+(ledger.count%3)*2*60_000
  return !ledger.lastAt||now-ledger.lastAt>=Math.min(MAX_GAP_MS,stagger)
 }
