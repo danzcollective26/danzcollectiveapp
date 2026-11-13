@@ -2,9 +2,9 @@
 
 El cartel «La noche nos une» abre la PWA pública en:
 
-https://danz-collective-demo.right-vine-9666.chatgpt.site/
+https://danzcollectiveapp.vercel.app/
 
-Es acceso general a la aplicación. No incluye el código de asistencia de una
+**Los QR impresos previamente con el dominio chatgpt.site deben sustituirse: no se pueden actualizar a distancia.** Usa el script actualizado para emitir el cartel correcto. Es acceso general a la aplicación. No incluye el código de asistencia de una
 fiesta ni concede un sello. Ese QR se emitirá desde Administración para el
 evento correspondiente una vez completada la verificación del propietario.
 
