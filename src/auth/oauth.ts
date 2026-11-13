@@ -19,3 +19,11 @@ export function accountBrowserUrl(origin: string, pendingPass: string | null): s
   if (code) url.hash = new URLSearchParams({ pase: code }).toString()
   return url.href
 }
+
+/** Production origin for links opened from email or a shared Vercel preview. */
+export const DANZ_CANONICAL_ORIGIN = 'https://danzcollectiveapp.vercel.app'
+export function danzAuthOrigin(origin: string): string {
+  const url = new URL(origin)
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
+  return DANZ_CANONICAL_ORIGIN
+}

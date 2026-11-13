@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { availableSocialProviders, accountBrowserUrl } from '../src/auth/oauth.ts'
+import { availableSocialProviders, accountBrowserUrl, danzAuthOrigin, DANZ_CANONICAL_ORIGIN } from '../src/auth/oauth.ts'
 
 test('social login only uses explicit enabled Google and Apple flags from public Auth settings', () => {
   assert.deepEqual(availableSocialProviders({ external: { google: true, apple: true, github: true } }), ['google', 'apple'])
@@ -17,4 +17,11 @@ test('browser login carries a valid pending pass only in the fragment and drops 
   assert.equal(url.href.includes('secret'), false)
   assert.equal(new URL(accountBrowserUrl('https://app.example', '../invalid')).hash, '')
   assert.equal(new URL(accountBrowserUrl('https://app.example', null)).hash, '')
+})
+
+test('production auth always targets the stable DANZ origin, not shared demos or previews',()=>{
+ assert.equal(danzAuthOrigin('https://danz-collective-demo.right-vine-9666.chatgpt.site'),DANZ_CANONICAL_ORIGIN)
+ assert.equal(danzAuthOrigin('https://danzcollectiveapp-preview-123.vercel.app'),DANZ_CANONICAL_ORIGIN)
+ assert.equal(danzAuthOrigin('https://danzcollectiveapp.vercel.app'),DANZ_CANONICAL_ORIGIN)
+ assert.equal(danzAuthOrigin('http://127.0.0.1:4173'),'http://127.0.0.1:4173')
 })

@@ -4,7 +4,7 @@ import type { Database } from '../types/database'
 import { useAuth } from './AuthProvider'
 import { configIssue, fetchSocialProviders } from './client'
 import { authErrorMessage } from './config'
-import { accountBrowserUrl, type SocialProvider } from './oauth'
+import { accountBrowserUrl, danzAuthOrigin, type SocialProvider } from './oauth'
 import { readPendingPass } from '../events/pass'
 import './Account.css'
 import InstagramLink from './InstagramLink'
@@ -166,7 +166,7 @@ export default function Account() {
     try {
       const result = await client.auth.signInWithOtp({
         email: address,
-        options: { shouldCreateUser: true, emailRedirectTo: new URL('/', window.location.origin).href },
+        options: { shouldCreateUser: true, emailRedirectTo: new URL('/', danzAuthOrigin(window.location.origin)).href },
       })
       if (!mounted.current) return
       if (result.error) { setError(authErrorMessage(result.error)); return }
@@ -175,7 +175,7 @@ export default function Account() {
       setCode('')
       setNextSendAt(Date.now() + 60000)
       setCooldown(60)
-      setMessage('Solicitud enviada. Revisa tu correo. Si incluye un código, puedes escribirlo abajo. Para los enlaces antiguos, utiliza el mismo navegador donde has pedido el acceso.')
+      setMessage('Solicitud enviada. Revisa tu correo. Si incluye un código, puedes escribirlo abajo. Los enlaces nuevos deben llevar a danzcollectiveapp.vercel.app; abre el correo en el mismo navegador.')
     } catch (reason) {
       if (mounted.current) setError(authErrorMessage(reason))
     } finally {
@@ -211,7 +211,7 @@ export default function Account() {
     setMessage('')
     clearError()
     try {
-      const result = await client.auth.signInWithOAuth({ provider, options: { redirectTo: new URL('/', window.location.origin).href } })
+      const result = await client.auth.signInWithOAuth({ provider, options: { redirectTo: new URL('/', danzAuthOrigin(window.location.origin)).href } })
       if (mounted.current && result.error) setError(authErrorMessage(result.error))
     } catch (reason) {
       if (mounted.current) setError(authErrorMessage(reason))
@@ -252,7 +252,7 @@ export default function Account() {
         {providersUnavailable && <div className="account-browser-login" role="alert"><p>No hemos podido cargar las opciones de acceso. Vuelve a intentarlo o utiliza tu correo.</p><button className="outline-btn" type="button" disabled={busy} onClick={() => setProviderAttempt(value => value + 1)}>RECARGAR ACCESOS</button></div>}
         {providers.length > 0 && (embedded ? <div className="account-browser-login">
           <p>Para usar este acceso, abre DANZ en tu navegador.</p>
-          <a className="primary-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR DANZ PARA ENTRAR</a>
+          <a className="primary-btn external-btn" href={accountBrowserUrl(danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR DANZ PARA ENTRAR</a>
         </div> : <div className="account-social" role="group" aria-label="Acceso con tu cuenta">
           {providers.map(provider => <button className={`account-social-button account-social-${provider}`} key={provider} type="button" disabled={busy} aria-busy={openingProvider === provider} onClick={() => { void enterWithProvider(provider) }}>{openingProvider === provider ? 'Abriendo ' : 'Continuar con '}{provider === 'google' ? 'Google' : 'Apple'}{openingProvider === provider ? '…' : ''}</button>)}
           <p className="account-note">O utiliza tu correo electrónico.</p>
@@ -278,7 +278,7 @@ export default function Account() {
             <button className="primary-btn" type="submit" disabled={busy}>COMPROBAR CÓDIGO</button>
           </form>}
         </>
-        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre esta app directamente en Chrome o Safari, solicita un correo nuevo desde allí y abre el enlace en ese mismo navegador. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={accountBrowserUrl(window.location.origin, readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR CUENTA EN EL NAVEGADOR</a></div>
+        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre danzcollectiveapp.vercel.app directamente en Chrome o Safari, solicita allí un correo nuevo y ábrelo desde el mismo navegador. No uses la antigua demo chatgpt.site. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={accountBrowserUrl(danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR CUENTA EN EL NAVEGADOR</a></div>
       </div>}
   </section>
 }
