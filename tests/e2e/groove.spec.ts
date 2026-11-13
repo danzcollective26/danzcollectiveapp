@@ -170,7 +170,7 @@ test('browser back and forward restore the selected game and never reset Snake m
   await page.getByRole('button', { name: '← VOLVER A ARCADANZ', exact: true }).click()
   await page.locator('.game-modes').getByRole('button', { name: /^LABERINTO/ }).click()
   await page.getByLabel('RECORRIDO', { exact: true }).selectOption('8')
-  await page.getByRole('button', { name: 'GROOVE NINJA ↗', exact: true }).click()
+  await page.locator('.arcade-chooser').getByRole('button', { name: /GROOVE NINJA/ }).click()
   await expect(page.locator('.gn-panel')).toBeVisible()
   await page.goBack()
   await expect(page.getByLabel('RECORRIDO', { exact: true })).toHaveValue('8')
