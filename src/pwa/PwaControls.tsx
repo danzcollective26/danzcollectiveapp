@@ -4,6 +4,8 @@ import './PwaControls.css'
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
 const production = Boolean((import.meta as ImportMeta & { env: { PROD?: boolean } }).env.PROD)
+const isPreviewHost = () => window.location.hostname.endsWith('.vercel.app') && window.location.hostname !== 'danzcollectiveapp.vercel.app'
+const productionUrl = 'https://danzcollectiveapp.vercel.app/'
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 
 export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
@@ -62,6 +64,7 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
 
   const install = async () => {
     setError('')
+    if (isPreviewHost()) { window.location.assign(productionUrl); return }
     const pending = prompt.current
     if (!pending) { setOpen('install'); return }
     setBusy(true)
@@ -82,7 +85,9 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
         <span role="status">{offlineState === 'unsupported' ? 'Este navegador no permite guardar DANZ sin conexión.' : 'El modo sin conexión aún no está listo. Puedes seguir usando DANZ con Internet.'}</span>
         {offlineState === 'unavailable' && <button className="outline-btn" disabled={!online} onClick={() => setOfflineAttempt(attempt => attempt + 1)}>REINTENTAR GUARDADO</button>}
       </div>}
-      {!installed && <button className="outline-btn" disabled={busy} onClick={() => { void install() }}>{canInstall ? 'INSTALAR DANZ' : 'CÓMO INSTALAR DANZ'}</button>}
+      {!installed && (isPreviewHost()
+        ? <a className="outline-btn" href={productionUrl}>ABRIR DANZ PARA INSTALAR ↗</a>
+        : <button className="outline-btn" disabled={busy} onClick={() => { void install() }}>INSTALAR DANZ</button>)}
       {update && <button className="outline-btn" onClick={() => setOpen('update')}>VERSIÓN NUEVA DISPONIBLE</button>}
     </div>}
     <dialog className="pwa-dialog" ref={dialog} aria-labelledby="pwa-dialog-title" onCancel={() => setOpen(null)} onClose={() => setOpen(null)}>
@@ -92,6 +97,7 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
         requestedUpdate.current = true
         update.waiting.postMessage({ type: 'DANZ_ACTIVATE_UPDATE' })
       }}>ACTUALIZAR Y RECARGAR</button></> : <>
+        <p>Si Chrome muestra «Esta aplicación no se puede instalar», comprueba que estás en <a href={productionUrl}>danzcollectiveapp.vercel.app</a>, no en una dirección de prueba. Espera a que termine de cargar y vuelve a abrirla desde Chrome.</p>
         <p><strong>Android:</strong> abre esta página en Chrome. Pulsa el menú ⋮ y busca «Instalar y crear acceso directo» o «Añadir a pantalla de inicio». Confirma la instalación.</p>
         <p><strong>iPhone:</strong> abre esta página en Safari. Pulsa Compartir → Añadir a pantalla de inicio y confirma Añadir. Activa «Abrir como app web» si aparece.</p>
         <p>Si estás dentro de la app de correo o de ChatGPT, abre primero el enlace en Chrome o Safari.</p>
