@@ -222,7 +222,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    const back = () => { dispatch({ type: 'pause' }); setPage(locationPage()); setArcadeGame(locationGame()) }
+    const back = () => { dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(false); setPage(locationPage()); setArcadeGame(locationGame()) }
     window.addEventListener('popstate', back)
     return () => window.removeEventListener('popstate', back)
   }, [])
