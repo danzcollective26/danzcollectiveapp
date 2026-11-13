@@ -21,3 +21,8 @@
 @keyframes arcade-start-in{from{opacity:0;transform:translateY(24px) scale(.84)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes arcade-pulse{to{opacity:.5}}@keyframes arcade-meter{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @media(prefers-reduced-motion:reduce){.arcade-launch.arcade-launch-pro,.arcade-launch-pro .arcade-launch-art img,.arcade-launch-pro .arcade-launch-title,.arcade-launch-pro .arcade-launch-loading,.arcade-launch-pro .arcade-launch-start,.arcade-launch-pro .arcade-launch-meter{animation:none!important}}
+
+.arcade-launch-pro .arcade-launch-mode-picker{position:relative;z-index:3;display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
+.arcade-launch-pro .arcade-launch-mode-picker button{border:2px solid #fff7;background:#090910c9;color:#fff;font-size:11px;font-weight:900;letter-spacing:.1em;padding:12px 14px;min-height:44px;cursor:pointer}
+.arcade-launch-pro .arcade-launch-mode-picker button[aria-pressed=true]{background:#ffb7dd;color:#18121d;border-color:#ffb7dd}
+.arcade-launch-pro .arcade-launch-mode-picker button:focus-visible{outline:3px solid #eaffac;outline-offset:3px}
