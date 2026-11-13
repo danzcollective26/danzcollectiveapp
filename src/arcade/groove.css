@@ -29,3 +29,6 @@
 @media(max-width:360px){.gn-weapons button{font-size:9px;gap:3px}.gn-weapons button>span:first-child{font-size:17px}.gn-weapons small{font-size:6px}.gn-immersive .gn-scratch-instruction strong{font-size:10px}.gn-immersive .gn-scratch-instruction small{font-size:7px}}
 
 .gn-stage-beams{pointer-events:none;transform-origin:320px 0;animation:gn-beams 7s ease-in-out infinite alternate}.gn-panel:not([data-status=playing]) .gn-stage-beams{animation-play-state:paused}@keyframes gn-beams{to{transform:rotate(5deg)}}@media(prefers-reduced-motion:reduce){.gn-stage-beams{animation:none}}
+
+/* Mode choice is accessible inside the immersive ready screen, before play begins. */
+.gn-quick-modes{position:absolute;top:8%;left:5%;right:5%;display:flex;justify-content:center;gap:8px;pointer-events:auto;z-index:2}.gn-quick-modes button{border:1px solid #ff789f;padding:10px 12px;min-height:44px;background:#120e1bdd;color:#fff;font-weight:900;font-size:10px;letter-spacing:.06em;cursor:pointer}.gn-quick-modes button[aria-pressed=true]{background:#ff789f;color:#120b14}.gn-quick-modes button:focus-visible{outline:3px solid #fff;outline-offset:2px}

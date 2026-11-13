@@ -1,3 +1,5 @@
+import ArcadeChooser from './ArcadeChooser'
+import ArcadeLaunch from './ArcadeLaunch'
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { GrooveAudio } from './GrooveAudio'
 import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DURATION, GROOVE_VINYLS, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, setGroovePlaying, type GrooveMode, type GrooveSpecial, type GrooveWeapon, type GroovePoint, type GrooveState } from './groove'
@@ -51,7 +53,7 @@ function ScratchDeck({ game }: { game: GrooveState }) {
 }
 const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
 
-export default function GrooveNinja({ onBack }: { onBack: () => void }) {
+export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () => void; autoEnter?: boolean }) {
   const [game, setGame] = useState(initialGroove)
   const current = useRef(game)
   const [record, setRecord] = useState(readGrooveRecord)
@@ -64,6 +66,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
   const trail = useRef<(GroovePoint & { at: number })[]>([])
   const heading = useRef<HTMLHeadingElement>(null)
   const screen = useGameScreen(pause)
+  useEffect(() => { if (autoEnter) screen.enter() }, [autoEnter])
   const ended = game.status === 'over' || game.status === 'complete'
   const running = game.status === 'playing'
   const stage = grooveStage(game.elapsed)
@@ -79,7 +82,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
   function pause() { gesture.current = null; trail.current = []; commit(setGroovePlaying(current.current, false)); sound.current?.pause() }
   function chooseMode(mode: GrooveMode) {
     if (mode === current.current.mode) return
-    screen.leave(); pause(); commit(initialGroove(Date.now(), mode, current.current.weapon)); setRecord(readGrooveRecord(mode))
+    pause(); commit(initialGroove(Date.now(), mode, current.current.weapon)); setRecord(readGrooveRecord(mode))
   }
   function play() {
     if (current.current.status === 'playing') { pause(); return }
@@ -189,6 +192,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
   const progress = Math.round(game.elapsed / GROOVE_DURATION * 100)
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
+    <ArcadeChooser active="groove" onSelect={choice => { if (choice === "snake") onBack() }} />
     <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>PATRONES AL RITMO</small></button></div>
     <div className="gn-intro">
       <div className="eyebrow">ARCADANZ / GAME 003 · PRIMERA SESIÓN</div>
@@ -199,6 +203,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
       <p className="gn-sound-note">Música de ensayo. Los temas del colectivo llegarán después.</p>
     </div>
     <div ref={screen.panel} data-weapon={game.weapon} data-stage={stage} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status} data-mode={game.mode} data-elapsed={game.elapsed.toFixed(1)}>
+      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} />}
       <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={screen.leave} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
         <span className="gn-score"><i className="gn-hud-vinyl" aria-hidden="true"/><span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span></span>
@@ -276,6 +281,7 @@ export default function GrooveNinja({ onBack }: { onBack: () => void }) {
           <text x="608" y="734" textAnchor="end" fill="#ff789f" fontSize="17" fontWeight="900">{'♥'.repeat(game.lives)}{'♡'.repeat(5 - game.lives)}</text>
         </svg>
         {!running && <div className={`gn-overlay${ended ? ' gn-result' : ''}`}>
+          {game.status === 'ready' && screen.active && <div className="gn-quick-modes" role="group" aria-label="Elegir modo antes de jugar"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}>VINYL CUT</button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}>SCRATCH SESSION</button></div>}
           <span className="gn-overlay-kicker">{ended ? 'TU SESIÓN' : game.status === 'paused' ? 'LA CABINA TE ESPERA' : `${game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'} / 60 SEGUNDOS`}</span>
           <strong>{game.status === 'over' ? 'PARTY OVER' : game.status === 'complete' ? 'BUENA SESIÓN.' : game.status === 'paused' ? 'EN PAUSA.' : game.mode === 'cut' ? <>CORTA<br/>EL GROOVE.</> : <>DALE<br/>AL SCRATCH.</>}</strong>
           {ended ? <><span className="gn-final-score">{game.score.toLocaleString('es-ES')}</span><span className="gn-result-details">{game.mode === 'cut' ? `${game.hits} CORTES · ${game.multiCuts} MULTICORTES · ${game.golds} DORADOS` : `${game.scratches} FRASES · ${game.perfects} GESTOS PERFECTOS`} · COMBO {game.bestCombo}</span></>

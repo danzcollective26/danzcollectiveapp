@@ -15,6 +15,17 @@ async function openArcade(page: Page) {
   await arcade(page)
 }
 
+test('elegir una portada abre Snake inmersivo sin iniciar la partida', async ({ page }) => {
+  await openArcade(page)
+  await page.locator('.arcade-chooser').getByRole('button', { name: /LA QUE HAS LIAO, JACK/ }).click()
+  await expect(page.locator('.game-panel')).toHaveClass(/is-immersive/)
+  await expect(page.locator('.arcade-launch')).toBeAttached()
+  await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
+  expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
+  await page.getByRole('button', { name: /SALIR DEL JUEGO/ }).click()
+  await expect(page.locator('.game-panel')).not.toHaveClass(/is-immersive/)
+})
+
 test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', async ({ page }) => {
   await openArcade(page)
   await expect(page.locator('.game-board > .cell')).toHaveCount(GRID * GRID)
@@ -26,13 +37,13 @@ test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', asy
   await page.keyboard.press('ArrowLeft')
   await page.keyboard.press('ArrowDown')
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
-  await page.clock.runFor(150)
+  await page.clock.runFor(240)
   expect(await headIndex(page)).toBe(index(spawn.x - 1, spawn.y - 1))
   await page.getByRole('button', { name: /^PAUSAR/ }).click()
   await page.clock.runFor(900)
   expect(await headIndex(page)).toBe(index(spawn.x - 1, spawn.y - 1))
   await page.getByRole('button', { name: /^JUGAR/ }).click()
-  await page.clock.runFor(150)
+  await page.clock.runFor(240)
   expect(await headIndex(page)).toBe(index(spawn.x - 2, spawn.y - 1))
   await page.getByRole('button', { name: 'REINICIAR', exact: true }).click()
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
@@ -51,7 +62,7 @@ test('el gesto táctil gira antes de levantar el dedo y sin desplazar la página
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 24 }] })
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x - 24, y: y - 24 }] })
-  await page.clock.runFor(150)
+  await page.clock.runFor(240)
   expect(await headIndex(page)).toBe(index(spawn.x - 1, spawn.y - 1))
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   expect(await page.evaluate(() => window.scrollY)).toBe(scrollY)
@@ -80,7 +91,7 @@ test('pantalla completa alternativa, salida con pausa y navegación restaurada',
   await page.getByRole('button', { name: /^JUGAR/ }).click()
   await expect(page.locator('.game-panel')).toHaveClass(/is-immersive/)
   expect(await page.locator('body').evaluate(el => el.style.overflow)).toBe('hidden')
-  await page.clock.runFor(150)
+  await page.clock.runFor(240)
   const before = await headIndex(page)
   await page.getByRole('button', { name: /SALIR DEL JUEGO/ }).click()
   await expect(page.locator('.game-panel')).not.toHaveClass(/is-immersive/)
@@ -95,7 +106,7 @@ test('pantalla completa alternativa, salida con pausa y navegación restaurada',
 test('ocultar la pestaña pausa y no reanuda automáticamente', async ({ page }) => {
   await openArcade(page)
   await page.getByRole('button', { name: /^JUGAR/ }).click()
-  await page.clock.runFor(150)
+  await page.clock.runFor(240)
   const before = await headIndex(page)
   await page.evaluate(() => {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
@@ -131,7 +142,7 @@ test('cara original como objetivo y como segmento después de recogerla', async 
   // The next timeout is scheduled by React after each rendered movement.
   // Settle each frame instead of advancing past effects that have not run yet.
   for (let step=1;step<=4;step++) {
-    await page.clock.runFor(150)
+    await page.clock.runFor(240)
     await expect.poll(()=>headIndex(page)).toBe(index(spawn.x+step,spawn.y))
   }
   await expect(page.locator('.cell.snake[data-face="face-01"] img')).toHaveCount(1)

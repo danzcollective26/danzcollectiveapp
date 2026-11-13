@@ -25,6 +25,20 @@ async function slice(page: Page) {
   await page.mouse.move(p.x - p.dx, p.y); await page.mouse.down(); await page.mouse.move(p.x + p.dx, p.y, { steps: 1 }); await page.mouse.up()
 }
 
+test('game selection opens Groove directly in full viewport, ready to play', async ({ page }) => {
+  await page.addInitScript(() => { Element.prototype.requestFullscreen = () => Promise.reject(new DOMException('Unsupported', 'NotSupportedError')) })
+  await page.goto('/?seccion=arcade')
+  await page.locator('.arcade-chooser').getByRole('button', { name: /GROOVE NINJA/ }).click()
+  await expect(page.locator('.gn-panel')).toHaveClass(/gn-immersive/)
+  await expect(page.locator('.arcade-launch')).toBeAttached()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'ready')
+  await page.locator('.gn-quick-modes').getByRole('button', { name: 'SCRATCH SESSION' }).click()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-mode', 'scratch')
+  await expect(page.locator('.gn-panel')).toHaveClass(/gn-immersive/)
+  await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
+  await expect(page.locator('.gn-panel')).not.toHaveClass(/gn-immersive/)
+})
+
 test('a fast swipe cuts immediately, splits a vinyl and advances its streak exactly once', async ({ page }) => {
   await openGroove(page); await start(page); await slice(page)
   await expect(page.getByTestId('groove-score')).toHaveText('00100')
@@ -170,12 +184,13 @@ test('browser back and forward restore the selected game and never reset Snake m
   await page.getByRole('button', { name: '← VOLVER A ARCADANZ', exact: true }).click()
   await page.locator('.game-modes').getByRole('button', { name: /^LABERINTO/ }).click()
   await page.getByLabel('RECORRIDO', { exact: true }).selectOption('8')
-  await page.getByRole('button', { name: 'GROOVE NINJA ↗', exact: true }).click()
+  await page.locator('.arcade-chooser').getByRole('button', { name: /GROOVE NINJA/ }).click()
   await expect(page.locator('.gn-panel')).toBeVisible()
   await page.goBack()
   await expect(page.getByLabel('RECORRIDO', { exact: true })).toHaveValue('8')
   await page.goForward()
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'ready')
+  await expect(page.locator('.gn-panel')).not.toHaveClass(/gn-immersive/)
   await page.getByRole('navigation').getByRole('button', { name: 'INICIO', exact: true }).click()
   await expect(page).not.toHaveURL(/juego=/)
 })
