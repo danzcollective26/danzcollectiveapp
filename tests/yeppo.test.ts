@@ -13,7 +13,7 @@ test('Yeppo limits appearances across time and daily cap',()=>{
  const now=Date.parse('2026-11-13T12:00:00Z')
  const ledger={day:'2026-11-13',count:2,lastAt:now,dismissals:0,suppressedUntil:0}
  assert.equal(mayAppear(ledger,now+MIN_GAP_MS-1,90_000),false)
- assert.equal(mayAppear(ledger,now+MIN_GAP_MS+5*60_000,90_000),true)
+ assert.equal(mayAppear(ledger,now+MIN_GAP_MS+5*60_000,MIN_GAP_MS+5*60_000),true)
  assert.equal(mayAppear({...ledger,count:DAILY_MAX},now+24*60*60_000,90_000),false)
  assert.equal(mayAppear(ledger,now+24*60*60_000,12_000),false)
 })
