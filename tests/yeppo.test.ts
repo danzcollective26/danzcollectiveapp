@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {YEPPOLINE_COUNT,yeppoMessage} from '../src/yeppo/messages'
-import {DAILY_MAX,MIN_GAP_MS,mayAppear,dismissed,nextPhrase} from '../src/yeppo/rules'
+import {YEPPOLINE_COUNT,yeppoMessage} from '../src/yeppo/messages.ts'
+import {DAILY_MAX,MIN_GAP_MS,mayAppear,dismissed,nextPhrase} from '../src/yeppo/rules.ts'
 
 test('Yeppo has many short curated lines with optional interpolation',()=>{
  assert.ok(YEPPOLINE_COUNT>=35)
