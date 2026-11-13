@@ -203,7 +203,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       <p className="gn-sound-note">Música de ensayo. Los temas del colectivo llegarán después.</p>
     </div>
     <div ref={screen.panel} data-weapon={game.weapon} data-stage={stage} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status} data-mode={game.mode} data-elapsed={game.elapsed.toFixed(1)}>
-      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} />}
+      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} running={running} onPlay={play} />}
       <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={screen.leave} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
         <span className="gn-score"><i className="gn-hud-vinyl" aria-hidden="true"/><span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span></span>
