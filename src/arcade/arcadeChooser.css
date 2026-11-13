@@ -26,3 +26,7 @@
 .arcade-launch-pro .arcade-launch-mode-picker button{border:2px solid #fff7;background:#090910c9;color:#fff;font-size:11px;font-weight:900;letter-spacing:.1em;padding:12px 14px;min-height:44px;cursor:pointer}
 .arcade-launch-pro .arcade-launch-mode-picker button[aria-pressed=true]{background:#ffb7dd;color:#18121d;border-color:#ffb7dd}
 .arcade-launch-pro .arcade-launch-mode-picker button:focus-visible{outline:3px solid #eaffac;outline-offset:3px}
+
+/* Exit remains reachable during the cinematic intro, including on mobile. */
+.game-panel.is-immersive .game-screen-bar,.gn-panel.gn-immersive .gn-top{position:relative;z-index:95;pointer-events:none}
+.game-panel.is-immersive .game-screen-bar button,.gn-panel.gn-immersive .gn-top button{pointer-events:auto}
