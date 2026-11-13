@@ -9,6 +9,7 @@ import { readPendingPass } from '../events/pass'
 import './Account.css'
 import InstagramLink from './InstagramLink'
 import YeppoToggle from '../yeppo/YeppoToggle'
+import RadioUpload from '../music/RadioUpload'
 import {notifyIdentity} from './useIdentity'
 
 type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_id' | 'display_name' | 'instagram_handle'>
@@ -234,6 +235,7 @@ export default function Account() {
     <h1 className="page-title">TU<br /><em>CUENTA.</em></h1>
     {authError && <p role="alert" className="account-error">{authError}</p>}
     <YeppoToggle />
+        <RadioUpload />
     {!client ? <div className="account-card"><h2>Seguimos preparando las cuentas</h2><p>{configIssue}</p><p>Puedes explorar la app y jugar sin registrarte.</p></div>
       : loading ? <p role="status">Comprobando tu sesión…</p>
       : user ? <>
