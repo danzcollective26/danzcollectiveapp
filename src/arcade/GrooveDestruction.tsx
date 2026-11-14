@@ -99,8 +99,9 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
   if(n){g.score+=earned;setScore(g.score);setCombo(g.combo);setBest(g.best);setMessage(n>1?`¡MULTIDESTRUCCIÓN ×${n}! +${earned}`:`¡CRACK! +${earned}`)}
   else {g.combo=0;setCombo(0);setMessage('¡Fallaste! El siguiente no se escapa.')}
   setTargets([...g.targets])
-  setShot({x:hit.x,y:hit.y,born:Date.now(),weapon:selected.current,hits:n})
-  window.setTimeout(()=>setShot(previous=>previous?.born===g.lastFire?null:previous),240)
+  const timestamp=Date.now()
+  setShot({x:hit.x,y:hit.y,born:timestamp,weapon:selected.current,hits:n})
+  window.setTimeout(()=>setShot(previous=>previous?.born===timestamp?null:previous),240)
  }
  const leave=()=>{setRunning(false);onBack()}
  return <section className="content inner-page dn-page" aria-label="Groove Ninja Modo Destrucción">
