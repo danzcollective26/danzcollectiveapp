@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {YEPPOLINE_COUNT,yeppoMessage} from '../src/yeppo/messages.ts'
 import {DAILY_MAX,MIN_GAP_MS,mayAppear,dismissed,nextPhrase} from '../src/yeppo/rules.ts'
+import {yeppoGuide} from '../src/yeppo/guide.ts'
 import {yeppoGuide,YEPPO_SUGGESTIONS} from '../src/yeppo/guide.ts'
 
 test('Yeppo has many short curated lines with optional interpolation',()=>{
@@ -39,4 +40,16 @@ test('Yeppo gives grounded offline replies and safe navigation without external 
  assert.match(yeppoGuide('¿Quién eres?').text,/sin IA generativa/)
  assert.match(yeppoGuide('¿Cuándo es la siguiente fiesta?').text,/No te inventaré horarios/)
  assert.ok(yeppoGuide('x'.repeat(2000)).text.length<300)
+})
+
+test('Yeppo offers feedback intake rather than generic navigation on explicit errors and ideas',()=>{
+ const broken=yeppoGuide('No me funciona Google al iniciar sesión')
+ assert.equal(broken.feedbackCategory,'error')
+ assert.equal(broken.feedbackDraft,'No me funciona Google al iniciar sesión')
+ assert.equal(broken.destination,undefined)
+ const idea=yeppoGuide('Me gustaría poder cambiar el color del Snake')
+ assert.equal(idea.feedbackCategory,'sugerencia')
+ assert.equal(idea.destination,undefined)
+ assert.equal(yeppoGuide('¿Dónde están mis fotos?').destination,'fotos')
+ assert.equal(yeppoGuide('Ponme un reto').destination,'arcade')
 })
