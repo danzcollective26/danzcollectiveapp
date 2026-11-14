@@ -32,3 +32,23 @@
 
 /* Mode choice is accessible inside the immersive ready screen, before play begins. */
 .gn-quick-modes{position:absolute;top:8%;left:5%;right:5%;display:flex;justify-content:center;gap:8px;pointer-events:auto;z-index:2}.gn-quick-modes button{border:1px solid #ff789f;padding:10px 12px;min-height:44px;background:#120e1bdd;color:#fff;font-weight:900;font-size:10px;letter-spacing:.06em;cursor:pointer}.gn-quick-modes button[aria-pressed=true]{background:#ff789f;color:#120b14}.gn-quick-modes button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+
+/* Groove Ninja: dimensional club lighting and punchier visual cutting feedback. */
+.gn-panel[data-status=playing] .gn-stage-light{animation:gn-club-pulse 1.05s ease-in-out infinite alternate}
+.gn-panel[data-stage="2"] .gn-stage-light{animation-duration:.78s}
+.gn-panel[data-stage="3"] .gn-stage-light{animation-duration:.56s}
+.gn-panel[data-stage="3"] .gn-play-area{box-shadow:0 0 0 3px #100c11,0 0 25px #e278bb45,0 12px 28px #000b,inset 0 0 60px #0009}
+.gn-play-area:after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 50% 24%,#fff2cb16,transparent 43%),linear-gradient(105deg,#f2e1b009,transparent 45%,#fff3d30d 78%,transparent 95%);mix-blend-mode:screen}
+.gn-panel[data-status=playing] .gn-play-area:after{animation:gn-room-glimmer 5s ease-in-out infinite alternate}
+.gn-target{filter:drop-shadow(0 5px 3px #050404d9) drop-shadow(0 0 8px #ffe4a037)}
+.gn-target[data-special=gold]{filter:drop-shadow(0 5px 5px #050404) drop-shadow(0 0 12px #ffd274ba)}
+.gn-target[data-special=freeze]{filter:drop-shadow(0 5px 5px #050404) drop-shadow(0 0 10px #a6edffb6)}
+.gn-trail polyline:nth-child(3){filter:drop-shadow(0 0 7px #fff9)}
+.gn-fragments{filter:drop-shadow(0 0 3px #f6dcb6aa)}
+.gn-cut-pieces{filter:drop-shadow(2px 4px 4px #000b)}
+.gn-panel[data-stage="3"] .gn-hud strong.gn-combo{text-shadow:0 0 10px #ff81d37c}
+.gn-flow [role=meter] i{box-shadow:0 0 8px #ffd97a85}
+.gn-panel[data-status=playing] .gn-score strong{text-shadow:0 2px 0 #5b3512,0 0 11px #fbd87962}
+@keyframes gn-club-pulse{from{opacity:.10}to{opacity:.26}}
+@keyframes gn-room-glimmer{from{opacity:.5;transform:translateX(-1.5%)}to{opacity:1;transform:translateX(1.5%)}}
+@media(prefers-reduced-motion:reduce){.gn-panel[data-status=playing] .gn-stage-light,.gn-panel[data-status=playing] .gn-play-area:after{animation:none}.gn-play-area:after{opacity:.4}.gn-target,.gn-fragments,.gn-cut-pieces{filter:none}}
