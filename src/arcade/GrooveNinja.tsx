@@ -1,4 +1,5 @@
 import ArcadeChooser from './ArcadeChooser'
+import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { GrooveAudio } from './GrooveAudio'
@@ -55,6 +56,7 @@ const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
 
 export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () => void; autoEnter?: boolean }) {
   const [game, setGame] = useState(initialGroove)
+  const [destructionOpen,setDestructionOpen]=useState(false)
   const current = useRef(game)
   const [record, setRecord] = useState(readGrooveRecord)
   const [muted, setMuted] = useState(() => { try { return localStorage.getItem('danz-groove-muted') === 'true' } catch { return false } })
@@ -190,10 +192,11 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   }
   const path = trail.current.filter(p => game.elapsed - p.at < 130).map(p => `${p.x},${p.y}`).join(' ')
   const progress = Math.round(game.elapsed / GROOVE_DURATION * 100)
+  if(destructionOpen)return <GrooveDestruction onBack={()=>setDestructionOpen(false)}/>
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
     <ArcadeChooser active="groove" onSelect={choice => { if (choice === "snake") onBack() }} />
-    <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>PATRONES AL RITMO</small></button></div>
+    <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>PATRONES AL RITMO</small></button><button type="button" className="gn-destruction-launch" onClick={()=>{pause();screen.leave();setDestructionOpen(true)}}><strong>DESTRUCCIÓN ✹</strong><small>8 ARMAS · VINILOS AL VUELO</small></button></div>
     <div className="gn-intro">
       <div className="eyebrow">ARCADANZ / GAME 003 · PRIMERA SESIÓN</div>
       <h1 ref={heading} tabIndex={-1}>GROOVE<br/><em>NINJA.</em></h1>
