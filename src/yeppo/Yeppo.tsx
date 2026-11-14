@@ -1,4 +1,5 @@
-import {useEffect,useRef,useState} from 'react'
+import {useEffect,useRef,useState, type FormEvent} from 'react'
+import {yeppoGuide,YEPPO_SUGGESTIONS,type GuideReply,type YeppoDestination} from './guide'
 import {mayAppear,readLedger,writeLedger,dismissed,messageHasFacts,nextPhrase,type YeppoEvent} from './rules'
 import {readYeppoEnabled,setYeppoEnabled,readYeppoSilencedUntil,silenceYeppoForOneHour,YEPPO_PREFERENCE_EVENT} from './settings'
 import './yeppo.css'
@@ -24,8 +25,11 @@ function Face({expression}:{expression:Expression}){
   </g>
  </svg>
 }
-export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameActive?:boolean;events?:YeppoEvent[]}){
+export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page:Page;gameActive?:boolean;events?:YeppoEvent[];onNavigate?:(page:YeppoDestination)=>void}){
  const [enabled,setEnabled]=useState(readYeppoEnabled)
+ const [chatOpen,setChatOpen]=useState(false)
+ const [question,setQuestion]=useState('')
+ const [chat,setChat]=useState<Array<{from:'yeppo'|'visitor';text:string;destination?:YeppoDestination;label?:string}>>([{from:'yeppo',text:'¡Epa! Soy Yeppo. Pregúntame por fotos, sellos, juegos o ropa. No soy una IA generativa todavía, pero conozco DANZ.'}])
  const [visible,setVisible]=useState(false)
  const [visitPeek,setVisitPeek]=useState(()=>readYeppoEnabled()&&page==='inicio'&&!yeppoWelcomePending()&&visitPeekAvailable())
  const [line,setLine]=useState('')
@@ -41,7 +45,7 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
  useEffect(()=>{if(previousPage.current!==page){previousPage.current=page;sectionAt.current=Date.now();setVisitPeek(false)}},[page])
  useEffect(()=>{if(!visitPeek)return;try{sessionStorage.setItem(VISIT_KEY,'done')}catch{}const timer=window.setTimeout(()=>setVisitPeek(false),4500);return()=>window.clearTimeout(timer)},[visitPeek])
  useEffect(()=>{
-  const refresh=()=>{const next=readYeppoEnabled();setEnabled(next);if(!next){setVisible(false);setWelcome('off');setVisitPeek(false)}}
+  const refresh=()=>{const next=readYeppoEnabled();setEnabled(next);if(!next){setVisible(false);setWelcome('off');setVisitPeek(false);setChatOpen(false)}}
   window.addEventListener(YEPPO_PREFERENCE_EVENT,refresh);window.addEventListener('storage',refresh)
   return()=>{window.removeEventListener(YEPPO_PREFERENCE_EVENT,refresh);window.removeEventListener('storage',refresh)}
  },[])
@@ -80,7 +84,7 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
   const interval=window.setInterval(()=>{
    const now=Date.now(),delta=Math.max(0,Math.min(1500,now-lastTick.current));lastTick.current=now
    if(document.visibilityState==='visible'&&now-lastActivity.current<90_000)active.current+=delta
-   if(!enabled||welcome!=='off'||visitPeek||!welcomeUsed.current||visible||now<readYeppoSilencedUntil()||now<until.current||gameActive||page==='admin'||page==='cuenta'||document.hidden)return
+   if(!enabled||welcome!=='off'||visitPeek||chatOpen||!welcomeUsed.current||visible||now<readYeppoSilencedUntil()||now<until.current||gameActive||page==='admin'||page==='cuenta'||document.hidden)return
    if(document.querySelector('[aria-modal="true"],.is-immersive,.gn-immersive,.passport-receipt,.private-gallery-viewer,.gallery-lightbox'))return
    const ledger=readLedger(now)
    if(!mayAppear(ledger,now,active.current))return
@@ -94,8 +98,18 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
    until.current=now+5500
   },1000)
   return()=>{clearInterval(interval);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)}
- },[page,gameActive,events,enabled,visible,welcome,visitPeek])
+ },[page,gameActive,events,enabled,visible,welcome,visitPeek,chatOpen])
  useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},5500);return()=>clearTimeout(id)},[visible,line])
+ const talk=(value:string)=>{
+  const phrase=value.trim().slice(0,300)
+  if(!phrase)return
+  const reply:GuideReply=yeppoGuide(phrase)
+  setChat(previous=>[...previous.slice(-8),{from:'visitor',text:phrase},{from:'yeppo',...reply}])
+  setQuestion('')
+  setExpression('wink')
+ }
+ const submitQuestion=(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();talk(question)}
+ const openChat=()=>{setChatOpen(true);setVisible(false);setMenu(false)}
  const close=()=>{writeLedger(dismissed(readLedger(),Date.now()));setVisible(false);setMenu(false)}
  const leaveWelcome=()=>{setWelcome('off');setPrank(null)}
  if(!enabled||gameActive||page==='admin'||page==='cuenta')return null
@@ -122,9 +136,23 @@ export default function Yeppo({page,gameActive=false,events=[]}:{page:Page;gameA
      <div className="yeppo-welcome-face"><Face expression="wink"/><span className="yeppo-welcome-stars" aria-hidden="true">✦ ✧</span></div>
    </aside>
  </>
- if(!visible)return null
+ if(!visible&&!chatOpen)return <aside className="yeppo yeppo-available" aria-label="Hablar con Yeppo">
+   <button type="button" className="yeppo-chat-launcher" onClick={openChat} aria-label="Hablar con Yeppo"><Face expression="wink"/><span>HABLA CONMIGO</span></button>
+ </aside>
+ if(chatOpen)return <aside className="yeppo yeppo-chat-shell" aria-label="Charla con Yeppo">
+   <section className="yeppo-chat-dialog" role="dialog" aria-label="Hablar con Yeppo">
+    <header className="yeppo-chat-header"><span>🌸 YEPPO <small>GUÍA DE DANZ · SIN IA GENERATIVA</small></span><button type="button" onClick={()=>setChatOpen(false)} aria-label="Cerrar charla con Yeppo">×</button></header>
+    <div className="yeppo-chat-messages" role="log" aria-live="polite">{chat.map((message,i)=><div key={i} className={message.from==='yeppo'?'yeppo-chat-reply':'yeppo-chat-question'}>
+      <p>{message.text}</p>
+      {message.destination&&onNavigate&&<button type="button" onClick={()=>{setChatOpen(false);onNavigate(message.destination!)}}>{message.label??'IR A SECCIÓN'} ↗</button>}
+    </div>)}</div>
+    <div className="yeppo-chat-suggestions">{YEPPO_SUGGESTIONS.map(s=><button key={s} type="button" onClick={()=>talk(s)}>{s}</button>)}</div>
+    <form className="yeppo-chat-form" onSubmit={submitQuestion}><label htmlFor="yeppo-question">Pregúntale algo a Yeppo</label><div><input id="yeppo-question" value={question} maxLength={300} autoComplete="off" onChange={e=>setQuestion(e.target.value)} placeholder="Fotos, juegos, sellos…" /><button type="submit" disabled={!question.trim()}>ENVIAR</button></div></form>
+    <small className="yeppo-chat-disclaimer">Respuestas guiadas en este dispositivo. No escribas datos privados. Para información de fiestas, consulta la publicación oficial.</small>
+   </section>
+ </aside>
  return <aside className="yeppo" aria-label="Yeppo, la flor de DANZ">
-   <div className="yeppo-bubble"><span>{line}</span><button type="button" aria-label="Cerrar Yeppo" onClick={close}>×</button></div>
+   <div className="yeppo-bubble"><span>{line}</span><button type="button" aria-label="Cerrar Yeppo" onClick={close}>×</button><button type="button" className="yeppo-bubble-talk" onClick={openChat}>PREGÚNTAME ↗</button></div>
    <button type="button" className="yeppo-avatar" aria-label="Opciones de Yeppo" onClick={()=>setMenu(x=>!x)}><Face expression={expression}/><span>YEPPO</span></button>
    {menu&&<div className="yeppo-menu"><button onClick={()=>{silenceYeppoForOneHour();setVisible(false)}}>Callar 1 hora</button><button onClick={()=>{setYeppoEnabled(false);setVisible(false)}}>Desactivar</button></div>}
  </aside>
