@@ -30,3 +30,15 @@
 /* Exit remains reachable during the cinematic intro, including on mobile. */
 .game-panel.is-immersive .game-screen-bar,.gn-panel.gn-immersive .gn-top{position:relative;z-index:95;pointer-events:none}
 .game-panel.is-immersive .game-screen-bar button,.gn-panel.gn-immersive .gn-top button{pointer-events:auto}
+
+/* Opt-in Yeppo dares stay outside competitive game logic. */
+.arcade-yeppo-challenge{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;background:#1b1720;border:1px solid #a4c568;color:#fff}
+.arcade-yeppo-challenge>div:first-child{display:flex;flex-direction:column;gap:4px;flex:1 1 210px}
+.arcade-yeppo-challenge strong{font-size:14px;color:#e3ff89;letter-spacing:.07em}
+.arcade-yeppo-challenge span,.arcade-yeppo-dare small{font-size:12px;color:#ded6df}
+.arcade-yeppo-challenge button{padding:11px 14px;min-height:44px;border:2px solid #dfff73;background:#dfff73;color:#181818;font-weight:900;cursor:pointer}
+.arcade-yeppo-challenge button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.arcade-yeppo-dare{width:100%;border-top:1px solid #777;padding-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.arcade-yeppo-dare p{width:100%;margin:0;font-size:16px;font-weight:800}
+.arcade-yeppo-dare small{width:100%}
+@media(max-width:600px){.arcade-yeppo-challenge{padding:12px}.arcade-yeppo-challenge button{width:100%}}
