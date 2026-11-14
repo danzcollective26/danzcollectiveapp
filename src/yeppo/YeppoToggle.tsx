@@ -38,7 +38,7 @@ export default function YeppoToggle(){
  }
  return <section className="account-card" aria-label="Preferencias de Yeppo">
    <h2>Yeppo, la flor vacilona</h2>
-   <p className="account-note">De vez en cuando aparece con alguna pullita. Sin sonidos, sin chatbot y sin interrumpir partidas.</p>
+   <p className="account-note">De vez en cuando aparece con alguna pullita. También puedes hablar con él para orientarte por DANZ: de momento es un guía conversacional, no una IA generativa. Sin sonidos ni interrupciones durante las partidas.</p>
    <label className="yeppo-pref"><input type="checkbox" checked={enabled} onChange={()=>{void toggle()}} disabled={saving}/><span>Yeppo {enabled?'activado':'desactivado'}</span></label>
    {issue&&<p className="account-note" role="status">{issue}</p>}
  </section>
