@@ -148,7 +148,7 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
       <p>{message.text}</p>
       {message.destination&&onNavigate&&<button type="button" onClick={()=>{setChatOpen(false);onNavigate(message.destination!)}}>{message.label??'IR A SECCIÓN'} ↗</button>}
     </div>)}</div>}
-    {!feedbackOpen&&<div className="yeppo-chat-suggestions">{YEPPO_SUGGESTIONS.map(s=><button key={s} type="button" onClick={()=>talk(s)}>{s}</button>)}</div>
+    {!feedbackOpen&&<div className="yeppo-chat-suggestions">{YEPPO_SUGGESTIONS.map(s=><button key={s} type="button" onClick={()=>talk(s)}>{s}</button>)}</div>}
     {!feedbackOpen&&<form className="yeppo-chat-form" onSubmit={submitQuestion}><label htmlFor="yeppo-question">Pregúntale algo a Yeppo</label><div><input id="yeppo-question" value={question} maxLength={300} autoComplete="off" onChange={e=>setQuestion(e.target.value)} placeholder="Fotos, juegos, sellos…" /><button type="submit" disabled={!question.trim()}>ENVIAR</button></div></form>}
     <button type="button" className="yeppo-feedback-open" onClick={()=>setFeedbackOpen(x=>!x)}>{feedbackOpen?'VOLVER A HABLAR CON YEPPO':'¿UN PROBLEMA O UNA IDEA? CUÉNTAMELO ↗'}</button>
     <small className="yeppo-chat-disclaimer">Respuestas guiadas en este dispositivo. No escribas datos privados. Para información de fiestas, consulta la publicación oficial.</small>
