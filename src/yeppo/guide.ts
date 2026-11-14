@@ -1,12 +1,20 @@
 /** Local, privacy-preserving guide. This is not a generative AI model. */
 export type YeppoDestination='inicio'|'pasaporte'|'fotos'|'arcade'|'danzers'|'danzflor'|'danzpoints'|'cuenta'
-export type GuideReply={text:string;destination?:YeppoDestination;label?:string}
+export type GuideReply={text:string;destination?:YeppoDestination;label?:string;feedbackCategory?:'error'|'sugerencia'|'ayuda'|'yeppo';feedbackDraft?:string}
 const fold=(text:string)=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9ñ ]/g,' ').replace(/\s+/g,' ').trim()
 const has=(s:string,words:string[])=>words.some(w=>s.includes(w))
-export const YEPPO_SUGGESTIONS=['¿Dónde están mis fotos?','Ponme un reto','¿Cómo consigo sellos?','¿Cómo funciona DANZ?']
+export const YEPPO_SUGGESTIONS=['¿Dónde están mis fotos?','Tengo un problema con DANZ','Quiero proponer una mejora','Ponme un reto']
 export function yeppoGuide(input:string):GuideReply {
  const text=fold(input.slice(0,300))
  if(!text)return{text:'¡Eh, criatura! Dime qué necesitas. Prometo no morder. Bueno, casi.'}
+ // Prioritise explicit help and reports before generic section keywords.
+ if(has(text,['no funciona','no me funciona','falla','fallo','error','bug','se bloquea','se cuelga','no puedo','problema con','me da error']))
+  return{text:'Uf, eso suena a problema, no a una de mis bromas. Cuéntamelo con detalle y se lo dejo a administración. Yo te ayudo a registrarlo.',feedbackCategory:'error',feedbackDraft:input.slice(0,300)}
+ if(has(text,['me gustaria','estaria bien','sugiero','sugerencia','proponer','propongo','tengo una idea','mejorar la app','quiero una funcion']))
+  return{text:'¡Una idea fresca! Lo reconozco: tengo más pétalos que neuronas. Déjamela por escrito y llegará al buzón privado de DANZ.',feedbackCategory:'sugerencia',feedbackDraft:input.slice(0,300)}
+ if(has(text,['necesito ayuda','ayudame','soporte']))
+  return{text:'¡Yeppo al rescate! Si lo de DANZ no se resuelve con una indicación, puedo enviar tu solicitud al equipo.',feedbackCategory:'ayuda',feedbackDraft:input.slice(0,300)}
+
  if(has(text,['fotos','foto','galeria','album','fotografia','descargar']))return{text:'Las fotos viven en FOTOS. Algunas galerías privadas se desbloquean con tu sello del evento. Yo te llevo, que para algo tengo pétalos.',destination:'fotos',label:'IR A FOTOS'}
  if(has(text,['sello','pasaporte','asistencia','qr','entrada','pase']))return{text:'El PASAPORTE guarda tus sellos de asistencia. Cada evento puede usar su QR o código propio; un sello puede abrirte su galería privada.',destination:'pasaporte',label:'VER PASAPORTE'}
  if(has(text,['reto','desafio','challenge','mision']))return{text:'¡Eso me gusta! En ARCADANZ tienes mi YEPPO CHALLENGE: pequeños retos para Snake y Groove Ninja que cambian y puedes repetir. Son voluntarios y todavía no dan puntos ni premios. ¡A ver quién manda aquí!',destination:'arcade',label:'VER RETO DE YEPPO'}
