@@ -30,8 +30,9 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
  const [enabled,setEnabled]=useState(readYeppoEnabled)
  const [chatOpen,setChatOpen]=useState(false)
  const [feedbackOpen,setFeedbackOpen]=useState(false)
+ const [feedbackDraft,setFeedbackDraft]=useState<{category:'error'|'sugerencia'|'ayuda'|'yeppo';message:string}>({category:'sugerencia',message:''})
  const [question,setQuestion]=useState('')
- const [chat,setChat]=useState<Array<{from:'yeppo'|'visitor';text:string;destination?:YeppoDestination;label?:string}>>([{from:'yeppo',text:'¡Epa! Soy Yeppo. Pregúntame por fotos, sellos, juegos o ropa. No soy una IA generativa todavía, pero conozco DANZ.'}])
+ const [chat,setChat]=useState<Array<{from:'yeppo'|'visitor';text:string;destination?:YeppoDestination;label?:string;feedbackCategory?:'error'|'sugerencia'|'ayuda'|'yeppo';feedbackDraft?:string}>>([{from:'yeppo',text:'¡Epa! Soy Yeppo. Pregúntame por fotos, sellos, juegos o ropa. No soy una IA generativa todavía, pero conozco DANZ.'}])
  const [visible,setVisible]=useState(false)
  const [visitPeek,setVisitPeek]=useState(()=>readYeppoEnabled()&&page==='inicio'&&!yeppoWelcomePending()&&visitPeekAvailable())
  const [line,setLine]=useState('')
@@ -144,13 +145,14 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
  if(chatOpen)return <aside className="yeppo yeppo-chat-shell" aria-label="Charla con Yeppo">
    <section className="yeppo-chat-dialog" role="dialog" aria-label="Hablar con Yeppo">
     <header className="yeppo-chat-header"><span>🌸 YEPPO <small>GUÍA DE DANZ · SIN IA GENERATIVA</small></span><button type="button" onClick={()=>setChatOpen(false)} aria-label="Cerrar charla con Yeppo">×</button></header>
-    {feedbackOpen?<YeppoFeedback page={page} onClose={()=>setFeedbackOpen(false)}/>:<div className="yeppo-chat-messages" role="log" aria-live="polite">{chat.map((message,i)=><div key={i} className={message.from==='yeppo'?'yeppo-chat-reply':'yeppo-chat-question'}>
+    {feedbackOpen?<YeppoFeedback page={page} initialCategory={feedbackDraft.category} initialMessage={feedbackDraft.message} onClose={()=>setFeedbackOpen(false)}/>:<div className="yeppo-chat-messages" role="log" aria-live="polite">{chat.map((message,i)=><div key={i} className={message.from==='yeppo'?'yeppo-chat-reply':'yeppo-chat-question'}>
       <p>{message.text}</p>
       {message.destination&&onNavigate&&<button type="button" onClick={()=>{setChatOpen(false);onNavigate(message.destination!)}}>{message.label??'IR A SECCIÓN'} ↗</button>}
+      {message.feedbackCategory&&<button type="button" onClick={()=>{setFeedbackDraft({category:message.feedbackCategory!,message:message.feedbackDraft??''});setFeedbackOpen(true)}}>REGISTRAR {message.feedbackCategory==='sugerencia'?'SUGERENCIA':'INCIDENCIA'} ↗</button>}
     </div>)}</div>}
     {!feedbackOpen&&<div className="yeppo-chat-suggestions">{YEPPO_SUGGESTIONS.map(s=><button key={s} type="button" onClick={()=>talk(s)}>{s}</button>)}</div>}
     {!feedbackOpen&&<form className="yeppo-chat-form" onSubmit={submitQuestion}><label htmlFor="yeppo-question">Pregúntale algo a Yeppo</label><div><input id="yeppo-question" value={question} maxLength={300} autoComplete="off" onChange={e=>setQuestion(e.target.value)} placeholder="Fotos, juegos, sellos…" /><button type="submit" disabled={!question.trim()}>ENVIAR</button></div></form>}
-    <button type="button" className="yeppo-feedback-open" onClick={()=>setFeedbackOpen(x=>!x)}>{feedbackOpen?'VOLVER A HABLAR CON YEPPO':'¿UN PROBLEMA O UNA IDEA? CUÉNTAMELO ↗'}</button>
+    <button type="button" className="yeppo-feedback-open" onClick={()=>{setFeedbackDraft({category:'sugerencia',message:''});setFeedbackOpen(x=>!x)}}>{feedbackOpen?'VOLVER A HABLAR CON YEPPO':'¿UN PROBLEMA O UNA IDEA? CUÉNTAMELO ↗'}</button>
     <small className="yeppo-chat-disclaimer">Respuestas guiadas en este dispositivo. No escribas datos privados. Para información de fiestas, consulta la publicación oficial.</small>
    </section>
  </aside>

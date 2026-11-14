@@ -40,3 +40,15 @@ test('Yeppo gives grounded offline replies and safe navigation without external 
  assert.match(yeppoGuide('¿Cuándo es la siguiente fiesta?').text,/No te inventaré horarios/)
  assert.ok(yeppoGuide('x'.repeat(2000)).text.length<300)
 })
+
+test('Yeppo offers feedback intake rather than generic navigation on explicit errors and ideas',()=>{
+ const broken=yeppoGuide('No me funciona Google al iniciar sesión')
+ assert.equal(broken.feedbackCategory,'error')
+ assert.equal(broken.feedbackDraft,'No me funciona Google al iniciar sesión')
+ assert.equal(broken.destination,undefined)
+ const idea=yeppoGuide('Me gustaría poder cambiar el color del Snake')
+ assert.equal(idea.feedbackCategory,'sugerencia')
+ assert.equal(idea.destination,undefined)
+ assert.equal(yeppoGuide('¿Dónde están mis fotos?').destination,'fotos')
+ assert.equal(yeppoGuide('Ponme un reto').destination,'arcade')
+})
