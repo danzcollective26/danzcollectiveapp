@@ -9,10 +9,10 @@ const CATEGORIES: {value:Category;label:string}[]=[
  {value:'yeppo',label:'Sobre Yeppo'},
 ]
 type Section='inicio'|'pasaporte'|'fotos'|'arcade'|'danzers'|'danzin'|'danzflor'|'danzpoints'|'cuenta'|'admin'
-export default function YeppoFeedback({page,onClose}:{page:Section;onClose:()=>void}){
+export default function YeppoFeedback({page,onClose,initialCategory='sugerencia',initialMessage=''}:{page:Section;onClose:()=>void;initialCategory?:Category;initialMessage?:string}){
  const {client,user}=useAuth()
- const [category,setCategory]=useState<Category>('sugerencia')
- const [message,setMessage]=useState('')
+ const [category,setCategory]=useState<Category>(initialCategory)
+ const [message,setMessage]=useState(initialMessage)
  const [busy,setBusy]=useState(false)
  const [result,setResult]=useState('')
  const [error,setError]=useState('')
