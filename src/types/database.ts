@@ -15,6 +15,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      danz_yeppo_feedback: {
+        Row: { id: string; user_id: string; category: string; section: string; message: string; status: string; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; category: string; section: string; message: string; status?: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; category?: string; section?: string; message?: string; status?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
       danz_admin_permissions: {
         Row: { user_id: string; permission: string }
         Insert: { user_id: string; permission: string }
