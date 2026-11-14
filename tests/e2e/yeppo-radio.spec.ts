@@ -53,3 +53,21 @@ test('returning visitor gets one lightweight Yeppo wink without a blocking welco
  await page.reload()
  await expect(page.getByLabel('Yeppo te saluda')).toHaveCount(0)
 })
+
+test('Yeppo offers optional guided conversation and navigates to photos without AI network requests',async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('danz-yeppo-welcome-v1','done')
+  localStorage.setItem('danz-yeppo-enabled-v1','true')
+  sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Hablar con Yeppo'}).click()
+ const dialogue=page.getByRole('dialog',{name:'Hablar con Yeppo'})
+ await expect(dialogue).toBeVisible()
+ await expect(dialogue.getByText(/no soy una IA generativa/i)).toBeVisible()
+ await dialogue.getByRole('button',{name:'¿Dónde están mis fotos?'}).click()
+ await expect(dialogue.getByRole('button',{name:/IR A FOTOS/})).toBeVisible()
+ await dialogue.getByRole('button',{name:/IR A FOTOS/}).click()
+ await expect(page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true})).toHaveAttribute('aria-current','page')
+ await expect(dialogue).toHaveCount(0)
+})
