@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {YEPPOLINE_COUNT,yeppoMessage} from '../src/yeppo/messages.ts'
 import {DAILY_MAX,MIN_GAP_MS,mayAppear,dismissed,nextPhrase} from '../src/yeppo/rules.ts'
+import {yeppoGuide,YEPPO_SUGGESTIONS} from '../src/yeppo/guide.ts'
 
 test('Yeppo has many short curated lines with optional interpolation',()=>{
  assert.ok(YEPPOLINE_COUNT>=35)
@@ -25,4 +26,17 @@ test('Yeppo enters longer silence on repeated dismissals',()=>{
  const second=dismissed(first,now+10_000)
  assert.ok(second.suppressedUntil>=now+60*60_000)
  assert.equal(mayAppear(second,now+5*60_000,90_000),false)
+})
+
+test('Yeppo gives grounded offline replies and safe navigation without external AI',()=>{
+ assert.ok(YEPPO_SUGGESTIONS.length>=4)
+ assert.equal(yeppoGuide('¿Dónde están mis FÓTOS?').destination,'fotos')
+ assert.equal(yeppoGuide('Quiero jugar al snake').destination,'arcade')
+ assert.equal(yeppoGuide('Cómo consigo sellos').destination,'pasaporte')
+ assert.equal(yeppoGuide('¿Cómo me registro con Google?').destination,'cuenta')
+ assert.equal(yeppoGuide('danzflor ropa').destination,'danzflor')
+ assert.equal(yeppoGuide('¿Quién eres?').destination,undefined)
+ assert.match(yeppoGuide('¿Quién eres?').text,/sin IA generativa/)
+ assert.match(yeppoGuide('¿Cuándo es la siguiente fiesta?').text,/No te inventaré horarios/)
+ assert.ok(yeppoGuide('x'.repeat(2000)).text.length<300)
 })
