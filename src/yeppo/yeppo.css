@@ -98,3 +98,19 @@
 .yeppo-chat-disclaimer{font-size:9px;line-height:1.35;color:#bdc2b4;padding:2px 11px 10px}
 @media(max-width:400px){.yeppo.yeppo-chat-shell{bottom:calc(env(safe-area-inset-bottom) + 65px)}.yeppo-chat-dialog{max-height:62dvh}}
 @media(prefers-reduced-motion:reduce){.yeppo.yeppo-available,.yeppo.yeppo-chat-shell{animation:none}}
+
+/* Feedback intake: optional, authenticated and separated from playful chat. */
+.yeppo-feedback-open{margin:5px 11px 8px;min-height:39px;border:1px solid #dfff79;border-radius:7px;background:#dfff79;color:#141414;font-size:10px;font-weight:950;cursor:pointer}
+.yeppo-feedback{padding:12px;overflow-y:auto;min-height:140px}
+.yeppo-feedback-title{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;padding-bottom:10px}
+.yeppo-feedback-title strong{font-size:12px;color:#dfff79}
+.yeppo-feedback-title button{background:transparent;border:1px solid #707c67;border-radius:5px;padding:8px;color:#fff;font-size:9px}
+.yeppo-feedback form{display:flex;flex-direction:column;gap:8px}
+.yeppo-feedback label{font-size:10px;font-weight:800;color:#dfff79}
+.yeppo-feedback select,.yeppo-feedback textarea{background:#222;color:#fff;border:1px solid #666c60;border-radius:5px;padding:10px;font:inherit;font-size:12px;min-height:40px;max-width:100%;box-sizing:border-box}
+.yeppo-feedback textarea{resize:vertical;min-height:88px}
+.yeppo-feedback p{font-size:10px;line-height:1.5;margin:6px 0}
+.yeppo-feedback form button{padding:12px;background:#dfff79;border:0;border-radius:5px;color:#101010;font-size:11px;font-weight:900}
+.yeppo-feedback form button:disabled{opacity:.45}
+.yeppo-feedback-success{color:#dfff79}
+.yeppo-feedback-error{color:#ffadad}
