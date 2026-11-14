@@ -3,12 +3,13 @@ export type YeppoDestination='inicio'|'pasaporte'|'fotos'|'arcade'|'danzers'|'da
 export type GuideReply={text:string;destination?:YeppoDestination;label?:string}
 const fold=(text:string)=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9ñ ]/g,' ').replace(/\s+/g,' ').trim()
 const has=(s:string,words:string[])=>words.some(w=>s.includes(w))
-export const YEPPO_SUGGESTIONS=['¿Dónde están mis fotos?','Quiero jugar','¿Cómo consigo sellos?','¿Cómo funciona DANZ?']
+export const YEPPO_SUGGESTIONS=['¿Dónde están mis fotos?','Ponme un reto','¿Cómo consigo sellos?','¿Cómo funciona DANZ?']
 export function yeppoGuide(input:string):GuideReply {
  const text=fold(input.slice(0,300))
  if(!text)return{text:'¡Eh, criatura! Dime qué necesitas. Prometo no morder. Bueno, casi.'}
  if(has(text,['fotos','foto','galeria','album','fotografia','descargar']))return{text:'Las fotos viven en FOTOS. Algunas galerías privadas se desbloquean con tu sello del evento. Yo te llevo, que para algo tengo pétalos.',destination:'fotos',label:'IR A FOTOS'}
  if(has(text,['sello','pasaporte','asistencia','qr','entrada','pase']))return{text:'El PASAPORTE guarda tus sellos de asistencia. Cada evento puede usar su QR o código propio; un sello puede abrirte su galería privada.',destination:'pasaporte',label:'VER PASAPORTE'}
+ if(has(text,['reto','desafio','challenge','mision']))return{text:'¡Eso me gusta! En ARCADANZ tienes mi YEPPO CHALLENGE: pequeños retos para Snake y Groove Ninja que cambian y puedes repetir. Son voluntarios y todavía no dan puntos ni premios. ¡A ver quién manda aquí!',destination:'arcade',label:'VER RETO DE YEPPO'}
  if(has(text,['jugar','juego','snake','groove','arcade','record','vinilo']))return{text:'¿Quieres darle caña? En ARCADANZ tienes Snake y Groove Ninja. Si pierdes, no digas que te distraje.',destination:'arcade',label:'IR A ARCADANZ'}
  if(has(text,['ropa','tienda','shop','camiseta','merch','danzflor','comprar']))return{text:'DANZFLOR es nuestro rincón de ropa y colecciones. Mirar no cuesta, enamorarse de una camiseta ya veremos.',destination:'danzflor',label:'VER DANZFLOR'}
  if(has(text,['punto','recompensa','premio','descuento','canjear']))return{text:'Los puntos y recompensas se consultan en DANZ POINTS. Los premios disponibles dependen de lo que publique el colectivo.',destination:'danzpoints',label:'VER PUNTOS'}
