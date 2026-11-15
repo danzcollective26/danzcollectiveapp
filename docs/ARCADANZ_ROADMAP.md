@@ -135,3 +135,12 @@ siguen pendientes; no se presentan como terminados.
   Build y 211 pruebas internas correctos; revisión manual de tres tamaños.
   CI no arranca: multitoque/rotación/offline automatizados pendientes (T04).
   No incluye la IA rival, online ni un rediseño de los personajes humanos.
+
+
+## Continuación: Contra la máquina — Último turno
+
+Implementado localmente y en verificación (DC03). Rival automático que busca
+caminos, rompe flightcases y prevé cadenas para escapar antes de colocar disco.
+Un mando P1 derecho, flechas/joystick y teclado, sin cambiar las reglas del duelo.
+Build y 219 pruebas internas correctos. Auditoría:
+`AUDITORIA_COLLECTA_SOLO_2026-11-15.md`. Todavía no se declara publicado.

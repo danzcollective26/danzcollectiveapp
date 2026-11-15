@@ -324,3 +324,14 @@ Auditoría: `AUDITORIA_COLLECTA_LORE_JOYSTICK_2026-11-15.md`.
 - Seguimiento: T04 para CI, T01 para móviles físicos, DC03 para IA rival y DC04
   para personajes humanos. Online, música/BPM, Kart, QR aplazados y retorno de
   Gemini mantienen sus estados.
+
+
+## 15. Continuación — Arena contra la máquina (DC03)
+
+Bloque activo: Último turno, rival automático local dentro de Collecta.
+Implementación en verificación, todavía no publicada. El rival proyecta la
+física real de los discos y sus cadenas, busca rutas seguras, abre flightcases
+y persigue al encargado. No es un modelo remoto ni requiere servicios nuevos.
+Un mando P1, flechas/joystick y teclado; modo 1vs1 conservado.
+Siguiente paso: pruebas, auditoría de tres tamaños y publicación. T04 conserva
+la limitación de CI de la entrega anterior hasta obtener nueva evidencia.
