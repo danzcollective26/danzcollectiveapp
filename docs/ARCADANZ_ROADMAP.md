@@ -148,3 +148,12 @@ Build y 219 pruebas internas correctos. Auditoría:
 comprobadas. Joystick, teclado, rival, pausa y retorno revisados en tres tamaños.
 La batería automatizada de navegador/offline sigue pendiente por el fallo de
 arranque de CI (T04); esto no equivale a una prueba de teléfono físico.
+
+## Marcos exteriores compactos (A05)
+
+Publicado en PR 33, `e981c8dc`. El borde sigue el tamaño real del tablero en
+Collecta y Groove; Jack usa el espacio disponible y Destrucción reduce márgenes,
+sombras y rellenos. Borde de 1 px y margen inmersivo de 4 px respetando áreas
+seguras, sin cambiar coordenadas ni controles. Build correcto y revisión visual
+en tres tamaños; auditoría `AUDITORIA_MARCOS_ARCADE_2026-11-15.md`.
+CI 193 no ejecuta pasos (T04). Teléfonos físicos y FPS siguen pendientes en T01.

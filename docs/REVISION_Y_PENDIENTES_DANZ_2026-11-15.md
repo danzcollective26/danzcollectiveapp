@@ -358,8 +358,23 @@ Vercel producción READY: `dpl_4h9beU62i7z1gogKrgffd2KxiSRt`.
 
 ## 16. Marcos de todos los juegos — A05
 
-Petición: el marco exterior ocupa demasiado. Bloque en verificación: ajustar
-el borde al tablero real, retirar franjas decorativas vacías y reducir
-márgenes/sombras en Jack, Groove (Vinyl, Scratch y Destrucción) y los tres
-modos de Collecta. Conservar proporciones, controles, zona segura y reglas.
-No se declara publicado hasta cerrar build y auditoría visual.
+Petición: el marco exterior ocupa demasiado. Publicado en PR 33,
+`e981c8dc567047ed137056744268d71ee4e17585`. Vercel producción READY:
+`dpl_2o4AJoSkBXo6HoB4yaq5XEQ8jNqo`.
+
+- Bordes de 1 px ajustados al tablero real; márgenes inmersivos de 4 px o
+  el área segura del dispositivo. Se retiran sombras y rellenos decorativos
+  en Jack, Groove (Vinyl, Scratch y Destrucción) y los tres modos de Collecta.
+- Se mantienen las proporciones y coordenadas del motor. El fondo sobrante
+  queda fuera del borde del tablero; no se estira ni recorta el juego.
+- Destrucción también reduce el margen de página en móvil y adapta su título.
+  Los controles de dirección conservan 44×44 y los duelos su perspectiva opuesta.
+- Build y diff-check correctos. Revisión manual del juego real en 320×568,
+  390×844 y 844×390. Persecución inicia, activa sprint y pausa correctamente.
+  Producción: inicio/pausa de solo, título de Destrucción y `/test` revisados.
+  Auditoría y tamaños: `AUDITORIA_MARCOS_ARCADE_2026-11-15.md`.
+- CI 193 termina antes de ejecutar pasos: cuatro jobs sin steps ni logs.
+  Automatización de navegador/offline pendiente en T04; no se afirma una prueba
+  de teléfono físico, FPS o batería. No se añaden dependencias ni bucles de resize.
+- A05 queda cerrado para esta presentación adaptable. El resto de pendientes,
+  DC04, T01, T04, música/BPM, online, Kart y retorno de Gemini, conserva su estado.
