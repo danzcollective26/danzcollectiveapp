@@ -2,16 +2,16 @@
 export type YeppoCategory = 'fotos'|'racha'|'aviso'|'regreso'|'juego'|'pasaporte'|'danzflor'|'fiesta'|'seccion'|'hora'
 export type YeppoVariables = Partial<Record<'evento'|'fotos'|'dias'|'producto'|'puntos', string|number>>
 export const YEPPOLINES: Record<YeppoCategory, readonly string[]> = {
- fotos:['Hay fotos nuevas de {evento}. ¿Te atreves a mirar?','Han caído {fotos} fotos nuevas. Busca tu mejor cara.','El carrete viene calentito. No digas que no avisé.','Las fotos de {evento} ya están. Hazte el valiente.'],
- racha:['Tu racha pide otra noche. No me la dejes tirada.','Ese pasaporte está pidiendo pista. Tú sabrás.','Tu racha peligra más que el móvil a las seis.','Otro sello y la cosa se pone interesante.'],
- aviso:['Tienes un aviso pendiente. Luego no digas que no te enteraste.','Te han dejado algo importante. Mira antes de salir.','Hay novedades serias. Bueno, serias para DANZ.'],
- regreso:['Llevabas {dias} días desaparecido. ¿Secuestro de resaca?','Has vuelto. El colectivo empezaba a poner carteles.','No te veía desde hace días. ¿Dónde escondías el flow?'],
- juego:['¿Otra vez al Snake? El cable va a pedir vacaciones.','Mucho Groove, pero ¿cuándo sacamos el disco?','Llevas rato practicando. Eso ya cuenta como ensayo.','La máquina te conoce mejor que el portero.','Tu récord no se bate mirándolo, figura.'],
- pasaporte:['Ese pasaporte necesita más tinta de fiesta.','Coleccionas sellos mejor que excusas para salir.','Un sello más y la flor se viene arriba.','A ver ese pasaporte. Que no sea solo postureo.'],
- danzflor:['Mira bien esa prenda. Luego vuelan las tallas.','El armario pide DANZFLOR. Yo solo informo.','Ese look viene con ganas de última canción.','¿Venías a mirar o a darle trabajo a tu armario?','Esa camiseta se está haciendo la interesante.'],
- fiesta:['Ayer hubo fiesta. Hoy toca agua y dignidad.','La noche acabó. La historia sigue en DANZ.','Se acerca {evento}. Ve calentando las zapatillas.','Esa fiesta no se baila sola, colega.'],
- seccion:['Llevas un rato aquí. ¿Buscando algo o haciendo tiempo?','La flor te está vigilando. Con cariño, ¿eh?','Mucho scroll y poco baile. Ponte las pilas.','Que no se te pase la noche entre pantallas.'],
- hora:['Buenos días, campeón de la resaca. Agua primero.','¿Ya es de noche? Pues la flor se despereza.','Hora de cerrar pestañas y abrir horizontes.','Buenas, criatura nocturna. ¿Vienes de bailar?']
+ fotos:['¡Fotos de {evento}! A ver esas caras.','Hay {fotos} fotos nuevas. No me señales a mí.','Uy. Esa foto tiene historia.','He visto una foto tuya. O eso creo.','Sonríe, que luego vienen las pruebas.'],
+ racha:['Un sello más. Tú puedes.','Ese pasaporte pide calle.','¿Repetimos? Tú dirás.','Cuidado, que te enganchas.'],
+ aviso:['Eh, tienes un aviso.','Te han dejado algo. Cotilla.','Mira tus avisos, anda.','¡Psst! Hay novedades.'],
+ regreso:['¿{dias} días sin venir? ¡Oye!','¡Has vuelto! Disimula un poco.','Pensé que te habías fugado.','Eh, qué alegría verte.'],
+ juego:['¿Otra? Vale, yo te cubro.','Esa jugada… ¿era aposta?','¡Uy! Por poco.','Dale, que te estoy mirando.','¿Un reto? Venga, valiente.'],
+ pasaporte:['¿Otro sello? Bien ahí.','Mira ese pasaporte, figura.','Eso ya parece una colección.','Tú a por sellos. Yo vigilo.'],
+ danzflor:['Uy, esa prenda te mira.','¿Solo vas a mirar? Ya.','A mí me queda todo bien.','Ese look tiene peligro.'],
+ fiesta:['¿Agua? Buena idea.','Nos vemos en {evento}.','Esa fiesta promete.','¿Preparado para bailar?'],
+ seccion:['¿Qué miras? Ah, soy yo.','No he tocado nada. Creo.','¡Psst! Te he visto.','Sigue, sigue. Yo no estaba.','¿Te ayudo o te molesto?'],
+ hora:['¡Ey! ¿Qué tal?','Buenos días. Más o menos.','¿Otra noche larga?','Eh, no te duermas.']
 }
 export function yeppoMessage(category:YeppoCategory,index:number,variables:YeppoVariables={}):string|null{
  const message=YEPPOLINES[category]?.[Math.abs(Math.floor(index))%YEPPOLINES[category].length]
