@@ -1,3 +1,4 @@
+import GameSurface from '../GameSurface'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { createChase, startChase, pauseChase, dashChase, stepChase, CHASE_DURATION, type Chase, type PlayerId, type Vector } from './engine'
 import { createChaseRenderer } from './renderer'
@@ -95,10 +96,10 @@ export default function YeppoChase({ onBack, controls = DEFAULT_COLLECTA_CONTROL
   return <section ref={panel} tabIndex={-1} className="chase-game" aria-label="Persecución de DANZ Collecta, duelo local" data-phase={hud.phase} data-view={landscape ? 'landscape' : 'portrait'} data-p1={`${hud.players[0].x.toFixed(1)},${hud.players[0].y.toFixed(1)}`} data-p2={`${hud.players[1].x.toFixed(1)},${hud.players[1].y.toFixed(1)}`} data-hunter={hud.hunter} data-tags={hud.tags} data-elapsed={Math.floor(hud.elapsed)}>
     <header className="chase-top"><button type="button" onClick={exit} aria-label="Salir de Persecución">← MODOS</button><div><strong>COLLECTA <em>PERSECUCIÓN</em></strong><span>PASA EL MARRÓN · CIERRE DE CUENTAS</span></div><button type="button" disabled={!active && hud.phase !== 'paused'} onClick={() => active ? pause() : play()}>{hud.phase === 'paused' ? 'REANUDAR' : 'PAUSAR'}</button></header>
     <div className="chase-status"><strong aria-label="Tiempo de Pilla-Pilla">{Math.max(0, Math.ceil((CHASE_DURATION - hud.elapsed) / 1000))}<small>s</small></strong><span role="status">{hud.elapsed - hud.lastTagAt < 1200 ? `P${Number(hud.lastCatcher)+1}: TRAMITADO. P${hud.hunter+1} LLEVA LA FACTURA.` : `P${hud.hunter+1} COBRA · P${hud.hunter===0?2:1} SE ESCAQUEA`}</span></div>
-    <div className="chase-layout versus-layout">{controller(0)}<div className="chase-board-wrap versus-board"><div className="chase-board" ref={host} role="img" aria-label="Club de Collecta con dos jugadores, cabina y altavoces" data-ready={ready}/>
+    <div className="chase-layout versus-layout">{controller(0)}<GameSurface ratio={880/600} className="chase-board-wrap versus-board"><div className="chase-board" ref={host} role="img" aria-label="Club de Collecta con dos jugadores, cabina y altavoces" data-ready={ready}/>
       {(!active || error) && <div className="chase-overlay"><span className="chase-kicker">{over ? 'PARTY OVER / CUENTAS CERRADAS' : hud.phase === 'paused' ? 'EL MARRÓN PUEDE ESPERAR' : 'COLLECTA / PASA EL MARRÓN'}</span><h1>{title}</h1><p>{error || (over ? `P1 ${hud.players[0].score} · ${hud.players[1].score} P2. Gana quien más veces pasa la factura. ¿Otro trámite?` : 'Llevas la factura: pilla al rival para pasarle el marrón. Ahora persigue él y tú te escaqueas. Cada captura suma un punto.')}</p><div className="chase-how"><span>1 / UNO A CADA EXTREMO</span><span>2 / FLECHAS O JOYSTICK A TU LADO</span><span>3 / PÁSALA MÁS VECES Y GANA</span></div>
       <button type="button" disabled={!error && !ready} onClick={() => error ? setRetry(n => n + 1) : play()}>{error ? 'VOLVER A CARGAR' : !ready ? 'ABRIENDO EL CLUB…' : hud.phase === 'paused' ? 'SEGUIR CORRIENDO' : over ? 'REVANCHA' : 'EMPEZAR PERSECUCIÓN'}</button><small>Teclado: P1 WASD + F · P2 flechas + L. Direcciones según tu lado.</small></div>}
-    </div>{controller(1)}</div>
+    </GameSurface>{controller(1)}</div>
     <footer className="chase-note">PRÁCTICA LOCAL · 60 s · SIN PREMIOS COMPETITIVOS<span>Al girar el móvil, se pausa la partida.</span></footer>
   </section>
 }
