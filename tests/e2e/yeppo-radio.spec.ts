@@ -71,3 +71,19 @@ test('Yeppo offers optional guided conversation and navigates to photos without 
  await expect(page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true})).toHaveAttribute('aria-current','page')
  await expect(dialogue).toHaveCount(0)
 })
+
+test('Yeppo uses the DANZFLOR bag-inspired full-body flower with accessible chat',async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('danz-yeppo-welcome-v1','done')
+  localStorage.setItem('danz-yeppo-enabled-v1','true')
+  sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
+ })
+ await page.goto('/')
+ const yeppo=page.getByRole('button',{name:'Hablar con Yeppo'})
+ await expect(yeppo).toBeVisible()
+ await expect(yeppo.locator('svg.yeppo-character')).toHaveCount(1)
+ await expect(yeppo.locator('.yeppo-head ellipse')).toHaveCount(7)
+ await expect(yeppo.locator('.yeppo-limbs path')).toHaveCount(4)
+ await yeppo.click()
+ await expect(page.getByRole('dialog',{name:'Hablar con Yeppo'})).toBeVisible()
+})
