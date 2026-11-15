@@ -205,3 +205,91 @@
 @keyframes yeppo-tap-card{0%,100%{filter:none;transform:scale(1)}35%{filter:drop-shadow(0 0 14px #ffe783);transform:scale(1.035)}}
 @media(max-width:500px){.yeppo.yeppo-walkabout{height:216px;bottom:calc(env(safe-area-inset-bottom) + 67px)}.yeppo-roam-stage{width:205px}.yeppo-roam-mascot{min-height:138px}.yeppo-roam-mascot .yeppo-character{width:113px;height:130px}.yeppo-roam-mascot:before{width:95px}.yeppo-roam-speech{max-width:192px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.yeppo-roam-mascot .yeppo-character,.yeppo-roam-mascot:before,.yeppo-playful-tap{animation:none!important}.yeppo-playful-tap{outline:2px solid #ffe783!important}}
+
+/* Yeppo natural walk v3: synchronize foot plant, opposing arm swing and body weight
+   with his entire crossing, including a deliberate curious pause halfway through. */
+.yeppo-roam-stage{--yeppo-trip:5.4s;animation-duration:var(--yeppo-trip)}
+.yeppo-roam-stage.yeppo-roam-demo{--yeppo-trip:8.2s;animation-duration:var(--yeppo-trip)}
+.yeppo-roam-stage .yeppo-roam-mascot .yeppo-character{animation:yeppo-weight-shift var(--yeppo-trip) linear both}
+.yeppo-roam-stage .yeppo-roam-mascot:before{animation:yeppo-ground-contact var(--yeppo-trip) linear both}
+.yeppo-roam-stage .yeppo-character .yeppo-left-leg,
+.yeppo-roam-stage .yeppo-character .yeppo-right-leg,
+.yeppo-roam-stage .yeppo-character .yeppo-left-foot,
+.yeppo-roam-stage .yeppo-character .yeppo-right-foot,
+.yeppo-roam-stage .yeppo-character .yeppo-left-arm,
+.yeppo-roam-stage .yeppo-character .yeppo-right-arm,
+.yeppo-roam-stage .yeppo-character .yeppo-left-hand{
+ animation-duration:var(--yeppo-trip);
+ animation-timing-function:linear;
+ animation-iteration-count:1;
+ animation-fill-mode:both;
+}
+.yeppo-roam-stage .yeppo-character .yeppo-left-leg{animation-name:yeppo-plant-left}
+.yeppo-roam-stage .yeppo-character .yeppo-right-leg{animation-name:yeppo-plant-right}
+.yeppo-roam-stage .yeppo-character .yeppo-left-foot{animation-name:yeppo-roll-left}
+.yeppo-roam-stage .yeppo-character .yeppo-right-foot{animation-name:yeppo-roll-right}
+.yeppo-roam-stage .yeppo-character .yeppo-left-arm,
+.yeppo-roam-stage .yeppo-character .yeppo-left-hand{animation-name:yeppo-swing-arm-left}
+.yeppo-roam-stage .yeppo-character .yeppo-right-arm{animation-name:yeppo-swing-arm-right}
+.yeppo-roam-stage .yeppo-character .yeppo-head{animation:yeppo-look-around var(--yeppo-trip) ease-in-out both}
+.yeppo-roam-stage .yeppo-roam-mascot.yeppo-roam-react .yeppo-character{animation:yeppo-roam-surprise .33s ease-in-out both}
+@keyframes yeppo-plant-left{
+ 0%,16%,32%,58%,74%,90%,100%{transform:rotate(-7deg)}
+ 8%,24%,66%,82%{transform:rotate(12deg)}
+ 39%,56%{transform:rotate(0deg)}
+}
+@keyframes yeppo-plant-right{
+ 0%,16%,32%,58%,74%,90%,100%{transform:rotate(12deg)}
+ 8%,24%,66%,82%{transform:rotate(-7deg)}
+ 39%,56%{transform:rotate(0deg)}
+}
+@keyframes yeppo-roll-left{
+ 0%,16%,32%,58%,74%,90%,100%{transform:translate(0,0) rotate(-5deg)}
+ 8%,24%,66%,82%{transform:translate(5px,-13px) rotate(12deg)}
+ 39%,56%{transform:translate(0,0) rotate(0deg)}
+}
+@keyframes yeppo-roll-right{
+ 0%,16%,32%,58%,74%,90%,100%{transform:translate(-5px,-13px) rotate(12deg)}
+ 8%,24%,66%,82%{transform:translate(0,0) rotate(-5deg)}
+ 39%,56%{transform:translate(0,0) rotate(0deg)}
+}
+@keyframes yeppo-swing-arm-left{
+ 0%,16%,32%,58%,74%,90%,100%{transform:rotate(14deg)}
+ 8%,24%,66%,82%{transform:rotate(-13deg)}
+ 39%,56%{transform:rotate(-4deg)}
+}
+@keyframes yeppo-swing-arm-right{
+ 0%,16%,32%,58%,74%,90%,100%{transform:rotate(-13deg)}
+ 8%,24%,66%,82%{transform:rotate(14deg)}
+ 39%,56%{transform:rotate(4deg)}
+}
+@keyframes yeppo-weight-shift{
+ 0%,16%,32%,58%,74%,90%,100%{transform:translateY(0) rotate(-2deg)}
+ 8%,24%,66%,82%{transform:translateY(-7px) rotate(2deg)}
+ 39%,56%{transform:translateY(0) rotate(0deg)}
+}
+@keyframes yeppo-ground-contact{
+ 0%,16%,32%,58%,74%,90%,100%{opacity:.85;transform:translateX(-50%) scale(1.04)}
+ 8%,24%,66%,82%{opacity:.44;transform:translateX(-50%) scale(.8)}
+ 39%,56%{opacity:.92;transform:translateX(-50%) scale(1.05)}
+}
+@keyframes yeppo-look-around{
+ 0%,30%{transform:rotate(-4deg)}
+ 39%{transform:rotate(8deg)}
+ 50%{transform:rotate(-9deg)}
+ 58%{transform:rotate(1deg)}
+ 76%,100%{transform:rotate(-3deg)}
+}
+@media(prefers-reduced-motion:reduce){
+ .yeppo-roam-stage,.yeppo-roam-stage.yeppo-roam-demo,
+ .yeppo-roam-stage .yeppo-roam-mascot .yeppo-character,
+ .yeppo-roam-stage .yeppo-roam-mascot:before,
+ .yeppo-roam-stage .yeppo-character .yeppo-head,
+ .yeppo-roam-stage .yeppo-character .yeppo-left-leg,
+ .yeppo-roam-stage .yeppo-character .yeppo-right-leg,
+ .yeppo-roam-stage .yeppo-character .yeppo-left-foot,
+ .yeppo-roam-stage .yeppo-character .yeppo-right-foot,
+ .yeppo-roam-stage .yeppo-character .yeppo-left-arm,
+ .yeppo-roam-stage .yeppo-character .yeppo-right-arm,
+ .yeppo-roam-stage .yeppo-character .yeppo-left-hand{animation:none!important}
+}
