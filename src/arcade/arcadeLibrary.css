@@ -6,7 +6,7 @@
 .arcade-library-heading p{color:var(--muted);margin:0;line-height:1.6}
 .arcade-library-count{font-family:Impact,'Arial Narrow',sans-serif;font-size:60px;color:#e1fa95;text-align:right}
 .arcade-library-count small{display:block;font:800 9px system-ui,sans-serif;letter-spacing:.12em;color:var(--muted)}
-.arcade-library .arcade-chooser{gap:24px;grid-template-columns:repeat(2,minmax(0,360px));justify-content:start}
+.arcade-library .arcade-chooser{gap:24px;grid-template-columns:repeat(3,minmax(0,360px));justify-content:start}
 .arcade-library .arcade-choice{display:flex;flex-direction:column;align-items:stretch;padding:0;min-height:0;border:1px solid #44464a;background:#151617;box-shadow:0 12px 32px #0004}
 .arcade-library .arcade-choice img{position:static;width:100%;height:auto;aspect-ratio:3/4;object-fit:contain;opacity:1;z-index:auto}
 .arcade-library .arcade-choice:after{display:none}

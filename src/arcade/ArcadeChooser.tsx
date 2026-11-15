@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import './arcadeChooser.css'
 
-type ArcadeChoice = 'snake' | 'groove'
+type ArcadeChoice = 'snake' | 'groove' | 'arena'
 const YEPPO_DARES: Record<ArcadeChoice, string[]> = {
+  arena: ['Gana una ronda creando una cadena de discos. Pero sal de la onda, figura.', 'Juega una revancha cambiando de lado con tu rival. ¿Quién manda ahora?'],
   snake: [
     'Sobrevive hasta recoger 5 objetivos sin parar. ¡Que no te coman los nervios!',
     'Intenta superar tu propio récord en modo Clásico. Yo pongo los pétalos de la suerte.',
@@ -33,10 +34,14 @@ export default function ArcadeChooser({ onSelect }: { onSelect: (choice: ArcadeC
       <img src="/arcade/groove-ninja-approved-mobile.webp" alt="" width="1086" height="1448" decoding="async" />
       <span className="arcade-choice-copy"><small>02 / ARCADE · MÚSICA</small><strong>GROOVE NINJA</strong><span>Vinyl Cut + Scratch Session <b>JUGAR ↗</b></span></span>
     </button>
+    <button type="button" className="arcade-choice" onClick={() => onSelect('arena')}>
+      <img src="/arcade/arena-danz.svg" alt="" width="720" height="960" decoding="async" />
+      <span className="arcade-choice-copy"><small>03 / DUELO LOCAL · BETA</small><strong>ARENA DANZ</strong><span>Dos flores. Una pista. <b>JUGAR 1 VS 1 ↗</b></span></span>
+    </button>
     <div className="arcade-yeppo-challenge">
       <div><strong>🌸 YEPPO CHALLENGE</strong><span>Un reto extra para darle salsa a la partida. No modifica puntos ni rankings.</span></div>
       <button type="button" aria-expanded={challengeOpen} onClick={() => setChallengeOpen(value => !value)}>{challengeOpen ? 'OCULTAR' : 'PONME UN RETO ↗'}</button>
-      {challengeOpen && <div className="arcade-yeppo-dare"><div className="arcade-challenge-games" role="group" aria-label="Juego del reto de Yeppo"><button type="button" aria-pressed={active==='snake'} onClick={()=>setActive('snake')}>JACK</button><button type="button" aria-pressed={active==='groove'} onClick={()=>setActive('groove')}>GROOVE NINJA</button></div><p role="status">{challenge}</p><button type="button" onClick={() => setChallengeIndex(index => index + 1)}>OTRO RETO ↻</button><small>Reto voluntario de Yeppo: todavía no registra cumplimiento ni concede premios.</small></div>}
+      {challengeOpen && <div className="arcade-yeppo-dare"><div className="arcade-challenge-games" role="group" aria-label="Juego del reto de Yeppo"><button type="button" aria-pressed={active==='snake'} onClick={()=>setActive('snake')}>JACK</button><button type="button" aria-pressed={active==='groove'} onClick={()=>setActive('groove')}>GROOVE NINJA</button><button type="button" aria-pressed={active==='arena'} onClick={()=>setActive('arena')}>ARENA DANZ</button></div><p role="status">{challenge}</p><button type="button" onClick={() => setChallengeIndex(index => index + 1)}>OTRO RETO ↻</button><small>Reto voluntario de Yeppo: todavía no registra cumplimiento ni concede premios.</small></div>}
     </div>
   </div>
 }

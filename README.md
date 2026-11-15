@@ -8,7 +8,8 @@ está en `DANZ-TRASPASO-CODEX.md` y `docs/VERIFICACION_CODEX.md`.
 
 [Abre DANZ](https://danzcollectiveapp.vercel.app).
 La ruta [`/test`](https://danzcollectiveapp.vercel.app/test) reúne los paseos de
-Yeppo y accesos a los juegos actuales para probarlos desde el móvil. La antigua
+Yeppo y accesos a los juegos actuales para probarlos desde el móvil. Arena DANZ
+incluye una beta de duelo para dos personas en el mismo teléfono. La antigua
 demo de Sites se conserva como referencia de versiones anteriores.
 La PWA abre al público sin una cuenta de ChatGPT desde el 10 de noviembre de
 2026, con autorización del propietario. Fotos, perfiles y administración mantienen

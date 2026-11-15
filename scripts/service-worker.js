@@ -4,12 +4,12 @@ const CACHE = PREFIX + BUILD.version
 const allowed = new Set(BUILD.paths)
 
 function publicGameNavigation(url) {
-  if (url.pathname !== '/' && url.pathname !== '/index.html') return false
+  if (!['/', '/index.html', '/test', '/test/'].includes(url.pathname)) return false
   if (!url.search) return true
   const params = url.searchParams
   if (new Set(params.keys()).size !== [...params].length) return false
   if (params.get('seccion') !== 'arcade') return false
-  return params.size === 1 || (params.size === 2 && params.get('juego') === 'groove-ninja')
+  return params.size === 1 || (params.size === 2 && ['groove-ninja', 'jack', 'snake', 'arena'].includes(params.get('juego')))
 }
 
 async function staticResponse(path) {
@@ -64,7 +64,7 @@ self.addEventListener('fetch', event => {
   // Only explicit public game navigation can carry a query. Never callbacks,
   // passes, photo signatures, arbitrary parameters or duplicate parameters.
   if (url.search && (request.mode !== 'navigate' || !publicGameNavigation(url))) return
-  if (request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html')) {
+  if (request.mode === 'navigate' && publicGameNavigation(url)) {
     event.respondWith((async () => {
       // Online requests always reach hosting, including its private-access gate.
       try { return await fetch(request) }

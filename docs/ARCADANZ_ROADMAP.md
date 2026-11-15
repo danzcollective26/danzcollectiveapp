@@ -1,6 +1,6 @@
 # DANZ: mejoras y próximos juegos
 
-Actualizado: 15 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; los juegos nuevos todavía no están implementados.
+Actualizado: 15 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena DANZ tiene un primer prototipo local; Yeppo Pilla-Pilla y DANZ Kart Mini siguen pendientes.
 
 ## Bloque actual
 
@@ -59,7 +59,7 @@ Los modos online requieren además de los gráficos: salas, conexión y reconexi
 
 El usuario ha confirmado los tres: arena original inspirada en Bomberman, Yeppo
 Pilla-Pilla y DANZ Kart Mini. La aprobación corresponde a su desarrollo; los
-juegos nuevos y su modo online todavía no están implementados. El orden de
+primer prototipo de Arena DANZ ya incluye duelo local. Pilla-Pilla, Kart y los modos online siguen pendientes. El orden de
 trabajo es cerrar la biblioteca/Yeppo y `/test`, después preparar la dirección
 visual y el primer prototipo de duelo, empezando por la arena si no hay otra
 preferencia. Las portadas existentes aprobadas no se vuelven a generar.
@@ -73,3 +73,15 @@ El usuario ha aclarado que no quiere trabajar ahora en nuevos QR. La integració
 artística de Hugging Face se reserva para cuando la necesite. El trabajo previo
 queda conservado en Git en la rama `future/qr-art-hugging-face`; no se incluye ni
 se activa en esta entrega. El bloque actual sigue siendo Arcade, Yeppo y `/test`.
+
+## Arena DANZ — primer prototipo local
+
+- Duelo para dos personas en el mismo móvil, con dos mandos independientes y teclado.
+- Pista simétrica de club, cajas destructibles, altavoces que frenan las ondas,
+  discos con mecha de 1,9 segundos, explosiones en cadena y mejoras de alcance/capacidad.
+- Rondas de hasta 60 segundos; gana el primero en conseguir tres victorias.
+- Ilustración vectorial propia, personajes flor y renderer Phaser 4.2.1 cargado
+  bajo demanda. No se sustituyen los motores ni las portadas de Jack y Groove.
+- Beta local: todavía no tiene salas online, IA rival ni recompensas competitivas.
+- Accesible desde la biblioteca y `/test`. Auditoría y límites en
+  `docs/AUDITORIA_ARENA_DANZ_2026-11-15.md`.
