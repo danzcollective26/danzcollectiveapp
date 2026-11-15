@@ -1,17 +1,19 @@
 import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { memo, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { GrooveAudio } from './GrooveAudio'
 import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DURATION, GROOVE_VINYLS, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, setGroovePlaying, type GrooveMode, type GrooveSpecial, type GrooveWeapon, type GroovePoint, type GrooveState } from './groove'
 import { useGameScreen } from './useGameScreen'
 import './groove.css'
 
-function Vinyl({ layer, radius = 56, special = 'normal' }: { layer: number; radius?: number; special?: GrooveSpecial }) {
+const Vinyl = memo(function Vinyl({ layer, radius = 56, special = 'normal' }: { layer: number; radius?: number; special?: GrooveSpecial }) {
   return <g transform={`scale(${radius / 56})`}>
     <circle cy="3" r="57" fill="#030303" stroke="#000" strokeWidth="2"/>
     <circle r="56" fill={special === 'gold' ? 'url(#gn-brass)' : special === 'freeze' ? '#214556' : 'url(#gn-disc)'} stroke={special === 'gold' ? '#fff0a5' : special === 'freeze' ? '#adf7ff' : '#77776c'} strokeWidth={special === 'normal' ? 1.5 : 3}/>
     {special === 'gold' && <circle r="49" fill="none" stroke="#fff0b0" strokeWidth="2" strokeDasharray="3 7"/>}
     {special === 'freeze' && <path d="M0-49V49M-42-24 42 24M-42 24 42-24" stroke="#a6faff" strokeWidth="2" opacity=".8"/>}
+    {special === 'combo' && <><circle r="51" fill="none" stroke="#ffe69a" strokeWidth="5" strokeDasharray="12 5"/><text y="-29" textAnchor="middle" fill="#fff0ad" fontSize="22" fontWeight="900">×2</text></>}
+    {special === 'split' && <><path d="M-44-26 44 26M-44 26 44-26" stroke="#9af5d0" strokeWidth="5"/><circle r="51" fill="none" stroke="#9af5d0" strokeWidth="3"/></>}
     {Array.from({ length: 12 }, (_, i) => <circle key={i} r={29 + i * 2.1} fill="none" stroke={i % 3 ? '#99999a' : '#dedaca'} strokeOpacity={i % 3 ? '.2' : '.32'} strokeWidth=".65"/>)}
     <path d="M-52-18A55 55 0 0 1 30-46L15-24A28 28 0 0 0-27-9Z" fill="url(#gn-reflection)"/>
     <path d="M52 18A55 55 0 0 1-30 46L-15 24A28 28 0 0 0 27 9Z" fill="#b7c9d2" opacity=".14"/>
@@ -21,7 +23,7 @@ function Vinyl({ layer, radius = 56, special = 'normal' }: { layer: number; radi
     <circle r="13" fill="#1a1718"/><image href="/brand/danz-flower.svg" x="-9" y="-9" width="18" height="18"/>
     <circle r="2.6" fill="#d5be91" stroke="#080808" strokeWidth="1"/>
   </g>
-}
+})
 function ScratchDeck({ game }: { game: GrooveState }) {
   const scratch = game.scratch
   if (!scratch) return null
@@ -76,6 +78,12 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   const ended = game.status === 'over' || game.status === 'complete'
   const running = game.status === 'playing'
   const stage = grooveStage(game.elapsed)
+  const multicut = game.sparks.filter(spark => spark.label.startsWith('MULTICORTE')).at(-1)?.id
+  useEffect(() => {
+    if (!multicut || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const recoil = board.current?.animate([{transform:'translateX(0)'},{transform:'translateX(-2px)'},{transform:'translateX(2px)'},{transform:'translateX(0)'}],{duration:160,easing:'ease-out'})
+    return () => recoil?.cancel()
+  }, [multicut])
 
   function commit(next: GrooveState) {
     const previous = current.current
@@ -192,6 +200,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   function release(event: ReactPointerEvent<SVGSVGElement>) {
     if (gesture.current?.id !== event.pointerId) return
     if (current.current.scratch) commit(scratchGroove(current.current, gesture.current.point.x, true))
+    else if (current.current.strokeDoubleUntil) commit({ ...current.current, strokeDoubleUntil: 0 })
     gesture.current = null
   }
   const path = trail.current.filter(p => game.elapsed - p.at < 130).map(p => `${p.x},${p.y}`).join(' ')
@@ -213,7 +222,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={() => { screen.leave(); onBack() }} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
         <span className="gn-score"><i className="gn-hud-vinyl" aria-hidden="true"/><span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span></span>
-        <span>COMBO<strong className="gn-combo">×{grooveMultiplier(game.combo)} <small>{game.combo} SEGUIDOS</small></strong></span>
+        <span>COMBO<strong className="gn-combo">×{grooveMultiplier(game.combo)} <small>{game.doubleUntil > game.elapsed ? `×2 LISTO · ${Math.ceil((game.doubleUntil-game.elapsed)/1000)}s` : game.strokeDoubleUntil > game.elapsed ? 'CORTE ×2' : `${game.combo} SEGUIDOS`}</small></strong></span>
         <span>TIEMPO<strong>{String(Math.ceil((GROOVE_DURATION - game.elapsed) / 1000)).padStart(2, '0')}<small>s</small></strong></span>
       </div>
       <div className="gn-challenge-bar">
@@ -221,7 +230,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>FLECHA = DIRECCIÓN · CORTO / LARGO = RECORRIDO</small></div>}
       </div>
       <div className="gn-play-area">
-        <svg ref={board} className="gn-board" viewBox="0 0 640 760" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()}>
+        <svg ref={board} className="gn-board" viewBox="0 0 640 760" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
           <defs>
             <radialGradient id="gn-disc" cx="32%" cy="22%" r="80%"><stop stopColor="#505258"/><stop offset=".3" stopColor="#1b1c21"/><stop offset=".66" stopColor="#303137"/><stop offset="1" stopColor="#050607"/></radialGradient>
             <linearGradient id="gn-reflection" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f7f0d7" stopOpacity=".6"/><stop offset=".48" stopColor="#e2f2ff" stopOpacity=".08"/><stop offset="1" stopColor="#b5c9d3" stopOpacity=".3"/></linearGradient>
@@ -259,8 +268,8 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           {game.status === 'ready' && <g opacity=".45"><g transform="translate(155 325) rotate(-22)"><Vinyl layer={0} radius={74}/></g><g transform="translate(465 400) rotate(18)"><Vinyl layer={1} radius={85}/></g></g>}
           {game.discs.map(disc => {
             const p = discPosition(disc, game.flightTime)
-            return <g key={disc.id} className={`gn-target gn-${disc.kind}`} data-disc-id={disc.id} data-special={disc.special ?? 'normal'} data-axis={disc.axis} data-layer={disc.layer} data-x={p.x.toFixed(1)} data-y={p.y.toFixed(1)} transform={`translate(${p.x} ${p.y})`}>
-              {disc.kind === 'vinyl' ? <><ellipse cy="15" rx="61" ry="54" fill="#050303" opacity=".4"/><g transform={`rotate(${(game.flightTime - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer} special={disc.special}/></g><rect x="-35" y="62" width="70" height="24" rx="4" fill="#1a130e" stroke={GROOVE_COLORS[disc.layer]} strokeOpacity=".8"/><text y="79" textAnchor="middle" fill={GROOVE_COLORS[disc.layer]} fontSize="14" fontWeight="900">{disc.special === 'gold' ? 'ORO ×3' : disc.special === 'freeze' ? 'HIELO' : disc.special === 'arrow' ? (disc.axis === 'x' ? 'SIGUE ↔' : 'SIGUE ↕') : GROOVE_VINYLS[disc.layer]}</text>{disc.special === 'arrow' && <g transform={`rotate(${disc.axis === 'x' ? 0 : 90})`}><path d="M-39 0H39M-23-14-39 0-23 14M23-14 39 0 23 14" fill="none" stroke="#fff6d7" strokeWidth="8" strokeLinejoin="round" paintOrder="stroke"/><path d="M-39 0H39M-23-14-39 0-23 14M23-14 39 0 23 14" fill="none" stroke="#2d1726" strokeWidth="3" strokeLinejoin="round"/></g>}</>
+            return <g key={disc.id} className={`gn-target gn-${disc.kind}`} data-disc-id={disc.id} data-special={disc.special ?? 'normal'} data-axis={disc.axis} data-layer={disc.layer} data-fragment={disc.fragment || undefined} data-x={p.x.toFixed(1)} data-y={p.y.toFixed(1)} transform={`translate(${p.x} ${p.y})`}>
+              {disc.kind === 'vinyl' ? <g transform={`scale(${disc.size ?? 1})`}><ellipse cy="15" rx="61" ry="54" fill="#050303" opacity=".4"/><g transform={`rotate(${(game.flightTime - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer} special={disc.special}/></g><rect x="-35" y="62" width="70" height="24" rx="4" fill="#1a130e" stroke={GROOVE_COLORS[disc.layer]} strokeOpacity=".8"/><text y="79" textAnchor="middle" fill={GROOVE_COLORS[disc.layer]} fontSize="14" fontWeight="900">{disc.special === 'gold' ? 'ORO ×3' : disc.special === 'freeze' ? 'HIELO' : disc.special === 'arrow' ? (disc.axis === 'x' ? 'SIGUE ↔' : 'SIGUE ↕') : disc.special === 'combo' ? 'COMBO ×2' : disc.special === 'split' ? 'SPLIT DISC' : disc.fragment ? 'MINI BONUS' : GROOVE_VINYLS[disc.layer]}</text>{disc.special === 'arrow' && <g transform={`rotate(${disc.axis === 'x' ? 0 : 90})`}><path d="M-39 0H39M-23-14-39 0-23 14M23-14 39 0 23 14" fill="none" stroke="#fff6d7" strokeWidth="8" strokeLinejoin="round" paintOrder="stroke"/><path d="M-39 0H39M-23-14-39 0-23 14M23-14 39 0 23 14" fill="none" stroke="#2d1726" strokeWidth="3" strokeLinejoin="round"/></g>}</g>
                 : <g className="gn-feedback-speaker"><path d="M-38-48-48-35V43L-35 52H36L47 40V-36L36-48Z" fill="url(#gn-metal)" stroke="#ff645f" strokeWidth="3"/><rect x="-34" y="-38" width="68" height="80" rx="7" fill="#270c0b" stroke="#952e25"/><circle cy="9" r="26" fill="#120b09" stroke="#c54630" strokeWidth="3"/><circle cy="9" r="18" fill="#4b1712"/><circle cy="9" r="10" fill="url(#gn-brass)"/><circle cy="-23" r="7" fill="#fb6c49"/><path d="M-54-27-62-11-53-3M54-27 62-11 53-3" fill="none" stroke="#ffb775" strokeWidth="3"/><path d="M-8-64 0-79 4-68 13-82" fill="none" stroke="#f7d55e" strokeWidth="3"/><text y="77" textAnchor="middle" fill="#ff9a78" stroke="#20110a" strokeWidth="4" paintOrder="stroke" fontSize="17" fontWeight="900">! ACOPLE</text></g>}
             </g>
           })}
@@ -269,14 +278,14 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
             const seconds = (game.elapsed - spark.born) / 1000
             const age = seconds / .75
             return <g key={spark.id} transform={`translate(${spark.x} ${spark.y})`} opacity={1 - age}>
-              {spark.layer !== undefined && <g className="gn-cut-pieces" transform={`translate(${(spark.velocity?.x ?? 0) * seconds} ${(spark.velocity?.y ?? -90) * seconds + 370 * seconds * seconds}) rotate(${spark.angle ?? 0})`}>{[-1, 1].map(sign => <g key={sign} transform={`translate(0 ${sign * (5 + seconds * 175)}) rotate(${age * sign * 100})`}><g clipPath={`url(#gn-half-${sign < 0 ? 'a' : 'b'})`}><g transform={`rotate(${(spark.rotation ?? 0) - (spark.angle ?? 0)})`}><Vinyl layer={spark.layer!} special={spark.special}/></g></g><path d={`M-52 0H52`} stroke="#f9dc9d" strokeOpacity=".7" strokeWidth="1.5"/></g>)}</g>}
+              {spark.layer !== undefined && <g className="gn-cut-pieces" transform={`translate(${(spark.velocity?.x ?? 0) * seconds} ${(spark.velocity?.y ?? -90) * seconds + 370 * seconds * seconds}) rotate(${spark.angle ?? 0}) scale(${spark.size ?? 1})`}>{[-1, 1].map(sign => <g key={sign} transform={`translate(0 ${sign * (5 + seconds * 175)}) rotate(${age * sign * 100})`}><g clipPath={`url(#gn-half-${sign < 0 ? 'a' : 'b'})`}><g transform={`rotate(${(spark.rotation ?? 0) - (spark.angle ?? 0)})`}><Vinyl layer={spark.layer!} special={spark.special}/></g></g><path d={`M-52 0H52`} stroke="#f9dc9d" strokeOpacity=".7" strokeWidth="1.5"/></g>)}</g>}
               <g className="gn-fragments">{Array.from({ length: 12 }, (_, i) => {
                 const angle = i * Math.PI / 6, distance = age * (85 + i % 3 * 36)
                 const x = Math.cos(angle) * distance, y = Math.sin(angle) * distance + age * age * 52
                 return i % 4 === 0 ? <text key={i} className="gn-music-note" transform={`translate(${x} ${y}) rotate(${i * 25 + age * 75})`} fill={spark.color} stroke="#1b1008" strokeWidth="2" paintOrder="stroke" fontSize="24" fontWeight="900">{i % 8 ? '♫' : '♪'}</text>
                   : <path key={i} d={`M${x} ${y}l${Math.cos(angle) * 12} ${Math.sin(angle) * 12}`} stroke={i % 2 ? spark.color : '#ffe6a9'} strokeWidth={5 * (1 - age)} strokeLinecap="round"/>
               })}</g>
-              <text y={-28 - age * 55} textAnchor="middle" fill={spark.color} stroke="#120e1b" strokeWidth="4" paintOrder="stroke" fontSize="31" fontWeight="900">{spark.label}</text>
+              <text y={-28 - age * 55} textAnchor="middle" fill={spark.color} stroke="#120e1b" strokeWidth="4" paintOrder="stroke" fontSize={spark.label.startsWith('MULTICORTE') ? 39 : 31} fontWeight="900">{spark.label}</text>
             </g>
           })}
           {path && <g className="gn-trail" fill="none" strokeLinejoin="round" strokeLinecap="round"><polyline points={path} stroke={GROOVE_WEAPONS[game.weapon].color} strokeWidth="25" opacity=".5" filter="url(#gn-glow)"/><polyline points={path} stroke={GROOVE_WEAPONS[game.weapon].color} strokeWidth={game.weapon === 'twin' ? 23 : game.weapon === 'needle' ? 5 : 14} opacity=".4"/><polyline points={path} stroke="url(#gn-slash)" strokeWidth={game.weapon === 'needle' ? 3 : 8}/>{game.weapon === 'twin' && <polyline points={path} transform="translate(9 0)" stroke="#ffc6e8" strokeWidth="4"/>}<polyline points={path} stroke="#fff" strokeWidth="3"/></g>}
@@ -300,6 +309,6 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       <div className="gn-bottom"><span>RÉCORD LOCAL {record.toLocaleString('es-ES')}</span><button type="button" onClick={() => setShowHelp(!showHelp)} aria-expanded={showHelp}>CÓMO JUGAR {showHelp ? '−' : '+'}</button></div>
       {audioIssue && <p className="gn-audio-issue" role="status">No se pudo activar el audio. Puedes seguir jugando sin sonido o volver a pulsar SONIDO.</p>}
     </div>
-    {showHelp && <div className="gn-help"><h2>LA CABINA ES TUYA.</h2><p>VINYL CUT: elige Katana (100 puntos), Doble Filo (80, más alcance y más riesgo de acoples) o Aguja (125, exige precisión). Cambia de arma durante la partida. Los dorados valen el triple: corta tres para un bonus de 750. El hielo ralentiza el vuelo tres segundos. Los discos con flecha requieren un corte horizontal o vertical y valen el doble. Cortar varios de una pasada da bonus. Los acoples rojos y los discos perdidos cuestan una vida.</p><p>SCRATCH SESSION: completa Baby Scratch, Long Pull, Double Time y Boomerang. Cada flecha indica dirección y recorrido: corto o largo. Termina el gesto al cruzar el pulso dorado de la línea de tiempo. La indicación PERFECTO premia la precisión. La puntuación se concede al completar toda la frase. Puedes levantar el dedo para recolocarlo; no cuenta como gesto. Un pulso perdido cuesta una vida y aparece otra frase. Primero practicas dos patrones, luego entran los cuatro y se reduce el margen de tiempo.</p><p>Cada cinco aciertos seguidos sube el multiplicador, hasta ×4. Tienes cinco vidas y un minuto en cada modo, con récords separados.</p><p>En teclado: Q/W/E cambian de arma; 1–4 cortan horizontalmente vinilos del número marcado, Mayús + 1–4 en vertical; ← y → ejecutan el gesto de scratch al pulso; espacio pausa; Esc sale de pantalla completa.</p><p>La música de ensayo acompaña la partida y no depende de los aciertos. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS. Los temas del colectivo se incorporarán cuando estén disponibles.</p></div>}
+    {showHelp && <div className="gn-help"><h2>LA CABINA ES TUYA.</h2><p>VINYL CUT: elige Katana (100 puntos), Doble Filo (80, más alcance y más riesgo de acoples) o Aguja (125, exige precisión). Cambia de arma durante la partida. Los dorados valen el triple: corta tres para un bonus de 750. El hielo ralentiza el vuelo tres segundos. Los discos con flecha requieren un corte horizontal o vertical y valen el doble. Combo Disc prepara una pasada ×2 durante cuatro segundos; un gesto sin aciertos no lo consume. Split Disc se divide en dos minivinilos de bonus que también puedes cortar; dejarlos caer no resta vidas. Cortar varios de una pasada da bonus. Los acoples rojos y los discos perdidos cuestan una vida.</p><p>SCRATCH SESSION: completa Baby Scratch, Long Pull, Double Time y Boomerang. Cada flecha indica dirección y recorrido: corto o largo. Termina el gesto al cruzar el pulso dorado de la línea de tiempo. La indicación PERFECTO premia la precisión. La puntuación se concede al completar toda la frase. Puedes levantar el dedo para recolocarlo; no cuenta como gesto. Un pulso perdido cuesta una vida y aparece otra frase. Primero practicas dos patrones, luego entran los cuatro y se reduce el margen de tiempo.</p><p>Cada cinco aciertos seguidos sube el multiplicador, hasta ×4. Tienes cinco vidas y un minuto en cada modo, con récords separados.</p><p>En teclado: Q/W/E cambian de arma; 1–4 cortan horizontalmente vinilos del número marcado, Mayús + 1–4 en vertical; ← y → ejecutan el gesto de scratch al pulso; espacio pausa; Esc sale de pantalla completa.</p><p>La música de ensayo acompaña la partida y no depende de los aciertos. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS. Los temas del colectivo se incorporarán cuando estén disponibles.</p></div>}
   </section>
 }

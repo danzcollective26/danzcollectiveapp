@@ -56,6 +56,30 @@ test('a fast swipe cuts immediately, splits a vinyl and advances its streak exac
   await expect(page.locator('.gn-cut-pieces')).toHaveCount(0)
   await expect(page.getByTestId('groove-score')).toHaveText('00100')
 })
+test('Split Disc produces two cuttable minis and Combo Disc visibly arms the next stroke', async ({page}) => {
+  await openGroove(page); await start(page); await slice(page)
+  await page.clock.runFor(1400)
+  const split = page.locator('.gn-vinyl[data-special="split"]')
+  await expect(split).toHaveCount(1)
+  const layer = Number(await split.getAttribute('data-layer'))
+  await page.keyboard.press(`Digit${layer+1}`)
+  await expect(page.locator('.gn-vinyl[data-fragment="true"]')).toHaveCount(2)
+  const before = Number(await page.getByTestId('groove-score').textContent())
+  await page.keyboard.press(`Digit${layer+1}`)
+  expect(Number(await page.getByTestId('groove-score').textContent())).toBeGreaterThan(before)
+  let found = false
+  for(let i=0;i<24&&!found;i++) {
+    await page.clock.runFor(300)
+    const discs = await page.locator('.gn-vinyl').evaluateAll(nodes=>nodes.map(el=>({layer:Number(el.getAttribute('data-layer')),y:Number(el.getAttribute('data-y')),axis:el.getAttribute('data-axis'),special:el.getAttribute('data-special')})))
+    for(const disc of discs) {
+      if(disc.y<=80||disc.y>=650)continue
+      await page.keyboard.press(`${disc.special==='arrow'&&disc.axis==='y'?'Shift+':''}Digit${disc.layer+1}`)
+      if(disc.special==='combo'){found=true;break}
+    }
+  }
+  expect(found).toBe(true)
+  await expect(page.locator('.gn-combo small')).toContainText('×2 LISTO')
+})
 test('the gold HUD pauses its rotation and the sound dojo respects reduced motion', async ({ page }) => {
   await openGroove(page)
   const icon = page.locator('.gn-hud-vinyl')
