@@ -4,6 +4,20 @@ Este repositorio contiene la app DANZ Collective. Mantener las decisiones y el
 trabajo pendiente en `docs/ARCADANZ_ROADMAP.md` y distinguir siempre lo probado,
 lo publicado y lo propuesto.
 
+## Seguimiento para no perder peticiones
+
+- El registro general vigente es `docs/REVISION_Y_PENDIENTES_DANZ_2026-11-15.md`.
+  Consultarlo junto con la hoja de ruta Arcade antes de continuar el proyecto.
+- Incorporar cada nueva petición al registro, con identificador, estado,
+  prioridad y siguiente acción. Conservar también tareas de app, música, fotos
+  y materiales externos aunque el bloque activo sea Arcade.
+- Al cerrar trabajo, actualizar la evidencia y el siguiente paso. Distinguir
+  implementado, probado y publicado; una promesa o una tarjeta «próximamente»
+  no completan una tarea. No volver a abrir un fallo resuelto sin nueva evidencia.
+- Las decisiones posteriores del usuario prevalecen sobre documentos históricos.
+  Yeppo Pilla-Pilla es persecución/escape con cambio de papeles, no tocar topos.
+  QR artísticos, stems y trabajo online conservan sus estados separados.
+
 Prioridad actual: biblioteca ARCADANZ, Yeppo, juegos y prueba móvil `/test`.
 La nueva integración de QR artísticos queda aplazada hasta que el usuario la
 necesite y la solicite; no dedicarle trabajo ni activarla en esta entrega.
