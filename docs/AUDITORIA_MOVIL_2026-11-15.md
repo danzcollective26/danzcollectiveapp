@@ -18,7 +18,7 @@ y reglas permanentes de trabajo. Los tres juegos nuevos son desarrollo pendiente
 | `/test` | Pantalla cargada bajo demanda, botones de paseo de 48 px y acceso a los juegos reales. Los juegos futuros se muestran como pendientes. No habilita permisos adicionales. |
 | Pantalla estrecha | Eliminado el mínimo global de 320 px que provocaba desplazamiento lateral al disponer de 305 px útiles por la barra de desplazamiento. Los tres botones de Yeppo miden 48 px de alto. |
 | QR Studio | Cliente Gradio únicamente en el servidor, Auth + MFA + permisos actuales, entradas acotadas, espera y cancelación, errores sin claves y descarga solo tras decodificar el contenido exacto. |
-| Servidor Vercel | Configuración TypeScript en la raíz para el compilador de Functions, que no usa referencias de proyecto. Reescritura de extensiones e interoperabilidad de módulos; cancelación de solicitudes activada en la función de QR. |
+| Servidor Vercel | Configuración TypeScript en la raíz para el compilador de Functions, que no usa referencias de proyecto. Reescritura de extensiones e interoperabilidad de módulos; importación estática de PNG para que Vercel incluya la dependencia y cancelación de solicitudes activada. |
 | Lectura de QR | Refuerzo local de contraste cuando el primer diseño IA no se lee, sin otra inferencia. Prueba real posterior: generación, descarga y lectura verificada en 35 segundos. |
 | Reglas | `AGENTS.md` incorpora consulta de documentación, uso proactivo de complementos, prioridad gratuita, revisión táctil, ruta `/test` y auditoría antes de entregar. |
 
