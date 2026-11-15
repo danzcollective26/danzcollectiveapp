@@ -1,6 +1,6 @@
 # DANZ Kart Mini y acabado gráfico — 15/11/2026
 
-## Alcance implementado, en verificación visual
+## Alcance publicado en PR 34
 
 J10: primera beta local de carreras cortas, integrada en ARCADANZ y `/test`.
 Dos trazados: Afterhours Dock y Backstage Ring. Tres vueltas, salida de 3 s,
@@ -64,3 +64,15 @@ Se añaden escenarios de navegador de acceso, carrera, pausa, controles,
 orientación, circuitos y offline; no se cuentan como ejecutados hasta obtener
 un resultado de CI. T04 conserva el bloqueo previo al arranque de jobs y T01
 la prueba física. Revisión conectada y publicación se añaden al cerrar el bloque.
+
+## Cierre de la entrega base
+
+PR 34, `92564a945ee5c5a22f403345e66e1fcbc9797632`, producción READY
+`dpl_G8Bn74WQx1LjqLhbtDUQ2kXWtd5C`. Revisión pública de Kart (carrera, pausa,
+circuitos, mandos), Jack, Vinyl Cut, Collecta Arena/Persecución y vista anónima
+del monedero. Scratch/Destrucción comparten rig compilado; no se afirma otra
+partida completa en esos modos. No se prueba saldo de una cuenta autenticada.
+
+La petición posterior amplía Kart a 3D y corrige los trazados y la parrilla.
+Su evidencia vigente está en `KART_PREMIUM_2026-11-16.md`; los tiempos de piloto
+de arriba son históricos de los trazados v1. CI 197 no ejecutó pasos (T04).

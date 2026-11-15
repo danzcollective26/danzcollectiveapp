@@ -60,7 +60,7 @@ function kartArt(c: CanvasRenderingContext2D, color: string) {
 }
 
 /** Artwork textures are created once. RAF sleeps on all menus and pauses. */
-export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(delta:number)=>void,ready:()=>void) {
+export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(delta:number)=>void,ready:()=>void,livery=0) {
   let disposed=false,lastTick=performance.now()
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)')
   class KartScene extends Phaser.Scene {
@@ -73,9 +73,9 @@ export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(del
       mapArt(map.getContext(),TRACKS[state.track]);map.refresh();this.add.image(0,0,'kart-track').setOrigin(0)
       this.effects=this.add.graphics()
       state.cars.forEach((car,id)=>{
-        const texture=this.textures.createCanvas(`kart-${id}`,96,96)!;kartArt(texture.getContext(),PALETTE[id]);texture.refresh()
+        const texture=this.textures.createCanvas(`kart-${id}`,96,96)!;kartArt(texture.getContext(),PALETTE[(livery+id)%4]);texture.refresh()
         this.cars.push(this.add.image(car.x,car.y,`kart-${id}`))
-        this.labels.push(this.add.text(car.x,car.y-26,state.mode==='race'&&id>0?`CREW ${id}`:`P${id+1}`,{fontFamily:'Arial',fontStyle:'bold',fontSize:14,color:PALETTE[id],backgroundColor:'#09151cbb',padding:{x:4,y:2}}).setOrigin(.5,1))
+        this.labels.push(this.add.text(car.x,car.y-26,state.mode==='race'&&id>0?`CREW ${id}`:`P${id+1}`,{fontFamily:'Arial',fontStyle:'bold',fontSize:14,color:PALETTE[(livery+id)%4],backgroundColor:'#09151cbb',padding:{x:4,y:2}}).setOrigin(.5,1))
       })
       if(!disposed)ready()
     }

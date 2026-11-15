@@ -1,6 +1,6 @@
 # DANZ: mejoras y próximos juegos
 
-Actualizado: 15 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZ Kart Mini sigue pendiente.
+Actualizado: 16 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZ Kart Mini tiene tres modos locales publicados (PR 34) y acabado 3D implementado en revisión (PR 35).
 
 Registro general de tareas, decisiones, dependencias y evidencia vigente:
 [Revisión y pendientes de DANZ](REVISION_Y_PENDIENTES_DANZ_2026-11-15.md).
@@ -64,7 +64,7 @@ Los modos online requieren además de los gráficos: salas, conexión y reconexi
 
 El usuario ha confirmado los tres: arena original inspirada en Bomberman, Yeppo
 Pilla-Pilla y DANZ Kart Mini. La aprobación corresponde a su desarrollo; el
-primer prototipo de Arena DANZ ya incluye duelo local. La nueva Persecución se integra dentro de DANZ Collecta; Kart y los modos online siguen pendientes. La biblioteca, Yeppo y `/test` ya tienen una primera entrega publicada; el
+primer prototipo de Arena DANZ ya incluye duelo local. La nueva Persecución se integra dentro de DANZ Collecta; Kart tiene beta local publicada en PR 34; los modos online siguen pendientes. La biblioteca, Yeppo y `/test` ya tienen una primera entrega publicada; el
 bloque actual reúne Arena y Persecución en DANZ Collecta. Las portadas existentes aprobadas no se vuelven a generar.
 
 ## Hugging Face y tareas aplazadas
@@ -160,12 +160,27 @@ CI 193 no ejecuta pasos (T04). Teléfonos físicos y FPS siguen pendientes en T0
 
 ## Gráficos y Kart — bloque solicitado después de los marcos
 
-J10 implementado en beta y en verificación: Crew Race, Contrarreloj y duelo
+J10 beta publicada en PR 34 (`92564a94`): Crew Race, Contrarreloj y duelo
 local con dos mandos enfrentados, dos circuitos, tres vueltas, derrape/impulso,
 colisiones, pausa y récord local por circuito. Integrado en biblioteca y `/test`.
 M06 incorpora materiales en Jack, rig/cabinas Groove y personajes/suelo en
 Collecta. Las portadas aprobadas y los marcos compactos se conservan.
 P05 recoge el inciso: DANZPOINTS como moneda visible y monedero del colectivo;
 el canje real y el historial transaccional siguen pendientes, sin saldos ficticios.
-Build y 227 pruebas internas correctos; revisión visual y publicación en curso.
+Build y 227 pruebas internas correctos; producción READY y revisión pública
+completada para la entrega base. El monedero se revisa anónimo, sin inventar
+saldo ni ejecutar canjes.
 Detalles: `DANZ_KART_MINI_2026-11-15.md`.
+
+## Kart premium — 16/11
+
+PR 35: Three.js 0.186.0, kart/piloto originales, escenario de muelle, materiales
+CC0 locales, cámara cercana o completa, minimapa, audio original, cuatro
+carrocerías, podio y ajustes persistentes. Corrección de trazados para impedir
+solapamientos, parrilla más espaciada y contacto ajustado al vehículo.
+
+Build y 229 pruebas internas pasan; render CPU de la geometría auditado. El
+navegador conectado tiene WebGL desactivado: se comprueba fallback 2D, sin
+afirmar validación GPU. T01/T04 conservan Android/iPhone, FPS, batería y
+regresión de navegador/offline. Atajos, objetos, fantasma y online posteriores.
+Detalles y fuentes: `KART_PREMIUM_2026-11-16.md`.

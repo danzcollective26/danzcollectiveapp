@@ -18,7 +18,7 @@ test('Kart opens from the library, drives, pauses and returns',async({page})=>{
   await expect(game).toHaveAttribute('data-elapsed',paused!)
   await game.getByRole('button',{name:'Salir de DANZ Kart Mini',exact:true}).click()
   await expect(page.getByRole('region',{name:'Biblioteca ARCADANZ',exact:true})).toBeVisible()
-  await expect(page.getByRole('button',{name:/04 \/ RACING · BETA LOCAL DANZ KART MINI/})).toBeVisible()
+  await expect(page.getByRole('button',{name:/04 \/ RACING · TRES MODOS DANZ KART MINI/})).toBeVisible()
 })
 test('Kart local duel exposes opposed, independent sticks and clears on rotation',async({page})=>{
   await page.setViewportSize({width:390,height:844})
@@ -43,4 +43,16 @@ test('Both circuits can be selected without changing the chosen mode',async({pag
   await expect(page.locator('.kart-game')).toHaveAttribute('data-track','backstage')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-mode','time')
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true')
+})
+
+test('Graphics can switch to compatible 2D and back without losing the mode',async({page})=>{
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true')
+  await page.getByText('AJUSTES DE LA SESIÓN',{exact:false}).click()
+  await page.getByLabel('GRÁFICOS',{exact:true}).selectOption('flat')
+  await expect(page.locator('.kart-game')).toHaveAttribute('data-render-mode','2d')
+  await expect(page.locator('.kart-board canvas')).toHaveCount(1)
+  await page.getByLabel('GRÁFICOS',{exact:true}).selectOption('lite')
+  await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true')
+  await expect(page.locator('.kart-board canvas')).toHaveCount(1)
 })
