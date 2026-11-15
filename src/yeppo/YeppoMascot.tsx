@@ -18,20 +18,20 @@ export default function YeppoMascot({expression='smirk'}:{expression?:YeppoMood}
   <g className="yeppo-limbs" fill="none" stroke="#4b3338" strokeWidth="20" strokeLinecap="round" strokeLinejoin="round">
    <path className="yeppo-left-arm" d="M77 97Q43 101 29 77T22 36"/>
    <path className="yeppo-right-arm" d="M112 94Q155 93 149 126"/>
-   <path d="M83 104Q63 135 53 162"/>
-   <path d="M109 104Q116 132 131 163"/>
+   <path className="yeppo-left-leg" d="M83 104Q63 135 53 162"/>
+   <path className="yeppo-right-leg" d="M109 104Q116 132 131 163"/>
   </g>
   <g className="yeppo-limbs-fill" fill="none" stroke="url(#yeppo-yellow)" strokeWidth="13" strokeLinecap="round" strokeLinejoin="round">
    <path className="yeppo-left-arm" d="M77 97Q43 101 29 77T22 36"/>
    <path className="yeppo-right-arm" d="M112 94Q155 93 149 126"/>
-   <path d="M83 104Q63 135 53 162"/>
-   <path d="M109 104Q116 132 131 163"/>
+   <path className="yeppo-left-leg" d="M83 104Q63 135 53 162"/>
+   <path className="yeppo-right-leg" d="M109 104Q116 132 131 163"/>
   </g>
   <g stroke="#4b3338" strokeWidth="6" strokeLinejoin="round" fill="url(#yeppo-yellow)">
    <path className="yeppo-left-hand" d="M12 41Q2 37 7 27L12 20Q17 16 19 22Q17 9 25 10Q32 11 29 21Q39 15 41 25Q42 34 30 37L25 45Q18 47 12 41Z"/>
    <path className="yeppo-right-hand" d="M139 128Q132 121 138 116Q143 111 147 116Q148 108 156 113Q162 117 159 122Q168 121 168 130Q166 141 155 141L146 140Q139 140 139 128Z"/>
-   <path d="M37 159Q29 166 30 173Q31 180 51 181Q77 185 75 173Q74 163 60 159Z"/>
-   <path d="M119 160Q115 170 121 177Q130 182 151 180Q162 179 157 171Q150 158 133 158Z"/>
+   <path className="yeppo-left-foot" d="M37 159Q29 166 30 173Q31 180 51 181Q77 185 75 173Q74 163 60 159Z"/>
+   <path className="yeppo-right-foot" d="M119 160Q115 170 121 177Q130 182 151 180Q162 179 157 171Q150 158 133 158Z"/>
   </g>
   <g className="yeppo-head" transform="translate(0 0)" fill="url(#yeppo-yellow)" stroke="#4b3338" strokeWidth="5.2">
    {Array.from({length:6},(_,i)=><ellipse key={i} cx="97" cy="39" rx="15.8" ry="24" transform={`rotate(${i*60} 97 70)`}/>)}
