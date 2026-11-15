@@ -87,3 +87,23 @@ test('Yeppo uses the DANZFLOR bag-inspired full-body flower with accessible chat
  await yeppo.click()
  await expect(page.getByRole('dialog',{name:'Hablar con Yeppo'})).toBeVisible()
 })
+
+test('Yeppo walkabout can be previewed on demand and visibly crosses the screen',async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('danz-yeppo-welcome-v1','done')
+  localStorage.setItem('danz-yeppo-enabled-v1','true')
+  sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Hablar con Yeppo'}).click()
+ await page.getByRole('button',{name:/VER A YEPPO PASEARSE/}).click()
+ const walk=page.getByTestId('yeppo-walkabout')
+ await expect(walk).toBeVisible()
+ const stage=walk.locator('.yeppo-roam-stage')
+ await expect(stage).toHaveClass(/yeppo-roam-demo/)
+ await expect(stage).toHaveCSS('animation-name','yeppo-scamper')
+ await expect(stage).toHaveCSS('animation-duration','8.2s')
+ await expect(walk.getByRole('button',{name:'Tocar a Yeppo para que reaccione'})).toBeVisible()
+ await walk.getByRole('button',{name:'HABLAR'}).click()
+ await expect(page.getByRole('dialog',{name:'Hablar con Yeppo'})).toBeVisible()
+})
