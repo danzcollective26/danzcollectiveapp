@@ -136,3 +136,17 @@
 @keyframes yeppo-surprise-head{0%,100%{transform:scale(1)}30%,65%{transform:scale(1.08)}}
 @media(max-width:500px){.yeppo-avatar .yeppo-character{width:76px;height:84px}.yeppo-peek-avatar .yeppo-character{width:58px;height:66px}.yeppo-welcome-face .yeppo-character{width:88px;height:100px}}
 @media(prefers-reduced-motion:reduce){.yeppo-character .yeppo-head,.yeppo-character .yeppo-left-arm,.yeppo-character .yeppo-left-hand,.yeppo-character .yeppo-right-arm{animation:none!important}}
+
+/* A small living character: alternating feet and tap reactions, never disruptive. */
+.yeppo-character .yeppo-left-leg,.yeppo-character .yeppo-right-leg{transform-origin:96px 106px;animation:yeppo-tiptoe-left 3.7s ease-in-out infinite}
+.yeppo-character .yeppo-right-leg{animation-name:yeppo-tiptoe-right}
+.yeppo-character .yeppo-left-foot{transform-origin:54px 162px;animation:yeppo-foot-left 3.7s ease-in-out infinite}
+.yeppo-character .yeppo-right-foot{transform-origin:130px 163px;animation:yeppo-foot-right 3.7s ease-in-out infinite}
+.yeppo-chat-launcher:active .yeppo-character,.yeppo-avatar:active .yeppo-character{animation:yeppo-tapped .42s cubic-bezier(.2,1.6,.3,1) both}
+.yeppo-chat-launcher:focus-visible,.yeppo-avatar:focus-visible{outline:3px solid #fff9ba;outline-offset:4px}
+@keyframes yeppo-tiptoe-left{0%,32%,72%,100%{transform:rotate(0deg)}44%{transform:rotate(7deg)}58%{transform:rotate(-3deg)}}
+@keyframes yeppo-tiptoe-right{0%,32%,72%,100%{transform:rotate(0deg)}44%{transform:rotate(-6deg)}58%{transform:rotate(3deg)}}
+@keyframes yeppo-foot-left{0%,32%,72%,100%{transform:translateY(0)}44%{transform:translateY(-8px)}}
+@keyframes yeppo-foot-right{0%,32%,72%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes yeppo-tapped{0%{transform:scale(1)}45%{transform:scale(1.17) rotate(-10deg)}100%{transform:scale(1.03) rotate(3deg)}}
+@media(prefers-reduced-motion:reduce){.yeppo-character .yeppo-left-leg,.yeppo-character .yeppo-right-leg,.yeppo-character .yeppo-left-foot,.yeppo-character .yeppo-right-foot,.yeppo-chat-launcher:active .yeppo-character,.yeppo-avatar:active .yeppo-character{animation:none!important}}
