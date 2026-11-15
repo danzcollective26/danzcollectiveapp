@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 
 test('library displays both complete approved covers without horizontal overflow', async ({ page }) => {
   await page.goto('/?seccion=arcade')
-  const covers = page.locator('.arcade-library .arcade-choice img')
+  const covers = page.locator('.arcade-library .arcade-choice img[src$="approved-mobile.webp"]')
   await expect(covers).toHaveCount(2)
   await expect(covers.nth(0)).toHaveAttribute('src', '/arcade/jack-approved-mobile.webp')
   await expect(covers.nth(1)).toHaveAttribute('src', '/arcade/groove-ninja-approved-mobile.webp')

@@ -98,7 +98,7 @@ test('offline reloads can open the static app; online navigations still enforce 
 })
 test('exact public arcade links reopen the shell offline without caching query URLs', async () => {
   const w = worker(); await w.lifetime('install'); w.state.offline = true
-  for (const path of ['/?seccion=arcade', '/?seccion=arcade&juego=groove-ninja', '/?juego=groove-ninja&seccion=arcade']) {
+  for (const path of ['/?seccion=arcade', '/?seccion=arcade&juego=groove-ninja', '/?juego=groove-ninja&seccion=arcade', '/test', '/test/', '/test?seccion=arcade&juego=arena', '/?seccion=arcade&juego=arena']) {
     assert.match(await (await w.request(path, 'navigate')!).text(), /danz-shell/)
   }
   assert.deepEqual([...w.buckets.get(prefix + 'current')!.keys()].sort(), [...paths].sort())
