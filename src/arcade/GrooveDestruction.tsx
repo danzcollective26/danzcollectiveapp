@@ -1,3 +1,4 @@
+import ClubRig from './ClubRig'
 import {useEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from 'react'
 import {DestructionFx,DestructionWeaponPreview} from './DestructionEffects'
 import './destruction.css'
@@ -142,7 +143,7 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
       <rect width="640" height="760" fill="url(#dn-room)"/>
       {Array.from({length:12},(_,i)=><path key={i} d={`M${i*70-120} 760 L320 210`} stroke="#dcca9144" strokeWidth="2"/>)}
       {Array.from({length:8},(_,i)=><path key={i} d={`M0 ${410+i*i*7} H640`} stroke="#dcca912d" strokeWidth="2"/>)}
-      <path d="M0 105H640" stroke="#d4b86a" strokeWidth="9"/><path d="M0 125H640" stroke="#171717" strokeWidth="12"/>
+      <ClubRig id="dn-rig"/><path d="M0 105H640" stroke="#d4b86a" strokeWidth="9"/><path d="M0 125H640" stroke="#171717" strokeWidth="12"/>
       {targets.map(t=><g key={t.id} transform={`translate(${t.x} ${t.y}) rotate(${t.spin})`} className="dn-target">
        <circle cy="6" r={t.radius+4} fill="#0008"/><circle r={t.radius} fill="url(#dn-record)" stroke={t.kind==='gold'?'#fbd877':t.kind==='shield'?'#a7e5ff':'#aeb0aa'} strokeWidth="4"/>
        {[.54,.67,.78,.9].map(s=><circle key={s} r={t.radius*s} fill="none" stroke="#dee0df66" strokeWidth=".8"/>)}

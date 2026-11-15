@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { bakeClubFloor, bakeClubPeople } from '../clubArtwork'
 import { ARENA_COLS, ARENA_ROWS, FUSE_MS, BLAST_MS, type Arena } from './engine'
 
 const S = 72
@@ -12,13 +13,17 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
   class ArenaScene extends Phaser.Scene {
     private floor!: Phaser.GameObjects.Graphics
     private moving!: Phaser.GameObjects.Graphics
+    private people!: Phaser.GameObjects.Image[]
     private labels!: Phaser.GameObjects.Text[]
     private previousTiles: Arena['tiles'] | null = null
     private previousState: Arena | null = null
     private display = [{ x: 1, y: 1 }, { x: 9, y: 7 }]
     create() {
+      bakeClubFloor(this,'arena-material',ARENA_COLS*S,ARENA_ROWS*S)
+      bakeClubPeople(this,'#edbf86')
       this.floor = this.add.graphics()
       this.moving = this.add.graphics()
+      this.people = [0,1].map(id=>this.add.image(0,0,`club-${id===0?'security':'yeppo'}-0`).setDisplaySize(65,76))
       this.labels = [0, 1].map(id => this.add.text(0, 0, id === 1 && solo ? 'CREW / AUTO' : `P${id+1} / ${id===0 ? 'CONTROL' : 'CREW'}`, { fontFamily: 'Arial, sans-serif', fontStyle: 'bold', fontSize: 16, color: hex(COLORS[id]), backgroundColor: '#0c121bcc', padding: { x: 5, y: 2 } }).setOrigin(.5, 1))
       this.add.text(S * 5.5, 10, solo ? 'COLLECTA / ÚLTIMO TURNO' : 'COLLECTA / CIERRE DE PISTA', { fontFamily: 'Arial, sans-serif', fontSize: 13, fontStyle: 'bold', color: '#b7c5ca', letterSpacing: 4 }).setOrigin(.5, 0)
       if (!disposed) ready()
@@ -39,7 +44,7 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
         bg.clear()
         state.tiles.forEach((tile, cell) => {
           const x = cell % ARENA_COLS * S, y = Math.floor(cell / ARENA_COLS) * S
-          bg.fillStyle((cell + Math.floor(cell / ARENA_COLS)) % 2 ? 0x1a2933 : 0x1d2f39).fillRect(x, y, S, S)
+          bg.fillStyle((cell + Math.floor(cell / ARENA_COLS)) % 2 ? 0x1a2933 : 0x1d2f39, .24).fillRect(x, y, S, S)
           bg.lineStyle(1, 0x7894a0, .12).strokeRect(x + 2, y + 2, S - 4, S - 4)
           if (tile === 1) {
             bg.fillStyle(0x090e16, .8).fillRoundedRect(x + 7, y + 16, 60, 53, 8)
@@ -95,20 +100,13 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
         display.x += (p.x - display.x) * factor; display.y += (p.y - display.y) * factor
         const x = (display.x + .5) * S, y = (display.y + .5) * S
         this.labels[id].setPosition(x, y - 33).setVisible(p.alive)
+        this.people[id].setVisible(p.alive)
         if (!p.alive) return
-        const bob = reduced || state.phase !== 'playing' ? 0 : Math.sin(time / 130 + id) * 1.5
-        g.fillStyle(0x000000, .4).fillEllipse(x, y + 23, 45, 16)
-        g.lineStyle(7, 0x111922).lineBetween(x - 9, y + 9, x - 12, y + 23 + bob).lineBetween(x + 9, y + 9, x + 12, y + 23 - bob)
-        g.lineStyle(8, COLORS[id]).lineBetween(x - 14, y + 22 + bob, x - 5, y + 22 + bob).lineBetween(x + 6, y + 22 - bob, x + 15, y + 22 - bob)
-        for (let i = 0; i < 6; i++) {
-          const angle = i * Math.PI / 3 - Math.PI / 2
-          g.fillStyle(0x0a111b).fillCircle(x + Math.cos(angle) * 15, y - 6 + Math.sin(angle) * 15 + bob, 12)
-          g.fillStyle(COLORS[id]).fillCircle(x + Math.cos(angle) * 15, y - 8 + Math.sin(angle) * 15 + bob, 10)
-        }
-        g.fillStyle(COLORS[id]).fillCircle(x, y - 8 + bob, 17)
-        g.fillStyle(0x15212a).fillRoundedRect(x - 13, y - 15 + bob, 26, 13, 5)
-        g.fillStyle(0xfff7db).fillRect(x - 8, y - 12 + bob, 4, 5).fillRect(x + 4, y - 12 + bob, 4, 5)
-        g.lineStyle(2, 0x253236).lineBetween(x - 5, y + 3 + bob, x + 5, y + 3 + bob)
+        const walking = state.phase === 'playing' && Math.abs(display.x-p.x)+Math.abs(display.y-p.y)>.01
+        const frame = !reduced && walking ? Math.floor(time/110)%2 : 0
+        const bob = !reduced && walking ? Math.sin(time/90)*1.2 : 0
+        this.people[id].setVisible(p.alive).setPosition(x,y-9-bob).setTexture(`club-${id===0?'security':'yeppo'}-${frame}`)
+
       })
     }
   }

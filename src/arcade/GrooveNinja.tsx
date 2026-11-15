@@ -1,4 +1,5 @@
 import GameSurface from './GameSurface'
+import ClubRig from './ClubRig'
 import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
 import { memo, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
@@ -269,7 +270,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           <rect width="640" height="760" fill="url(#gn-floor)"/>
           <rect width="640" height="760" fill="url(#gn-grain)"/><rect width="640" height="760" fill="url(#gn-light)"/>
           <ellipse cx="320" cy="355" rx="330" ry="280" fill={GROOVE_WEAPONS[game.weapon].color} opacity=".065"/>
-          <CabinetDetails/>
+          <CabinetDetails/><ClubRig id="gn-rig"/>
           <rect className="gn-stage-light" width="640" height="760" fill={stage === 1 ? '#c07431' : stage === 2 ? '#154d72' : '#692f65'} opacity=".14"/>
           {stage > 1 && <g className="gn-stage-beams" opacity={stage === 3 ? .2 : .12} fill={stage === 3 ? '#f38be7' : '#71caff'}><path d="M20 0 120 0 420 650 240 650Z"/><path d="M520 0 620 0 390 650 220 650Z"/></g>}
           {game.freezeUntil > game.elapsed && <g className="gn-freeze-effect"><rect x="19" y="80" width="602" height="575" rx="6" fill="#94edff" opacity=".14" stroke="#9eeaff" strokeWidth="4"/><text x="320" y="111" textAnchor="middle" fill="#c6f8ff" fontSize="19" fontWeight="900">❄ CÁMARA LENTA · {Math.ceil((game.freezeUntil - game.elapsed) / 1000)}s</text></g>}

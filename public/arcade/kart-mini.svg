@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+ <defs><linearGradient id="sky" x2=".7" y2="1"><stop stop-color="#617166"/><stop offset=".5" stop-color="#213e40"/><stop offset="1" stop-color="#07161f"/></linearGradient><linearGradient id="lime"><stop stop-color="#eaffb9"/><stop offset=".45" stop-color="#c9f56d"/><stop offset="1" stop-color="#64814b"/></linearGradient><linearGradient id="steel" x2="0" y2="1"><stop stop-color="#e6e9d3"/><stop offset=".25" stop-color="#7b8d88"/><stop offset=".52" stop-color="#243c42"/><stop offset="1" stop-color="#0e202a"/></linearGradient><linearGradient id="road" x2="0" y2="1"><stop stop-color="#6e7771"/><stop offset="1" stop-color="#1a2c33"/></linearGradient><radialGradient id="shine"><stop stop-color="#e9e0b1" stop-opacity=".3"/><stop offset="1" stop-color="#c9d9a8" stop-opacity="0"/></radialGradient><pattern id="checks" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M0 0H16V16H0ZM16 16H32V32H16Z" fill="#edf1d0"/><path d="M16 0H32V16H16ZM0 16H16V32H0Z" fill="#142a2c"/></pattern></defs>
+ <path fill="url(#sky)" d="M0 0H600V800H0Z"/><circle cx="460" cy="170" r="280" fill="url(#shine)"/>
+ <g fill="none" stroke="#a9c6ac" opacity=".12"><path d="M-50 400 700 100M-50 430 700 130M-50 460 700 160M-50 490 700 190M-50 520 700 220M-50 550 700 250M-50 580 700 280"/></g>
+ <path d="M-50 650Q30 370 250 355T630 170" fill="none" stroke="#071a24" stroke-width="172"/><path d="M-50 628Q30 348 250 333T630 148" fill="none" stroke="#82988b" stroke-width="158"/><path d="M-50 628Q30 348 250 333T630 148" fill="none" stroke="#c0c6a6" stroke-dasharray="18 18" stroke-width="149"/><path d="M-50 628Q30 348 250 333T630 148" fill="none" stroke="url(#road)" stroke-width="130"/><path d="M-50 628Q30 348 250 333T630 148" fill="none" stroke="#a2b39b" stroke-dasharray="14 24" stroke-width="2"/>
+ <g transform="translate(285 397) rotate(-18)">
+  <ellipse cy="87" rx="196" ry="65" fill="#07151b" opacity=".65"/>
+  <g fill="#0a171c" stroke="#617876" stroke-width="4"><rect x="-166" y="-37" width="65" height="67" rx="17"/><rect x="112" y="-37" width="65" height="67" rx="17"/><rect x="-161" y="74" width="65" height="66" rx="17"/><rect x="107" y="74" width="65" height="66" rx="17"/></g>
+  <path d="M-152 4H157M-144 104H150" stroke="url(#steel)" stroke-width="13"/>
+  <path d="M-123-21Q-147-42-115-59L103-59Q144-46 125-21L108 116Q0 149-113 116Z" fill="#172f35" stroke="#91a19a" stroke-width="3"/>
+  <path d="M-119-32Q-127-48-104-51H96Q125-45 118-32L97 105Q0 126-101 105Z" fill="url(#lime)"/>
+  <path d="M-96-44H96L83-25H-90Z" fill="#edffbf" opacity=".6"/>
+  <rect x="-50" y="-48" width="99" height="115" rx="25" fill="#122a32" stroke="#50726d" stroke-width="5"/>
+  <path d="M-134 102Q0 141 138 102V128Q0 165-134 127Z" fill="url(#steel)" stroke="#b5c5a5" stroke-width="3"/><path d="M-127 106Q0 142 131 106" fill="none" stroke="#e2ff9e" stroke-width="8"/>
+  <path d="M-140-70H139L137-41H-138Z" fill="url(#steel)"/><path d="M-136-68H136V-57H-136Z" fill="#d7efb1"/>
+  <g transform="translate(0 -24)"><ellipse cy="14" rx="42" ry="40" fill="#071a22"/><path d="M-41 8Q-43-44 0-48T42 8L28 28H-28Z" fill="#e4d8b4" stroke="#89998b" stroke-width="3"/><path d="M-34-11Q0-28 35-11L28 10Q0 25-29 9Z" fill="#172e3b"/><path d="M-26-12Q0-20 27-11" fill="none" stroke="#b1dcd5" stroke-width="3"/><path d="M-4-45V-28" stroke="#c9f56d" stroke-width="8"/></g>
+  <path d="M-40 13-66 48M40 13 66 48" stroke="#1b3439" stroke-width="16" stroke-linecap="round"/><path d="M-43 12-66 43M43 12 66 43" stroke="#e4c49c" stroke-width="9" stroke-linecap="round"/>
+  <ellipse cy="48" rx="43" ry="16" fill="none" stroke="#172d32" stroke-width="7"/><path d="M-5 49V64M5 49V64" stroke="#d1ddc0" stroke-width="4"/>
+  <path d="M-28 85H28V111H-28Z" fill="#e9efd0"/><text y="106" text-anchor="middle" font-family="Arial" font-weight="900" font-size="23" fill="#263c34">04</text>
+ </g>
+ <g stroke="#d9ff91" stroke-width="3" fill="none" opacity=".7"><path d="m60 500-40 32M94 542 39 597M490 368l56-22M520 395l64-19"/></g>
+ <path d="M0 600H600V800H0Z" fill="#0a1a22" opacity=".82"/><path d="M0 606H600V620H0Z" fill="url(#checks)"/>
+ <text x="30" y="654" fill="#d1ed94" font-family="Arial" font-size="12" letter-spacing="4" font-weight="700">COLLECTIVE RACING DEPARTMENT</text><text x="25" y="721" fill="#f0f0d7" font-family="Impact,Arial Narrow,Arial" font-size="62" font-weight="900" letter-spacing="-3">DANZ KART</text><text x="30" y="765" fill="#d3f892" font-family="Arial" font-size="36" font-weight="900" letter-spacing="13">MINI.</text><text x="30" y="34" fill="#edf4d5" font-family="Arial" font-size="11" letter-spacing="3" font-weight="700">ARCADANZ ORIGINAL / 004</text>
+</svg>

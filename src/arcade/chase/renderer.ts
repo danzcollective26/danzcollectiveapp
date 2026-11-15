@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { bakeClubFloor, bakeClubPeople } from '../clubArtwork'
 import { CHASE_WIDTH as W, CHASE_HEIGHT as H, CHASE_OBSTACLES, CHASE_RADIUS, type Chase } from './engine'
 
 const COLORS = [0xffd36e, 0x86e4dc]
@@ -13,12 +14,14 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
     private labels!: Phaser.GameObjects.Text[]
     private stamp!: Phaser.GameObjects.Text
     private previous: Chase | null = null
-    preload() { this.load.svg('yeppo-head', '/arcade/chase/yeppo-face.svg', { width: 110, height: 110 }) }
+
     create() {
+      bakeClubFloor(this,'chase-material',W,H)
+      bakeClubPeople(this,'#e5c488')
       const g = this.add.graphics()
-      g.fillStyle(0x131f27).fillRoundedRect(0, 0, W, H, 20)
+      g.fillStyle(0x131f27,.1).fillRoundedRect(0, 0, W, H, 20)
       for (let x = 20; x < W; x += 60) for (let y = 20; y < H; y += 60) {
-        g.fillStyle((x + y) % 120 ? 0x1e3037 : 0x23373c).fillRoundedRect(x, y, 57, 57, 4)
+        g.fillStyle((x + y) % 120 ? 0x1e3037 : 0x23373c,.18).fillRoundedRect(x, y, 57, 57, 4)
         g.lineStyle(1, 0x8caa9e, .08).lineBetween(x + 3, y + 2, x + 54, y + 2)
       }
       g.lineStyle(3, 0x8bb3aa, .7).strokeRoundedRect(10, 10, W - 20, H - 20, 17)
@@ -42,7 +45,7 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
       this.add.text(W / 2, 40, 'COLLECTA / PASA EL MARRÓN', { fontFamily: 'Arial', fontSize: 16, fontStyle: 'bold', color: '#d9c5a0', letterSpacing: 4 }).setOrigin(.5)
       this.add.text(W / 2, H - 35, 'PILLA · PASA LA FACTURA · ESCAQUÉATE', { fontFamily: 'Arial', fontSize: 13, color: '#92a7a5', letterSpacing: 5 }).setOrigin(.5)
       this.moving = this.add.graphics()
-      this.heads = [0, 1].map(() => this.add.image(0, 0, 'yeppo-head').setDisplaySize(62, 62))
+      this.heads = [0, 1].map(id => this.add.image(0, 0, `club-${id===0?'security':'yeppo'}-0`).setDisplaySize(76,89))
       this.labels = [0, 1].map(id => this.add.text(0, 0, `P${id + 1}`, { fontFamily: 'Arial', fontSize: 18, fontStyle: 'bold', color: color(COLORS[id]), backgroundColor: '#0d1822', padding: { x: 7, y: 3 } }).setOrigin(.5, 1))
       this.stamp = this.add.text(W/2,H/2+94,'TRÁMITE CERRADO', {fontFamily:'Arial',fontSize:18,fontStyle:'bold',color:'#22443c',backgroundColor:'#f2dba8',padding:{x:16,y:8}}).setOrigin(.5).setVisible(false)
       if (!disposed) ready()
@@ -66,12 +69,8 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         g.fillStyle(0x000000, .4).fillEllipse(p.x, p.y + 25, 56, 20)
         g.lineStyle(id === s.hunter ? 4 : 2, COLORS[id], id === s.hunter ? 1 : .5).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 7)
         if (s.elapsed < s.protectedUntil && id !== s.hunter) g.lineStyle(2, 0xffffff, .65).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 12)
-        g.lineStyle(8, 0x4b3338).lineBetween(p.x - 9, p.y + 9, p.x - 14 + step, p.y + 25).lineBetween(p.x + 9, p.y + 9, p.x + 14 - step, p.y + 25)
-        g.lineStyle(5, 0xffd36e).lineBetween(p.x - 9, p.y + 9, p.x - 14 + step, p.y + 25).lineBetween(p.x + 9, p.y + 9, p.x + 14 - step, p.y + 25)
-        g.lineStyle(7, 0x4b3338).lineBetween(p.x - 20, p.y, p.x - 31, p.y + step).lineBetween(p.x + 20, p.y, p.x + 31, p.y - step)
-        g.lineStyle(4, 0xffd36e).lineBetween(p.x - 20, p.y, p.x - 31, p.y + step).lineBetween(p.x + 20, p.y, p.x + 31, p.y - step)
-        g.fillStyle(COLORS[id]).fillRoundedRect(p.x - 17, p.y + 6, 34, 7, 3)
-        this.heads[id].setPosition(p.x, p.y - 13 - bob).setAngle(media.matches || !running ? 0 : step * .6)
+        const frame = !media.matches && running ? Math.floor(time/110)%2 : 0
+        this.heads[id].setPosition(p.x,p.y-10-bob).setTexture(`club-${id===0?'security':'yeppo'}-${frame}`)
         if (id === s.hunter) {
           const rx = Math.min(W-25,p.x+32), ry = Math.max(16,p.y-12)
           g.fillStyle(0x000000,.3).fillRoundedRect(rx-8,ry-10,21,28,2)

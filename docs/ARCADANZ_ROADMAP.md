@@ -157,3 +157,15 @@ sombras y rellenos. Borde de 1 px y margen inmersivo de 4 px respetando áreas
 seguras, sin cambiar coordenadas ni controles. Build correcto y revisión visual
 en tres tamaños; auditoría `AUDITORIA_MARCOS_ARCADE_2026-11-15.md`.
 CI 193 no ejecuta pasos (T04). Teléfonos físicos y FPS siguen pendientes en T01.
+
+## Gráficos y Kart — bloque solicitado después de los marcos
+
+J10 implementado en beta y en verificación: Crew Race, Contrarreloj y duelo
+local con dos mandos enfrentados, dos circuitos, tres vueltas, derrape/impulso,
+colisiones, pausa y récord local por circuito. Integrado en biblioteca y `/test`.
+M06 incorpora materiales en Jack, rig/cabinas Groove y personajes/suelo en
+Collecta. Las portadas aprobadas y los marcos compactos se conservan.
+P05 recoge el inciso: DANZPOINTS como moneda visible y monedero del colectivo;
+el canje real y el historial transaccional siguen pendientes, sin saldos ficticios.
+Build y 227 pruebas internas correctos; revisión visual y publicación en curso.
+Detalles: `DANZ_KART_MINI_2026-11-15.md`.

@@ -378,3 +378,21 @@ Petición: el marco exterior ocupa demasiado. Publicado en PR 33,
   de teléfono físico, FPS o batería. No se añaden dependencias ni bucles de resize.
 - A05 queda cerrado para esta presentación adaptable. El resto de pendientes,
   DC04, T01, T04, música/BPM, online, Kart y retorno de Gemini, conserva su estado.
+
+
+## 17. Gráficos, DANZ Kart Mini y moneda visible — bloque activo
+
+El propietario pide mejorar todos los gráficos y desarrollar ya Kart (M06/J10).
+Como inciso, quiere DANZPOINTS como moneda visible, para ahorrar y gastar (P05).
+
+- J10: primera beta local implementada, en verificación. Crew Race contra tres
+  rivales, Contrarreloj con mejor sesión local y duelo con mandos enfrentados;
+  dos circuitos, tres vueltas, derrape cargado, impulso, freno y colisiones.
+- M06: cable Jack con materiales/conector; cabinas Groove/Destrucción con rig
+  y altavoces; suelo iluminado y sprites ilustrados de encargado/Yeppo en
+  Collecta. Se conservan portadas exactas, motores existentes y marcos compactos.
+- P05: moneda gráfica y monedero implementados sobre el saldo real existente;
+  se separa disponible/reservado. Catálogo, precios, historial transaccional y
+  canje real quedan pendientes en P03/P05. No inventar saldo ni compras de prueba.
+- Build y 227 pruebas internas correctos, ocho nuevas de Kart. Auditoría visual,
+  jugabilidad y publicación en curso; no contar esta línea como producción.
