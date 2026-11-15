@@ -10,3 +10,10 @@
 .arena-solo .versus-controller{--versus-turn:0deg;width:min(100%,440px);height:104px;margin-inline:auto}
 .arena-solo .versus-face{width:calc(100% - 12px);max-width:420px;height:94px;gap:18px}
 .arena-solo .arena-round>span:last-child{display:block;color:var(--arena-rose)}
+@media(orientation:landscape) and (max-height:540px){
+ .arena-solo .arena-layout.versus-layout{grid-template-columns:224px minmax(0,1fr);grid-template-rows:minmax(130px,1fr);width:min(100%,1320px)}
+ .arena-solo .versus-layout>.versus-board{grid-column:2;grid-row:1}
+ .arena-solo .versus-layout>.versus-p1{grid-column:1;grid-row:1}
+ .arena-solo .versus-controller{width:224px;height:112px}
+ .arena-solo .versus-face{width:212px;gap:7px}
+}

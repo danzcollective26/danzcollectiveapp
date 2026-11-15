@@ -44,6 +44,11 @@ test('solo reuses P1 joystick upright and responds to movement in three sizes', 
     expect(rect.x).toBeGreaterThanOrEqual(0); expect(rect.y + rect.height).toBeLessThanOrEqual(size.height)
     const matrix = await page.locator('.versus-face').evaluate(el => getComputedStyle(el).transform)
     expect(matrix).toMatch(/^matrix\(1, 0, 0, 1,/)
+    if (size.width > size.height) {
+      const canvas = (await page.locator('.arena-board canvas').boundingBox())!
+      expect(canvas.height).toBeGreaterThan(280)
+      expect(rect.x + rect.width).toBeLessThan(canvas.x)
+    }
     await page.getByRole('button', { name: 'EMPEZAR TURNO', exact: true }).click()
     await stick.focus(); await page.keyboard.down('ArrowRight')
     await expect.poll(() => page.locator('.arena-game').getAttribute('data-p1')).not.toBe('1,1')
