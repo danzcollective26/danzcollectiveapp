@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from 'react'
+import {DestructionFx,DestructionWeaponPreview} from './DestructionEffects'
 import './destruction.css'
 
 export type DestructionWeapon='blaster'|'scatter'|'laser'|'paint'|'cannon'|'boomerang'|'flower'|'yeppo'
@@ -39,14 +40,17 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
  const [missed,setMissed]=useState(0)
  const [targets,setTargets]=useState<DestructionTarget[]>([])
  const [shot,setShot]=useState<DestructionShot|null>(null)
+ const [showImpact,setShowImpact]=useState(false)
  const [message,setMessage]=useState('¡Elige tu arma, apunta y dispara!')
  const board=useRef<SVGSVGElement>(null)
  const game=useRef({elapsed:0,targets:[] as DestructionTarget[],id:0,spawn:0,last:0,running:false,lastFire:0,combo:0,score:0,best:0,missed:0})
  const selected=useRef(weapon)
+ const impactTimer=useRef<number|null>(null)
  selected.current=weapon
+ useEffect(()=>()=>{if(impactTimer.current)clearTimeout(impactTimer.current)},[])
  const reset=()=>{
   game.current={elapsed:0,targets:[],id:0,spawn:0,last:0,running:true,lastFire:-1000,combo:0,score:0,best:0,missed:0}
-  setElapsed(0);setScore(0);setCombo(0);setBest(0);setMissed(0);setShot(null);setTargets([]);setMessage('¡FUEGO A LOS VINILOS!');setRunning(true)
+  setElapsed(0);setScore(0);setCombo(0);setBest(0);setMissed(0);setShot(null);setShowImpact(false);setTargets([]);setMessage('¡FUEGO A LOS VINILOS!');setRunning(true)
  }
  useEffect(()=>{
   game.current.running=running
@@ -90,8 +94,27 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
   if(g.elapsed-g.lastFire<w.cooldown)return
   g.lastFire=g.elapsed
   let n=0,earned=0
+  // Different weapons have different impact geometry and effective damage.
+  // Laser hits a vertical column; scatter uses a wedge; boomerang ricochets.
+  const angleTo=(tx:number,ty:number)=>Math.atan2(ty-760,tx-320)
+  const aimAngle=angleTo(hit.x,hit.y)
+  const candidates=g.targets.filter(t=>{
+   if(selected.current==='laser')return Math.abs(t.x-hit.x)<=w.radius+t.radius*.3
+   if(selected.current==='scatter'){
+    const diff=Math.atan2(Math.sin(angleTo(t.x,t.y)-aimAngle),Math.cos(angleTo(t.x,t.y)-aimAngle))
+    return Math.abs(diff)<.22 && Math.hypot(t.x-hit.x,t.y-hit.y)<175+t.radius
+   }
+   return destructionHit(t,hit.x,hit.y,w.radius)
+  })
+  let hitTargets=candidates
+  if(selected.current==='boomerang'&&candidates.length){
+   const first=[...candidates].sort((a,b)=>Math.hypot(a.x-hit.x,a.y-hit.y)-Math.hypot(b.x-hit.x,b.y-hit.y))[0]
+   const second=g.targets.filter(t=>t.id!==first.id).sort((a,b)=>Math.hypot(a.x-first.x,a.y-first.y)-Math.hypot(b.x-first.x,b.y-first.y))[0]
+   hitTargets=[first,...(second&&Math.hypot(second.x-first.x,second.y-first.y)<170?[second]:[])]
+  }
+  const ids=new Set(hitTargets.map(t=>t.id))
   g.targets=g.targets.filter(t=>{
-   if(!destructionHit(t,hit.x,hit.y,w.radius))return true
+   if(!ids.has(t.id))return true
    t.hp-=w.damage
    if(t.hp<=0){n++;g.combo++;g.best=Math.max(g.best,g.combo);earned+=destructionScore(t.kind,g.combo);return false}
    return true
@@ -101,7 +124,9 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
   setTargets([...g.targets])
   const timestamp=Date.now()
   setShot({x:hit.x,y:hit.y,born:timestamp,weapon:selected.current,hits:n})
-  window.setTimeout(()=>setShot(previous=>previous?.born===timestamp?null:previous),240)
+  setShowImpact(true)
+  if(impactTimer.current)clearTimeout(impactTimer.current)
+  impactTimer.current=window.setTimeout(()=>{setShot(previous=>previous?.born===timestamp?null:previous);setShowImpact(false)},650)
  }
  const leave=()=>{setRunning(false);onBack()}
  return <section className="content inner-page dn-page" aria-label="Groove Ninja Modo Destrucción">
@@ -109,8 +134,9 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
   <header className="dn-heading"><span>ARCADANZ / GROOVE NINJA</span><h1>MODO<br/><em>DESTRUCCIÓN.</em></h1><p>Vinilos al vuelo. Ocho armas absurdas. Sesiones de 60 segundos. Aquí no se cortan: ¡se hacen trizas!</p></header>
   <div className="dn-layout">
    <section className="dn-weapons" aria-label="Elegir arma de destrucción"><h2>ARSENAL DEL CAOS</h2><div className="dn-weapon-grid">{keys.map(key=><button type="button" key={key} aria-pressed={weapon===key} onClick={()=>setWeapon(key)}><span className="dn-weapon-symbol" aria-hidden="true">{DESTRUCTION_WEAPONS[key].icon}</span><span><strong>{DESTRUCTION_WEAPONS[key].name}</strong><small>{DESTRUCTION_WEAPONS[key].description}</small></span></button>)}</div><p>Apunta tocando el disco. Cada arma tiene alcance, potencia y tiempo de recarga propios. Los blindados necesitan más de un impacto.</p></section>
-   <div className="dn-stage"><div className="dn-hud"><div>PUNTOS <strong data-testid="destruction-score">{score.toLocaleString('es-ES')}</strong></div><div>TIEMPO <strong>{Math.ceil((DESTRUCTION_DURATION-elapsed)/1000)}s</strong></div><div>COMBO <strong>×{Math.min(4,1+Math.floor(combo/5))}</strong></div></div>
+   <div className={`dn-stage dn-stage-${weapon}${showImpact?" dn-stage-impact":""}`} data-current-weapon={weapon}><div className="dn-hud"><div>PUNTOS <strong data-testid="destruction-score">{score.toLocaleString('es-ES')}</strong></div><div>TIEMPO <strong>{Math.ceil((DESTRUCTION_DURATION-elapsed)/1000)}s</strong></div><div>COMBO <strong>×{Math.min(4,1+Math.floor(combo/5))}</strong></div></div>
     <div className="dn-board-wrap">
+     <div className="dn-weapon-title" aria-live="polite"><b>{DESTRUCTION_WEAPONS[weapon].icon} {DESTRUCTION_WEAPONS[weapon].name.toUpperCase()}</b><span>{DESTRUCTION_WEAPONS[weapon].description}</span></div>
      <svg ref={board} onPointerDown={fire} viewBox="0 0 640 760" className="dn-board" role="img" aria-label="Dianas de vinilo para disparar" style={{touchAction:'none'}}>
       <defs><radialGradient id="dn-record"><stop stopColor="#525251"/><stop offset=".37" stopColor="#11151a"/><stop offset=".7" stopColor="#343940"/><stop offset="1" stopColor="#090d12"/></radialGradient><radialGradient id="dn-room"><stop stopColor="#535649"/><stop offset=".7" stopColor="#252c32"/><stop offset="1" stopColor="#111418"/></radialGradient></defs>
       <rect width="640" height="760" fill="url(#dn-room)"/>
@@ -123,12 +149,9 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
        <circle r={t.radius*.38} fill={t.kind==='gold'?'#edc965':t.kind==='shield'?'#96c5d1':'#dc725a'}/><circle r={t.radius*.12} fill="#161310"/>
        {t.kind==='shield'&&<text textAnchor="middle" y={-t.radius-9} fontSize="21" fill="#d2eeff">◆ {t.hp}</text>}
       </g>)}
-      {shot&&<g className="dn-shot" transform={`translate(${shot.x} ${shot.y})`} key={shot.born}>
-       <circle r={DESTRUCTION_WEAPONS[shot.weapon].radius*.75} fill="none" stroke={DESTRUCTION_WEAPONS[shot.weapon].color} strokeWidth="7"/>
-       <circle r="13" fill="#fff8e6" stroke={DESTRUCTION_WEAPONS[shot.weapon].color} strokeWidth="5"/>
-       {Array.from({length:9},(_,i)=><path key={i} d="M24 0L76 0" stroke={i%2?'#fff2bb':DESTRUCTION_WEAPONS[shot.weapon].color} strokeWidth={i%2?2:6} transform={`rotate(${i*40})`}/>)}
-      </g>}
+      {shot&&<DestructionFx key={shot.born} shot={shot}/>} 
      </svg>
+     <DestructionWeaponPreview weapon={weapon}/>
      {!running&&<div className="dn-overlay"><strong>{elapsed>=DESTRUCTION_DURATION?'¡CABINA DESTROZADA!':'¿PREPARADO PARA EL CAOS?'}</strong><p>{elapsed>=DESTRUCTION_DURATION?`${score} PUNTOS · MEJOR RACHA ${best} · ${missed} VINILOS ESCAPADOS`:'Elige un arma y apunta a los discos. Los dorados puntúan más; los azules son blindados.'}</p><button type="button" onClick={reset}>{elapsed>=DESTRUCTION_DURATION?'OTRA DESTRUCCIÓN':'¡EMPEZAR DESTRUCCIÓN!'}</button>{elapsed>0&&elapsed<DESTRUCTION_DURATION&&<button type="button" className="dn-resume" onClick={()=>setRunning(true)}>REANUDAR PARTIDA</button>}</div>}
     </div>
     <div className="dn-footer"><span role="status">{message}</span><button type="button" onClick={()=>setRunning(x=>!x)} disabled={elapsed===0||elapsed>=DESTRUCTION_DURATION}>{running?'PAUSAR':'REANUDAR'}</button></div>
