@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {YEPPOLINE_COUNT,yeppoMessage} from '../src/yeppo/messages.ts'
+import {YEPPOLINE_COUNT,YEPPOLINES,yeppoMessage} from '../src/yeppo/messages.ts'
 import {DAILY_MAX,MIN_GAP_MS,mayAppear,dismissed,nextPhrase} from '../src/yeppo/rules.ts'
 import {yeppoGuide,YEPPO_SUGGESTIONS} from '../src/yeppo/guide.ts'
 
@@ -51,4 +51,17 @@ test('Yeppo offers feedback intake rather than generic navigation on explicit er
  assert.equal(idea.destination,undefined)
  assert.equal(yeppoGuide('¿Dónde están mis fotos?').destination,'fotos')
  assert.equal(yeppoGuide('Ponme un reto').destination,'arcade')
+})
+
+test('Yeppo one-liners are short, direct and safe without invented facts',()=>{
+ assert.ok(YEPPOLINE_COUNT>=35)
+ for(const [kind,lines] of Object.entries(YEPPOLINES)){
+  assert.ok(lines.length>=4,kind)
+  for(const line of lines){
+   assert.ok(line.length<=66,`${kind}: ${line}`)
+   assert.ok(!line.includes('horizontes'),`No over-written filler: ${line}`)
+  }
+ }
+ assert.equal(yeppoMessage('fotos',0,{}),null)
+ assert.match(yeppoMessage('regreso',0,{dias:3})??'',/3 días/)
 })
