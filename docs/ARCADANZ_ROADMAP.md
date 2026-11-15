@@ -2,12 +2,12 @@
 
 Actualizado: 15 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena DANZ tiene un primer prototipo local; Yeppo Pilla-Pilla y DANZ Kart Mini siguen pendientes.
 
-## Bloque actual
+## Base ya publicada
 
-- Integrar las dos portadas exactas aprobadas: Jack con camiseta roja persiguiendo al cable vivo; Groove Ninja con su propio protagonista, gafas negras y katana con flor. Sin generar nuevas portadas.
+- Dos portadas exactas aprobadas integradas: Jack con camiseta roja persiguiendo al cable vivo; Groove Ninja con su propio protagonista, gafas negras y katana con flor.
 - Biblioteca ARCADANZ con imágenes completas y apertura de cada juego en una vista inmersiva.
-- Yeppo: conservar su flor y sus tres paseos; calcular el acercamiento desde una tarjeta real, alinear la mano y sincronizar la reacción. Cancelar el recorrido al desplazarse o cambiar el tamaño de la pantalla.
-- Conservar Vinyl Cut y Scratch Session como modos de Groove Ninja.
+- Yeppo conserva su flor y sus tres paseos; se acerca a una tarjeta real, alinea la mano y sincroniza la reacción. El recorrido se cancela al desplazarse o cambiar el tamaño de la pantalla.
+- Vinyl Cut y Scratch Session se conservan como modos de Groove Ninja.
 
 ## Las diez mejoras aceptadas
 

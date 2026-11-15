@@ -13,6 +13,7 @@ Pilla-Pilla, Kart y salas online siguen pendientes. Los nuevos QR continúan apl
 | Arte | Club con altavoces, flight cases, vinilos y flores originales. Ilustración vectorial de 4,3 KB y gráficos procedurales sin descargas de texturas. Las portadas aprobadas de Jack y Groove se conservan. |
 | Móvil | Diez botones de al menos 44 × 44 px, captura independiente de punteros, dos mandos y disparo mientras se mantiene el movimiento. Sin desplazamiento accidental sobre controles. |
 | Pantalla | Vista dedicada; mandos a ambos lados en horizontal y juntos debajo del tablero en vertical. Salida y Escape devuelven la biblioteca. |
+| Biblioteca | El selector de retos de Yeppo salta de línea con los tres juegos. Comprobado a 320 px, sin sobresalir del contenedor. |
 | Pausa | Al ocultar o desenfocar se pausa y se liberan dedos/teclas; reanudación explícita. Temporizadores y renderer se limpian al salir. |
 | Rendimiento | Phaser 4.2.1 aislado en el módulo del juego: 1,38 MB / 363 KB gzip. El bundle principal solo crece unos 1,4 KB. Tablero estático redibujado al cambiar las cajas; HUD a 10 Hz. Bucle de render dormido en menús, pausas y fin de ronda; se despierta al jugar o redimensionar. |
 | Reloj | Tiempo real en primer plano con pasos de simulación de hasta 50 ms. Una caída de FPS no estira la mecha del disco; reanudar descarta el tiempo de pausa. |
