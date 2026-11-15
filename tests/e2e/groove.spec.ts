@@ -206,6 +206,14 @@ test('playfield, mixer and primary controls fit 320px portrait and short landsca
     }
     const r = await page.locator('.gn-board').boundingBox()
     expect(Math.abs(r!.width / r!.height - 640 / 760)).toBeLessThan(.01)
+    await page.getByRole('button', { name: 'AJUSTES', exact: true }).click()
+    const dialog = page.getByRole('dialog', { name: 'TU CABINA.', exact: true })
+    const d = (await dialog.boundingBox())!
+    expect(d.x).toBeGreaterThanOrEqual(0); expect(d.y).toBeGreaterThanOrEqual(0)
+    expect(d.x+d.width).toBeLessThanOrEqual(size.width); expect(d.y+d.height).toBeLessThanOrEqual(size.height)
+    const close = dialog.getByRole('button', { name: 'Cerrar ajustes de Groove', exact: true })
+    expect(await close.evaluate(el => { const r=el.getBoundingClientRect(); return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+8)) })).toBe(true)
+    await close.click()
   }
   await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
   await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()

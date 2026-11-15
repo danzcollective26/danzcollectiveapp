@@ -49,3 +49,21 @@ Estado: implementación local en verificación. No publicado todavía.
   ya define el protagonista. Lore/animaciones dentro del juego siguen pendientes.
 - Groove conserva música sintetizada de ensayo; el seguimiento de BPM real y
   las pistas asignadas aún no están conectados. Sus resultados son locales.
+
+
+## Primer cierre de navegador y correcciones
+
+- CI 179: 205 pruebas internas y las 14 offline correctas. En móvil, 161 de
+  162 escenarios correctos: la ventana de ajustes de Groove quedaba debajo del
+  botón de salida e impedía cerrar con el dedo. Se elevó la ventana por encima
+  de esa barra y se añadió comprobación de hit target en los tamaños compactos.
+- Tableta: otra espera virtual de un test de Snake avanzaba antes de estar
+  activa la partida autenticada. Se espera ahora la clase de partida activa y
+  el botón de pausa antes de avanzar el reloj; se conservan los cuatro pasos y
+  el replay exacto RRRR. No se cambia el motor ni se rebaja la expectativa.
+- La inspección conectada confirma portada completa, biblioteca y modos,
+  orientación ±90° de los mandos, botones de al menos 44 px, movimiento y pausa
+  de Persecución. Groove abre los ajustes en pausa, cambia a efectos suaves y
+  Escape devuelve el foco a AJUSTES sin salir del juego.
+- Se adjuntan capturas de Arena y Persecución a los escenarios de tres tamaños
+  para inspección visual de sus resultados de CI, además de sus aserciones.

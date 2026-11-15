@@ -86,7 +86,7 @@ test('native multitoch moves each player from their side and sprint does not ste
   await expect(page.locator('.chase-game')).toHaveAttribute('data-phase', 'paused')
 })
 
-test('the ten controls are at opposite ends, turn with their players and fit compact screens', async ({ page }) => {
+test('the ten controls are at opposite ends, turn with their players and fit compact screens', async ({ page }, testInfo) => {
   await open(page)
   for (const size of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size)
@@ -107,6 +107,7 @@ test('the ten controls are at opposite ends, turn with their players and fit com
       expect(r.y).toBeGreaterThanOrEqual(0); expect(r.y+r.height).toBeLessThanOrEqual(size.height)
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await testInfo.attach(`Persecución ${size.width}x${size.height}`, { body: await page.screenshot(), contentType: 'image/png' })
   }
 })
 
