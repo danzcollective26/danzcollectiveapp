@@ -95,6 +95,21 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
   return()=>{clearInterval(interval);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)}
  },[page,gameActive,events,enabled,visible,welcome,visitPeek,chatOpen])
  useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},roamDemo?8800:roamReaction?4500:5500);return()=>clearTimeout(id)},[visible,line,roamReaction,roamDemo])
+ // Touching a card is a decorative prank only: Yeppo never triggers its action.
+ // Pick a safe, already visible link, briefly light it up, then clean up on exit.
+ useEffect(()=>{
+  if(!visible||!roaming||gameActive||chatOpen||page==='admin'||page==='cuenta')return
+  const eligible=Array.from(document.querySelectorAll<HTMLElement>('.feature,.module,.passport-home-link,nav button'))
+   .filter(el=>{const box=el.getBoundingClientRect();return box.width>45&&box.height>26&&box.top>60&&box.bottom<window.innerHeight-55&&!el.closest('.yeppo,[aria-modal="true"]')})
+  if(!eligible.length)return
+  const chosen=eligible.reduce((best,el)=>{
+   const b=el.getBoundingClientRect(),a=best.getBoundingClientRect()
+   return Math.abs(b.left+b.width/2-window.innerWidth*.52)<Math.abs(a.left+a.width/2-window.innerWidth*.52)?el:best
+  })
+  const start=window.setTimeout(()=>chosen.classList.add('yeppo-playful-tap'),roamDemo?2500:1600)
+  const stop=window.setTimeout(()=>chosen.classList.remove('yeppo-playful-tap'),roamDemo?4500:3200)
+  return()=>{window.clearTimeout(start);window.clearTimeout(stop);chosen.classList.remove('yeppo-playful-tap')}
+ },[visible,roaming,roamDemo,gameActive,chatOpen,page,roamSequence])
  const talk=(value:string)=>{
   const phrase=value.trim().slice(0,300)
   if(!phrase)return
