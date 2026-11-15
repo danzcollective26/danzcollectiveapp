@@ -39,3 +39,44 @@
 .gn-mode-picker .gn-destruction-launch strong{color:#f6d28e}
 @media(max-width:740px){.dn-layout{grid-template-columns:1fr}.dn-heading h1{font-size:clamp(50px,12vw,80px)}.dn-weapon-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dn-board-wrap{width:min(100%,440px)}.dn-weapons{padding:11px}.dn-hud strong{font-size:24px}.gn-mode-picker>button{padding:10px 6px}.gn-mode-picker strong{font-size:10px}.gn-mode-picker small{font-size:7px}}
 @media(prefers-reduced-motion:reduce){.dn-shot{animation:none}}
+
+/* Distinct arsenal identity: visible equipment plus per-weapon attack animation. */
+.dn-board-wrap{isolation:isolate}
+.dn-weapon-title{position:absolute;top:12px;left:12px;z-index:2;background:#0e1015d9;color:#fff4d5;border-left:4px solid #dfff79;display:flex;flex-direction:column;gap:2px;padding:8px 12px;pointer-events:none;box-shadow:0 4px 15px #0007}
+.dn-weapon-title b{font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:18px;letter-spacing:.04em}
+.dn-weapon-title span{font-size:10px;color:#e5dbb8}
+.dn-stage-impact .dn-board-wrap{animation:dn-impulse .22s ease-out}
+.dn-equipped{position:absolute;z-index:3;bottom:-16px;left:50%;width:155px;height:120px;transform:translateX(-50%);pointer-events:none;filter:drop-shadow(4px 9px 2px #0009)}
+.dn-equipped-body{position:absolute;bottom:16px;left:36px;width:85px;height:66px;background:linear-gradient(145deg,#787879,#22292b 67%);border:5px solid #131516;border-radius:12px 22px 12px 13px;transform:rotate(-22deg);box-shadow:inset 4px 5px 0 #fff2;display:grid;place-items:center}
+.dn-equipped-barrel{font-size:48px;line-height:1;color:#fff3b8;text-shadow:0 0 12px currentColor}
+.dn-equipped-grip{position:absolute;width:20px;height:40px;background:#29252a;bottom:-33px;left:18px;transform:rotate(15deg);border:4px solid #131313;border-radius:5px}
+.dn-equipped-glint{position:absolute;top:5px;right:8px;width:19px;height:7px;background:#fff6;border-radius:10px;transform:rotate(-25deg)}
+.dn-equipped-laser .dn-equipped-body{width:24px;height:105px;left:59px;bottom:-2px;border-radius:12px 12px 3px 3px;background:linear-gradient(90deg,#eee,#df415c,#611c2b);transform:rotate(0)}
+.dn-equipped-laser .dn-equipped-barrel{font-size:23px;color:#fff}
+.dn-equipped-scatter .dn-equipped-body{width:98px;height:48px;border-radius:30px;background:repeating-linear-gradient(0deg,#23272c 0 9px,#9f8f65 10px 15px);transform:rotate(-14deg)}
+.dn-equipped-paint .dn-equipped-body{border-radius:40px 20px 20px 35px;background:linear-gradient(145deg,#b0ed7b,#378f57);transform:rotate(14deg)}
+.dn-equipped-cannon .dn-equipped-body{width:115px;height:72px;left:24px;border-radius:25px;background:repeating-linear-gradient(90deg,#362951 0 16px,#a17fe0 17px 27px)}
+.dn-equipped-boomerang .dn-equipped-body{width:78px;height:78px;background:#282b2d;border:9px solid #efc184;border-radius:50%;transform:rotate(30deg)}
+.dn-equipped-flower .dn-equipped-body{background:radial-gradient(circle,#ffd970,#86543b);border-radius:50%;transform:rotate(0)}
+.dn-equipped-yeppo .dn-equipped-body{background:#ffe37a;border-color:#473439;border-radius:45px 42px 20px 24px;transform:rotate(-14deg)}
+.dn-fx{animation:dn-fx-appear .62s cubic-bezier(.2,0,.5,1) both;filter:drop-shadow(0 0 12px currentColor)}
+.dn-fx-blaster{animation-duration:.3s}
+.dn-fx-laser{animation:dn-laser-burst .55s ease-out both}
+.dn-fx-scatter{animation:dn-fx-appear .42s ease-out both}
+.dn-fx-paint{animation:dn-paint-splat .64s cubic-bezier(.12,1.3,.4,1) both}
+.dn-fx-cannon{animation:dn-sonic-bass .6s cubic-bezier(.12,.6,.8,1) both}
+.dn-fx-boomerang{animation:dn-fx-appear .65s ease-in-out both}
+.dn-fx-flower{animation:dn-flower-pop .65s ease-out both}
+.dn-fx-yeppo{animation:dn-yeppo-punch .6s cubic-bezier(.15,1.3,.4,1) both}
+.dn-stage-impact .dn-equipped-body{animation:dn-recoil .32s ease-out both}
+@keyframes dn-fx-appear{0%{opacity:0}12%{opacity:1}80%{opacity:.9}100%{opacity:0}}
+@keyframes dn-laser-burst{0%{opacity:0}15%{opacity:1}28%{opacity:.35}43%{opacity:1}100%{opacity:0}}
+@keyframes dn-paint-splat{0%{opacity:0;transform:scale(.2);transform-origin:center}22%{opacity:1;transform:scale(1.2)}70%{transform:scale(1)}100%{opacity:0}}
+@keyframes dn-sonic-bass{0%{opacity:1;filter:blur(0)}100%{opacity:0;filter:blur(6px)}}
+@keyframes dn-flower-pop{0%{opacity:0;transform:scale(.3)}30%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(1)}}
+@keyframes dn-yeppo-punch{0%{opacity:0;transform:translateY(90px) scale(.6)}30%{opacity:1;transform:translateY(-12px) scale(1.2)}100%{opacity:0;transform:translateY(0) scale(1)}}
+@keyframes dn-recoil{0%{transform:rotate(-22deg) translateY(0)}40%{transform:rotate(-17deg) translateY(10px)}100%{transform:rotate(-22deg) translateY(0)}}
+@keyframes dn-impulse{0%,100%{transform:translateX(0)}30%{transform:translateX(-2px)}70%{transform:translateX(2px)}}
+.dn-weapon-grid button[aria-pressed=true]{box-shadow:inset 0 0 0 1px #e9fb9d,0 0 15px #ffe58765}
+@media(max-width:520px){.dn-equipped{width:110px;height:86px;transform:translateX(-50%) scale(.78);transform-origin:bottom}.dn-weapon-title b{font-size:15px}.dn-weapon-title span{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.dn-fx,.dn-stage-impact .dn-equipped-body,.dn-stage-impact .dn-board-wrap{animation:none!important}.dn-fx{opacity:1}}
