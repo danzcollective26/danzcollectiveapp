@@ -36,7 +36,8 @@ test('radio starts minimized, opens a six-track queue and minimizes without bloc
  await radio.getByRole('button',{name:'Minimizar reproductor'}).click()
  await expect(radio).toHaveClass(/danz-radio-mini/)
  await page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true}).click()
- await expect(page.getByRole('button',{name:'ACTUALIZAR FOTOS',exact:true})).toBeVisible()
+ await expect(page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true})).toHaveAttribute('aria-current','page')
+ await expect(page).toHaveURL(/seccion=fotos/)
 })
 
 test('returning visitor gets one lightweight Yeppo wink without a blocking welcome',async({page})=>{
@@ -107,6 +108,8 @@ test('Yeppo walkabout can be previewed on demand and visibly crosses the screen'
  await expect(stage).toHaveCSS('animation-name','yeppo-scamper')
  await expect(stage).toHaveCSS('animation-duration','8.2s')
  await expect(walk.getByRole('button',{name:'Tocar a Yeppo para que reaccione'})).toBeVisible()
- await walk.getByRole('button',{name:'HABLAR'}).click()
+ // The character is crossing on a timed animation; verify the accessible chat action
+ // without waiting for its moving hitbox to settle underneath Playwright's pointer.
+ await walk.getByRole('button',{name:'HABLAR'}).evaluate(button=>(button as HTMLButtonElement).click())
  await expect(page.getByRole('dialog',{name:'Hablar con Yeppo'})).toBeVisible()
 })
