@@ -1,0 +1,46 @@
+import { expect, test } from '@playwright/test'
+
+test.beforeEach(async({page})=>{
+  await page.addInitScript(()=>{Element.prototype.requestFullscreen=()=>Promise.reject(new DOMException('Unsupported','NotSupportedError'))})
+})
+test('Kart opens from the library, drives, pauses and returns',async({page})=>{
+  await page.goto('/test')
+  await page.getByRole('button',{name:/04 \/ NUEVO · RACING LOCAL DANZ KART MINI/}).click()
+  const game=page.getByRole('region',{name:'DANZ Kart Mini',exact:true})
+  await expect(game.locator('.kart-board')).toHaveAttribute('data-ready','true')
+  await game.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
+  await expect(game).toHaveAttribute('data-phase','playing',{timeout:8000})
+  const initial=await game.getAttribute('data-p1')
+  await expect.poll(()=>game.getAttribute('data-p1')).not.toBe(initial)
+  await game.getByRole('button',{name:'PAUSAR',exact:true}).click()
+  await expect(game).toHaveAttribute('data-phase','paused')
+  const paused=await game.getAttribute('data-elapsed');await page.waitForTimeout(150)
+  await expect(game).toHaveAttribute('data-elapsed',paused!)
+  await game.getByRole('button',{name:'Salir de DANZ Kart Mini',exact:true}).click()
+  await expect(page.getByRole('region',{name:'Biblioteca ARCADANZ',exact:true})).toBeVisible()
+  await expect(page.getByRole('button',{name:/04 \/ RACING · BETA LOCAL DANZ KART MINI/})).toBeVisible()
+})
+test('Kart local duel exposes opposed, independent sticks and clears on rotation',async({page})=>{
+  await page.setViewportSize({width:390,height:844})
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await page.getByRole('button',{name:/DUELO LOCAL/}).click()
+  await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
+  await expect(page.locator('.kart-game')).toHaveAttribute('data-phase','playing',{timeout:8000})
+  for(const p of [1,2]){
+    const stick=page.getByRole('button',{name:`P${p} Joystick`,exact:true}),box=await stick.boundingBox()
+    expect(box?.width).toBeGreaterThanOrEqual(95);expect(box?.height).toBeGreaterThanOrEqual(95)
+  }
+  const transformed=await page.locator('.kart-controller.versus-p2 .versus-face').evaluate(el=>getComputedStyle(el).transform)
+  expect(transformed).toContain('-1')
+  await page.setViewportSize({width:844,height:390})
+  await expect(page.locator('.kart-game')).toHaveAttribute('data-phase','paused')
+  await expect(page.getByRole('button',{name:'P1 Joystick',exact:true})).toHaveAttribute('data-engaged','false')
+})
+test('Both circuits can be selected without changing the chosen mode',async({page})=>{
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await page.getByRole('button',{name:/CONTRARRELOJ/}).click()
+  await page.getByRole('button',{name:/BACKSTAGE RING/}).click()
+  await expect(page.locator('.kart-game')).toHaveAttribute('data-track','backstage')
+  await expect(page.locator('.kart-game')).toHaveAttribute('data-mode','time')
+  await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true')
+})

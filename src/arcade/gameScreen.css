@@ -29,3 +29,15 @@
 
 /* Arcade selection owns its own row, with equal-weight games above the play panels. */
 @media(min-width:900px){.arcade-page>.arcade-chooser{grid-column:1/-1;grid-row:2}.arcade-page>.arcade-intro{grid-row:3}.arcade-page>.game-panel{grid-row:3}}
+
+/* Detailed cable jacket and metal jack. No frames around the faces. */
+.game-panel .game-board{background:radial-gradient(ellipse at 25% 5%,#798b5340,transparent 65%),radial-gradient(ellipse at 90% 100%,#54747138,transparent 60%),repeating-linear-gradient(0deg,#b7c3a40a 0 1px,transparent 1px 14px),linear-gradient(135deg,#26393b,#15242c);gap:0}
+.game-panel .game-board .cell{background:transparent;border:1px solid #b9d0a407}
+.game-panel .snake-cable-detailed{filter:none;overflow:visible}
+.game-panel .snake-cable-detailed polyline{fill:none;stroke-linecap:round;stroke-linejoin:round;filter:none}
+.game-panel .snake-cable-detailed .cable-shadow{stroke:#030b11;stroke-width:1.06;transform:translate(.03px,.1px);opacity:.7}
+.game-panel .snake-cable-detailed .cable-jacket{stroke:#101b21;stroke-width:.88}
+.game-panel .snake-cable-detailed .cable-braid{stroke:#5d7163;stroke-width:.53;stroke-dasharray:.09 .12;opacity:.8}
+.game-panel .snake-cable-detailed .cable-highlight{stroke:#c4d6a3;stroke-width:.12;opacity:.65;transform:translate(0,-.2px)}
+.game-panel .game-board .cell.wall{background:linear-gradient(110deg,#678078,#3b5355 35%,#172c35);border:1px solid #8eaa994d;box-shadow:inset 0 2px #b1c5a538,inset -2px -3px #06131d8a}
+.game-panel .game-board .cell.head,.game-panel .game-board .cell.apple,.game-panel .game-board .cell.snake{background:transparent;border:0;box-shadow:none}

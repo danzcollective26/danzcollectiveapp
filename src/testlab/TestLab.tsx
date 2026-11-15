@@ -1,8 +1,8 @@
 import type { YeppoDemoRequest } from '../yeppo/Yeppo'
 import './testLab.css'
 
-export default function TestLab({ onCollecta, onJack, onGroove, onLibrary, onYeppo }: {
-  onCollecta: () => void; onJack: () => void; onGroove: () => void; onLibrary: () => void
+export default function TestLab({ onCollecta, onJack, onGroove, onKart, onLibrary, onYeppo }: {
+  onCollecta: () => void; onJack: () => void; onGroove: () => void; onKart: () => void; onLibrary: () => void
   onYeppo: (move: YeppoDemoRequest['move']) => void
 }) {
   return <section className="content inner-page test-lab" aria-label="Zona de pruebas DANZ">
@@ -13,7 +13,7 @@ export default function TestLab({ onCollecta, onJack, onGroove, onLibrary, onYep
       <button className="test-lab-game module" type="button" onClick={onJack}><img src="/arcade/jack-approved-mobile.webp" alt="" width={1086} height={1448} decoding="async"/><span><small>CLÁSICO + 12 LABERINTOS</small><strong>LA QUE HAS LIAO, JACK</strong><b>PROBAR JUEGO ↗</b></span></button>
       <button className="test-lab-game module" type="button" onClick={onGroove}><img src="/arcade/groove-ninja-approved-mobile.webp" alt="" width={1086} height={1448} decoding="async"/><span><small>VINYL CUT + SCRATCH SESSION</small><strong>GROOVE NINJA</strong><b>PROBAR JUEGO ↗</b></span></button>
     </div><p className="test-lab-note">Novedades: prueba Persecución dentro de DANZ Collecta. En Groove, abre AJUSTES para suavizar los efectos y desbloquea Trazo Club con 20 cortes en una sesión.</p></section>
-    <aside className="test-lab-next"><span className="eyebrow">03 / EL PRÓXIMO DUELO</span><h2>En la parrilla.</h2><ul><li><strong>DANZ KART MINI</strong><span>Derrapes y carreras cortas</span></li></ul><p>Aprobado para desarrollar. Todavía no está jugable. Las salas online siguen pendientes; Arena y Pilla-Pilla son duelos locales.</p></aside>
+    <button className="test-lab-arena module" type="button" onClick={onKart}><img src="/arcade/kart-mini.svg" alt="" width="600" height="800" decoding="async"/><span><small>04 / NUEVO · RACING LOCAL</small><strong>DANZ KART MINI</strong><p>Dos circuitos, derrapes e impulso. Corre contra la crew, guarda tu contrarreloj o comparte el móvil en duelo.</p><b>SALIR A PISTA ↗</b></span></button>
     <p className="test-lab-note">Prueba también al girar el móvil. MODOS vuelve a DANZ Collecta; desde allí puedes volver a la biblioteca. Los permisos de cuentas, galerías y administración son los habituales de DANZ.</p>
   </section>
 }
