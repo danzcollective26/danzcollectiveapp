@@ -96,6 +96,9 @@ test('all ten touch controls fit compact portrait and landscape at least 44px', 
     const p1 = (await page.locator('.versus-p1').boundingBox())!, p2 = (await page.locator('.versus-p2').boundingBox())!
     if (size.width > size.height) { expect(p1.x+p1.width).toBeLessThanOrEqual(board!.x); expect(p2.x).toBeGreaterThanOrEqual(board!.x+board!.width) }
     else { expect(p2.y+p2.height).toBeLessThanOrEqual(board!.y); expect(p1.y).toBeGreaterThanOrEqual(board!.y+board!.height) }
+    const title = (await page.locator('.arena-top strong').boundingBox())!, clock = (await page.locator('.arena-round > strong').boundingBox())!
+    const overlaps = title.x < clock.x+clock.width && title.x+title.width > clock.x && title.y < clock.y+clock.height && title.y+title.height > clock.y
+    expect(overlaps).toBe(false)
     await testInfo.attach(`Arena ${size.width}x${size.height}`, { body: await page.screenshot(), contentType: 'image/png' })
   }
 })

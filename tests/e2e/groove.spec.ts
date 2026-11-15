@@ -315,6 +315,7 @@ test('visual options pause the session, keep keyboard focus and persist softer e
 })
 
 test('twenty successful vinyl cuts unlock Trazo Club without changing score or time on selection', async ({ page }) => {
+  test.setTimeout(60000)
   await openGroove(page); await start(page)
   for (let i=0; i<90; i++) {
     const hits = Number((await page.locator('.gn-board').getAttribute('aria-label'))?.match(/(\d+) cortes/)?.[1] ?? 0)

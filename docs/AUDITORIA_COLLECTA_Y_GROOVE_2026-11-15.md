@@ -67,3 +67,21 @@ Estado: implementación local en verificación. No publicado todavía.
   Escape devuelve el foco a AJUSTES sin salir del juego.
 - Se adjuntan capturas de Arena y Persecución a los escenarios de tres tamaños
   para inspección visual de sus resultados de CI, además de sus aserciones.
+
+
+## CI 180 y capturas de tres tamaños
+
+- Código `f4df5c82`: build, 205 internas y 14 offline correctas. Escritorio:
+  162/162; tableta y móvil: 161 a la primera y el desbloqueo de 20 cortes pasó
+  al reintentar después de agotar el límite general de 30 s del test largo.
+  No se interpreta esto como FPS ni medición de latencia física.
+- Las capturas de 320×568, 390×844 y 844×390 confirman mandos enfrentados,
+  textos y acciones accesibles. En horizontal se detectó el reloj demasiado
+  cercano al título de Persecución: se coloca junto al botón de pausa, con
+  separación explícita, y se comprueba la ausencia de solapamiento en ambos
+  modos. No cambia la simulación.
+- La prueba larga de 20 cortes conserva cada interacción y cada aserción; se
+  le asigna 60 s de ejecución para evitar el límite de 30 s bajo carga de CI.
+- El navegador conectado confirmó que el botón Cerrar de Groove ya funciona y
+  devuelve el foco sin salir de la partida. Siguiente: verificar el CSS final,
+  cerrar CI y publicar.

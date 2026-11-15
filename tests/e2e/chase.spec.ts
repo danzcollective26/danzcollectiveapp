@@ -107,6 +107,9 @@ test('the ten controls are at opposite ends, turn with their players and fit com
       expect(r.y).toBeGreaterThanOrEqual(0); expect(r.y+r.height).toBeLessThanOrEqual(size.height)
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    const title = (await page.locator('.chase-top strong').boundingBox())!, clock = (await page.locator('.chase-status > strong').boundingBox())!
+    const overlaps = title.x < clock.x+clock.width && title.x+title.width > clock.x && title.y < clock.y+clock.height && title.y+title.height > clock.y
+    expect(overlaps).toBe(false)
     await testInfo.attach(`Persecución ${size.width}x${size.height}`, { body: await page.screenshot(), contentType: 'image/png' })
   }
 })
