@@ -29,10 +29,18 @@ y reglas permanentes de trabajo. Los tres juegos nuevos son desarrollo pendiente
 - Hugging Face: Space en ejecución, API `/inference` y parámetros comprobados en
   vivo; generación real gratuita sin token y lectura exacta del QR resultante.
 - Navegador disponible: revisión visual de biblioteca, presentación de Jack,
-  arranque y salida de una partida, y nueva pantalla `/test`.
+  arranque y salida de una partida, y nueva pantalla `/test`. Groove abre Scratch
+  Session, arranca con su marcador propio y vuelve a la biblioteca con Escape.
+- QR clásico: formulario con datos sintéticos, imagen y enlace de descarga PNG
+  comprobados en el navegador.
+- Adaptación de `/test` comprobada en marcos de 320 × 568, 390 × 844 y 844 × 390.
+  Anchos útiles de 305, 375 y 829 px, respectivamente: ninguno desborda; los tres
+  botones de paseo conservan una altura de 48 px.
+- GitHub CI confirma las 180 pruebas internas, el build y las 10 pruebas PWA y de
+  uso sin conexión. La revisión completa de controles y navegación sigue en curso.
 - La automatización Playwright local no puede arrancar Chromium por una restricción
   del entorno (`socket() failed: Operation not permitted`). No se ha cambiado la
-  política de seguridad. Las pruebas actualizadas se ejecutarán también en GitHub CI.
+  política de seguridad. Las pruebas actualizadas se ejecutan en GitHub CI.
 
 ## Complementos comprobados
 

@@ -4,7 +4,12 @@ import { GRID, initialGame, MAZE_STAGES, mazeWalls } from '../../src/snake'
 test.use({ hasTouch: true })
 async function arcade(page: Page, select = true) {
   await page.getByRole('navigation').getByRole('button', { name: 'ARCADANZ', exact: true }).click()
-  if (select) { await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click(); await page.clock.runFor(3000) }
+  if (select) { await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click(); await finishIntro(page) }
+}
+async function finishIntro(page: Page) {
+  await expect(page.locator('.arcade-launch-loading')).toBeVisible()
+  await page.clock.runFor(3000)
+  await expect(page.getByRole('button', { name: 'JUGAR AHORA', exact: true })).toBeVisible()
 }
 async function playSnake(page: Page) {
   const launch = page.getByRole('region',{name:'Presentación del juego'})
@@ -91,7 +96,7 @@ test('botones opcionales responden al presionar y conservan la preferencia', asy
   await expect(page.getByRole('button', { name: 'Arriba', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: /MOSTRAR BOTONES/ }).click()
   await page.reload()
-  await page.clock.runFor(3000)
+  await finishIntro(page)
   await playSnake(page)
   await page.locator('.game-actions').getByRole('button',{name:/^PAUSAR/}).click()
   const up = page.getByRole('button', { name: 'Arriba', exact: true })
@@ -151,7 +156,7 @@ test('doce laberintos seleccionables conservan el recorrido al reiniciar', async
   await expect(page.getByLabel('RECORRIDO', {exact:true})).toHaveValue(String(MAZE_STAGES.length))
   await page.getByRole('button', {name:/SALIR DEL JUEGO/}).click()
   await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click()
-  await page.clock.runFor(3000)
+  await finishIntro(page)
   await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'CLÁSICO', exact: true }).click()
   await expect(page.locator('.game-board > .wall')).toHaveCount(0)
 })
