@@ -2,21 +2,34 @@ import { expect, test, type Page } from '@playwright/test'
 import { GRID, initialGame, MAZE_STAGES, mazeWalls } from '../../src/snake'
 
 test.use({ hasTouch: true })
-const arcade = (page: Page) => page.getByRole('navigation').getByRole('button', { name: 'ARCADANZ', exact: true }).click()
+async function arcade(page: Page, select = true) {
+  await page.getByRole('navigation').getByRole('button', { name: 'ARCADANZ', exact: true }).click()
+  if (select) { await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click(); await finishIntro(page) }
+}
+async function finishIntro(page: Page) {
+  await expect(page.locator('.arcade-launch-loading')).toBeVisible()
+  await page.clock.runFor(3000)
+  await expect(page.getByRole('button', { name: 'JUGAR AHORA', exact: true })).toBeVisible()
+}
+async function playSnake(page: Page) {
+  const launch = page.getByRole('region',{name:'Presentación del juego'})
+  if (await launch.isVisible()) await launch.getByRole('button',{name:'JUGAR AHORA',exact:true}).click()
+  else await page.locator('.game-actions').getByRole('button',{name:/^JUGAR/}).click()
+}
 const headIndex = (page: Page) => page.locator('.game-board > .cell').evaluateAll(cells => cells.findIndex(cell => cell.classList.contains('head')))
 const index = (x: number, y: number) => y * GRID + x
 const spawn = initialGame().snake[0]
-async function openArcade(page: Page) {
+async function openArcade(page: Page, select = true) {
   // Exercise the dedicated viewport even where the native API is unavailable.
   await page.addInitScript(() => { Element.prototype.requestFullscreen = () => Promise.reject(new DOMException('Unsupported', 'NotSupportedError')) })
   await page.clock.install({ time: new Date('2026-11-12T08:00:00Z') })
   await page.clock.pauseAt(new Date('2026-11-12T08:00:01Z'))
   await page.goto('/')
-  await arcade(page)
+  await arcade(page, select)
 }
 
 test('elegir una portada abre Snake inmersivo sin iniciar la partida', async ({ page }) => {
-  await openArcade(page)
+  await openArcade(page, false)
   await page.locator('.arcade-chooser').getByRole('button', { name: /LA QUE HAS LIAO, JACK/ }).click()
   await expect(page.locator('.game-panel')).toHaveClass(/is-immersive/)
   await expect(page.locator('.arcade-launch')).toBeAttached()
@@ -24,8 +37,8 @@ test('elegir una portada abre Snake inmersivo sin iniciar la partida', async ({ 
   await page.clock.runFor(3000)
   await expect(page.locator('.arcade-launch').getByRole('button', { name: 'JUGAR AHORA' })).toBeVisible()
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
-  await page.getByRole('button', { name: /SALIR DEL JUEGO/ }).click()
-  await expect(page.locator('.game-panel')).not.toHaveClass(/is-immersive/)
+  await page.getByRole('button', { name: 'Volver a la biblioteca ARCADANZ', exact:true }).click()
+  await expect(page.locator('.game-panel')).toHaveCount(0)
 })
 
 test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', async ({ page }) => {
@@ -33,7 +46,7 @@ test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', asy
   await expect(page.locator('.game-board > .cell')).toHaveCount(GRID * GRID)
   await expect(page.locator('.snake-cover figcaption')).toContainText('LA QUE HAS LIAO,')
   await expect(page.locator('.snake-cover figcaption')).toContainText('JACK')
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   await page.keyboard.press('ArrowUp')
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
   await page.keyboard.press('ArrowLeft')
@@ -44,7 +57,7 @@ test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', asy
   await page.getByRole('button', { name: /^PAUSAR/ }).click()
   await page.clock.runFor(900)
   expect(await headIndex(page)).toBe(index(spawn.x - 1, spawn.y - 1))
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   await page.clock.runFor(240)
   expect(await headIndex(page)).toBe(index(spawn.x - 2, spawn.y - 1))
   await page.getByRole('button', { name: 'REINICIAR', exact: true }).click()
@@ -54,16 +67,23 @@ test('giro inmediato, segunda esquina en cola y pausa sin movimiento extra', asy
 test('el gesto táctil gira antes de levantar el dedo y sin desplazar la página', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'Touch events via Chromium CDP')
   await openArcade(page)
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   const rect = await page.locator('.game-board').boundingBox()
   expect(rect).not.toBeNull()
   const x = rect!.x + rect!.width / 2, y = rect!.y + rect!.height / 2
   const scrollY = await page.evaluate(() => window.scrollY)
+  // CDP acknowledges dispatch before Chromium necessarily delivers a coalesced
+  // pointermove. Observe native delivery before advancing the paused game clock.
+  await page.locator('.game-board').evaluate(board => {
+    board.setAttribute('data-test-touch-moves', '0')
+    board.addEventListener('pointermove', () => board.setAttribute('data-test-touch-moves', String(Number(board.getAttribute('data-test-touch-moves')) + 1)))
+  })
   const cdp = await page.context().newCDPSession(page)
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] })
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 24 }] })
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x - 24, y: y - 24 }] })
+  await expect.poll(async () => Number(await page.locator('.game-board').getAttribute('data-test-touch-moves'))).toBeGreaterThanOrEqual(2)
   await page.clock.runFor(240)
   expect(await headIndex(page)).toBe(index(spawn.x - 1, spawn.y - 1))
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
@@ -76,10 +96,12 @@ test('botones opcionales responden al presionar y conservan la preferencia', asy
   await expect(page.getByRole('button', { name: 'Arriba', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: /MOSTRAR BOTONES/ }).click()
   await page.reload()
-  await arcade(page)
+  await finishIntro(page)
+  await playSnake(page)
+  await page.locator('.game-actions').getByRole('button',{name:/^PAUSAR/}).click()
   const up = page.getByRole('button', { name: 'Arriba', exact: true })
   await expect(up).toBeVisible()
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   const rect = await up.boundingBox()
   await page.mouse.move(rect!.x + rect!.width / 2, rect!.y + rect!.height / 2)
   await page.mouse.down()
@@ -90,13 +112,13 @@ test('botones opcionales responden al presionar y conservan la preferencia', asy
 
 test('pantalla completa alternativa, salida con pausa y navegación restaurada', async ({ page }) => {
   await openArcade(page)
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   await expect(page.locator('.game-panel')).toHaveClass(/is-immersive/)
   expect(await page.locator('body').evaluate(el => el.style.overflow)).toBe('hidden')
   await page.clock.runFor(240)
   const before = await headIndex(page)
   await page.getByRole('button', { name: /SALIR DEL JUEGO/ }).click()
-  await expect(page.locator('.game-panel')).not.toHaveClass(/is-immersive/)
+  await expect(page.locator('.game-panel')).toHaveCount(0)
   expect(await page.locator('body').evaluate(el => el.style.overflow)).not.toBe('hidden')
   await page.getByRole('navigation').getByRole('button', { name: 'INICIO', exact: true }).click()
   await page.clock.runFor(1500)
@@ -107,7 +129,7 @@ test('pantalla completa alternativa, salida con pausa y navegación restaurada',
 
 test('ocultar la pestaña pausa y no reanuda automáticamente', async ({ page }) => {
   await openArcade(page)
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   await page.clock.runFor(240)
   const before = await headIndex(page)
   await page.evaluate(() => {
@@ -121,23 +143,27 @@ test('ocultar la pestaña pausa y no reanuda automáticamente', async ({ page })
 
 test('doce laberintos seleccionables conservan el recorrido al reiniciar', async ({ page }) => {
   await openArcade(page)
-  await page.locator('.game-modes').getByRole('button', { name: /^LABERINTO/ }).click()
-  const select = page.getByLabel('RECORRIDO', { exact: true })
+  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'LABERINTO', exact:true }).click()
+  const select = page.getByLabel('Recorrido del laberinto', { exact: true })
   await expect(select.locator('option')).toHaveCount(MAZE_STAGES.length)
   for (let stage = 1; stage <= MAZE_STAGES.length; stage++) {
     await select.selectOption(String(stage))
     await expect(page.locator('.game-board > .wall')).toHaveCount(mazeWalls(stage).length)
     expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
   }
+  await playSnake(page)
   await page.getByRole('button', { name: 'REINICIAR', exact: true }).click()
-  await expect(select).toHaveValue(String(MAZE_STAGES.length))
-  await page.locator('.game-modes').getByRole('button', { name: 'CLÁSICO', exact: true }).click()
+  await expect(page.getByLabel('RECORRIDO', {exact:true})).toHaveValue(String(MAZE_STAGES.length))
+  await page.getByRole('button', {name:/SALIR DEL JUEGO/}).click()
+  await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click()
+  await finishIntro(page)
+  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'CLÁSICO', exact: true }).click()
   await expect(page.locator('.game-board > .wall')).toHaveCount(0)
 })
 
 test('cara original como objetivo y como segmento después de recogerla', async ({ page }) => {
   await openArcade(page)
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   const image = page.locator('.cell.apple img')
   await expect(image).toHaveAttribute('src', '/arcade/faces/face-01-emotions-v1.webp')
   await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
@@ -157,7 +183,7 @@ test('tablero y controles caben en móvil vertical y horizontal', async ({ page 
   await page.setViewportSize({ width: 320, height: 568 })
   await openArcade(page)
   await page.getByRole('button', { name: /MOSTRAR BOTONES/ }).click()
-  await page.getByRole('button', { name: /^JUGAR/ }).click()
+  await playSnake(page)
   for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size)
     const board = await page.locator('.game-board').boundingBox()
@@ -171,24 +197,22 @@ test('tablero y controles caben en móvil vertical y horizontal', async ({ page 
 })
 
 test('Idle Studio muestra una carátula provisional sin fingir que el juego está disponible',async({page})=>{
-  await openArcade(page)
+  await openArcade(page, false)
   const coming=page.getByRole('article',{name:'DANZ Idle Studio, próximamente',exact:true})
   await coming.scrollIntoViewIfNeeded()
-  await expect(coming.getByText('Nombre y carátula provisionales.',{exact:true})).toBeVisible()
+  await expect(coming).toContainText('Nombre y carátula provisionales')
   const cover=coming.getByRole('img')
   await expect.poll(()=>cover.evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
   await expect(coming.getByRole('button')).toHaveCount(0)
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)
 })
 
-test('GROOVE NINJA conserva su portada y ofrece su primera sesión de práctica',async({page})=>{
- await openArcade(page)
- const card=page.getByRole('article',{name:'GROOVE NINJA, jugar',exact:true})
- await card.scrollIntoViewIfNeeded()
- await expect(card.getByRole('heading',{name:'GROOVE NINJA.',exact:true})).toBeVisible()
- await expect(card.locator('figcaption')).toContainText('GROOVE')
- await expect.poll(()=>card.getByRole('img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
- await expect(card.getByRole('button',{name:'ABRIR GROOVE NINJA',exact:true})).toBeEnabled()
- await expect(card).toContainText('sonido de ensayo')
+test('GROOVE NINJA conserva la portada aprobada y su entrada propia en la biblioteca',async({page})=>{
+ await openArcade(page, false)
+ const card=page.locator('.arcade-choice').filter({hasText:'GROOVE NINJA'})
+ await expect(card).toBeEnabled()
+ await expect(card).toContainText('Vinyl Cut + Scratch Session')
+ await expect(card.locator('img')).toHaveAttribute('src','/arcade/groove-ninja-approved-mobile.webp')
+ await expect.poll(()=>card.locator('img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })

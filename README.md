@@ -6,7 +6,10 @@ está en `DANZ-TRASPASO-CODEX.md` y `docs/VERIFICACION_CODEX.md`.
 
 ## Demo DANZ
 
-[Abre la demo publicada](https://danz-collective-demo.right-vine-9666.chatgpt.site).
+[Abre DANZ](https://danzcollectiveapp.vercel.app).
+La ruta [`/test`](https://danzcollectiveapp.vercel.app/test) reúne los paseos de
+Yeppo y accesos a los juegos actuales para probarlos desde el móvil. La antigua
+demo de Sites se conserva como referencia de versiones anteriores.
 La PWA abre al público sin una cuenta de ChatGPT desde el 10 de noviembre de
 2026, con autorización del propietario. Fotos, perfiles y administración mantienen
 sus permisos de DANZ/Supabase. La configuración para probar correo y móvil está
@@ -61,6 +64,9 @@ Instalación: `docs/INSTALACION_PWA.md`. Activación SMTP pendiente:
 `docs/ACTIVACION_CORREO.md` (vía provisional sin DNS; autorización Gmail pendiente).
 
 ## Desarrollo
+
+Las reglas permanentes están en `AGENTS.md`; las diez mejoras y los tres nuevos
+juegos aprobados están en `docs/ARCADANZ_ROADMAP.md`.
 
 Usar **Node.js 24**. Las versiones Supabase y el lockfile están fijados.
 

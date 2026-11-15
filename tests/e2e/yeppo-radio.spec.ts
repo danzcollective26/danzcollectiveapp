@@ -11,7 +11,7 @@ test('Yeppo peeks on the first visit and introduces DANZ after the first section
  await expect(welcome.getByText('ARCADANZ',{exact:true})).toBeVisible()
  await expect(welcome.getByText('DANZFLOR',{exact:true})).toBeVisible()
  // The original navigation gesture must still navigate.
- await expect(page.locator('.game-board')).toBeVisible()
+ await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
  await welcome.getByRole('button',{name:/DÉJAME VIVIR/}).click()
  await expect(welcome).not.toBeVisible()
  await page.reload()
@@ -105,7 +105,7 @@ test('Yeppo walkabout can be previewed on demand and visibly crosses the screen'
  await expect(walk).toBeVisible()
  const stage=walk.locator('.yeppo-roam-stage')
  await expect(stage).toHaveClass(/yeppo-roam-demo/)
- await expect(stage).toHaveCSS('animation-name','yeppo-scamper')
+ await expect(stage).toHaveCSS('animation-name','yeppo-card-visit')
  await expect(stage).toHaveCSS('animation-duration','8.2s')
  await expect(walk.getByRole('button',{name:'Tocar a Yeppo para que reaccione'})).toBeVisible()
  // The character is crossing on a timed animation; verify the accessible chat action

@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  build-and-browser-tests:
+  build-and-offline-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,15 +26,32 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:pwa
-      - name: Check arcade controls first
-        run: npm run test:e2e -- tests/e2e/groove.spec.ts tests/e2e/snake.spec.ts --max-failures=1
-      - run: npm run test:e2e -- --max-failures=3
+      - name: Upload offline test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-pwa-report
+          path: playwright-pwa-report/
+          retention-days: 7
+  browser-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [desktop, tablet, mobile]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- --project=${{ matrix.viewport }} --workers=2 --max-failures=5
       - name: Upload browser test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            playwright-pwa-report/
+          name: playwright-${{ matrix.viewport }}-report
+          path: playwright-report/
           retention-days: 7

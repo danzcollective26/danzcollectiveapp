@@ -1,4 +1,3 @@
-import ArcadeChooser from './ArcadeChooser'
 import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
@@ -69,6 +68,11 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   const heading = useRef<HTMLHeadingElement>(null)
   const screen = useGameScreen(pause)
   useEffect(() => { if (autoEnter) screen.enter() }, [autoEnter])
+  const wasImmersive = useRef(false)
+  useEffect(() => {
+    if (autoEnter && wasImmersive.current && !screen.active && !destructionOpen) onBack()
+    wasImmersive.current = screen.active
+  }, [screen.active, destructionOpen])
   const ended = game.status === 'over' || game.status === 'complete'
   const running = game.status === 'playing'
   const stage = grooveStage(game.elapsed)
@@ -195,19 +199,18 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   if(destructionOpen)return <GrooveDestruction onBack={()=>setDestructionOpen(false)}/>
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
-    <ArcadeChooser active="groove" onSelect={choice => { if (choice === "snake") onBack() }} />
     <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>PATRONES AL RITMO</small></button><button type="button" className="gn-destruction-launch" onClick={()=>{pause();screen.leave();setDestructionOpen(true)}}><strong>DESTRUCCIÓN ✹</strong><small>8 ARMAS · VINILOS AL VUELO</small></button></div>
     <div className="gn-intro">
       <div className="eyebrow">ARCADANZ / GAME 003 · PRIMERA SESIÓN</div>
       <h1 ref={heading} tabIndex={-1}>GROOVE<br/><em>NINJA.</em></h1>
       <p>{game.mode === 'cut' ? <>Vinilos al vuelo. Cortes al beat.</> : <>Lee el patrón. Clava el gesto. Domina el pulso.</>}<br/>La cabina es tuya.</p>
-      <figure className="gn-cover"><img src="/arcade/groove-ninja-cover-v1.webp" alt="DJ entre vinilos al vuelo y estelas de sonido" width="1200" height="800"/><figcaption>CORTA. MEZCLA. REPITE.</figcaption></figure>
+      <figure className="gn-cover"><img src="/arcade/groove-ninja-approved-mobile.webp" alt="DJ con gafas negras y katana con la flor de DANZ" width="1086" height="1448" decoding="async"/><figcaption>CORTA. MEZCLA. REPITE.</figcaption></figure>
       <p className="gn-practice">PRÁCTICA · Récord separado para cada modo, en este navegador. Esta sesión no otorga DANZPOINTS.</p>
       <p className="gn-sound-note">Música de ensayo. Los temas del colectivo llegarán después.</p>
     </div>
     <div ref={screen.panel} data-weapon={game.weapon} data-stage={stage} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status} data-mode={game.mode} data-elapsed={game.elapsed.toFixed(1)}>
-      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} running={running} onPlay={play} onModeChange={chooseMode} />}
-      <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={screen.leave} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
+      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} running={running} onPlay={play} onExit={()=>{screen.leave();onBack()}} onModeChange={chooseMode} onDestruction={()=>{pause();setDestructionOpen(true);screen.leave()}}><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted?'SONIDO OFF':'SONIDO ON'}</button></ArcadeLaunch>}
+      <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={() => { screen.leave(); onBack() }} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
         <span className="gn-score"><i className="gn-hud-vinyl" aria-hidden="true"/><span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span></span>
         <span>COMBO<strong className="gn-combo">×{grooveMultiplier(game.combo)} <small>{game.combo} SEGUIDOS</small></strong></span>

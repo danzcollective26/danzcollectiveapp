@@ -1,0 +1,33 @@
+.arcade-library{padding-bottom:80px}
+.game-panel:has(.arcade-launch)>:not(.arcade-launch),.gn-panel:has(.arcade-launch)>:not(.arcade-launch){visibility:hidden}
+.arcade-library-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:24px 0 36px}
+.arcade-library-heading img{display:block;width:min(230px,60vw);height:auto;margin:12px 0 18px}
+.arcade-library-heading h1{font-size:clamp(25px,4vw,44px);letter-spacing:-.04em;margin:0 0 8px}
+.arcade-library-heading p{color:var(--muted);margin:0;line-height:1.6}
+.arcade-library-count{font-family:Impact,'Arial Narrow',sans-serif;font-size:60px;color:#e1fa95;text-align:right}
+.arcade-library-count small{display:block;font:800 9px system-ui,sans-serif;letter-spacing:.12em;color:var(--muted)}
+.arcade-library .arcade-chooser{gap:24px;grid-template-columns:repeat(2,minmax(0,360px));justify-content:start}
+.arcade-library .arcade-choice{display:flex;flex-direction:column;align-items:stretch;padding:0;min-height:0;border:1px solid #44464a;background:#151617;box-shadow:0 12px 32px #0004}
+.arcade-library .arcade-choice img{position:static;width:100%;height:auto;aspect-ratio:3/4;object-fit:contain;opacity:1;z-index:auto}
+.arcade-library .arcade-choice:after{display:none}
+.arcade-library .arcade-choice-copy{padding:18px;box-sizing:border-box;gap:9px}
+.arcade-library .arcade-choice-copy strong{font-size:clamp(20px,3vw,34px)}
+.arcade-library .arcade-choice-copy>span{flex-wrap:wrap;color:#d1d4d2;line-height:1.5}
+.arcade-library .arcade-choice-copy b{display:inline-block;background:#e1fa95;color:#111;padding:7px 11px;font-size:11px;letter-spacing:.06em}
+.arcade-library .arcade-choice:hover{transform:translateY(-5px);border-color:#e1fa95;box-shadow:0 16px 36px #0008}
+.arcade-library-upcoming{display:flex;align-items:center;gap:24px;padding:20px;border:1px solid #353637;background:#151617;margin:36px 0}
+.arcade-library-upcoming img{width:150px;max-width:30%;height:auto;aspect-ratio:4/3;object-fit:cover}
+.arcade-library-upcoming h2{margin:8px 0;font-size:22px}
+.arcade-library-upcoming p{color:var(--muted);line-height:1.6;margin:8px 0}
+.arcade-library-upcoming small{font-size:10px;color:#c5c9c5}
+.arcade-library .snake-competition{margin-top:40px}
+.arcade-challenge-games{display:flex;gap:8px}
+.arcade-challenge-games button[aria-pressed=false]{background:transparent;color:#e1fa95}
+.arcade-launch-setup{position:relative;z-index:3;display:grid;gap:14px;max-width:100%}
+.arcade-launch-pro .arcade-launch-exit{position:absolute;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));z-index:4;min-height:44px;padding:10px 14px;background:#111e;color:#f7f8f1;border:1px solid #e1fa95;font-size:10px;font-weight:800;cursor:pointer}
+.arcade-launch-exit:focus-visible{outline:3px solid white;outline-offset:3px}
+.arcade-launch-maze{display:flex;align-items:center;justify-content:center;gap:10px;font-size:11px;color:#fff}
+.arcade-launch-maze select{max-width:210px;min-height:44px;background:#111;color:#fff;border:1px solid #c7df83;padding:8px}
+.arcade-launch-pro .arcade-launch-mode-picker{flex-wrap:wrap;justify-content:center}
+@media(max-width:600px){.arcade-library-heading{margin:20px 0 24px}.arcade-library-heading p{font-size:13px}.arcade-library-count{display:none}.arcade-library .arcade-chooser{gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}.arcade-library .arcade-choice-copy{padding:11px;gap:7px}.arcade-library .arcade-choice-copy strong{font-size:19px;line-height:1.08}.arcade-library .arcade-choice-copy small{font-size:7px;letter-spacing:.06em}.arcade-library .arcade-choice-copy>span{font-size:10px;gap:10px}.arcade-library .arcade-choice-copy b{width:100%;text-align:center;box-sizing:border-box}.arcade-library-upcoming{padding:14px;gap:14px}.arcade-library-upcoming h2{font-size:17px}.arcade-library-upcoming p{font-size:12px}.arcade-library-upcoming small{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.arcade-library .arcade-choice{transition:none}.arcade-library .arcade-choice:hover{transform:none}}
