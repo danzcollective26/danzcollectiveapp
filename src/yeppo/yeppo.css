@@ -293,3 +293,50 @@
  .yeppo-roam-stage .yeppo-character .yeppo-right-arm,
  .yeppo-roam-stage .yeppo-character .yeppo-left-hand{animation:none!important}
 }
+
+/* Alternate walkabouts: gentle stroll, sneaky tiptoe and hurried dash.
+   All variants retain the same mascot, pausing in the middle to inspect the UI. */
+.yeppo-roam-stage.yeppo-roam-stroll{animation-name:yeppo-scamper}
+.yeppo-roam-stage.yeppo-roam-sneak{--yeppo-trip:7.5s;animation-name:yeppo-sneak-cross}
+.yeppo-roam-stage.yeppo-roam-dash{--yeppo-trip:4.6s;animation-name:yeppo-dash-cross}
+.yeppo-roam-stage.yeppo-roam-demo{--yeppo-trip:8.2s}
+.yeppo-roam-stage.yeppo-roam-sneak .yeppo-roam-mascot .yeppo-character{animation-name:yeppo-tiptoe-weight}
+.yeppo-roam-stage.yeppo-roam-dash .yeppo-roam-mascot .yeppo-character{animation-name:yeppo-rush-weight}
+@keyframes yeppo-sneak-cross{
+  0%{transform:translate(105vw,8px) rotate(4deg);opacity:0}
+  10%{opacity:1}
+  23%{transform:translate(73vw,10px) rotate(-5deg)}
+  36%{transform:translate(54vw,5px) rotate(3deg)}
+  45%{transform:translate(50vw,15px) rotate(-9deg)}
+  58%{transform:translate(50vw,15px) rotate(8deg)}
+  73%{transform:translate(33vw,5px) rotate(-4deg)}
+  86%{opacity:1}
+  100%{transform:translate(-260px,8px) rotate(-6deg);opacity:0}
+}
+@keyframes yeppo-dash-cross{
+  0%{transform:translate(105vw,9px) rotate(15deg);opacity:0}
+  7%{opacity:1}
+  23%{transform:translate(69vw,-3px) rotate(-9deg)}
+  36%{transform:translate(45vw,-5px) rotate(13deg)}
+  42%{transform:translate(43vw,11px) rotate(-13deg)}
+  57%{transform:translate(43vw,11px) rotate(6deg)}
+  72%{transform:translate(18vw,-6px) rotate(-10deg)}
+  84%{opacity:1}
+  100%{transform:translate(-260px,11px) rotate(-17deg);opacity:0}
+}
+@keyframes yeppo-tiptoe-weight{
+  0%,26%,66%,100%{transform:translateY(0) rotate(-5deg) scaleY(.96)}
+  12%,32%,77%{transform:translateY(-4px) rotate(5deg) scaleY(1.04)}
+  45%,58%{transform:translateY(7px) rotate(-5deg) scaleY(.9)}
+}
+@keyframes yeppo-rush-weight{
+  0%,20%,70%,100%{transform:translateY(0) rotate(9deg)}
+  10%,30%,80%{transform:translateY(-12px) rotate(-8deg)}
+  42%,57%{transform:translateY(4px) rotate(-10deg)}
+}
+@media(prefers-reduced-motion:reduce){
+ .yeppo-roam-stage.yeppo-roam-stroll,
+ .yeppo-roam-stage.yeppo-roam-sneak,
+ .yeppo-roam-stage.yeppo-roam-dash,
+ .yeppo-roam-stage.yeppo-roam-demo{animation:none!important}
+}
