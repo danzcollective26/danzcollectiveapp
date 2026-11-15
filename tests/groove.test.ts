@@ -98,7 +98,7 @@ test('later waves contain varied layouts and all special vinyls', () => {
     for (const disc of state.discs) if (disc.kind === 'vinyl') types.add(disc.special!)
     counts.add(state.discs.length)
   }
-  assert.deepEqual([...types].sort(), ['arrow', 'freeze', 'gold', 'normal']); assert.ok(counts.size > 3)
+  assert.deepEqual([...types].sort(), ['arrow', 'combo', 'freeze', 'gold', 'normal', 'split']); assert.ok(counts.size > 3)
 })
 test('three stages finish at one minute and over/complete do not keep moving', () => {
   let state = setGroovePlaying(initialGroove(), true)
@@ -160,4 +160,56 @@ test('the four scratch patterns complete using their actual timed distances', ()
     assert.equal(state.scratches, pattern + 1); assert.equal(state.scratch, null)
     assert.equal(state.perfects, SCRATCH_PATTERNS[pattern].steps.length)
   }
+})
+
+function withDisc(state: ReturnType<typeof initialGroove>, special: 'normal' | 'combo' | 'split' = 'normal') {
+  return { ...state, nextId: state.nextId + 1, discs: [{ id: state.nextId, kind: 'vinyl' as const, layer: 0,
+    born: state.flightTime - 600, x: 320, drift: 0, launch: 700, spin: 0, special }] }
+}
+test('Combo Disc arms four seconds, survives an empty gesture and doubles only the next successful stroke', () => {
+  const base = withDisc(atVinyl(), 'combo'), armed = keyCutGroove(base, 0)
+  assert.equal(armed.score, 100); assert.equal(armed.doubleUntil, armed.elapsed + 4000)
+  const empty = cutGroove(beginGrooveCut(armed), {x:0,y:100}, {x:30,y:100})
+  assert.equal(empty.doubleUntil, armed.doubleUntil)
+  const doubled = keyCutGroove(withDisc(empty), 0)
+  assert.equal(doubled.score, 300); assert.equal(doubled.doubleUntil, 0)
+  const ordinary = keyCutGroove(withDisc(doubled), 0)
+  assert.equal(ordinary.score, 400)
+  assert.equal(base.score, 0)
+})
+test('Combo Disc expires in active time and remains frozen during pause', () => {
+  const armed = keyCutGroove(withDisc(atVinyl(), 'combo'), 0)
+  const paused = setGroovePlaying(armed, false)
+  assert.equal(advanceGroove(paused, 5000), paused)
+  let state = { ...armed, discs: [], nextWaveAt: Infinity }
+  for (let i=0;i<41;i++) state = advanceGroove(state,100)
+  assert.equal(keyCutGroove(withDisc(state),0).score,200)
+})
+test('a boosted continuous multicut doubles both targets and its bonus without rearming the following stroke', () => {
+  const armed = keyCutGroove(withDisc(atVinyl(), 'combo'), 0)
+  const first = { ...withDisc(armed).discs[0], x:190 }, second = { ...first, id:9999,x:420 }
+  const pair = beginGrooveCut({...armed,discs:[first,second]}), y = discPosition(first,pair.flightTime).y
+  const one = cutGroove(pair,{x:110,y},{x:270,y}), both = cutGroove(one,{x:270,y},{x:500,y})
+  assert.equal(one.score,300); assert.equal(both.score,700); assert.equal(both.multiCuts,1)
+  assert.equal(beginGrooveCut(both).strokeDoubleUntil,0)
+})
+test('Split Disc creates exactly two smaller bonus targets at the cut position with their own trajectories', () => {
+  const base=withDisc(atVinyl(),'split'), parent=base.discs[0], p=discPosition(parent,base.flightTime)
+  const split=keyCutGroove(base,0)
+  assert.equal(split.score,100);assert.equal(split.discs.length,2)
+  assert.equal(new Set(split.discs.map(d=>d.id)).size,2)
+  for(const d of split.discs){assert.equal(d.fragment,true);assert.equal(d.size,.65);assert.equal(d.special,'normal');assert.equal(discPosition(d,split.flightTime).y,p.y);assert.equal(Math.abs(d.x-p.x),28)}
+  assert.ok(split.discs[0].drift<0&&split.discs[1].drift>0)
+  assert.equal(base.discs.length,1);assert.equal(base.discs[0].special,'split')
+  const mini=keyCutGroove(split,0)
+  assert.equal(mini.hits,2);assert.equal(mini.score,150);assert.equal(mini.discs.length,1)
+  assert.equal(keyCutGroove(mini,0).score,200)
+})
+test('the smaller Split targets require smaller hit geometry and can be missed without losing lives', () => {
+  const split=keyCutGroove(withDisc(atVinyl(),'split'),0), child=split.discs[0]
+  const single={...split,discs:[child],nextWaveAt:Infinity},p=discPosition(child,single.flightTime)
+  assert.equal(cutGroove(single,{x:p.x-10,y:p.y+50},{x:p.x+10,y:p.y+50}),single)
+  let state=single
+  for(let i=0;i<50;i++)state=advanceGroove(state,100)
+  assert.equal(state.discs.length,0);assert.equal(state.lives,5);assert.equal(state.misses,0)
 })

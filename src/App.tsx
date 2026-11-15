@@ -22,9 +22,9 @@ const TestLab = lazy(() => import('./testlab/TestLab'))
 const ArenaDuel = lazy(() => import('./arcade/arena/ArenaDuel'))
 import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
-import { parseCollective, snakeFace, snakeExpression } from './content/collective'
+import { parseCollective } from './content/collective'
 import DanzMusic from './content/DanzMusic'
-import SnakeArtwork from './content/SnakeArtwork'
+import SnakeCells from './arcade/SnakeCells'
 import DanzFlower from './content/DanzFlower'
 import { useGameScreen } from './arcade/useGameScreen'
 import { COMPETITION_ENABLED } from './arcade/competitionConfig'
@@ -175,10 +175,12 @@ export default function App() {
 
   useEffect(() => {
     const pauseWhenHidden = () => {
-      if (document.hidden) dispatch({ type: 'pause' })
+      if (document.hidden) { gesture.current = null; dispatch({ type: 'pause' }) }
     }
+    const pauseWhenBlurred = () => { gesture.current = null; dispatch({ type: 'pause' }) }
     document.addEventListener('visibilitychange', pauseWhenHidden)
-    return () => document.removeEventListener('visibilitychange', pauseWhenHidden)
+    window.addEventListener('blur', pauseWhenBlurred)
+    return () => { document.removeEventListener('visibilitychange', pauseWhenHidden); window.removeEventListener('blur', pauseWhenBlurred) }
   }, [])
 
   useEffect(() => {
@@ -200,7 +202,7 @@ export default function App() {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target
       if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return
-      const direction = directions[event.key]
+      const direction = directions[event.key.length === 1 ? event.key.toLowerCase() : event.key]
       if (direction) {
         event.preventDefault()
         turn(direction)
@@ -380,25 +382,11 @@ export default function App() {
                 <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'maze' })}}>LABERINTO <span>{MAZE_STAGES.length} NIVELES</span></button>
               </div>
               {game.mode === 'maze' && <div className="maze-level-picker"><label htmlFor="maze-level">RECORRIDO</label><select id="maze-level" value={game.stage} onChange={event => {competition.clear();dispatch({ type: 'maze-level', stage: Number(event.target.value) })}}>{MAZE_STAGES.map((name, i) => <option key={name} value={i + 1}>{i + 1} · {name}</option>)}</select><span>{game.stage < MAZE_STAGES.length ? `${game.stageGoals}/5 OBJETIVOS` : 'MODO INFINITO'}</span></div>}
-              <div className="game-heading"><span>PUNTOS <strong>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span>NIVEL {game.mode === 'maze' ? game.stage : gameLevel(game.score)}</span></div>
-              <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
+              <div className="game-heading"><span>PUNTOS <strong key={game.score} className={game.score ? 'snake-score-gain' : undefined}>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span className="snake-stage">NIVEL {game.mode === 'maze' ? game.stage : gameLevel(game.score)}<span className="snake-stage-progress" aria-label={game.mode === 'classic' && gameLevel(game.score) === 10 ? 'Velocidad máxima alcanzada' : game.mode === 'maze' && game.stage === MAZE_STAGES.length ? 'Laberinto infinito' : `${game.mode === 'maze' ? game.stageGoals : game.score % 50 / 10} de 5 objetivos para el siguiente nivel`}>{Array.from({length:5},(_,i)=><i key={i} data-filled={i < (game.mode === 'maze' ? game.stageGoals : game.score % 50 / 10)}/>)}</span></span></div>
+              <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} onLostPointerCapture={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
                 <svg className="snake-body-art" viewBox={`0 0 ${GRID} ${GRID}`} aria-hidden="true"><polyline points={game.snake.map(point => `${point.x + .5},${point.y + .5}`).join(' ')} /></svg>
-                {Array.from({ length: GRID * GRID }, (_, i) => {
-                  const x = i % GRID
-                  const y = Math.floor(i / GRID)
-                  const head = game.snake[0].x === x && game.snake[0].y === y
-                  const segment = game.snake.findIndex((p) => p.x === x && p.y === y)
-                  const body = segment >= 0
-                  const target = game.foods.find(food => food.x === x && food.y === y)
-                  const food = Boolean(target)
-                  const wall = game.walls.some(point => point.x === x && point.y === y)
-                  const collected = game.eatenFaces[segment - 1]
-                  const face = target ? snakeFace(collective.snake.faces, target.face * 10) : body && !head && collected !== undefined ? snakeFace(collective.snake.faces, collected * 10) : null
-                  const artwork = head ? collective.snake.headImage : face?.image
-                  const expression = face ? snakeExpression(face, target?.face ?? collected, collective.snake.faces.length) : 0
-                  return <span key={i} data-face={face?.id} className={head ? 'cell head' : body ? 'cell snake' : food ? 'cell apple' : wall ? 'cell wall' : 'cell'}>{artwork && <SnakeArtwork key={artwork} src={artwork} frames={face?.frames} frame={expression} />}</span>
-                })}
-                {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'PARTY OVER' : game.levelUp ? `NIVEL ${game.stage}` : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : 'PULSA JUGAR'}</small></div>}
+                <SnakeCells game={game} artwork={collective.snake}/>
+                {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'PARTY OVER' : game.levelUp ? `NIVEL ${game.stage}` : game.steps ? 'EN PAUSA' : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : game.steps ? 'REANUDA CUANDO QUIERAS' : 'PULSA JUGAR'}</small></div>}
               </div></div>
               <div className="game-actions">
                 <button className="primary-btn" disabled={competition.busy||(game.seed!==undefined&&['saving','error'].includes(competition.run?.status??''))} onClick={play}>{game.seed!==undefined&&['saved','expired'].includes(competition.run?.status??'')?'VOLVER A COMPETIR':game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>

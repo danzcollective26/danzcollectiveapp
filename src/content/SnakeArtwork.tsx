@@ -4,6 +4,6 @@ import { useState } from 'react'
 export default function SnakeArtwork({ src, frames = 1, frame = 0 }: { src: string; frames?: 1 | 3; frame?: number }) {
   const [failed, setFailed] = useState(false)
   if (failed) return <span className="snake-art-fallback" aria-hidden="true">✿</span>
-  const image = <img src={src} alt="" draggable={false} onError={() => setFailed(true)} style={frames === 3 ? { transform: `translate(${-Math.max(0, Math.min(2, frame)) * 100 / 3}%, -50%)` } : undefined} />
+  const image = <img src={src} alt="" draggable={false} decoding="async" onError={() => setFailed(true)} style={frames === 3 ? { transform: `translate(${-Math.max(0, Math.min(2, frame)) * 100 / 3}%, -50%)` } : undefined} />
   return frames === 3 ? <span className="snake-face-frame" data-expression={frame}>{image}</span> : image
 }
