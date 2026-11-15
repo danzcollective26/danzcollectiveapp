@@ -70,6 +70,9 @@ test('Yeppo offers optional guided conversation and navigates to photos without 
  await dialogue.getByRole('button',{name:/IR A FOTOS/}).click()
  await expect(page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true})).toHaveAttribute('aria-current','page')
  await expect(dialogue).toHaveCount(0)
+ await expect(page).toHaveURL(/seccion=fotos/)
+ await page.goBack()
+ await expect(page.getByRole('navigation').getByRole('button',{name:'INICIO',exact:true})).toHaveAttribute('aria-current','page')
 })
 
 test('Yeppo uses the DANZFLOR bag-inspired full-body flower with accessible chat',async({page})=>{
