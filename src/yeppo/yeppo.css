@@ -150,3 +150,29 @@
 @keyframes yeppo-foot-right{0%,32%,72%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @keyframes yeppo-tapped{0%{transform:scale(1)}45%{transform:scale(1.17) rotate(-10deg)}100%{transform:scale(1.03) rotate(3deg)}}
 @media(prefers-reduced-motion:reduce){.yeppo-character .yeppo-left-leg,.yeppo-character .yeppo-right-leg,.yeppo-character .yeppo-left-foot,.yeppo-character .yeppo-right-foot,.yeppo-chat-launcher:active .yeppo-character,.yeppo-avatar:active .yeppo-character{animation:none!important}}
+
+/* Yeppo's occasional walkabout: small, cheeky, and never a full-screen blocker.
+   The existing daily appearance cap, cooldown and game/modal suppression still apply. */
+.yeppo.yeppo-walkabout{position:fixed;inset:auto 0 calc(env(safe-area-inset-bottom) + 90px) 0;width:100vw;max-width:none;height:190px;display:block;pointer-events:none;z-index:48;animation:none}
+.yeppo-roam-stage{position:absolute;left:0;bottom:0;display:flex;align-items:end;flex-direction:column;gap:4px;width:min(215px,48vw);pointer-events:none;animation:yeppo-scamper 5.4s ease-in-out both}
+.yeppo-roam-stage:hover,.yeppo-roam-stage:focus-within{animation-play-state:paused}
+.yeppo-roam-speech{position:relative;max-width:205px;box-sizing:border-box;background:#17171cf0;border:2px solid #ffe27a;color:#fff;border-radius:14px;padding:10px 29px 9px 12px;font-size:11px;font-weight:800;line-height:1.4;box-shadow:0 9px 19px #0008;pointer-events:auto}
+.yeppo-roam-speech>button:first-of-type{position:absolute;right:2px;top:2px;color:#fff;border:0;background:transparent;font-size:21px;min-width:28px;min-height:28px;cursor:pointer}
+.yeppo-roam-talk{display:block;border:0;background:none;color:#ffe27a;font-size:10px;font-weight:900;min-height:28px;padding:4px 0 0;cursor:pointer}
+.yeppo-roam-mascot{background:none;border:0;padding:0;min-height:90px;display:flex;flex-direction:column;align-items:center;color:#ffe27a;cursor:pointer;pointer-events:auto;filter:drop-shadow(0 6px 10px #0009)}
+.yeppo-roam-mascot .yeppo-character{width:83px;height:94px;max-width:none;animation:yeppo-roam-bounce .48s ease-in-out infinite alternate}
+.yeppo-roam-mascot>span{font-size:9px;font-weight:950;letter-spacing:.09em;text-shadow:0 2px 5px #000}
+.yeppo-roam-mascot.yeppo-roam-react .yeppo-character{animation:yeppo-roam-surprise .33s ease-in-out both}
+.yeppo-roam-mascot:focus-visible,.yeppo-roam-speech button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@keyframes yeppo-scamper{
+ 0%{transform:translate(105vw,15px) rotate(7deg);opacity:0}
+ 12%{opacity:1}
+ 38%{transform:translate(53vw,-min(8vh,60px)) rotate(-6deg)}
+ 68%{transform:translate(42vw,-min(12vh,90px)) rotate(5deg)}
+ 84%{opacity:1}
+ 100%{transform:translate(-220px,0) rotate(-8deg);opacity:0}
+}
+@keyframes yeppo-roam-bounce{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-8px) rotate(5deg)}}
+@keyframes yeppo-roam-surprise{0%{transform:scale(1)}45%{transform:scale(1.2) rotate(-9deg)}100%{transform:scale(1)}}
+@media(max-width:500px){.yeppo.yeppo-walkabout{bottom:calc(env(safe-area-inset-bottom) + 76px)}.yeppo-roam-stage{width:155px}.yeppo-roam-speech{font-size:10px;max-width:155px}.yeppo-roam-mascot .yeppo-character{width:70px;height:78px}.yeppo-roam-mascot{min-height:80px}}
+@media(prefers-reduced-motion:reduce){.yeppo-roam-stage{animation:none;left:auto;right:12px}.yeppo-roam-mascot .yeppo-character,.yeppo-roam-mascot.yeppo-roam-react .yeppo-character{animation:none}}
