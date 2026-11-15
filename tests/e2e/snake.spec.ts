@@ -180,7 +180,33 @@ test('cara original como objetivo y como segmento después de recogerla', async 
   await expect(page.locator('.cell.snake[data-face="face-01"] img')).toHaveCount(1)
   await expect(page.locator('.cell.apple img')).toHaveAttribute('src', '/arcade/faces/face-02-emotions-v1.webp')
   await expect(page.locator('.cell.snake[data-face="face-01"] .snake-face-frame')).toHaveAttribute('data-expression','0')
+  await expect(page.locator('.cell.snake[data-face="face-01"]')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await expect(page.locator('.cell.snake[data-face="face-01"]')).toHaveCSS('box-shadow', 'none')
   await expect(page.locator('.cell.apple .snake-face-frame')).toHaveAttribute('data-expression','1')
+})
+
+test('la flor y los rostros se integran sin cuadros ni sombras de casilla', async ({ page }, testInfo) => {
+  await openArcade(page)
+  await playSnake(page)
+  const head = page.locator('.cell.head'), food = page.locator('.cell.apple')
+  for (const cell of [head, food]) {
+    await expect(cell).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    await expect(cell).toHaveCSS('background-image', 'none')
+    await expect(cell).toHaveCSS('box-shadow', 'none')
+    for (const side of ['top', 'right', 'bottom', 'left']) await expect(cell).toHaveCSS(`border-${side}-width`, '0px')
+  }
+  // Sample after the former food-glow animation would have painted a square.
+  await page.clock.runFor(120)
+  await expect(food).toHaveCSS('animation-name', 'none')
+  await expect(food).toHaveCSS('box-shadow', 'none')
+  expect(await food.evaluate(el => getComputedStyle(el, '::after').content)).toBe('none')
+  await testInfo.attach('snake-transparent-artwork', { body: await page.screenshot(), contentType: 'image/png' })
+  await page.keyboard.press('ArrowUp')
+  expect(await headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
+  await expect(head).toHaveCSS('border-top-width', '0px')
+  await expect.poll(() => head.locator('img').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(food).toHaveCSS('animation-name', 'none')
 })
 
 test('tablero y controles caben en móvil vertical y horizontal', async ({ page }) => {

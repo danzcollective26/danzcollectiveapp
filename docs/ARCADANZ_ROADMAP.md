@@ -2,6 +2,11 @@
 
 Actualizado: 15 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena DANZ tiene un primer prototipo local; Yeppo Pilla-Pilla y DANZ Kart Mini siguen pendientes.
 
+Registro general de tareas, decisiones, dependencias y evidencia vigente:
+[Revisión y pendientes de DANZ](REVISION_Y_PENDIENTES_DANZ_2026-11-15.md).
+Consultar ese registro para el estado de entregas posteriores y los pendientes
+de música, galería, cuenta, puntos y administración.
+
 ## Base ya publicada
 
 - Dos portadas exactas aprobadas integradas: Jack con camiseta roja persiguiendo al cable vivo; Groove Ninja con su propio protagonista, gafas negras y katana con flor.

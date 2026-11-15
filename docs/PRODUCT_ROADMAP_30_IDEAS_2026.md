@@ -2,6 +2,11 @@
 
 **Estado:** documento de planificación, no implementación. Todos los elementos numerados a continuación son propuestas a menos que indiquen explícitamente «ya existe, mejorar». No atribuir integraciones, premios ni compras funcionales hasta verificarlos.
 
+**Revisión del 15 de noviembre:** el estado vigente y las decisiones posteriores
+se mantienen en [Revisión y pendientes](REVISION_Y_PENDIENTES_DANZ_2026-11-15.md).
+Las diez mejoras M01–M10 están aceptadas como línea de trabajo progresiva. Las
+funciones nuevas y juegos propuestos conservan su alcance y estado individual.
+
 ## Situación comprobada en código
 - PWA React/Vite con Inicio, Pasaporte, Fotos, Arcade, Danzers, Danz In, Danzflor, DanzPoints y Cuenta.
 - Login Google/correo, galería pública/privada, administración con MFA y gestión de fotografías por lotes.
@@ -9,7 +14,7 @@
 - Snake «LA QUE HAS LIAO, JACK» con competición; Groove Ninja Vinyl Cut, Scratch y Destrucción con ocho armas.
 - Reproductor de seis temas y DANZ Shop con catálogo y preparación comercial.
 - Yeppo mascota animada en todas las secciones, guía determinista, paseo opcional, buzón privado de sugerencias/errores.
-- Yeppo **no** usa todavía IA generativa. No se deben instalar costes, claves o servicios sin autorización. Las dos portadas finales aprobadas siguen pendientes de sincronización como assets binarios.
+- Yeppo **no** usa todavía IA generativa. No se deben instalar costes, claves o servicios sin autorización. Las dos portadas finales aprobadas ya están integradas, con copias optimizadas para móvil (PR 26).
 
 ## 10 mejoras a lo existente
 | # | Mejora | Prioridad | Esfuerzo | Criterio de éxito |
@@ -50,7 +55,7 @@
 | J06 | **Backstage Maze** | Laberintos de persecución | Recoger pases y escapar del cable Jack | Alto |
 | J07 | **DANZ Dominó** | Juego de mesa | Partidas asíncronas entre asistentes y amigos | Alto |
 | J08 | **Memoria de la Crew** | Parejas / cartas | Emparejar caras consentidas, logos o vinilos | Bajo |
-| J09 | **Yeppo Pilla-Pilla** | Whac-a-mole | Yeppo aparece entre tarjetas; tocar el señuelo penaliza | Bajo |
+| J09 | **Yeppo Pilla-Pilla** | Persecución y escape | Duelo, obstáculos y cambio de papeles; primero dos personas en un móvil | Alto |
 | J10 | **DANZ Kart Mini** | Carreras arcade de vista cenital | Circuitos de estudio y club, obstáculos, power-ups originales | Alto |
 
 ## Orden de ejecución propuesto
