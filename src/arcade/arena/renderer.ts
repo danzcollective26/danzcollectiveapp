@@ -6,7 +6,7 @@ const COLORS = [0xdfff78, 0xff9ec7]
 const hex = (color: number) => '#' + color.toString(16).padStart(6, '0')
 
 /** Original procedural club artwork. No image requests, shaders or per-frame React renders. */
-export function createArenaRenderer(parent: HTMLElement, read: () => Arena, advance: (delta: number) => void, ready: () => void) {
+export function createArenaRenderer(parent: HTMLElement, read: () => Arena, advance: (delta: number) => void, ready: () => void, solo = false) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   let disposed = false, lastTick = performance.now()
   class ArenaScene extends Phaser.Scene {
@@ -19,8 +19,8 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
     create() {
       this.floor = this.add.graphics()
       this.moving = this.add.graphics()
-      this.labels = [0, 1].map(id => this.add.text(0, 0, `P${id+1} / ${id===0 ? 'CONTROL' : 'CREW'}`, { fontFamily: 'Arial, sans-serif', fontStyle: 'bold', fontSize: 16, color: hex(COLORS[id]), backgroundColor: '#0c121bcc', padding: { x: 5, y: 2 } }).setOrigin(.5, 1))
-      this.add.text(S * 5.5, 10, 'COLLECTA / CIERRE DE PISTA', { fontFamily: 'Arial, sans-serif', fontSize: 13, fontStyle: 'bold', color: '#b7c5ca', letterSpacing: 4 }).setOrigin(.5, 0)
+      this.labels = [0, 1].map(id => this.add.text(0, 0, id === 1 && solo ? 'CREW / AUTO' : `P${id+1} / ${id===0 ? 'CONTROL' : 'CREW'}`, { fontFamily: 'Arial, sans-serif', fontStyle: 'bold', fontSize: 16, color: hex(COLORS[id]), backgroundColor: '#0c121bcc', padding: { x: 5, y: 2 } }).setOrigin(.5, 1))
+      this.add.text(S * 5.5, 10, solo ? 'COLLECTA / ÚLTIMO TURNO' : 'COLLECTA / CIERRE DE PISTA', { fontFamily: 'Arial, sans-serif', fontSize: 13, fontStyle: 'bold', color: '#b7c5ca', letterSpacing: 4 }).setOrigin(.5, 0)
       if (!disposed) ready()
     }
     update(time: number, delta: number) {

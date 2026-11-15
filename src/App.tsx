@@ -65,9 +65,9 @@ const pages: { id: Page; label: string }[] = [
 function Arrow() { return <svg aria-hidden="true" className="arrow" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19 19 5M5 5h14v14" /></svg> }
 const launchPass = captureLaunchPass()
 const testLab = /^\/test\/?$/.test(window.location.pathname)
-function locationGame(): 'snake' | 'groove' | 'arena' | 'chase' | 'collecta' | null {
+function locationGame(): 'snake' | 'groove' | 'arena' | 'arena-solo' | 'chase' | 'collecta' | null {
   const value = new URLSearchParams(window.location.search).get('juego')
-  return value === 'collecta' ? 'collecta' : value === 'pilla-pilla' ? 'chase' : value === 'arena' ? 'arena' : value === 'groove-ninja' ? 'groove' : value === 'jack' || value === 'snake' ? 'snake' : null
+  return value === 'arena-solo' ? 'arena-solo' : value === 'collecta' ? 'collecta' : value === 'pilla-pilla' ? 'chase' : value === 'arena' ? 'arena' : value === 'groove-ninja' ? 'groove' : value === 'jack' || value === 'snake' ? 'snake' : null
 }
 
 export default function App() {
@@ -261,12 +261,12 @@ export default function App() {
     setPage('arcade'); setArcadeGame('groove'); window.scrollTo({ top: 0 })
   }
 
-  const openArena = () => {
+  const openArena = (mode: 'arena' | 'arena-solo' = 'arena') => {
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
-    url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'arena')
+    url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', mode)
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
-    setPage('arcade'); setArcadeGame('arena')
+    setPage('arcade'); setArcadeGame(mode)
   }
   const openChase = () => {
     dispatch({ type: 'pause' }); gameScreen.leave()
@@ -377,9 +377,9 @@ export default function App() {
           <article className="arcade-library-upcoming" aria-label="DANZ Idle Studio, próximamente"><img src="/arcade/idle-studio-industrial.webp" alt="Taller creativo de DANZ Idle Studio" width="1200" height="900" loading="lazy"/><div><span className="eyebrow">EN PREPARACIÓN</span><h2>DANZ IDLE STUDIO</h2><p>Música, moda, vídeo y diseño. El estudio del colectivo, a tu ritmo.</p><small>PRÓXIMAMENTE · Nombre y carátula provisionales</small></div></article>
           <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
         </section>}
-        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="content" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={openArena} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="content" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
         {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="content" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
-        {page === 'arcade' && arcadeGame === 'arena' && <Suspense fallback={<p className="content" role="status">Abriendo Arena…</p>}><ArenaDuel controls={collectaControls} onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && (arcadeGame === 'arena' || arcadeGame === 'arena-solo') && <Suspense fallback={<p className="content" role="status">Abriendo Arena…</p>}><ArenaDuel key={arcadeGame} opponent={arcadeGame === 'arena-solo' ? 'cpu' : 'human'} controls={collectaControls} onBack={openCollecta} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="content inner-page" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'snake' && (
           <section className="content inner-page arcade-page">
@@ -461,7 +461,7 @@ export default function App() {
       </main>
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
-      <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='chase'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
+      <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )
