@@ -113,3 +113,23 @@ test('Yeppo walkabout can be previewed on demand and visibly crosses the screen'
  await walk.getByRole('button',{name:'HABLAR'}).evaluate(button=>(button as HTMLButtonElement).click())
  await expect(page.getByRole('dialog',{name:'Hablar con Yeppo'})).toBeVisible()
 })
+
+test('Yeppo previews a different playful crossing on consecutive replays',async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('danz-yeppo-welcome-v1','done')
+  localStorage.setItem('danz-yeppo-enabled-v1','true')
+  sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
+ })
+ await page.goto('/')
+ const launcher=page.getByRole('button',{name:'Hablar con Yeppo'})
+ await launcher.click()
+ for(const [index,style] of ['stroll','sneak','dash'].entries()){
+  await page.getByRole('button',{name:/VER A YEPPO PASEARSE/}).click()
+  const walk=page.getByTestId('yeppo-walkabout')
+  await expect(walk.locator('.yeppo-roam-stage')).toHaveClass(new RegExp('yeppo-roam-'+style))
+  await expect(walk.locator('.yeppo-roam-stage')).toHaveCSS('animation-duration','8.2s')
+  await walk.getByRole('button',{name:'HABLAR'}).evaluate(button=>(button as HTMLButtonElement).click())
+  await expect(page.getByRole('dialog',{name:'Hablar con Yeppo'})).toBeVisible()
+  expect(index).toBeLessThan(3)
+ }
+})
