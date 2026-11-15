@@ -253,7 +253,7 @@ de juegos. La portada fue mostrada y el propietario pidió «Implémentala».
 | --- | --- | --- | --- |
 | DC01 | Una entrada DANZ Collecta con Arena y Persecución (antes Pilla-Pilla independiente) | Publicado y verificado, PR 30 | Cerrado: biblioteca, modos, retorno y enlaces directos comprobados. |
 | DC02 | Portada «Día de cobro» con la cara y el humor de seguridad/facturas | Aprobada y publicada en biblioteca, modos y `/test`; móvil 600×800, 200.798 bytes | Cerrado: encuadre completo y entrega online/offline comprobados. |
-| DC03 | Arena contra la máquina | Solicitado, pendiente | P1; desarrollar rival con estrategia y evasión; no publicar una simulación de online ni un modo vacío. |
+| DC03 | Arena contra la máquina | Beta local publicada y revisada, PR 32 | Último turno: rival real con rutas, previsión de cadenas y escape. 219 pruebas internas, tres tamaños y partida pública comprobados. T04 conserva la regresión automatizada pendiente. |
 | DC04 | Lore y protagonista dentro de Collecta | Lore publicado en PR 31; personajes humanos pendientes | Conservar portada exacta. Las flores siguen como personajes beta; no confundir el lore cerrado con el acabado de sprites. |
 | A03 | Mandos de 1vs1 en extremos opuestos desde el punto de vista de cada persona | Publicado y verificado en Arena y Persecución | Cerrado en emulación y navegador; rotación, multitoque y pausa correctos. T01 conserva la prueba física. |
 | J09 | Pilla-Pilla como Persecución de Collecta | Beta local publicada y verificada: 60 s, obstáculos, captura/cambio de roles y sprint | Cerrado: navegador/Canvas 2D, pausa, salida y offline comprobados. |
@@ -326,12 +326,31 @@ Auditoría: `AUDITORIA_COLLECTA_LORE_JOYSTICK_2026-11-15.md`.
   Gemini mantienen sus estados.
 
 
-## 15. Continuación — Arena contra la máquina (DC03)
+## 15. Arena contra la máquina — Último turno (DC03, PR 32)
 
-Bloque activo: Último turno, rival automático local dentro de Collecta.
-Implementación en verificación, todavía no publicada. El rival proyecta la
-física real de los discos y sus cadenas, busca rutas seguras, abre flightcases
-y persigue al encargado. No es un modelo remoto ni requiere servicios nuevos.
-Un mando P1, flechas/joystick y teclado; modo 1vs1 conservado.
-Siguiente paso: pruebas, auditoría de tres tamaños y publicación. T04 conserva
-la limitación de CI de la entrega anterior hasta obtener nueva evidencia.
+**Publicado y comprobado:** `df97f67643faeea6a04bb467a9d94f36bfb2a70f`.
+Vercel producción READY: `dpl_4h9beU62i7z1gogKrgffd2KxiSRt`.
+
+- Tercer modo de Collecta, con un mando P1 derecho, flechas/joystick y teclado.
+  El rival de la crew usa la física real: proyecta discos y cadenas, busca
+  refugios, rompe flightcases y persigue al encargado. No necesita servicios nuevos.
+- Primero en ganar tres rondas, 60 segundos cada una. Mismo daño propio, límites
+  de movimiento y capacidad; no se concede puntuación competitiva desde el cliente.
+- Build y **219 pruebas internas correctos**. Ocho pruebas nuevas de rival:
+  determinismo, pausa, peligro, cadenas, rechazo de discos sin escape, ocho
+  semillas y cadencias de 16/33/50 ms y variables. Perfil del host: 200 decisiones,
+  media 0,30 ms y p95 1,17 ms. No son medidas de móvil o FPS.
+- Revisión manual del juego real en 320×568, 390×844 y 844×390: joystick 96×96
+  sin girar, humano y rival se mueven, disco, teclado humano, pausa y siguiente
+  ronda. En horizontal se amplió la pista hasta 381×312 con el mando lateral.
+- La crew ganó una ronda sin entradas humanas. Volver a Collecta y abrir el 1vs1
+  recupera los dos mandos; el modo individual no expone un mando P2.
+- Producción: entrada desde Collecta, joystick mueve P1 de 1,1 a 4,1, crew de
+  9,7 a 3,7, pausa y retorno/reinicio comprobados. `/test` conserva el acceso.
+- **Automatización bloqueada:** CI 189 (`43751292360`) falla antes de ejecutar
+  pasos; los cuatro jobs carecen de logs. Escenarios de navegador/offline nuevos
+  escritos, pendientes de ejecución. T04 sigue abierto; no se afirma que hayan pasado.
+- Auditoría: `AUDITORIA_COLLECTA_SOLO_2026-11-15.md`. La portada aprobada y
+  los personajes beta se conservan. DC03 queda cerrado como beta local; DC04
+  (sprites humanos), T01 (teléfonos físicos), T04, online, Groove/música/BPM,
+  Kart y retorno de Gemini conservan sus estados. QR sigue aplazado.

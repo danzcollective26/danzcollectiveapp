@@ -49,8 +49,10 @@ necesite y la solicite; no dedicarle trabajo ni activarla en esta entrega.
   puntuaciones independientes. Vinyl Cut y Scratch Session son modos de Groove.
 - La decisión posterior reúne Arena y Pilla-Pilla en **DANZ Collecta**: una sola
   entrada y una selección de modos Arena / Persecución. No crear otra tarjeta de
-  Pilla-Pilla. Conservar las rutas directas antiguas. El modo contra la máquina
-  está solicitado y pendiente; no mostrarlo como jugable hasta implementarlo.
+  Pilla-Pilla. Conservar las rutas directas antiguas. El tercer modo es
+  **Contra la máquina — Último turno**, un rival automático local de Arena.
+  En solitario se usa un mando P1 sin girar; el rival comparte física y reglas
+  y no recibe entradas del teclado del segundo jugador. No confundirlo con online.
 - En los duelos locales, una persona juega desde cada extremo opuesto del móvil.
   Girar juntos mando, etiquetas y flechas, y transformar la dirección al punto
   de vista de cada jugador; al cambiar la orientación, pausar y soltar las entradas.

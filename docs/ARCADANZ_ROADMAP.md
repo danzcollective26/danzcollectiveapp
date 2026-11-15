@@ -85,7 +85,8 @@ se activa en esta entrega. El bloque actual sigue siendo Arcade, Yeppo y `/test`
 - Rondas de hasta 60 segundos; gana el primero en conseguir tres victorias.
 - Ilustración vectorial propia, personajes flor y renderer Phaser 4.2.1 cargado
   bajo demanda. No se sustituyen los motores ni las portadas de Jack y Groove.
-- Beta local: todavía no tiene salas online, IA rival ni recompensas competitivas.
+- Beta local: sin salas online ni recompensas competitivas. El rival automático
+  se incorpora después en Último turno (PR 32).
 - Accesible desde la biblioteca y `/test`. Auditoría y límites en
   `docs/AUDITORIA_ARENA_DANZ_2026-11-15.md`.
 
@@ -105,8 +106,8 @@ las otras portadas mantienen su identidad. Jack y Groove no se rediseñan.
   girar el móvil pausa y libera las entradas.
 - Biblioteca y `/test` abren Collecta. Los enlaces directos `juego=arena` y
   `juego=pilla-pilla` se conservan. `juego=collecta` abre sus modos.
-- El propietario también solicita jugar **contra la máquina** en Arena. Sigue
-  pendiente de un rival real; no simular que está disponible mediante un botón.
+- **Contra la máquina — Último turno** está publicado en PR 32. Rival local
+  real con búsqueda de rutas, previsión de cadenas y el mismo motor de Arena.
 - El lore de los modos está publicado en PR 31. La integración gráfica del
   protagonista humano sigue pendiente; las flores actuales son personajes beta.
 - Groove recibe cabina detallada, efectos suaves y Trazo Club, cosmético local
@@ -139,8 +140,11 @@ siguen pendientes; no se presentan como terminados.
 
 ## Continuación: Contra la máquina — Último turno
 
-Implementado localmente y en verificación (DC03). Rival automático que busca
+Publicado en PR 32 (DC03), `df97f676`. Rival automático que busca
 caminos, rompe flightcases y prevé cadenas para escapar antes de colocar disco.
 Un mando P1 derecho, flechas/joystick y teclado, sin cambiar las reglas del duelo.
 Build y 219 pruebas internas correctos. Auditoría:
-`AUDITORIA_COLLECTA_SOLO_2026-11-15.md`. Todavía no se declara publicado.
+`AUDITORIA_COLLECTA_SOLO_2026-11-15.md`. Producción READY y partida pública
+comprobadas. Joystick, teclado, rival, pausa y retorno revisados en tres tamaños.
+La batería automatizada de navegador/offline sigue pendiente por el fallo de
+arranque de CI (T04); esto no equivale a una prueba de teléfono físico.
