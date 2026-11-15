@@ -58,11 +58,9 @@ Pong encaja muy bien en pantalla compartida. Pinball, Dominó y Memoria permiten
 Los modos online requieren además de los gráficos: salas, conexión y reconexión, sincronización de estado y validación de resultados. No se presentan como disponibles hasta implementarlos y probarlos.
 
 El usuario ha confirmado los tres: arena original inspirada en Bomberman, Yeppo
-Pilla-Pilla y DANZ Kart Mini. La aprobación corresponde a su desarrollo; los
-primer prototipo de Arena DANZ ya incluye duelo local. Pilla-Pilla, Kart y los modos online siguen pendientes. El orden de
-trabajo es cerrar la biblioteca/Yeppo y `/test`, después preparar la dirección
-visual y el primer prototipo de duelo, empezando por la arena si no hay otra
-preferencia. Las portadas existentes aprobadas no se vuelven a generar.
+Pilla-Pilla y DANZ Kart Mini. La aprobación corresponde a su desarrollo; el
+primer prototipo de Arena DANZ ya incluye duelo local. Pilla-Pilla, Kart y los modos online siguen pendientes. La biblioteca, Yeppo y `/test` ya tienen una primera entrega publicada; el
+bloque actual incorpora la beta local de Arena DANZ. Las portadas existentes aprobadas no se vuelven a generar.
 
 ## Hugging Face y tareas aplazadas
 

@@ -16,9 +16,13 @@ export default function ArenaDuel({ onBack }: { onBack: () => void }) {
   const panel = useRef<HTMLElement>(null)
   const pointers = useRef(new Map<number, [PlayerId, Direction]>())
   const keys = useRef(new Map<string, [PlayerId, Direction]>())
+  const renderer = useRef<ReturnType<typeof createArenaRenderer> | null>(null)
   const back = useRef(onBack); back.current = onBack
   const clear = () => { pointers.current.clear(); keys.current.clear() }
-  const sync = (next: Arena) => { state.current = next; setHud(next) }
+  const sync = (next: Arena) => {
+    const resetClock = next.phase === 'playing' && state.current.phase !== 'playing'
+    state.current = next; setHud(next); renderer.current?.wake(resetClock)
+  }
   const pause = () => { clear(); sync(pauseArena(state.current)) }
   const drop = (id: PlayerId) => sync(placeBomb(state.current, id))
   const play = () => {
@@ -38,20 +42,25 @@ export default function ArenaDuel({ onBack }: { onBack: () => void }) {
     if (!parent) return
     let alive = true, booted = false, publishIn = 0
     setError(''); setReady(false)
-    let destroy: (() => void) | undefined
     const timeout = window.setTimeout(() => { if (alive && !booted) setError('La pista no se ha podido abrir. Prueba a cargarla otra vez.') }, 8000)
     try {
-      destroy = createArenaRenderer(parent, () => state.current, delta => {
+      renderer.current = createArenaRenderer(parent, () => state.current, delta => {
         if (!alive) return
         const input: [Direction | null, Direction | null] = [null, null]
         for (const [id, direction] of [...keys.current.values(), ...pointers.current.values()]) input[id] = direction
-        const previous = state.current, next = stepArena(previous, input, delta)
+        const previous = state.current
+        let next = previous, remaining = delta
+        // Bounded catch-up steps preserve real fuse time on slower phones.
+        while (remaining > 0 && next.phase === 'playing') {
+          const step = Math.min(remaining, 50)
+          next = stepArena(next, input, step); remaining -= step
+        }
         state.current = next
         publishIn += delta
         if (next !== previous && (publishIn >= 100 || next.phase !== previous.phase || next.bombs.length !== previous.bombs.length)) { publishIn = 0; setHud(next) }
       }, () => { booted = true; window.clearTimeout(timeout); if (alive) setReady(true) })
     } catch { setError('La pista no se ha podido abrir. Prueba a cargarla otra vez.') }
-    return () => { alive = false; window.clearTimeout(timeout); destroy?.(); clear() }
+    return () => { alive = false; window.clearTimeout(timeout); renderer.current?.destroy(); renderer.current = null; clear() }
   }, [retry])
 
   useEffect(() => {

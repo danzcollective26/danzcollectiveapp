@@ -63,6 +63,14 @@ test('the disc owner is vulnerable and an eliminated player awards the opponent 
   assert.deepEqual(s.scores, [0, 1]); assert.equal(s.phase, 'round-over')
   assert.equal(time(s, 5000).scores[1], 1)
 })
+test('simultaneous different-range blasts do not depend on the disc processing order', () => {
+  const s = open(); s.players[0] = { ...s.players[0], x: 1, y: 7 }
+  s.bombs = [{ id: 1, x: 1, y: 1, owner: 0, range: 4, due: 0 }, { id: 2, x: 2, y: 1, owner: 1, range: 1, due: 0 }]
+  const a = stepArena(s, idle, 50), b = stepArena({ ...s, bombs: [...s.bombs].reverse() }, idle, 50)
+  const cells = (v: Arena) => v.blasts.map(blast => blast.cell).sort((a, b) => a - b)
+  assert.deepEqual(cells(a), cells(b))
+  assert.ok(!a.blasts.some(blast => blast.cell === cellAt(4, 1)))
+})
 test('simultaneous eliminations draw without awarding a point to either player', () => {
   let s = open(); s = placeBomb(placeBomb(s, 0), 1); s = time(s, FUSE_MS)
   assert.equal(s.winner, 'draw'); assert.deepEqual(s.scores, [0, 0])

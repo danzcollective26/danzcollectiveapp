@@ -8,7 +8,7 @@ const hex = (color: number) => '#' + color.toString(16).padStart(6, '0')
 /** Original procedural club artwork. No image requests, shaders or per-frame React renders. */
 export function createArenaRenderer(parent: HTMLElement, read: () => Arena, advance: (delta: number) => void, ready: () => void) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  let disposed = false
+  let disposed = false, lastTick = performance.now()
   class ArenaScene extends Phaser.Scene {
     private floor!: Phaser.GameObjects.Graphics
     private moving!: Phaser.GameObjects.Graphics
@@ -25,7 +25,11 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
     }
     update(time: number, delta: number) {
       if (disposed || !this.floor) return
-      advance(Math.min(delta, 100))
+      // Phaser smooths/clamps its delta. Use real foreground time so a slow
+      // renderer cannot lengthen the fuse or the round; the engine substeps it.
+      const now = performance.now()
+      advance(Math.min(1000, Math.max(0, now - lastTick)))
+      lastTick = now
       const state = read(), g = this.moving
       if (state.phase !== 'playing' && state === this.previousState) return
       this.previousState = state
@@ -115,7 +119,21 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
     fps: { target: 60 }, scene: ArenaScene,
     render: { antialias: true, roundPixels: true },
   })
-  const resize = new ResizeObserver(() => { if (!disposed && game.isBooted) game.scale.refresh() })
+  const wake = (resetClock = false) => {
+    if (disposed || !game.isBooted) return
+    if (resetClock || !game.loop.running) lastTick = performance.now()
+    if (!game.loop.running) game.loop.wake()
+  }
+  // Render the final frame, then stop RAF entirely while menus/pauses are open.
+  // DOM controls wake it on changes; resizing requests a single fresh frame.
+  const idle = () => { if (read().phase !== 'playing') game.loop.sleep() }
+  game.events.on(Phaser.Core.Events.POST_RENDER, idle)
+  const resize = new ResizeObserver(() => { if (!disposed && game.isBooted) { game.scale.refresh(); wake() } })
   resize.observe(parent)
-  return () => { disposed = true; resize.disconnect(); game.destroy(true) }
+  return { wake, destroy() {
+    disposed = true; resize.disconnect(); game.events.off(Phaser.Core.Events.POST_RENDER, idle)
+    game.destroy(true)
+    // Phaser performs destruction on its next step, including from sleep.
+    if (game.isBooted && !game.loop.running) game.loop.wake()
+  } }
 }

@@ -14,16 +14,17 @@ Pilla-Pilla, Kart y salas online siguen pendientes. Los nuevos QR continúan apl
 | Móvil | Diez botones de al menos 44 × 44 px, captura independiente de punteros, dos mandos y disparo mientras se mantiene el movimiento. Sin desplazamiento accidental sobre controles. |
 | Pantalla | Vista dedicada; mandos a ambos lados en horizontal y juntos debajo del tablero en vertical. Salida y Escape devuelven la biblioteca. |
 | Pausa | Al ocultar o desenfocar se pausa y se liberan dedos/teclas; reanudación explícita. Temporizadores y renderer se limpian al salir. |
-| Rendimiento | Phaser 4.2.1 aislado en el módulo del juego: 1,38 MB / 363 KB gzip. El bundle principal solo crece unos 1,4 KB. Tablero estático redibujado al cambiar las cajas; HUD a 10 Hz, sin reconstruir trazos en pausa. |
+| Rendimiento | Phaser 4.2.1 aislado en el módulo del juego: 1,38 MB / 363 KB gzip. El bundle principal solo crece unos 1,4 KB. Tablero estático redibujado al cambiar las cajas; HUD a 10 Hz. Bucle de render dormido en menús, pausas y fin de ronda; se despierta al jugar o redimensionar. |
+| Reloj | Tiempo real en primer plano con pasos de simulación de hasta 50 ms. Una caída de FPS no estira la mecha del disco; reanudar descarta el tiempo de pausa. |
 | Compatibilidad | Phaser AUTO, con Canvas 2D como alternativa. Sin shaders ni efectos exclusivos de WebGL; movimiento reducido sin rebote ni pulso. |
 | PWA | Se prepara la arena y su cartel para uso sin conexión. Navegaciones públicas de `/test` y Arena reconocidas; se conservan exclusiones de credenciales, datos privados y parámetros desconocidos. |
 | Herramientas | Documentación actual de Phaser consultada en Context7, fuente y estado verificados en GitHub/Vercel. Catálogo gratuito de Hugging Face consultado; no había un recurso de sprites que justificara integrar un servicio externo. |
 
 ## Comprobaciones
 
-- Compilación de producción correcta. **185 pruebas internas superadas**, incluidas
-  12 pruebas nuevas de reglas: simetría, movimiento simultáneo, límites, cobertura,
-  cadenas, daño propio, empates, pausa, revancha, mejoras y pureza del estado.
+- Compilación de producción correcta. **186 pruebas internas superadas**, incluidas
+  13 pruebas nuevas de reglas: simetría, movimiento simultáneo, límites, cobertura,
+  cadenas simultáneas independientes del orden, daño propio, empates, pausa, revancha, mejoras y pureza del estado.
 - En navegador: apertura real del juego, colocación de disco, eliminación propia,
   punto al rival y regreso a biblioteca comprobados.
 - Marcos de 320 × 568, 390 × 844 y 844 × 390 sin desbordamiento. Botones de dirección

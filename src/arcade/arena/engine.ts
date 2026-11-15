@@ -82,8 +82,10 @@ export function stepArena(state: Arena, input: ArenaInput, delta: number): Arena
       if (x < 0 || y < 0 || x >= ARENA_COLS || y >= ARENA_ROWS || state.tiles[cell] === 1) break
       fresh.add(cell)
       if (state.tiles[cell] === 2) { broken.add(cell); break }
-      const chain = bombs.find(b => b.x === x && b.y === y && !detonated.has(b.id))
-      if (chain) { queue.push(chain); break }
+      // Every disc occupies its cell for this whole simulation step. A blast
+      // must not travel farther merely because another due disc was processed first.
+      const chain = bombs.find(b => b.x === x && b.y === y)
+      if (chain) { if (!detonated.has(chain.id)) queue.push(chain); break }
     }
   }
   if (fresh.size) {
