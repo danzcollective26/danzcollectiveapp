@@ -38,7 +38,7 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | S01 | Quitar los recuadros extraños alrededor de Snake y rostros | Publicado y verificado, PR 29 | Retirados borde/fondo de cabeza, aro y animación heredada de sombra rectangular; comprobados recogida, giro y móvil. |
 | G01 | Continuar mejoras de Jack y Groove | Parcial; primera entrega publicada | Cerrar S01; conservar optimización y especiales. Completar pendientes específicos G02–G07, sin afirmar que todo está terminado. |
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
-| J09 | Yeppo Pilla-Pilla | Aprobado, pendiente | Primera arena de persecución/escape con cambio de papeles y dos mandos. No sustituirlo por tocar apariciones. |
+| J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
 | J10 | DANZ Kart Mini | Aprobado, pendiente | Prototipo cenital móvil, controles de dos personas, derrape y circuito legible. |
 
 ## 4. Lo ya publicado que debe conservarse
@@ -46,8 +46,8 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | Área | Base comprobada | Evidencia principal |
 | --- | --- | --- |
 | Compartir la app | PWA en `https://danzcollectiveapp.vercel.app`; prueba en `/test` | Proyecto Vercel `danzcollectiveapp`, producción READY al iniciar esta revisión. |
-| Biblioteca ARCADANZ | Una entrada por juego, apertura inmersiva y retorno a biblioteca | PR 26; `src/arcade/ArcadeChooser.tsx`, `ArcadeLaunch.tsx`. |
-| Portadas | Las dos exactas aprobadas, cada una con su protagonista; copias móviles optimizadas | PR 26; reducción de tamaño 88–91 % ya registrada. No generarlas de nuevo. |
+| Biblioteca ARCADANZ | Jack, Groove y Collecta; Arena y Persecución se eligen dentro de Collecta | PR 26 y PR 30; apertura inmersiva, retorno a modos y biblioteca, `/test` y enlaces directos. |
+| Portadas | Jack y Groove conservan las exactas aprobadas; Collecta incorpora «Día de cobro» | PR 26 y PR 30; imágenes completas y copias móviles optimizadas. No regenerarlas ni intercambiar protagonistas. |
 | Snake / Jack | Clásico, 19×19, 12 recorridos, giro inmediato, cola de giros, mando opcional, pausa y flor; 10 hojas de 3 expresiones | `src/snake.ts`, `src/arcade/SnakeCells.tsx`, `src/content/collective.json`, pruebas de Snake. |
 | Competición de Snake | Tickets, repetición de movimientos validada en servidor y ranking; correo e Instagram verificados | `useSnakeCompetition.ts`, migraciones y `ARCADANZ_COMPETICION_2026-11-12.md`. El replay no impide por sí solo todos los bots. |
 | Groove | Vinyl Cut, Scratch Session y modo experimental Destrucción; Combo Disc ×2 y Split Disc añadidos | PR 28; motores separados. Puntuación local de Groove, sin premios competitivos integrados. |
@@ -74,7 +74,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | M04 | Pases y pasaporte fiables | Parcial. Hay pase local y canje; recuperación por correo/entre navegadores y resiliencia avanzada siguen pendientes. El trabajo nuevo en QR se mantiene aparcado. |
 | M05 | DANZPOINTS claros y auditables | Parcial. Saldo, reservas y evidencias existen; faltan reglas posteriores al piloto, catálogo de premios, existencias, canje y cola durable de resultados. |
 | M06 | Arcade más visual, accesible y fluido | Parcial. Biblioteca, portadas, pausa, controles, optimización y corrección S01 publicados; medir en móviles físicos. |
-| M07 | Armas diferentes y Groove menos repetitivo | Parcial. Tres armas de corte y ocho del modo Destrucción son ámbitos distintos. Revisar equilibrio, feedback y variedad; faltan música/BPM reales y cosméticos persistentes. |
+| M07 | Armas diferentes y Groove menos repetitivo | Parcial. Tres armas de corte y ocho del modo Destrucción son ámbitos distintos. Revisar equilibrio, feedback y variedad; faltan música/BPM reales y competición. Trazo Club y efectos suaves locales incorporados en el bloque de PR 30. |
 | M08 | Yeppo vivo y poco intrusivo | Parcial. Tres paseos y contacto real publicados; conservar identidad, opt-in y movimiento reducido. IA generativa/3D siguen siendo fases distintas. |
 | M09 | Administración más ágil | Parcial. Hay administración y buzones; falta bandeja unificada con prioridades, moderación de fotos y seguimiento trazable. |
 | M10 | PWA sólida | Parcial. Instalación y shell offline con pruebas; validar Android/iPhone físicos, recuperación, accesibilidad, observabilidad y procedimiento de rollback. |
@@ -100,8 +100,8 @@ de esa versión, no pruebas nuevas de esta revisión.
 | G03 | Funky Fiesta y WTHIMH para Groove | Pendiente de confirmar recursos, disponibilidad y conexión al juego; no sustituirlos por stems inventados. |
 | G04 | Scratch con desafío rítmico entretenido tipo Guitar Hero | Parcial. Existen patrones temporizados; evaluar beatmap real, lectura y diversión. No declararlo acabado solo por pasar tests. |
 | G05 | Cortes dirigidos arriba/abajo y secuencias | Parcial. Comprobar eje horizontal/vertical no equivale a todas las direcciones pedidas. |
-| G06 | Estilos de corte desbloqueables localmente | Pendiente; cosméticos que no alteren la competición. |
-| G07 | Variación de cabina, armas y multicortes | Parcial. Hay variación/feedback y especiales; revisar legibilidad y diversidad a lo largo de una sesión completa. |
+| G06 | Estilos de corte desbloqueables localmente | Trazo Club a los 20 cortes y preferencias persistentes implementados y comprobados. No modifica alcance, puntuación, vidas ni duración. Publicado y verificado, PR 30. |
+| G07 | Variación de cabina, armas y multicortes | Parcial. Cabina detallada, feedback, efectos suaves y cosméticos comprobados; música/BPM real y evaluación de diversión a lo largo de una sesión siguen pendientes. |
 | G08 | Ranking/competición online de Groove | Pendiente; no usar puntuación local como resultado verificado ni conceder DANZPOINTS desde el cliente. |
 
 ### Catálogo y trabajo externo
@@ -110,7 +110,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | --- | --- | --- |
 | A01 | Arena DANZ inspirado en Bomberman | Beta local publicada; memoria/kit entregados; pulido gráfico y siguientes mapas por integrar al recibir Gemini. |
 | A02 | Arena online desde dos móviles | Pendiente: salas, autoridad, tick, latencia, reconexión y resultados validados. No implementar una simulación de online. |
-| J09 | Yeppo Pilla-Pilla | Aprobado; persecución/escape, obstáculos y cambio de papeles. Pendiente. |
+| J09 | Persecución de DANZ Collecta | Beta local implementada: un minuto, capturas/cambio de papeles, obstáculos y sprint. CI de juego, multitoque, orientación y offline correctos; publicado y verificado, PR 30. |
 | J10 | DANZ Kart Mini | Aprobado; carreras cortas y derrape. Pendiente. |
 | E01 | Idle Studio | Externo/concepto aprobado; sigue «Próximamente». Puestos de música, moda, vídeo/diseño e impresión 3D, niveles y mejoras. Recibir proyecto de la otra IA antes de duplicarlo. El vídeo del estudio ya fue recibido como referencia privada. |
 | E02 | Plataformas desarrollado en Grok | Externo. Recibir ZIP completo; adaptación mínima, conservando arte, motor, niveles, física, controles, audio y progreso. |
@@ -210,7 +210,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 8. Recuperar un error Android antiguo como pendiente ignoraría la confirmación
    del propietario. Se separa de las comprobaciones concretas aún no acreditadas.
 
-## 12. Evidencia y mantenimiento
+## 12. Evidencia de la revisión inicial y mantenimiento
 
 Fuentes revisadas: conversaciones disponibles hasta la petición actual;
 traspasos del 9/11, informe para Grok del 12/11 (música y limitaciones), memoria
@@ -250,15 +250,36 @@ de juegos. La portada fue mostrada y el propietario pidió «Implémentala».
 
 | ID | Petición / decisión | Estado actual | Prioridad / siguiente paso |
 | --- | --- | --- | --- |
-| DC01 | Una entrada DANZ Collecta con Arena y Persecución (antes Pilla-Pilla independiente) | Implementado localmente; falta cierre de CI/QA/publicación | P1; probar biblioteca, modos, retorno y enlaces directos. |
-| DC02 | Portada «Día de cobro» con la cara y el humor de seguridad/facturas | Aprobada e integrada localmente en biblioteca, modos y `/test`; móvil 600×800, 200.798 bytes | P1; auditar encuadre completo y entrega online/offline. |
+| DC01 | Una entrada DANZ Collecta con Arena y Persecución (antes Pilla-Pilla independiente) | Publicado y verificado, PR 30 | Cerrado: biblioteca, modos, retorno y enlaces directos comprobados. |
+| DC02 | Portada «Día de cobro» con la cara y el humor de seguridad/facturas | Aprobada y publicada en biblioteca, modos y `/test`; móvil 600×800, 200.798 bytes | Cerrado: encuadre completo y entrega online/offline comprobados. |
 | DC03 | Arena contra la máquina | Solicitado, pendiente | P1; desarrollar rival con estrategia y evasión; no publicar una simulación de online ni un modo vacío. |
 | DC04 | Lore y protagonista dentro de Collecta | Concepto registrado, parcial | P2; conservar portada exacta y definir las acciones de cada modo; las flores son personajes beta. |
-| A03 | Mandos de 1vs1 en extremos opuestos desde el punto de vista de cada persona | Implementado localmente en Arena y Persecución | P1; comprobar rotación, multitoque y pausa al girar en tres tamaños. |
-| J09 | Pilla-Pilla como Persecución de Collecta | Motor local de 60 s, obstáculos, captura/cambio de roles y sprint implementado; pruebas de reglas correctas | P1; navegador/Canvas 2D, pausa, salida y offline antes de publicación. |
-| G06 | Cosméticos locales de Groove sin ventaja competitiva | Trazo Club a los 20 cortes y preferencias persistentes implementados; reglas unitarias correctas | P1; completar desbloqueo mediante juego real, persistencia y foco. |
-| G07 | Gráficos, opciones y funcionamiento de Groove con las herramientas nuevas | Cabina detallada y ajuste de efectos suaves implementados localmente | P1; auditar móvil y regresiones de corte/armas/tiempo. G02/G03/G08 siguen pendientes. |
+| A03 | Mandos de 1vs1 en extremos opuestos desde el punto de vista de cada persona | Publicado y verificado en Arena y Persecución | Cerrado en emulación y navegador; rotación, multitoque y pausa correctos. T01 conserva la prueba física. |
+| J09 | Pilla-Pilla como Persecución de Collecta | Beta local publicada y verificada: 60 s, obstáculos, captura/cambio de roles y sprint | Cerrado: navegador/Canvas 2D, pausa, salida y offline comprobados. |
+| G06 | Cosméticos locales de Groove sin ventaja competitiva | Trazo Club a los 20 cortes y preferencias persistentes publicados y verificados | Cerrado: desbloqueo jugando, persistencia y foco comprobados en CI. |
+| G07 | Gráficos, opciones y funcionamiento de Groove con las herramientas nuevas | Cabina detallada y ajuste de efectos suaves publicados y verificados | Auditoría y regresiones de corte/armas/tiempo completas. G02/G03/G08 siguen pendientes. |
 
 Verificación local actual: 205 pruebas internas correctas. El resultado previo de
 668 comprobaciones pertenece a la entrega de Snake; no acredita este código.
 Auditoría y evidencia de publicación: `AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.md`.
+
+
+### Cierre de Collecta y Groove — PR 30
+
+- Portada aprobada «Día de cobro» publicada. Una entrada Collecta reúne Arena
+  y Persecución; sus mandos siguen el punto de vista de personas enfrentadas.
+- Persecución local publicado y probado: 60 s, obstáculos, captura/cambio de
+  papeles, sprint, pausa, salida y uso sin conexión. J09 deja de ser pendiente
+  de prototipo; DC04 conserva el acabado de personajes/lore como trabajo distinto.
+- Groove: cabina detallada, efectos suaves y Trazo Club persistente publicados;
+  G06 completado para la versión local. Música/BPM y ranking mantienen su estado.
+- CI 181, código `33ac292e`: 205 pruebas internas + 486 de navegador + 14 offline
+  = **705 comprobaciones correctas sin reintentos**, además de build.
+- Integración main: `ae4c838db05a27e1adae4ff07c0c896c09e37051`, PR 30.
+  Vercel producción READY: `dpl_DXk5CgXTHEM4nNqFyXTbjyLgoZTY`.
+- Navegador conectado: portada completa visible, partida de Persecución iniciada,
+  P1 movido, pausa y retorno a modos correctos en la URL pública.
+- Auditoría: `AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.md`. Los cambios de cierre
+  posteriores solo actualizan documentación, sin cambiar el ejecutable validado.
+- Siguiente tarea de Collecta: **DC03, Arena contra la máquina**. Online sigue
+  pendiente. Se conservan todos los demás bloques, QR aplazados y entregas externas.

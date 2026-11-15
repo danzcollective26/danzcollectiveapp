@@ -1,6 +1,6 @@
 # Auditoría DANZ Collecta y Groove — 15/11/2026
 
-Estado: implementación local en verificación. No publicado todavía.
+Estado: publicado en producción y verificado en navegador conectado.
 
 ## Alcance
 
@@ -32,7 +32,7 @@ Estado: implementación local en verificación. No publicado todavía.
   y las entradas permanecen en referencias. Listeners, observadores y canvas
   se destruyen al salir. En pausa se duerme el bucle de Phaser.
 
-## Por cerrar antes de publicar
+## Comprobaciones previstas (completadas al cierre)
 
 - Build final, CI de navegador en escritorio/tableta/móvil y shell offline.
 - Auditoría visual conectada: portada, hub, mandos, dos dedos/sprint, ajustes,
@@ -85,3 +85,31 @@ Estado: implementación local en verificación. No publicado todavía.
 - El navegador conectado confirmó que el botón Cerrar de Groove ya funciona y
   devuelve el foco sin salir de la partida. Siguiente: verificar el CSS final,
   cerrar CI y publicar.
+
+
+## Validación final y release
+
+- CI 181 sobre `33ac292eb9c40305717950a5160135ab9c4539b3`: **205 internas,
+  486 escenarios de navegador (162 en cada perfil) y 14 offline**, todos correctos
+  a la primera. Total: **705 comprobaciones**, además de la compilación.
+- Las capturas finales de Arena y Persecución en 844×390 confirman el reloj
+  separado del título y del botón de pausa. También revisadas las capturas de
+  320×568 y 390×844: mandos arriba/abajo con P2 a 180°, acciones de 44 px o más,
+  tablero y comienzo de partida accesibles. Los dos dedos y la tercera acción
+  de sprint/disco pasan por eventos táctiles nativos de Chromium en CI.
+- Preview Vercel READY: `dpl_2pqpkVntRGCi8NJAJnWricQCK6hU`, fuente `33ac292e`.
+- PR 30 integrado: `ae4c838db05a27e1adae4ff07c0c896c09e37051`.
+- Producción READY: `dpl_DXk5CgXTHEM4nNqFyXTbjyLgoZTY`, fuente `ae4c838d`.
+  El navegador conectado abrió la portada completa de 600 px en la URL pública
+  de `/test`, inició Persecución, movió P1, pausó y volvió a sus modos.
+  Se conservó la vista publicada como resultado para el propietario.
+
+
+## Cierre
+
+Publicado y comprobado en
+https://danzcollectiveapp.vercel.app/test?seccion=arcade&juego=collecta .
+La pasada final CI 181 no necesitó reintentos. No se han ejecutado de nuevo los
+escenarios por los cambios posteriores que solo actualizan documentación.
+Siguiente desarrollo de Collecta: rival contra la máquina (DC03), sin perder
+música/BPM de Groove, Kart, entregas externas y los demás pendientes del registro.

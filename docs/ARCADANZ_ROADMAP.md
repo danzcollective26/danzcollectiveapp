@@ -7,9 +7,9 @@ Registro general de tareas, decisiones, dependencias y evidencia vigente:
 Consultar ese registro para el estado de entregas posteriores y los pendientes
 de música, galería, cuenta, puntos y administración.
 
-## Base ya publicada
+## Base conservada y ampliación actual
 
-- Dos portadas exactas aprobadas integradas: Jack con camiseta roja persiguiendo al cable vivo; Groove Ninja con su propio protagonista, gafas negras y katana con flor.
+- Jack y Groove conservan sus portadas exactas. DANZ Collecta incorpora la portada aprobada «Día de cobro», con su protagonista de seguridad, en el bloque de PR 30.
 - Biblioteca ARCADANZ con imágenes completas y apertura de cada juego en una vista inmersiva.
 - Yeppo conserva su flor y sus tres paseos; se acerca a una tarjeta real, alinea la mano y sincroniza la reacción. El recorrido se cancela al desplazarse o cambiar el tamaño de la pantalla.
 - Vinyl Cut y Scratch Session se conservan como modos de Groove Ninja.
@@ -48,7 +48,7 @@ Son mejoras sobre funciones existentes; esta lista no afirma que todas estén te
 
 DANZ Idle Studio sigue siendo otro concepto previo, independiente de esta lista.
 
-## Tres juegos aprobados: jugar contra otra persona
+## Prioridades de duelos y estructura vigente
 
 El usuario quiere juegos 1 contra 1 en un mismo móvil y también conectándose online. Prioriza un juego original inspirado en la mecánica de Bomberman, Yeppo Pilla-Pilla y DANZ Kart Mini. Quiere una estética propia con acabado premium: personajes reconocibles, escenarios cuidados, animaciones fluidas, efectos claros y menús consistentes.
 
@@ -65,7 +65,7 @@ Los modos online requieren además de los gráficos: salas, conexión y reconexi
 El usuario ha confirmado los tres: arena original inspirada en Bomberman, Yeppo
 Pilla-Pilla y DANZ Kart Mini. La aprobación corresponde a su desarrollo; el
 primer prototipo de Arena DANZ ya incluye duelo local. La nueva Persecución se integra dentro de DANZ Collecta; Kart y los modos online siguen pendientes. La biblioteca, Yeppo y `/test` ya tienen una primera entrega publicada; el
-bloque actual incorpora la beta local de Arena DANZ. Las portadas existentes aprobadas no se vuelven a generar.
+bloque actual reúne Arena y Persecución en DANZ Collecta. Las portadas existentes aprobadas no se vuelven a generar.
 
 ## Hugging Face y tareas aplazadas
 
@@ -90,7 +90,7 @@ se activa en esta entrega. El bloque actual sigue siendo Arcade, Yeppo y `/test`
   `docs/AUDITORIA_ARENA_DANZ_2026-11-15.md`.
 
 
-## DANZ Collecta — decisión e integración posterior del 15/11/2026
+## DANZ Collecta — decisión e integración posterior del 15/11/2026 (vigente)
 
 El propietario reúne Arena y Pilla-Pilla bajo **DANZ Collecta**, una sola portada
 con selección de modos. La portada «Día de cobro», con el protagonista de
@@ -112,6 +112,8 @@ las otras portadas mantienen su identidad. Jack y Groove no se rediseñan.
 - Groove recibe cabina detallada, efectos suaves y Trazo Club, cosmético local
   desbloqueable con 20 cortes. BPM/música reales y ranking siguen pendientes.
 
-Estado de este bloque: implementado localmente; 205 pruebas de reglas correctas.
-Build, CI de navegador/offline y auditoría conectada pendientes de cierre en
-`AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.md` antes de marcarlo publicado.
+Estado de este bloque: publicado y verificado, PR 30. CI 181: build, 205
+pruebas internas, 486 de navegador y 14 offline correctas sin reintentos.
+Auditoría conectada y comprobación pública completadas en
+`AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.md`. Rival IA y acabado de personajes
+siguen pendientes; no se presentan como terminados.
