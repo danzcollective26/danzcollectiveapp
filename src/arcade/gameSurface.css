@@ -24,6 +24,10 @@
 .arena-game .arena-board,.chase-game .chase-board{border:0}
 .dn-page .dn-stage,.dn-page .dn-weapons{border-width:1px;padding:5px;box-shadow:none}
 .dn-page .dn-board-wrap{border-width:1px;border-radius:3px}
+@media(max-width:740px){
+ .site-shell .dn-page{width:calc(100% - 8px);padding-top:8px;gap:8px}
+ .site-shell .dn-page .dn-heading h1{font-size:clamp(30px,9.4vw,68px);overflow-wrap:anywhere}
+}
 @media(orientation:landscape) and (max-height:540px) and (min-width:640px){
  .site-shell .gn-panel.gn-immersive{grid-template-columns:minmax(0,1fr) minmax(224px,31%);gap:4px 8px}
  .gn-panel.gn-immersive .gn-play-slot{grid-column:1;grid-row:1/8}
