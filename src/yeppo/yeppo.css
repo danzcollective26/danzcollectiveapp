@@ -114,3 +114,25 @@
 .yeppo-feedback form button:disabled{opacity:.45}
 .yeppo-feedback-success{color:#dfff79}
 .yeppo-feedback-error{color:#ffadad}
+
+/* DANZFLOR bag character: warm mustard flower, animated flexible limbs, clear face. */
+.yeppo-flower.yeppo-character{width:90px;height:100px;max-width:23vw;overflow:visible;color:#ffe071;filter:drop-shadow(0 3px 0 #34292a) drop-shadow(0 8px 9px #0008)}
+.yeppo-character .yeppo-head{transform-origin:97px 88px;animation:yeppo-head-sway 3.1s ease-in-out infinite}
+.yeppo-character .yeppo-left-arm{transform-origin:77px 97px;animation:yeppo-wave 3s ease-in-out infinite}
+.yeppo-character .yeppo-right-arm{transform-origin:112px 94px;animation:yeppo-cheeky 3.6s ease-in-out infinite}
+.yeppo-character .yeppo-left-hand{transform-origin:22px 34px;animation:yeppo-wave 3s ease-in-out infinite}
+.yeppo-character .yeppo-limbs,.yeppo-character .yeppo-limbs-fill{transform-origin:96px 104px}
+.yeppo-avatar .yeppo-character{width:90px;height:100px}
+.yeppo-peek-avatar .yeppo-character{width:60px;height:70px;max-width:70px}
+.yeppo-chat-launcher .yeppo-character{width:48px;height:54px;max-width:none}
+.yeppo-welcome-face .yeppo-character{width:100px;height:114px;max-width:none}
+.yeppo-visit-peek .yeppo-character{width:60px;height:72px}
+.yeppo-character.yeppo-expression-sleepy .yeppo-head{animation-duration:4.8s}
+.yeppo-character.yeppo-expression-surprised .yeppo-head{animation:yeppo-surprise-head 1.8s ease-in-out infinite}
+.yeppo-character.yeppo-expression-wink .yeppo-left-arm,.yeppo-character.yeppo-expression-wink .yeppo-left-hand{animation-duration:1.5s}
+@keyframes yeppo-wave{0%,100%{transform:rotate(-7deg)}38%,56%{transform:rotate(13deg)}70%{transform:rotate(-12deg)}}
+@keyframes yeppo-cheeky{0%,100%{transform:rotate(0)}55%{transform:rotate(11deg)}}
+@keyframes yeppo-head-sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes yeppo-surprise-head{0%,100%{transform:scale(1)}30%,65%{transform:scale(1.08)}}
+@media(max-width:500px){.yeppo-avatar .yeppo-character{width:76px;height:84px}.yeppo-peek-avatar .yeppo-character{width:58px;height:66px}.yeppo-welcome-face .yeppo-character{width:88px;height:100px}}
+@media(prefers-reduced-motion:reduce){.yeppo-character .yeppo-head,.yeppo-character .yeppo-left-arm,.yeppo-character .yeppo-left-hand,.yeppo-character .yeppo-right-arm{animation:none!important}}
