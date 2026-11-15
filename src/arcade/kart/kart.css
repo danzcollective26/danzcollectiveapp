@@ -5,3 +5,5 @@
 @media(prefers-reduced-motion:reduce){.kart-game *{scroll-behavior:auto;animation:none;transition:none}}
 
 @media(orientation:landscape){.kart-solo .kart-layout{grid-template-columns:minmax(0,1fr) 220px}.kart-solo .kart-controller{width:220px;height:116px}.kart-solo .kart-controller .versus-face{--versus-turn:0deg;width:212px;transform:translate(-50%,-50%)} }
+
+.kart-game .kart-control-meta>button{font-size:9px;padding:4px 2px;letter-spacing:0;white-space:nowrap}
