@@ -1,0 +1,41 @@
+/* GROOVE NINJA / DESTRUCCIÓN: comic arcade with eight whimsical fictional tools. */
+.dn-page{display:flex;flex-direction:column;gap:17px}
+.dn-page>.back{margin:0;align-self:flex-start}
+.dn-heading{max-width:900px}
+.dn-heading>span{font-size:10px;font-weight:850;letter-spacing:.16em;color:#fad38f}
+.dn-heading h1{font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:clamp(52px,10vw,110px);line-height:.89;margin:12px 0;letter-spacing:-.035em}
+.dn-heading em{font-style:normal;color:#f8ba69}
+.dn-heading p{font-size:14px;line-height:1.55;color:#cbd2ca;max-width:650px}
+.dn-layout{display:grid;grid-template-columns:minmax(235px,.75fr) minmax(320px,1fr);gap:20px;align-items:start}
+.dn-weapons{border:2px solid #8d7155;background:linear-gradient(155deg,#383027,#1c2121);padding:15px;box-shadow:7px 8px 0 #0a1010}
+.dn-weapons h2{font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:25px;color:#ffe6aa;letter-spacing:.02em;margin:2px 0 14px}
+.dn-weapon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dn-weapon-grid button{display:flex;align-items:center;gap:8px;min-height:66px;padding:8px;background:#24292a;border:2px solid #546066;color:#fff;text-align:left;cursor:pointer}
+.dn-weapon-grid button[aria-pressed=true]{background:#425241;border-color:#e9fb9d;box-shadow:inset 0 0 0 1px #e9fb9d}
+.dn-weapon-grid button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.dn-weapon-grid strong{display:block;font-size:10px;line-height:1.25}
+.dn-weapon-grid small{display:block;margin-top:4px;font-size:8px;line-height:1.4;color:#c7d2ce}
+.dn-weapon-symbol{font-size:30px;line-height:1;min-width:27px;text-align:center;color:#f2d390}
+.dn-weapons>p{font-size:11px;line-height:1.55;color:#b8c7c3}
+.dn-stage{min-width:0;border:2px solid #9d8660;background:#1b2325;padding:10px;box-shadow:7px 8px 0 #090f10}
+.dn-hud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;font-size:9px;color:#c3d9d5;font-weight:850;letter-spacing:.06em;margin:0 0 10px}
+.dn-hud strong{display:block;margin-top:4px;font-family:Impact,'Arial Narrow',Arial,sans-serif;color:#fbe5a1;font-size:27px;letter-spacing:.03em}
+.dn-board-wrap{position:relative;max-width:640px;aspect-ratio:640/760;margin-inline:auto;overflow:hidden;border:2px solid #b3a379;background:#151c1d}
+.dn-board{display:block;width:100%;height:100%;user-select:none;cursor:crosshair}
+.dn-target{filter:drop-shadow(2px 5px 4px #0809099d)}
+.dn-shot{pointer-events:none;animation:dn-explosion .23s ease-out both}
+@keyframes dn-explosion{from{opacity:1;transform:scale(.55)}to{opacity:0;transform:scale(1.35)}}
+.dn-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center;background:#11191bdd;padding:20px}
+.dn-overlay strong{font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:clamp(28px,5vw,55px);color:#f9e4a1;text-shadow:2px 4px #111}
+.dn-overlay p{font-size:12px;line-height:1.6;max-width:320px}
+.dn-overlay button,.dn-footer button{border:2px solid #1d2224;box-shadow:3px 3px 0 #111;background:#e4fa91;color:#17201c;padding:12px 14px;min-height:44px;font-weight:900;font-size:11px;cursor:pointer}
+.dn-overlay .dn-resume{background:#f7b56b}
+.dn-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px}
+.dn-footer>span{font-size:12px;color:#ffe4ac;font-weight:800;line-height:1.45}
+.dn-footer button:disabled{opacity:.5}
+.dn-local-note{font-size:11px;line-height:1.5;color:#adbfbd;max-width:750px}
+.gn-mode-picker{grid-template-columns:repeat(3,minmax(0,1fr))}
+.gn-mode-picker .gn-destruction-launch{border-color:#bd895f;background:#2c2420}
+.gn-mode-picker .gn-destruction-launch strong{color:#f6d28e}
+@media(max-width:740px){.dn-layout{grid-template-columns:1fr}.dn-heading h1{font-size:clamp(50px,12vw,80px)}.dn-weapon-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dn-board-wrap{width:min(100%,440px)}.dn-weapons{padding:11px}.dn-hud strong{font-size:24px}.gn-mode-picker>button{padding:10px 6px}.gn-mode-picker strong{font-size:10px}.gn-mode-picker small{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.dn-shot{animation:none}}
