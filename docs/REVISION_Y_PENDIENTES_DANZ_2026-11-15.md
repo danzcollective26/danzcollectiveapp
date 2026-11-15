@@ -31,11 +31,11 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 
 ## 3. Prioridad inmediata y siguiente trabajo
 
-| ID | Petición | Estado al abrir esta revisión | Siguiente acción / cierre |
+| ID | Petición | Estado comprobado | Siguiente acción / cierre |
 | --- | --- | --- | --- |
 | R01 | Entregar primero la memoria y kit para Gemini | Entregado; archivos existentes comprobados | Enlaces reenviados al inicio de la respuesta; esperar el ZIP de retorno para integrarlo. |
-| R02 | Revisar intensivamente lo hablado para no perder tareas | En ejecución | Contrastar conversaciones, traspasos, código y publicaciones; mantener este registro y sus estados. |
-| S01 | Quitar los recuadros extraños alrededor de Snake y rostros | P0: corregido en código, pendiente de revisión final/publicación | Retirar borde/fondo de cabeza, aro de objetivo y animación heredada que pinta una sombra rectangular. Comprobar después de comer y en móvil. |
+| R02 | Revisar intensivamente lo hablado para no perder tareas | Revisión completada; seguimiento permanente | Conversaciones, traspasos, código y publicaciones contrastados; mantener este registro y sus estados. |
+| S01 | Quitar los recuadros extraños alrededor de Snake y rostros | Publicado y verificado, PR 29 | Retirados borde/fondo de cabeza, aro y animación heredada de sombra rectangular; comprobados recogida, giro y móvil. |
 | G01 | Continuar mejoras de Jack y Groove | Parcial; primera entrega publicada | Cerrar S01; conservar optimización y especiales. Completar pendientes específicos G02–G07, sin afirmar que todo está terminado. |
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
 | J09 | Yeppo Pilla-Pilla | Aprobado, pendiente | Primera arena de persecución/escape con cambio de papeles y dos mandos. No sustituirlo por tocar apariciones. |
@@ -73,7 +73,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | M03 | Buscador, filtros y favoritas | Pendiente de completar. Mantener filtros por evento/fecha y búsqueda sin ampliar permisos; favoritos y búsqueda unificada no constan completos. |
 | M04 | Pases y pasaporte fiables | Parcial. Hay pase local y canje; recuperación por correo/entre navegadores y resiliencia avanzada siguen pendientes. El trabajo nuevo en QR se mantiene aparcado. |
 | M05 | DANZPOINTS claros y auditables | Parcial. Saldo, reservas y evidencias existen; faltan reglas posteriores al piloto, catálogo de premios, existencias, canje y cola durable de resultados. |
-| M06 | Arcade más visual, accesible y fluido | Parcial. Biblioteca, portadas, pausa, controles y optimización publicados; corregir S01 y medir en móviles físicos. |
+| M06 | Arcade más visual, accesible y fluido | Parcial. Biblioteca, portadas, pausa, controles, optimización y corrección S01 publicados; medir en móviles físicos. |
 | M07 | Armas diferentes y Groove menos repetitivo | Parcial. Tres armas de corte y ocho del modo Destrucción son ámbitos distintos. Revisar equilibrio, feedback y variedad; faltan música/BPM reales y cosméticos persistentes. |
 | M08 | Yeppo vivo y poco intrusivo | Parcial. Tres paseos y contacto real publicados; conservar identidad, opt-in y movimiento reducido. IA generativa/3D siguen siendo fases distintas. |
 | M09 | Administración más ágil | Parcial. Hay administración y buzones; falta bandeja unificada con prioridades, moderación de fotos y seguimiento trazable. |
@@ -85,7 +85,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 
 | ID | Pendiente | Prioridad / dependencia |
 | --- | --- | --- |
-| S01 | Integración visual sin marcos, conservando el cable continuo y caras atenuadas | P0; corrección de esta entrega. |
+| S01 | Integración visual sin marcos, conservando el cable continuo y caras atenuadas | Completado y publicado en PR 29; CI y navegador conectado correctos. |
 | S02 | Ampliar el reparto hacia unas 30 personas | P2; hay 10 hojas de 3 expresiones, no 30 personas. Material autorizado e identificación pendientes. |
 | S03 | Tres vidas por nivel y desbloqueos persistentes de Laberinto | Pendiente histórico; diseñar versión de práctica sin alterar silenciosamente la competición validada. |
 | S04 | Infinite y Power como modos independientes | Diferibles; el último laberinto infinito actual no equivale a todos los conceptos históricos. Classic sigue sin poderes. |
@@ -130,7 +130,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | F07 | iPhone | Pendiente de prueba física de instalación, guardado/compartir, sesión y offline. No hay equivalente nativo iOS incorporado. |
 | C01 | Acceso y correo para asistentes | Parcial; confirmar configuración y entregabilidad actuales sin leer secretos ni enviar cientos de correos de prueba. |
 | C02 | Apple | Pendiente de configuración de proveedor/titular y prueba de alta; no mostrarlo como activo si no lo está. |
-| C03 | Pases recuperables y enviados por email | Parcial/pending. El pase anónimo local depende del navegador; falta la recuperación completa acordada. QR artísticos no son requisito de este cierre. |
+| C03 | Pases recuperables y enviados por email | Parcial/pendiente. El pase anónimo local depende del navegador; falta la recuperación completa acordada. QR artísticos no son requisito de este cierre. |
 | C04 | Privacidad y perfil editable | Parcial. Nombre/alias e Instagram existen; completar foto y controles independientes de búsqueda, etiquetas y visibilidad. |
 | AD01 | Delegación administrativa por funciones | Parcial: comprobación de permisos existe; falta gestión completa de asignaciones desde UI y su auditoría. |
 | AD02 | Recuperación MFA y operaciones críticas | MFA existe; falta procedimiento y UI de recuperación/retirada de factores verificados. |
@@ -143,7 +143,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 
 | ID | Requisito | Estado / siguiente acción |
 | --- | --- | --- |
-| MU01 | Hilo general con activar/desactivar y ventana discreta | Interfaz implementada. Verificar los seis MP3 configurados en producción y qué temas faltan; no contar un título en la lista como audio reproducible. |
+| MU01 | Hilo general con activar/desactivar y ventana discreta | Interfaz implementada. En esta revisión se inició Sashi Mixed en producción, con tiempo avanzando y sin error de audio; Just a Feeling cargó metadatos. Verificar individualmente los seis temas completos y qué temas faltan; no contar un título como reproducción acreditada. |
 | MU02 | Temas asignados al hilo general | Sashi Mixed, Bacalaik, Rush Ön Me, Promiscuous, Caramelo y Just a Feeling figuran en `playlist.ts`. Funky Fiesta fue pedido también para el hilo general y no figura en esa lista: pendiente explícito. |
 | MU03 | Música de Groove | Funky Fiesta y WTHIMH asignados al juego. Groove conserva acompañamiento sintetizado; conexión real pendiente (G02/G03). |
 | MU04 | Información tema/DJ en directo y reconocimiento | Futuro. Metadatos autorizados de radio no equivalen a Shazam. |
@@ -229,8 +229,15 @@ aplazado. Los datos/materiales que falten bloquean únicamente su tarea.
 ### Cierre de esta entrega
 
 - Memoria y kit de Gemini entregados y comprobados.
-- Corrección S01 y prueba de regresión escritas; build local y 19 pruebas de
-  reglas de Snake correctos. Auditoría de navegador y publicación en curso.
+- Corrección S01 publicada en `2a5483f8169da78a54825488139279aa362513b5` (PR 29).
+  Vercel confirmó producción READY (`dpl_5zXEq6h7PxdKeGjRJe7JHbR8owXU`) y el
+  navegador conectado verificó el resultado en la URL pública de `/test`.
+- CI 176 sobre el código `9bac7bad`: build, 191 pruebas internas, 465 de navegador
+  (155 por tamaño) y 12 offline correctas: 668 comprobaciones. Build local y
+  19 pruebas de reglas de Snake también correctos. No son mediciones físicas.
 - Registro general creado y reglas de seguimiento añadidas a `AGENTS.md`.
+- Radio: comprobado inicio de Sashi Mixed con tiempo avanzando y sin error de
+  audio; Just a Feeling cargó metadatos. No se da por escuchados todos los temas.
+- Auditoría: `AUDITORIA_SNAKE_Y_CONTINUIDAD_2026-11-15.md`.
 - Próximo bloque de desarrollo: Yeppo Pilla-Pilla local, sin duplicar el trabajo
   de Arena que el propietario continúe en Gemini; Groove mantiene G02–G08 visibles.
