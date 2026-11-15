@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test'
+
+test('Groove Ninja destruction offers eight weapons and independent play controls',async({page})=>{
+ await page.goto('/?seccion=arcade&juego=groove-ninja')
+ await page.locator('.gn-mode-picker').getByRole('button',{name:/DESTRUCCIÓN/}).click()
+ await expect(page.getByRole('heading',{name:/DESTRUCCIÓN/})).toBeVisible()
+ const arsenal=page.getByRole('region',{name:'Elegir arma de destrucción'})
+ await expect(arsenal.getByRole('button')).toHaveCount(8)
+ await arsenal.getByRole('button',{name:/Guante de Yeppo/}).click()
+ await expect(arsenal.getByRole('button',{name:/Guante de Yeppo/})).toHaveAttribute('aria-pressed','true')
+ await page.getByRole('button',{name:'¡EMPEZAR DESTRUCCIÓN!'}).click()
+ await expect(page.locator('.dn-board')).toBeVisible()
+ await expect(page.getByTestId('destruction-score')).toHaveText('0')
+ await expect(page.getByRole('button',{name:'PAUSAR',exact:true})).toBeEnabled()
+ await page.getByRole('button',{name:'PAUSAR',exact:true}).click()
+ await expect(page.getByRole('button',{name:'REANUDAR',exact:true})).toBeVisible()
+ await page.getByRole('button',{name:'REANUDAR PARTIDA',exact:true}).click()
+ await expect(page.getByRole('button',{name:'PAUSAR',exact:true})).toBeEnabled()
+ await page.getByRole('button',{name:'← VOLVER A GROOVE NINJA'}).click()
+ await expect(page.getByRole('heading',{name:'GROOVE NINJA.',exact:true})).toBeVisible()
+ await expect(page.locator('.gn-panel')).toHaveAttribute('data-status','ready')
+})
