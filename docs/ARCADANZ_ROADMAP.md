@@ -1,6 +1,6 @@
 # DANZ: mejoras y próximos juegos
 
-Actualizado: 15 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena DANZ tiene un primer prototipo local; Yeppo Pilla-Pilla y DANZ Kart Mini siguen pendientes.
+Actualizado: 15 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZ Kart Mini sigue pendiente.
 
 Registro general de tareas, decisiones, dependencias y evidencia vigente:
 [Revisión y pendientes de DANZ](REVISION_Y_PENDIENTES_DANZ_2026-11-15.md).
@@ -117,3 +117,19 @@ pruebas internas, 486 de navegador y 14 offline correctas sin reintentos.
 Auditoría conectada y comprobación pública completadas en
 `AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.md`. Rival IA y acabado de personajes
 siguen pendientes; no se presentan como terminados.
+
+
+## Nuevo bloque: turnos de Collecta y joystick
+
+- **Arena — Cierre de pista**: el encargado frente a la crew, flightcases con
+  etiquetas de cuentas y discos de aviso. Victoria en tres rondas, como antes.
+- **Persecución — Pasa el marrón**: quien persigue lleva la factura; al pillar
+  se la entrega al rival, aparece «Trámite cerrado» y cambian los papeles. Gana
+  quien más capturas haga en 60 segundos; llevar la factura al final no decide
+  por sí solo el resultado.
+- Portada exacta conservada. Introducción, diálogos de pausa/resultado, objetos,
+  roles y señalética siguen el mismo tono del encargado y el cierre de fiesta.
+- Cada jugador elige flechas o joystick en el hub. Joystick analógico para
+  Persecución y cardinal para Arena, enfrentados y sin movimiento al soltar.
+- Bloque implementado localmente, pendiente de cerrar auditoría y publicación.
+  No incluye la IA rival, online ni un rediseño de los personajes humanos.

@@ -28,6 +28,7 @@ import { parseCollective } from './content/collective'
 import DanzMusic from './content/DanzMusic'
 import SnakeCells from './arcade/SnakeCells'
 import DanzFlower from './content/DanzFlower'
+import { readCollectaControls, saveCollectaControls } from './arcade/collectaControls'
 import { useGameScreen } from './arcade/useGameScreen'
 import { COMPETITION_ENABLED } from './arcade/competitionConfig'
 import SnakeCompetition from './arcade/SnakeCompetition'
@@ -71,6 +72,8 @@ function locationGame(): 'snake' | 'groove' | 'arena' | 'chase' | 'collecta' | n
 
 export default function App() {
   const auth = useAuth()
+  const [collectaControls, setCollectaControls] = useState(readCollectaControls)
+  useEffect(() => saveCollectaControls(collectaControls), [collectaControls])
   const [yeppoDemo, setYeppoDemo] = useState<YeppoDemoRequest>({ id: 0, move: 'stroll' })
   // Keep setup only in this page's memory while a focus check revalidates the
   // account. A different verified owner or sign-out clears it before display.
@@ -277,7 +280,7 @@ export default function App() {
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'collecta')
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
-    setPage('arcade'); setArcadeGame('collecta')
+    setPage('arcade'); setArcadeGame('collecta'); window.scrollTo({top:0})
   }
 
   useEffect(() => {
@@ -374,9 +377,9 @@ export default function App() {
           <article className="arcade-library-upcoming" aria-label="DANZ Idle Studio, próximamente"><img src="/arcade/idle-studio-industrial.webp" alt="Taller creativo de DANZ Idle Studio" width="1200" height="900" loading="lazy"/><div><span className="eyebrow">EN PREPARACIÓN</span><h2>DANZ IDLE STUDIO</h2><p>Música, moda, vídeo y diseño. El estudio del colectivo, a tu ritmo.</p><small>PRÓXIMAMENTE · Nombre y carátula provisionales</small></div></article>
           <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
         </section>}
-        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="content" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub onArena={openArena} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
-        {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="content" role="status">Abriendo Persecución…</p>}><YeppoChase onBack={openCollecta} /></Suspense>}
-        {page === 'arcade' && arcadeGame === 'arena' && <Suspense fallback={<p className="content" role="status">Abriendo Arena…</p>}><ArenaDuel onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="content" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={openArena} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="content" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'arena' && <Suspense fallback={<p className="content" role="status">Abriendo Arena…</p>}><ArenaDuel controls={collectaControls} onBack={openCollecta} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="content inner-page" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'snake' && (
           <section className="content inner-page arcade-page">

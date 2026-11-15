@@ -19,8 +19,8 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
     create() {
       this.floor = this.add.graphics()
       this.moving = this.add.graphics()
-      this.labels = [0, 1].map(id => this.add.text(0, 0, `P${id + 1}`, { fontFamily: 'Arial, sans-serif', fontStyle: 'bold', fontSize: 16, color: hex(COLORS[id]), backgroundColor: '#0c121bcc', padding: { x: 5, y: 2 } }).setOrigin(.5, 1))
-      this.add.text(S * 5.5, 10, 'DANZ / SOUND ARENA', { fontFamily: 'Arial, sans-serif', fontSize: 13, fontStyle: 'bold', color: '#b7c5ca', letterSpacing: 4 }).setOrigin(.5, 0)
+      this.labels = [0, 1].map(id => this.add.text(0, 0, `P${id+1} / ${id===0 ? 'CONTROL' : 'CREW'}`, { fontFamily: 'Arial, sans-serif', fontStyle: 'bold', fontSize: 16, color: hex(COLORS[id]), backgroundColor: '#0c121bcc', padding: { x: 5, y: 2 } }).setOrigin(.5, 1))
+      this.add.text(S * 5.5, 10, 'COLLECTA / CIERRE DE PISTA', { fontFamily: 'Arial, sans-serif', fontSize: 13, fontStyle: 'bold', color: '#b7c5ca', letterSpacing: 4 }).setOrigin(.5, 0)
       if (!disposed) ready()
     }
     update(time: number, delta: number) {
@@ -55,8 +55,9 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
             bg.fillStyle(0xb18159).fillRoundedRect(x + 8, y + 7, 56, 16, 3)
             bg.lineStyle(3, 0x453a33).lineBetween(x + 9, y + 28, x + 63, y + 28).lineBetween(x + 9, y + 48, x + 63, y + 48)
             bg.fillStyle(0x252e33).fillRect(x + 7, y + 5, 6, 54).fillRect(x + 59, y + 5, 6, 54)
-            bg.fillStyle(0xdfcb94).fillCircle(x + 36, y + 35, 10)
-            bg.fillStyle(0x3c372e).fillCircle(x + 36, y + 35, 4)
+            bg.fillStyle(0xe9d7ac).fillRect(x+24,y+26,24,23)
+            bg.lineStyle(2,0x705539).lineBetween(x+28,y+31,x+43,y+31).lineBetween(x+28,y+36,x+39,y+36)
+            bg.lineStyle(2,0xa87148).strokeRect(x+28,y+41,15,5)
           }
         })
         bg.lineStyle(3, 0x83aaa5, .6).strokeRoundedRect(3, 3, ARENA_COLS * S - 6, ARENA_ROWS * S - 6, 10)
