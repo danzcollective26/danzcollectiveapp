@@ -45,7 +45,7 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
  const board=useRef<SVGSVGElement>(null)
  const game=useRef({elapsed:0,targets:[] as DestructionTarget[],id:0,spawn:0,last:0,running:false,lastFire:0,combo:0,score:0,best:0,missed:0})
  const selected=useRef(weapon)
- const impactTimer=useRef<ReturnType<typeof setTimeout>|null>(null)
+ const impactTimer=useRef<number|null>(null)
  selected.current=weapon
  useEffect(()=>()=>{if(impactTimer.current)clearTimeout(impactTimer.current)},[])
  const reset=()=>{
