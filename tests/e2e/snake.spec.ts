@@ -67,11 +67,18 @@ test('el gesto táctil gira antes de levantar el dedo y sin desplazar la página
   expect(rect).not.toBeNull()
   const x = rect!.x + rect!.width / 2, y = rect!.y + rect!.height / 2
   const scrollY = await page.evaluate(() => window.scrollY)
+  // CDP acknowledges dispatch before Chromium necessarily delivers a coalesced
+  // pointermove. Observe native delivery before advancing the paused game clock.
+  await page.locator('.game-board').evaluate(board => {
+    board.setAttribute('data-test-touch-moves', '0')
+    board.addEventListener('pointermove', () => board.setAttribute('data-test-touch-moves', String(Number(board.getAttribute('data-test-touch-moves')) + 1)))
+  })
   const cdp = await page.context().newCDPSession(page)
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] })
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 24 }] })
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x - 24, y: y - 24 }] })
+  await expect.poll(async () => Number(await page.locator('.game-board').getAttribute('data-test-touch-moves'))).toBeGreaterThanOrEqual(2)
   await page.clock.runFor(240)
   expect(await headIndex(page)).toBe(index(spawn.x - 1, spawn.y - 1))
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
