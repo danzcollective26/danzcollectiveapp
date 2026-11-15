@@ -61,7 +61,7 @@ test('browser history restores the library and selected game', async ({ page }) 
   await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
   await page.goForward()
   await expect(page.locator('.gn-panel')).toHaveClass(/gn-immersive/)
-  await page.getByRole('button', { name: /SALIR DEL JUEGO/ }).click()
+  await page.getByRole('button', { name: 'Volver a la biblioteca ARCADANZ', exact: true }).click()
   await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
 })
 

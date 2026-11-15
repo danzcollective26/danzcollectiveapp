@@ -7,8 +7,16 @@ test('the mobile test route exposes three Yeppo walks and the two available game
   for (const [name, move] of [['PASEO TRANQUILO','stroll'],['DE PUNTILLAS','sneak'],['A LA CARRERA','dash']]) {
     await lab.getByRole('button', { name, exact: true }).click()
     await expect(page.locator('.yeppo-roam-stage')).toHaveClass(new RegExp(`yeppo-roam-${move}`))
-    await page.getByRole('button', { name: 'Cerrar aparición de Yeppo', exact: true }).click()
+    const dismiss = page.getByRole('button', { name: 'Cerrar aparición de Yeppo', exact: true })
+    const dismissBox = await dismiss.boundingBox()
+    expect(dismissBox!.width).toBeGreaterThanOrEqual(44)
+    expect(dismissBox!.height).toBeGreaterThanOrEqual(44)
+    await dismiss.click()
+    await expect(page.getByTestId('yeppo-walkabout')).toHaveCount(0)
   }
+  const mascot = await page.getByRole('button', { name: 'Hablar con Yeppo', exact: true }).boundingBox()
+  const radio = await page.getByRole('button', { name: 'Abrir hilo musical', exact: true }).boundingBox()
+  expect(mascot!.y + mascot!.height).toBeLessThanOrEqual(radio!.y)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await expect(lab).toContainText('Todavía no están jugables')
   await lab.getByRole('button', { name: /GROOVE NINJA PROBAR JUEGO/ }).click()

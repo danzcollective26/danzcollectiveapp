@@ -202,9 +202,9 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate,demoRe
    </section>
  </aside>
  if(visible&&roaming)return <aside className="yeppo yeppo-walkabout" data-testid="yeppo-walkabout" aria-label="Yeppo paseando por DANZ">
+   <button type="button" className="yeppo-walkabout-close" onClick={close} aria-label="Cerrar aparición de Yeppo" title="Cerrar paseo de Yeppo">×</button>
    <div ref={roamStage} key={roamSequence} className={`yeppo-roam-stage yeppo-roam-${roamMove}${roamDemo?' yeppo-roam-demo':''}`}>
     <div className="yeppo-roam-speech"><span>{roamReaction?['¡Me has pillado, pillín!','¡Eh! ¡Cosquillas no!','¿Quieres que te cuente algo?'][((roamReaction-1)%3)]:line}</span>
-     <button type="button" onClick={close} aria-label="Cerrar aparición de Yeppo">×</button>
      <button type="button" className="yeppo-roam-talk" onClick={openChat}>HABLAR ↗</button>
     </div>
     <button type="button" className={`yeppo-roam-mascot${roamReaction?' yeppo-roam-react':''}`} onClick={()=>{setRoamReaction(n=>n+1);setExpression(n=>n==='wink'?'surprised':'wink')}} aria-label="Tocar a Yeppo para que reaccione">

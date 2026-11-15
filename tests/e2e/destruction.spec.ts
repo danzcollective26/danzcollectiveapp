@@ -32,6 +32,7 @@ test('all eight weapons have visibly distinct equipment and shot animations',asy
   await button.click()
   await expect(page.locator('.dn-stage')).toHaveAttribute('data-current-weapon',weapon)
   await expect(page.locator('.dn-equipped')).toHaveAttribute('data-equipped-weapon',weapon)
+  await board.scrollIntoViewIfNeeded()
   const box=await board.boundingBox()
   await page.mouse.click(box!.x+box!.width/2,box!.y+box!.height/2)
   await expect(page.locator('[data-weapon-fx]')).toHaveAttribute('data-weapon-fx',weapon)
