@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import QRCode from 'qrcode'
 import { makeSession, mockSupabase, sessionStorageKey, supabaseHost, switchMockSession, USER_A, USER_B } from './helpers/supabase'
 const E='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const F='cccccccc-cccc-4ccc-8ccc-cccccccccccc'
@@ -29,6 +30,42 @@ async function install(page:Page,{aal='aal2',permissions=scopes,member=true,fact
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_gallery_usage`,route=>route.fulfill({json:[{used_bytes:0,limit_bytes:900000000,photo_count:0}]}))
 }
 const open=(page:Page)=>page.goto('/?panel=admin')
+
+test('QR Studio creates and downloads a local QR, and changing the text clears its old preview',async({page})=>{
+  await install(page)
+  await open(page)
+  const studio=page.getByRole('region',{name:'QR STUDIO',exact:true})
+  await studio.getByLabel('Enlace o texto del QR',{exact:true}).fill('https://danzcollectiveapp.vercel.app/')
+  await studio.getByRole('button',{name:'CREAR QR CLÁSICO',exact:true}).click()
+  await expect(studio.getByRole('img')).toBeVisible()
+  const pending=page.waitForEvent('download')
+  await studio.getByRole('link',{name:'DESCARGAR PNG ↗',exact:true}).click()
+  expect((await pending).suggestedFilename()).toBe('danz-qr-classic.png')
+  await studio.getByLabel('Enlace o texto del QR',{exact:true}).fill('New destination')
+  await expect(studio.getByRole('img')).toHaveCount(0)
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+})
+
+test('QR Studio sends the authenticated request and handles a rejected artistic QR without offering a download',async({page})=>{
+  await install(page)
+  let reject=true
+  await page.route('**/api/qr-art',async route=>{
+    expect(route.request().headers().authorization).toMatch(/^Bearer /)
+    const {content,prompt}=route.request().postDataJSON()
+    expect(prompt.length).toBeGreaterThan(2)
+    if(reject)return route.fulfill({status:422,json:{error:'El diseño no se lee con suficiente fiabilidad.'}})
+    return route.fulfill({json:{image:await QRCode.toDataURL(content),content,verified:true}})
+  })
+  await open(page)
+  const studio=page.getByRole('region',{name:'QR STUDIO',exact:true})
+  await studio.getByRole('button',{name:'GENERAR CON IA ↗',exact:true}).click()
+  await expect(studio.getByRole('alert')).toContainText('no se lee')
+  await expect(studio.getByRole('link',{name:'DESCARGAR PNG ↗',exact:true})).toHaveCount(0)
+  reject=false
+  await studio.getByRole('button',{name:'GENERAR CON IA ↗',exact:true}).click()
+  await expect(studio.getByText('DISEÑO IA · LECTURA VERIFICADA',{exact:true})).toBeVisible()
+  await expect(studio.getByRole('link',{name:'DESCARGAR PNG ↗',exact:true})).toBeVisible()
+})
 
 test('guests and normal attendees cannot view the administration',async({page})=>{
   await mockSupabase(page)

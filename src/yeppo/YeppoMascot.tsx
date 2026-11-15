@@ -2,7 +2,7 @@
  * Vector drawing, with real limbs and facial moods; not a person or an Arcade avatar.
  */
 export type YeppoMood='neutral'|'smirk'|'wink'|'surprised'|'sleepy'|'eyebrow'
-export default function YeppoMascot({expression='smirk'}:{expression?:YeppoMood}){
+export default function YeppoMascot({expression='smirk',interacting=false}:{expression?:YeppoMood;interacting?:boolean}){
  const wink=expression==='wink'
  const sleepy=expression==='sleepy'
  const surprised=expression==='surprised'
@@ -33,6 +33,13 @@ export default function YeppoMascot({expression='smirk'}:{expression?:YeppoMood}
    <path className="yeppo-left-foot" d="M37 159Q29 166 30 173Q31 180 51 181Q77 185 75 173Q74 163 60 159Z"/>
    <path className="yeppo-right-foot" d="M119 160Q115 170 121 177Q130 182 151 180Q162 179 157 171Q150 158 133 158Z"/>
   </g>
+  {interacting&&<g className="yeppo-contact-arm" stroke="#4b3338" strokeLinecap="round" strokeLinejoin="round" fill="none">
+   <path d="M112 94Q138 104 150 91" strokeWidth="20"/>
+   <path d="M112 94Q138 104 150 91" stroke="url(#yeppo-yellow)" strokeWidth="13"/>
+   <path d="M145 99Q136 94 140 88Q144 83 149 88L158 81Q164 77 166 82Q168 86 163 90Q173 87 171 94Q169 102 158 103Z" strokeWidth="5" fill="url(#yeppo-yellow)"/>
+   <circle className="yeppo-contact-point" cx="166" cy="84" r="1" stroke="none" opacity="0"/>
+   <path className="yeppo-contact-spark" d="M171 78l2-5m2 12h6m-9 8l4 4" stroke="#ffe783" strokeWidth="3"/>
+  </g>}
   <g className="yeppo-head" transform="translate(0 0)" fill="url(#yeppo-yellow)" stroke="#4b3338" strokeWidth="5.2">
    {Array.from({length:6},(_,i)=><ellipse key={i} cx="97" cy="39" rx="15.8" ry="24" transform={`rotate(${i*60} 97 70)`}/>)}
    <ellipse cx="97" cy="70" rx="25" ry="23" strokeWidth="4.8"/>

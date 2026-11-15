@@ -15,7 +15,10 @@
     "@supabase/supabase-js": "2.119.0",
     "qrcode": "1.5.4",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "@gradio/client": "2.8.0",
+    "jsqr": "1.4.0",
+    "pngjs": "7.0.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.15",

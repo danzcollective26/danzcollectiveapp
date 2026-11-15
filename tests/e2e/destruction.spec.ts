@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test'
 
 test('Groove Ninja destruction offers eight weapons and independent play controls',async({page})=>{
  await page.goto('/?seccion=arcade&juego=groove-ninja')
- await page.locator('.gn-mode-picker').getByRole('button',{name:/DESTRUCCIÓN/}).click()
+ await page.locator('.arcade-launch-mode-picker').getByRole('button',{name:'DESTRUCCIÓN ✹',exact:true}).click()
  await expect(page.getByRole('heading',{name:/DESTRUCCIÓN/})).toBeVisible()
  const arsenal=page.getByRole('region',{name:'Elegir arma de destrucción'})
  await expect(arsenal.getByRole('button')).toHaveCount(8)
@@ -23,7 +23,7 @@ test('Groove Ninja destruction offers eight weapons and independent play control
 
 test('all eight weapons have visibly distinct equipment and shot animations',async({page})=>{
  await page.goto('/?seccion=arcade&juego=groove-ninja')
- await page.locator('.gn-mode-picker').getByRole('button',{name:/DESTRUCCIÓN/}).click()
+ await page.locator('.arcade-launch-mode-picker').getByRole('button',{name:'DESTRUCCIÓN ✹',exact:true}).click()
  await page.getByRole('button',{name:'¡EMPEZAR DESTRUCCIÓN!'}).click()
  const weapons=['blaster','scatter','laser','paint','cannon','boomerang','flower','yeppo'] as const
  const board=page.locator('.dn-board')

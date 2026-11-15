@@ -199,7 +199,7 @@
 .yeppo-roam-mascot .yeppo-character .yeppo-head{animation-duration:1.1s}
 .yeppo-roam-speech{font-size:12px;max-width:230px}
 .yeppo-roam-mascot.yeppo-roam-react .yeppo-character{animation:yeppo-roam-surprise .33s ease-in-out both}
-.yeppo-playful-tap{outline:3px dashed #ffe783!important;outline-offset:3px;animation:yeppo-tap-card .6s ease-out 2 both!important}
+.yeppo-playful-tap{outline:2px solid transparent;outline-offset:3px;transform:none!important;transition:none!important;animation:yeppo-card-reaction var(--yeppo-card-trip,8.2s) linear both!important}
 @keyframes yeppo-real-stride{from{transform:translateY(0) rotate(-4deg)}to{transform:translateY(-9px) rotate(4deg)}}
 @keyframes yeppo-shadow-pulse{from{opacity:.8;transform:translateX(-50%) scale(1.04)}to{opacity:.35;transform:translateX(-50%) scale(.72)}}
 @keyframes yeppo-tap-card{0%,100%{filter:none;transform:scale(1)}35%{filter:drop-shadow(0 0 14px #ffe783);transform:scale(1.035)}}
@@ -300,6 +300,25 @@
 .yeppo-roam-stage.yeppo-roam-sneak{--yeppo-trip:7.5s;animation-name:yeppo-sneak-cross}
 .yeppo-roam-stage.yeppo-roam-dash{--yeppo-trip:4.6s;animation-name:yeppo-dash-cross}
 .yeppo-roam-stage.yeppo-roam-demo{--yeppo-trip:8.2s}
+.yeppo-contact-arm{opacity:0;visibility:hidden;pointer-events:none}
+.yeppo-measuring-visit,.yeppo-measuring-visit *{animation:none!important;transform:none!important}
+.yeppo-roam-stage.yeppo-visiting-card{--yeppo-travel-lean:5deg;animation:yeppo-card-visit var(--yeppo-trip) linear both;right:auto}
+.yeppo-roam-stage.yeppo-visiting-card.yeppo-roam-sneak{--yeppo-travel-lean:-8deg}
+.yeppo-roam-stage.yeppo-visiting-card.yeppo-roam-dash{--yeppo-travel-lean:14deg}
+.yeppo-roam-stage.yeppo-visiting-card:hover,.yeppo-roam-stage.yeppo-visiting-card:focus-within{animation-play-state:running}
+.yeppo-roam-stage.yeppo-visiting-card .yeppo-roam-mascot .yeppo-character,.yeppo-roam-stage.yeppo-visiting-card .yeppo-roam-mascot.yeppo-roam-react .yeppo-character{animation:none;transform:none}
+.yeppo-visiting-card .yeppo-contact-arm{animation:yeppo-reach-card var(--yeppo-trip) linear both}
+.yeppo-roam-stage.yeppo-visiting-card .yeppo-character .yeppo-right-arm,.yeppo-roam-stage.yeppo-visiting-card .yeppo-character .yeppo-right-hand{animation:yeppo-rest-arm var(--yeppo-trip) linear both}
+@keyframes yeppo-card-visit{
+ 0%{transform:translate(105vw,var(--yeppo-contact-y)) rotate(var(--yeppo-travel-lean));opacity:0}
+ 10%{opacity:1}
+ 38%,62%{transform:translate(var(--yeppo-contact-x),var(--yeppo-contact-y));opacity:1}
+ 88%{opacity:1}
+ 100%{transform:translate(-270px,var(--yeppo-contact-y)) rotate(calc(-1 * var(--yeppo-travel-lean)));opacity:0}
+}
+@keyframes yeppo-reach-card{0%,37%,63%,100%{opacity:0;visibility:hidden}38%,62%{opacity:1;visibility:visible}}
+@keyframes yeppo-rest-arm{0%,37%,63%,100%{opacity:1}38%,62%{opacity:0}}
+@keyframes yeppo-card-reaction{0%,37%,63%,100%{outline-color:transparent;filter:none;transform:none}38%,62%{outline:2px solid #ffe783;outline-offset:3px;filter:drop-shadow(0 0 12px #ffe783);transform:none}}
 .yeppo-roam-stage.yeppo-roam-sneak .yeppo-roam-mascot .yeppo-character{animation-name:yeppo-tiptoe-weight}
 .yeppo-roam-stage.yeppo-roam-dash .yeppo-roam-mascot .yeppo-character{animation-name:yeppo-rush-weight}
 @keyframes yeppo-sneak-cross{
