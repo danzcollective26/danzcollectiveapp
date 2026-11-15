@@ -15,14 +15,18 @@ async function start(page: Page) {
 
 test('Arena is reachable from /test and the library, with its own local duel', async ({ page }) => {
   await page.goto('/test')
-  await page.getByRole('button', { name: /ARENA DANZ.*PROBAR DUELO/ }).click()
+  await page.getByRole('button', { name: /DANZ COLLECTA.*PROBAR LOS MODOS/ }).click()
+  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
   await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'Salir de Arena DANZ', exact: true }).click()
-  await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
-  await page.locator('.arcade-choice').filter({ hasText: 'ARENA DANZ' }).click()
+  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await page.getByRole('button', { name: '← BIBLIOTECA ARCADANZ', exact: true }).click()
+  await page.locator('.arcade-choice').filter({ hasText: 'DANZ COLLECTA' }).click()
+  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
   await expect(page.getByRole('button', { name: 'EMPEZAR DUELO', exact: true })).toBeEnabled({ timeout: 15000 })
   await page.keyboard.press('Escape')
-  await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
+  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
   expect(await page.locator('body').evaluate(el => el.style.overflow)).not.toBe('hidden')
 })
 
@@ -46,8 +50,8 @@ test('two native fingers control both players while a third drops a disc', async
   test.skip(browserName !== 'chromium', 'Native touch through CDP')
   await page.setViewportSize({ width: 844, height: 390 })
   await start(page)
-  const a = await page.getByRole('button', { name: 'P1 Derecha', exact: true }).boundingBox()
-  const b = await page.getByRole('button', { name: 'P2 Izquierda', exact: true }).boundingBox()
+  const a = await page.getByRole('button', { name: 'P1 Arriba', exact: true }).boundingBox()
+  const b = await page.getByRole('button', { name: 'P2 Arriba', exact: true }).boundingBox()
   const disc = await page.getByRole('button', { name: 'P1 Soltar disco', exact: true }).boundingBox()
   const points = [{ x: a!.x + a!.width / 2, y: a!.y + a!.height / 2, id: 1 }, { x: b!.x + b!.width / 2, y: b!.y + b!.height / 2, id: 2 }]
   const cdp = await page.context().newCDPSession(page)
@@ -74,7 +78,7 @@ test('pausing and hiding the tab freeze the round until an explicit resume', asy
   await expect(page.getByRole('button', { name: 'SEGUIR EL DUELO', exact: true })).toBeVisible()
 })
 
-test('all ten touch controls fit compact portrait and landscape at least 44px', async ({ page }) => {
+test('all ten touch controls fit compact portrait and landscape at least 44px', async ({ page }, testInfo) => {
   await open(page)
   for (const size of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size)
@@ -89,6 +93,13 @@ test('all ten touch controls fit compact portrait and landscape at least 44px', 
     const board = await page.locator('.arena-board canvas').boundingBox()
     expect(board!.width).toBeGreaterThan(200)
     expect(board!.y).toBeGreaterThanOrEqual(0)
+    const p1 = (await page.locator('.versus-p1').boundingBox())!, p2 = (await page.locator('.versus-p2').boundingBox())!
+    if (size.width > size.height) { expect(p1.x+p1.width).toBeLessThanOrEqual(board!.x); expect(p2.x).toBeGreaterThanOrEqual(board!.x+board!.width) }
+    else { expect(p2.y+p2.height).toBeLessThanOrEqual(board!.y); expect(p1.y).toBeGreaterThanOrEqual(board!.y+board!.height) }
+    const title = (await page.locator('.arena-top strong').boundingBox())!, clock = (await page.locator('.arena-round > strong').boundingBox())!
+    const overlaps = title.x < clock.x+clock.width && title.x+title.width > clock.x && title.y < clock.y+clock.height && title.y+title.height > clock.y
+    expect(overlaps).toBe(false)
+    await testInfo.attach(`Arena ${size.width}x${size.height}`, { body: await page.screenshot(), contentType: 'image/png' })
   }
 })
 

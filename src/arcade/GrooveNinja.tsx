@@ -4,6 +4,7 @@ import { memo, useEffect, useRef, useState, type PointerEvent as ReactPointerEve
 import { GrooveAudio } from './GrooveAudio'
 import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DURATION, GROOVE_VINYLS, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, setGroovePlaying, type GrooveMode, type GrooveSpecial, type GrooveWeapon, type GroovePoint, type GrooveState } from './groove'
 import { useGameScreen } from './useGameScreen'
+import { CLUB_UNLOCK_CUTS, GROOVE_PREFERENCES_KEY, readGroovePreferences } from './groovePreferences'
 import './groove.css'
 
 const Vinyl = memo(function Vinyl({ layer, radius = 56, special = 'normal' }: { layer: number; radius?: number; special?: GrooveSpecial }) {
@@ -54,6 +55,18 @@ function ScratchDeck({ game }: { game: GrooveState }) {
   </g>
 }
 const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
+const CabinetDetails = memo(function CabinetDetails() {
+  return <g className="gn-cabinet-details" pointerEvents="none">
+    <path d="M25 88V645M615 88V645" stroke="#0b100f" strokeWidth="15"/>
+    <path d="M25 88V645M615 88V645" stroke="#bc9b65" strokeWidth="2" opacity=".55"/>
+    {[29, 611].map(x => <g key={x}>{Array.from({ length: 23 }, (_, i) => <path key={i} d={`M${x-4} ${130+i*20}h8`} stroke="#8d9279" strokeWidth="3" opacity={i%4 ? '.3' : '.6'}/>)}</g>)}
+    <path d="M43 647H597L610 698H30Z" fill="url(#gn-metal)" stroke="#928363" strokeWidth="2"/>
+    {[65, 115, 165, 475, 525, 575].map(x => <g key={x}><ellipse cx={x} cy="677" rx="15" ry="13" fill="#090e10" stroke="#665c4b" strokeWidth="2"/><path d={`M${x} 666v9`} stroke="#d4c59d" strokeWidth="2"/></g>)}
+    <path d="M215 670H425M215 685H425" stroke="#0a1111" strokeWidth="5"/>
+    <path d="M215 670H292M215 685H371" stroke="#88b9a3" strokeWidth="3"/>
+    <text x="320" y="694" textAnchor="middle" fill="#a5a68e" fontSize="9" letterSpacing="4">DANZ / ANALOG SERIES</text>
+  </g>
+})
 
 export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () => void; autoEnter?: boolean }) {
   const [game, setGame] = useState(initialGroove)
@@ -63,6 +76,9 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   const [muted, setMuted] = useState(() => { try { return localStorage.getItem('danz-groove-muted') === 'true' } catch { return false } })
   const [audioIssue, setAudioIssue] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [preferences, setPreferences] = useState(readGroovePreferences)
+  const [optionsOpen, setOptionsOpen] = useState(false)
+  const options = useRef<HTMLDivElement>(null), optionsButton = useRef<HTMLButtonElement>(null)
   const sound = useRef<GrooveAudio | null>(null)
   const board = useRef<SVGSVGElement>(null)
   const gesture = useRef<{ id: number; point: GroovePoint; scratch: number | null } | null>(null)
@@ -80,10 +96,14 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   const stage = grooveStage(game.elapsed)
   const multicut = game.sparks.filter(spark => spark.label.startsWith('MULTICORTE')).at(-1)?.id
   useEffect(() => {
-    if (!multicut || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (!multicut || preferences.effects === 'lite' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const recoil = board.current?.animate([{transform:'translateX(0)'},{transform:'translateX(-2px)'},{transform:'translateX(2px)'},{transform:'translateX(0)'}],{duration:160,easing:'ease-out'})
     return () => recoil?.cancel()
-  }, [multicut])
+  }, [multicut, preferences.effects])
+  useEffect(() => { setPreferences(previous => game.hits > previous.bestCuts ? { ...previous, bestCuts: game.hits } : previous) }, [game.hits])
+  useEffect(() => { try { localStorage.setItem(GROOVE_PREFERENCES_KEY, JSON.stringify(preferences)) } catch { /* Local cosmetics are optional. */ } }, [preferences])
+  useEffect(() => { if (optionsOpen) options.current?.querySelector<HTMLButtonElement>('button')?.focus() }, [optionsOpen])
+  const closeOptions = () => { setOptionsOpen(false); optionsButton.current?.focus() }
 
   function commit(next: GrooveState) {
     const previous = current.current
@@ -194,7 +214,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
         commit(next)
       } else if (!current.current.scratch) commit(cutGroove(current.current, active.point, p))
       active.point = p
-      trail.current = [...trail.current.slice(-11), { ...p, at: current.current.elapsed }]
+      trail.current = [...trail.current.slice(preferences.style === 'club' ? -23 : -11), { ...p, at: current.current.elapsed }]
     }
   }
   function release(event: ReactPointerEvent<SVGSVGElement>) {
@@ -203,7 +223,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
     else if (current.current.strokeDoubleUntil) commit({ ...current.current, strokeDoubleUntil: 0 })
     gesture.current = null
   }
-  const path = trail.current.filter(p => game.elapsed - p.at < 130).map(p => `${p.x},${p.y}`).join(' ')
+  const path = trail.current.filter(p => game.elapsed - p.at < (preferences.style === 'club' ? 230 : 130)).map(p => `${p.x},${p.y}`).join(' ')
   const progress = Math.round(game.elapsed / GROOVE_DURATION * 100)
   if(destructionOpen)return <GrooveDestruction onBack={()=>setDestructionOpen(false)}/>
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
@@ -217,7 +237,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       <p className="gn-practice">PRÁCTICA · Récord separado para cada modo, en este navegador. Esta sesión no otorga DANZPOINTS.</p>
       <p className="gn-sound-note">Música de ensayo. Los temas del colectivo llegarán después.</p>
     </div>
-    <div ref={screen.panel} data-weapon={game.weapon} data-stage={stage} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status} data-mode={game.mode} data-elapsed={game.elapsed.toFixed(1)}>
+    <div ref={screen.panel} data-weapon={game.weapon} data-stage={stage} data-effects={preferences.effects} data-style={preferences.style} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status} data-mode={game.mode} data-elapsed={game.elapsed.toFixed(1)}>
       {screen.active && <ArcadeLaunch game="groove" mode={game.mode} running={running} onPlay={play} onExit={()=>{screen.leave();onBack()}} onModeChange={chooseMode} onDestruction={()=>{pause();setDestructionOpen(true);screen.leave()}}><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted?'SONIDO OFF':'SONIDO ON'}</button></ArcadeLaunch>}
       <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={() => { screen.leave(); onBack() }} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
@@ -247,6 +267,8 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           </defs>
           <rect width="640" height="760" fill="url(#gn-floor)"/>
           <rect width="640" height="760" fill="url(#gn-grain)"/><rect width="640" height="760" fill="url(#gn-light)"/>
+          <ellipse cx="320" cy="355" rx="330" ry="280" fill={GROOVE_WEAPONS[game.weapon].color} opacity=".065"/>
+          <CabinetDetails/>
           <rect className="gn-stage-light" width="640" height="760" fill={stage === 1 ? '#c07431' : stage === 2 ? '#154d72' : '#692f65'} opacity=".14"/>
           {stage > 1 && <g className="gn-stage-beams" opacity={stage === 3 ? .2 : .12} fill={stage === 3 ? '#f38be7' : '#71caff'}><path d="M20 0 120 0 420 650 240 650Z"/><path d="M520 0 620 0 390 650 220 650Z"/></g>}
           {game.freezeUntil > game.elapsed && <g className="gn-freeze-effect"><rect x="19" y="80" width="602" height="575" rx="6" fill="#94edff" opacity=".14" stroke="#9eeaff" strokeWidth="4"/><text x="320" y="111" textAnchor="middle" fill="#c6f8ff" fontSize="19" fontWeight="900">❄ CÁMARA LENTA · {Math.ceil((game.freezeUntil - game.elapsed) / 1000)}s</text></g>}
@@ -305,7 +327,14 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       </div>
       <div className="gn-flow"><span>FLOW</span><div role="meter" aria-label="Racha de la sesión" aria-valuemin={0} aria-valuemax={20} aria-valuenow={Math.min(20, game.combo)}><i style={{ width: `${Math.min(100, game.combo * 5)}%` }}/></div><strong>×{grooveMultiplier(game.combo)}</strong></div>
       <p className="gn-message" role="status">{game.message}</p>
-      <div className="gn-actions"><button type="button" className="primary-btn" onClick={play}>{running ? 'PAUSAR' : ended ? 'OTRA SESIÓN' : game.status === 'paused' ? 'REANUDAR' : 'JUGAR GROOVE NINJA'} <span>↗</span></button><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted ? 'SONIDO OFF' : 'SONIDO ON'}</button></div>
+      <div className="gn-actions"><button type="button" className="primary-btn" onClick={play}>{running ? 'PAUSAR' : ended ? 'OTRA SESIÓN' : game.status === 'paused' ? 'REANUDAR' : 'JUGAR GROOVE NINJA'} <span>↗</span></button><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted ? 'SONIDO OFF' : 'SONIDO ON'}</button><button ref={optionsButton} type="button" className="outline-btn gn-options-button" onClick={() => { pause(); setOptionsOpen(true) }}>AJUSTES</button></div>
+      {optionsOpen && <div ref={options} className="gn-options" role="dialog" aria-modal="true" aria-labelledby="gn-options-title" onKeyDown={event => {
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeOptions() }
+        if (event.key === 'Tab') { const items = [...options.current!.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')]; const first = items[0], last = items.at(-1); if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() } }
+      }}><header><h2 id="gn-options-title">TU CABINA.</h2><button type="button" onClick={closeOptions} aria-label="Cerrar ajustes de Groove">CERRAR ×</button></header>
+      <p>La sesión queda en pausa. Estos ajustes solo cambian el aspecto.</p>
+      <h3>ESTILO DE CORTE</h3><div role="group" aria-label="Estilo de corte"><button type="button" aria-pressed={preferences.style === 'classic'} onClick={() => { trail.current = []; setPreferences(p => ({ ...p, style: 'classic' })) }}>CLÁSICO<small>Trazo corto y preciso</small></button><button type="button" disabled={preferences.bestCuts < CLUB_UNLOCK_CUTS} aria-pressed={preferences.style === 'club'} onClick={() => { trail.current = []; setPreferences(p => ({ ...p, style: 'club' })) }}>TRAZO CLUB<small>{preferences.bestCuts >= CLUB_UNLOCK_CUTS ? 'Estela larga · desbloqueado' : `${Math.min(preferences.bestCuts, CLUB_UNLOCK_CUTS)}/${CLUB_UNLOCK_CUTS} cortes en una sesión`}</small></button></div>
+      <h3>EFECTOS VISUALES</h3><div role="group" aria-label="Efectos visuales"><button type="button" aria-pressed={preferences.effects === 'auto'} onClick={() => setPreferences(p => ({ ...p, effects: 'auto' }))}>AUTOMÁTICOS<small>Respeta reducir movimiento</small></button><button type="button" aria-pressed={preferences.effects === 'lite'} onClick={() => setPreferences(p => ({ ...p, effects: 'lite' }))}>SUAVES<small>Sin sacudidas ni luces animadas</small></button></div><p>Trazo Club se consigue al cortar 20 vinilos en una sesión. Se guarda en este navegador. No aumenta alcance, puntos, vidas ni duración.</p></div>}
       <div className="gn-bottom"><span>RÉCORD LOCAL {record.toLocaleString('es-ES')}</span><button type="button" onClick={() => setShowHelp(!showHelp)} aria-expanded={showHelp}>CÓMO JUGAR {showHelp ? '−' : '+'}</button></div>
       {audioIssue && <p className="gn-audio-issue" role="status">No se pudo activar el audio. Puedes seguir jugando sin sonido o volver a pulsar SONIDO.</p>}
     </div>

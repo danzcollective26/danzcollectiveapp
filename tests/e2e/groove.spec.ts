@@ -206,6 +206,14 @@ test('playfield, mixer and primary controls fit 320px portrait and short landsca
     }
     const r = await page.locator('.gn-board').boundingBox()
     expect(Math.abs(r!.width / r!.height - 640 / 760)).toBeLessThan(.01)
+    await page.getByRole('button', { name: 'AJUSTES', exact: true }).click()
+    const dialog = page.getByRole('dialog', { name: 'TU CABINA.', exact: true })
+    const d = (await dialog.boundingBox())!
+    expect(d.x).toBeGreaterThanOrEqual(0); expect(d.y).toBeGreaterThanOrEqual(0)
+    expect(d.x+d.width).toBeLessThanOrEqual(size.width); expect(d.y+d.height).toBeLessThanOrEqual(size.height)
+    const close = dialog.getByRole('button', { name: 'Cerrar ajustes de Groove', exact: true })
+    expect(await close.evaluate(el => { const r=el.getBoundingClientRect(); return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+8)) })).toBe(true)
+    await close.click()
   }
   await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
   await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
@@ -276,4 +284,59 @@ test('changing modes starts the selected challenge and keeps each local record s
   await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'VINYL CUT',exact:true }).click()
   await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 100')
   await expect(page.getByTestId('groove-score')).toHaveText('00000')
+})
+
+test('visual options pause the session, keep keyboard focus and persist softer effects', async ({ page }) => {
+  await openGroove(page); await start(page); await slice(page)
+  await page.getByRole('button', { name: 'AJUSTES', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'TU CABINA.', exact: true })
+  await expect(dialog).toBeVisible()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'paused')
+  const elapsed = await page.locator('.gn-panel').getAttribute('data-elapsed')
+  await page.clock.runFor(3000)
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-elapsed', elapsed!)
+  await expect(dialog.getByRole('button', { name: /TRAZO CLUB/ })).toBeDisabled()
+  await dialog.getByRole('button', { name: /^SUAVES/ }).click()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-effects', 'lite')
+  await expect(page.locator('.gn-hud-vinyl')).toHaveCSS('animation-name', 'none')
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'Cerrar ajustes de Groove', exact: true })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'AJUSTES', exact: true })).toBeFocused()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'paused')
+  await expect(page.getByTestId('groove-score')).toHaveText('00100')
+  await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
+  await page.locator('.arcade-choice').filter({ hasText: 'GROOVE NINJA' }).click()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-effects', 'lite')
+  await page.clock.runFor(3000)
+  await page.getByRole('button', { name: 'JUGAR AHORA', exact: true }).click()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'playing')
+})
+
+test('twenty successful vinyl cuts unlock Trazo Club without changing score or time on selection', async ({ page }) => {
+  test.setTimeout(60000)
+  await openGroove(page); await start(page)
+  for (let i=0; i<90; i++) {
+    const hits = Number((await page.locator('.gn-board').getAttribute('aria-label'))?.match(/(\d+) cortes/)?.[1] ?? 0)
+    if (hits >= 20) break
+    const discs = await page.locator('.gn-vinyl').evaluateAll(nodes => nodes.map(el => ({ layer: Number(el.getAttribute('data-layer')), y: Number(el.getAttribute('data-y')), axis: el.getAttribute('data-axis'), special: el.getAttribute('data-special') })))
+    for (const disc of discs) {
+      if (disc.y<=80 || disc.y>=650) continue
+      await page.keyboard.press(`${disc.special==='arrow' && disc.axis==='y' ? 'Shift+' : ''}Digit${disc.layer+1}`)
+    }
+    await page.clock.runFor(250)
+  }
+  await page.getByRole('button', { name: 'AJUSTES', exact: true }).click()
+  const club = page.getByRole('dialog').getByRole('button', { name: /TRAZO CLUB/ })
+  await expect(club).toBeEnabled()
+  const score = await page.getByTestId('groove-score').textContent(), elapsed = await page.locator('.gn-panel').getAttribute('data-elapsed')
+  await club.click()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-style', 'club')
+  await expect(page.getByTestId('groove-score')).toHaveText(score!)
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-elapsed', elapsed!)
+  await page.getByRole('button', { name: 'Cerrar ajustes de Groove', exact: true }).click()
+  await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
+  await page.locator('.arcade-choice').filter({ hasText: 'GROOVE NINJA' }).click()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-style', 'club')
 })

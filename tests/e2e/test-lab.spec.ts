@@ -18,7 +18,7 @@ test('the mobile test route exposes three Yeppo walks and the two available game
   const radio = await page.getByRole('button', { name: 'Abrir hilo musical', exact: true }).boundingBox()
   expect(mascot!.y + mascot!.height).toBeLessThanOrEqual(radio!.y)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await expect(lab).toContainText('Todavía no están jugables')
+  await expect(lab).toContainText('Todavía no está jugable')
   await lab.getByRole('button', { name: /GROOVE NINJA PROBAR JUEGO/ }).click()
   await expect(page.locator('.gn-panel')).toHaveClass(/gn-immersive/)
   await page.getByRole('button', { name: 'Volver a la biblioteca ARCADANZ', exact: true }).click()

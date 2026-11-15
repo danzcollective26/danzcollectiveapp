@@ -9,7 +9,7 @@ async function open(page:Page,registered=true){
  await page.route(rpc('board'),r=>r.fulfill({json:board}));await page.route(rpc('start'),r=>r.fulfill({json:{id:r.request().postDataJSON().p_id,mode:r.request().postDataJSON().p_mode,seed:12345,expiresAt:'2026-11-12T08:30:00Z'}}));await page.goto('/?seccion=arcade');await page.clock.runFor(20)
 }
 const competition=(page:Page)=>page.getByRole('region',{name:'Competición de Snake'})
-async function collect(page:Page){for(let i=0;i<4;i++){await page.clock.runFor(150);await expect.poll(()=>page.locator('.game-board > .cell').evaluateAll(cells=>cells.findIndex(c=>c.classList.contains('head')))).toBe(9*19+9+i)}}
+async function collect(page:Page){await expect(page.locator('.game-panel')).toHaveClass(/is-ranked-live/);await expect(page.getByRole('button',{name:/^PAUSAR/})).toBeVisible();for(let i=0;i<4;i++){await page.clock.runFor(150);await expect.poll(()=>page.locator('.game-board > .cell').evaluateAll(cells=>cells.findIndex(c=>c.classList.contains('head')))).toBe(9*19+9+i)}}
 test('practice remains independent and competition requires an account',async({page})=>{
  let calls=0;await open(page,false);await page.route(rpc('board'),r=>{calls++;return r.fulfill({json:board})});await expect(competition(page).getByRole('button',{name:'ACCEDER PARA COMPETIR ↗'})).toBeVisible();expect(calls).toBe(0);await page.clock.resume();await competition(page).getByRole('button',{name:'ACCEDER PARA COMPETIR ↗'}).click();await expect(page.getByRole('heading',{name:'Entra con tu correo',exact:true})).toBeVisible()
 })
