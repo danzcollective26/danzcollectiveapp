@@ -54,6 +54,13 @@ necesite y la solicite; no dedicarle trabajo ni activarla en esta entrega.
 - En los duelos locales, una persona juega desde cada extremo opuesto del móvil.
   Girar juntos mando, etiquetas y flechas, y transformar la dirección al punto
   de vista de cada jugador; al cambiar la orientación, pausar y soltar las entradas.
+- Collecta personaliza sus modos como Arena — Cierre de pista y Persecución —
+  Pasa el marrón. Mantener el humor de seguridad/cierre/cuentas y las reglas reales
+  de cada modo. Las facturas son ficción del Arcade, sin cobros o premios reales.
+- Cada jugador puede elegir flechas o joystick táctil de forma independiente.
+  Conservar ambas opciones, elección local, punto de vista enfrentado y retorno
+  a cero al soltar, cancelar, pausar, perder foco o girar. Arena sigue usando
+  cuatro direcciones por casillas; Persecución admite desplazamiento analógico.
 - Tres juegos aprobados para desarrollar: una arena original inspirada en
   Bomberman, Yeppo Pilla-Pilla y DANZ Kart Mini. Prioridad a duelos 1vs1 en el mismo
   móvil y después online; no presentar el modo online como terminado sin probarlo.

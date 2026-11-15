@@ -11,6 +11,7 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
     private moving!: Phaser.GameObjects.Graphics
     private heads!: Phaser.GameObjects.Image[]
     private labels!: Phaser.GameObjects.Text[]
+    private stamp!: Phaser.GameObjects.Text
     private previous: Chase | null = null
     preload() { this.load.svg('yeppo-head', '/arcade/chase/yeppo-face.svg', { width: 110, height: 110 }) }
     create() {
@@ -38,11 +39,12 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
           for (const x of [r.x + 34, r.x + r.w - 34]) { g.fillStyle(0x101c24).fillCircle(x, r.y + 31, 23); g.lineStyle(2, 0x6c8589).strokeCircle(x, r.y + 31, 16); g.fillStyle(0x263c45).fillCircle(x, r.y + 31, 7) }
         }
       }
-      this.add.text(W / 2, 40, 'COLLECTA / HOY TE PILLO', { fontFamily: 'Arial', fontSize: 16, fontStyle: 'bold', color: '#d9c5a0', letterSpacing: 4 }).setOrigin(.5)
-      this.add.text(W / 2, H - 35, 'PILLA · CAMBIA · ESCAPA', { fontFamily: 'Arial', fontSize: 13, color: '#92a7a5', letterSpacing: 5 }).setOrigin(.5)
+      this.add.text(W / 2, 40, 'COLLECTA / PASA EL MARRÓN', { fontFamily: 'Arial', fontSize: 16, fontStyle: 'bold', color: '#d9c5a0', letterSpacing: 4 }).setOrigin(.5)
+      this.add.text(W / 2, H - 35, 'PILLA · PASA LA FACTURA · ESCAQUÉATE', { fontFamily: 'Arial', fontSize: 13, color: '#92a7a5', letterSpacing: 5 }).setOrigin(.5)
       this.moving = this.add.graphics()
       this.heads = [0, 1].map(() => this.add.image(0, 0, 'yeppo-head').setDisplaySize(62, 62))
       this.labels = [0, 1].map(id => this.add.text(0, 0, `P${id + 1}`, { fontFamily: 'Arial', fontSize: 18, fontStyle: 'bold', color: color(COLORS[id]), backgroundColor: '#0d1822', padding: { x: 7, y: 3 } }).setOrigin(.5, 1))
+      this.stamp = this.add.text(W/2,H/2+94,'TRÁMITE CERRADO', {fontFamily:'Arial',fontSize:18,fontStyle:'bold',color:'#22443c',backgroundColor:'#f2dba8',padding:{x:16,y:8}}).setOrigin(.5).setVisible(false)
       if (!disposed) ready()
     }
     update(time: number) {
@@ -52,6 +54,7 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
       if (s.phase !== 'playing' && s === this.previous) return
       this.previous = s
       const g = this.moving; g.clear()
+      this.stamp.setVisible(s.phase === 'playing' && s.elapsed-s.lastTagAt < 650)
       if (s.elapsed - s.lastTagAt < 500) {
         const p = s.players[s.lastCatcher ?? 0]
         g.lineStyle(3, 0xfff0bc, media.matches ? .6 : 1 - (s.elapsed - s.lastTagAt) / 500).strokeCircle(p.x, p.y, 32 + (media.matches ? 0 : (s.elapsed - s.lastTagAt) * .07))
@@ -69,9 +72,16 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         g.lineStyle(4, 0xffd36e).lineBetween(p.x - 20, p.y, p.x - 31, p.y + step).lineBetween(p.x + 20, p.y, p.x + 31, p.y - step)
         g.fillStyle(COLORS[id]).fillRoundedRect(p.x - 17, p.y + 6, 34, 7, 3)
         this.heads[id].setPosition(p.x, p.y - 13 - bob).setAngle(media.matches || !running ? 0 : step * .6)
-        const label = `P${id + 1} · ${id === s.hunter ? 'PILLA' : 'HUYE'}`
+        if (id === s.hunter) {
+          const rx = Math.min(W-25,p.x+32), ry = Math.max(16,p.y-12)
+          g.fillStyle(0x000000,.3).fillRoundedRect(rx-8,ry-10,21,28,2)
+          g.fillStyle(0xf3dfb5).fillRoundedRect(rx-10,ry-13,20,27,2)
+          g.lineStyle(2,0x75654b).lineBetween(rx-6,ry-6,rx+6,ry-6).lineBetween(rx-6,ry-1,rx+2,ry-1)
+          g.lineStyle(2,0xa86a42).strokeRect(rx-6,ry+4,12,5)
+        }
+        const label = `P${id+1} · ${id === s.hunter ? 'COBRA' : 'SE ESCAQUEA'}`
         if (this.labels[id].text !== label) this.labels[id].setText(label)
-        this.labels[id].setPosition(p.x, p.y - 48 - bob)
+        this.labels[id].setPosition(Math.min(W-80,Math.max(80,p.x)), Math.max(32,p.y-48-bob))
       })
     }
   }

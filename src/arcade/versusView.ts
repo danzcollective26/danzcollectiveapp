@@ -11,3 +11,11 @@ export function worldDirection(direction: LocalDirection, player: VersusPlayer, 
 export const directionVector: Record<LocalDirection, { x: number; y: number }> = {
   up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 },
 }
+
+/** Rotate a local analog input through the same view as the player's controller. */
+export function worldVector(v: {x:number;y:number}, player: VersusPlayer, landscape: boolean) {
+  const right = directionVector[worldDirection('right',player,landscape)]
+  const down = directionVector[worldDirection('down',player,landscape)]
+  const x=v.x*right.x+v.y*down.x, y=v.x*right.y+v.y*down.y
+  return {x:x===0?0:x,y:y===0?0:y}
+}

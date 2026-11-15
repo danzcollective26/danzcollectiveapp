@@ -283,3 +283,22 @@ Auditoría y evidencia de publicación: `AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.
   posteriores solo actualizan documentación, sin cambiar el ejecutable validado.
 - Siguiente tarea de Collecta: **DC03, Arena contra la máquina**. Online sigue
   pendiente. Se conservan todos los demás bloques, QR aplazados y entregas externas.
+
+
+## 14. Lore de Collecta y joystick — nueva prioridad del propietario
+
+El propietario solicita más personalidad alrededor del lore del último juego y
+sus modos, y controles estilo joystick. Esto pasa a ser el bloque activo antes
+de continuar DC03; el rival contra la máquina conserva su lugar en el registro.
+
+| ID | Petición | Estado actual | Siguiente acción |
+| --- | --- | --- | --- |
+| DC05 | Personalizar Collecta y sus modos con el lore de seguridad/cobro | Implementado localmente: Arena — Cierre de pista; Persecución — Pasa el marrón; encargado/crew, factura y sello de trámite | Verificar textos/arte de partida en tamaños compactos y publicar. |
+| A04 | Joystick táctil opcional y enfrentado para cada persona | Implementado localmente; elección individual persistente, zona central sin deriva, retorno al soltar/cancelar y controles de teclado | Verificar dos dedos + acción, rotación, pausa, persistencia y offline. |
+| DC04 | Protagonista humano dentro de las partidas | Sigue parcial | El lore y los objetos se personalizan; los personajes flor beta no se sustituyen por retratos ni se generan nuevas portadas. |
+
+Conservar las rutas actuales y la portada exacta aprobada. No cambia la física
+de colisiones, las rondas, capturas, duración ni puntuación de los motores.
+El joystick de Arena elige una dirección de casilla; el de Persecución usa
+movimiento libre, diagonal y velocidad proporcional al desplazamiento.
+Auditoría: `AUDITORIA_COLLECTA_LORE_JOYSTICK_2026-11-15.md`.
