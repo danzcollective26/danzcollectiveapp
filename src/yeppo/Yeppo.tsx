@@ -3,9 +3,10 @@ import {yeppoGuide,YEPPO_SUGGESTIONS,type GuideReply,type YeppoDestination} from
 import {mayAppear,readLedger,writeLedger,dismissed,messageHasFacts,nextPhrase,type YeppoEvent} from './rules'
 import {readYeppoEnabled,setYeppoEnabled,readYeppoSilencedUntil,silenceYeppoForOneHour,YEPPO_PREFERENCE_EVENT} from './settings'
 import YeppoFeedback from './YeppoFeedback'
+import YeppoMascot,{type YeppoMood} from './YeppoMascot'
 import './yeppo.css'
 type Page='inicio'|'pasaporte'|'fotos'|'arcade'|'danzers'|'danzin'|'danzflor'|'danzpoints'|'cuenta'|'admin'
-type Expression='neutral'|'smirk'|'wink'|'surprised'|'sleepy'|'eyebrow'
+type Expression=YeppoMood
 const expressions:Expression[]=['neutral','smirk','wink','surprised','sleepy','eyebrow']
 const INTRO_KEY='danz-yeppo-welcome-v1'
 const VISIT_KEY='danz-yeppo-visit-peek-v1'
@@ -13,19 +14,6 @@ function visitPeekAvailable(){try{return !sessionStorage.getItem(VISIT_KEY)}catc
 export const yeppoWelcomePending=()=>{try{return localStorage.getItem(INTRO_KEY)!=='done'}catch{return false}}
 export const markYeppoWelcomeDone=()=>{try{localStorage.setItem(INTRO_KEY,'done')}catch{/* Private browsing may disable storage. */}}
 type Prank={title:string;left:number;top:number;width:number}
-function Face({expression}:{expression:Expression}){
- const sleepy=expression==='sleepy',wink=expression==='wink',brow=expression==='eyebrow'
- return <svg viewBox="0 0 100 100" className={`yeppo-flower yeppo-expression-${expression}`} aria-hidden="true">
-  <g className="yeppo-sparkles" fill="#dfff79"><path d="M12 12l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path d="M84 7l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/><circle cx="94" cy="53" r="2"/></g>
-  <g stroke="currentColor" strokeWidth="4.5" fill="#fff">{[[50,20],[76,35],[76,65],[50,80],[24,65],[24,35]].map(([cx,cy])=><circle key={cx+'-'+cy} cx={cx} cy={cy} r="17.8"/>)}</g>
-  <circle className="yeppo-face-core" cx="50" cy="50" r="21" fill="#dbff74" stroke="#171717" strokeWidth="2.5"/>
-  <g className="yeppo-features" stroke="#171717" strokeWidth="3.2" fill="none" strokeLinecap="round">
-   {brow&&<path d="M36 38l13-5"/>}
-   {sleepy?<><path d="M35 47q6 4 12 0M55 47q6 4 12 0"/></>:<><path d={wink?'M35 48q5 3 11 0':'M40 44v5'}/><path d="M60 44v5"/></>}
-   {expression==='surprised'?<ellipse cx="50" cy="60" rx="4" ry="6"/>:<path d={expression==='smirk'||brow?'M40 58q12 11 23-3':'M40 59q10 9 20 0'}/>}
-  </g>
- </svg>
-}
 export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page:Page;gameActive?:boolean;events?:YeppoEvent[];onNavigate?:(page:YeppoDestination)=>void}){
  const [enabled,setEnabled]=useState(readYeppoEnabled)
  const [chatOpen,setChatOpen]=useState(false)
@@ -118,11 +106,11 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
  if(!enabled||gameActive||page==='admin')return null
  if(welcome==='peek'&&page==='inicio')return <aside className="yeppo yeppo-first-peek" aria-label="Yeppo asomándose">
    <div className="yeppo-peek-text">Psst… ¿a dónde vas, figura?</div>
-   <div className="yeppo-peek-avatar"><Face expression="smirk"/><span>YEPPO</span></div>
+   <div className="yeppo-peek-avatar"><YeppoMascot expression="smirk"/><span>YEPPO</span></div>
  </aside>
  if(visitPeek&&page==='inicio'&&welcome==='off')return <aside className="yeppo yeppo-visit-peek" aria-label="Yeppo te saluda">
    <div className="yeppo-visit-line">¡Epa! Vuelves a DANZ. Yo vigilo el cotarro.</div>
-   <div className="yeppo-peek-avatar"><Face expression="wink"/><span>YEPPO</span></div>
+   <div className="yeppo-peek-avatar"><YeppoMascot expression="wink"/><span>YEPPO</span></div>
  </aside>
  if(welcome==='intro')return <>
    {prank&&<div className="yeppo-stolen-tab" style={{left:prank.left,top:prank.top,width:prank.width}} aria-hidden="true">{prank.title}</div>}
@@ -136,11 +124,11 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
        <button className="yeppo-welcome-continue" onClick={leaveWelcome}>VALE, YEPPO. DÉJAME VIVIR ↗</button>
        <small>Tranquilo, solo hago esto una vez.</small>
      </div>
-     <div className="yeppo-welcome-face"><Face expression="wink"/><span className="yeppo-welcome-stars" aria-hidden="true">✦ ✧</span></div>
+     <div className="yeppo-welcome-face"><YeppoMascot expression="wink"/><span className="yeppo-welcome-stars" aria-hidden="true">✦ ✧</span></div>
    </aside>
  </>
  if(!visible&&!chatOpen)return <aside className="yeppo yeppo-available" aria-label="Hablar con Yeppo">
-   <button type="button" className="yeppo-chat-launcher" onClick={openChat} aria-label="Hablar con Yeppo"><Face expression="wink"/><span>HABLA CONMIGO</span></button>
+   <button type="button" className="yeppo-chat-launcher" onClick={openChat} aria-label="Hablar con Yeppo"><YeppoMascot expression="wink"/><span>HABLA CONMIGO</span></button>
  </aside>
  if(chatOpen)return <aside className="yeppo yeppo-chat-shell" aria-label="Charla con Yeppo">
    <section className="yeppo-chat-dialog" role="dialog" aria-label="Hablar con Yeppo">
@@ -158,7 +146,7 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
  </aside>
  return <aside className="yeppo" aria-label="Yeppo, la flor de DANZ">
    <div className="yeppo-bubble"><span>{line}</span><button type="button" aria-label="Cerrar Yeppo" onClick={close}>×</button><button type="button" className="yeppo-bubble-talk" onClick={openChat}>PREGÚNTAME ↗</button></div>
-   <button type="button" className="yeppo-avatar" aria-label="Opciones de Yeppo" onClick={()=>setMenu(x=>!x)}><Face expression={expression}/><span>YEPPO</span></button>
+   <button type="button" className="yeppo-avatar" aria-label="Opciones de Yeppo" onClick={()=>setMenu(x=>!x)}><YeppoMascot expression={expression}/><span>YEPPO</span></button>
    {menu&&<div className="yeppo-menu"><button onClick={()=>{silenceYeppoForOneHour();setVisible(false)}}>Callar 1 hora</button><button onClick={()=>{setYeppoEnabled(false);setVisible(false)}}>Desactivar</button></div>}
  </aside>
 }
