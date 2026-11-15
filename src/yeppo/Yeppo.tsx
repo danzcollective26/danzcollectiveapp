@@ -22,6 +22,8 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
  const [question,setQuestion]=useState('')
  const [chat,setChat]=useState<Array<{from:'yeppo'|'visitor';text:string;destination?:YeppoDestination;label?:string;feedbackCategory?:'error'|'sugerencia'|'ayuda'|'yeppo';feedbackDraft?:string}>>([{from:'yeppo',text:'¡Epa! Soy Yeppo. Pregúntame por fotos, sellos, juegos o ropa. No soy una IA generativa todavía, pero conozco DANZ.'}])
  const [visible,setVisible]=useState(false)
+ const [roaming,setRoaming]=useState(false)
+ const [roamReaction,setRoamReaction]=useState(0)
  const [visitPeek,setVisitPeek]=useState(()=>readYeppoEnabled()&&page==='inicio'&&!yeppoWelcomePending()&&visitPeekAvailable())
  const [line,setLine]=useState('')
  const [expression,setExpression]=useState<Expression>('smirk')
@@ -36,7 +38,7 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
  useEffect(()=>{if(previousPage.current!==page){previousPage.current=page;sectionAt.current=Date.now();setVisitPeek(false)}},[page])
  useEffect(()=>{if(!visitPeek)return;try{sessionStorage.setItem(VISIT_KEY,'done')}catch{}const timer=window.setTimeout(()=>setVisitPeek(false),4500);return()=>window.clearTimeout(timer)},[visitPeek])
  useEffect(()=>{
-  const refresh=()=>{const next=readYeppoEnabled();setEnabled(next);if(!next){setVisible(false);setWelcome('off');setVisitPeek(false);setChatOpen(false);setFeedbackOpen(false)}}
+  const refresh=()=>{const next=readYeppoEnabled();setEnabled(next);if(!next){setVisible(false);setRoaming(false);setWelcome('off');setVisitPeek(false);setChatOpen(false);setFeedbackOpen(false)}}
   window.addEventListener(YEPPO_PREFERENCE_EVENT,refresh);window.addEventListener('storage',refresh)
   return()=>{window.removeEventListener(YEPPO_PREFERENCE_EVENT,refresh);window.removeEventListener('storage',refresh)}
  },[])
@@ -84,13 +86,13 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
    if(messageHasFacts(category)&&!verified)category='seccion'
    const phrase=nextPhrase(category,verified?.variables,ledger.count+Math.floor(now/60000)%9)
    if(!phrase)return
-   setLine(phrase);setExpression(expressions[(ledger.count+Math.floor(now/1000))%expressions.length]);setVisible(true);setMenu(false)
+   setLine(phrase);setExpression(expressions[(ledger.count+Math.floor(now/1000))%expressions.length]);setRoaming(ledger.count%2===0);setRoamReaction(0);setVisible(true);setMenu(false)
    writeLedger({...ledger,count:ledger.count+1,lastAt:now});active.current=0
    until.current=now+5500
   },1000)
   return()=>{clearInterval(interval);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)}
  },[page,gameActive,events,enabled,visible,welcome,visitPeek,chatOpen])
- useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},5500);return()=>clearTimeout(id)},[visible,line])
+ useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},roamReaction?4500:5500);return()=>clearTimeout(id)},[visible,line,roamReaction])
  const talk=(value:string)=>{
   const phrase=value.trim().slice(0,300)
   if(!phrase)return
@@ -100,8 +102,8 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
   setExpression('wink')
  }
  const submitQuestion=(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();talk(question)}
- const openChat=()=>{setChatOpen(true);setVisible(false);setMenu(false)}
- const close=()=>{writeLedger(dismissed(readLedger(),Date.now()));setVisible(false);setMenu(false)}
+ const openChat=()=>{setChatOpen(true);setVisible(false);setRoaming(false);setMenu(false)}
+ const close=()=>{writeLedger(dismissed(readLedger(),Date.now()));setVisible(false);setRoaming(false);setMenu(false)}
  const leaveWelcome=()=>{setWelcome('off');setPrank(null)}
  if(!enabled||gameActive||page==='admin')return null
  if(welcome==='peek'&&page==='inicio')return <aside className="yeppo yeppo-first-peek" aria-label="Yeppo asomándose">
@@ -144,6 +146,18 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
     <small className="yeppo-chat-disclaimer">Respuestas guiadas en este dispositivo. No escribas datos privados. Para información de fiestas, consulta la publicación oficial.</small>
    </section>
  </aside>
+ if(visible&&roaming)return <aside className="yeppo yeppo-walkabout" data-testid="yeppo-walkabout" aria-label="Yeppo paseando por DANZ">
+   <div className="yeppo-roam-stage">
+    <div className="yeppo-roam-speech"><span>{roamReaction?['¡Me has pillado, pillín!','¡Eh! ¡Cosquillas no!','¿Quieres que te cuente algo?'][((roamReaction-1)%3)]:line}</span>
+     <button type="button" onClick={close} aria-label="Cerrar aparición de Yeppo">×</button>
+     <button type="button" className="yeppo-roam-talk" onClick={openChat}>HABLAR ↗</button>
+    </div>
+    <button type="button" className={`yeppo-roam-mascot${roamReaction?' yeppo-roam-react':''}`} onClick={()=>{setRoamReaction(n=>n+1);setExpression(n=>n==='wink'?'surprised':'wink')}} aria-label="Tocar a Yeppo para que reaccione">
+      <YeppoMascot expression={roamReaction%2===0?expression:'surprised'}/>
+      <span>¡TÓCAME!</span>
+    </button>
+   </div>
+  </aside>
  return <aside className="yeppo" aria-label="Yeppo, la flor de DANZ">
    <div className="yeppo-bubble"><span>{line}</span><button type="button" aria-label="Cerrar Yeppo" onClick={close}>×</button><button type="button" className="yeppo-bubble-talk" onClick={openChat}>PREGÚNTAME ↗</button></div>
    <button type="button" className="yeppo-avatar" aria-label="Opciones de Yeppo" onClick={()=>setMenu(x=>!x)}><YeppoMascot expression={expression}/><span>YEPPO</span></button>
