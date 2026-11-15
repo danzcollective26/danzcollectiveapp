@@ -92,7 +92,7 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate}:{page
   },1000)
   return()=>{clearInterval(interval);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)}
  },[page,gameActive,events,enabled,visible,welcome,visitPeek,chatOpen])
- useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},5500);return()=>clearTimeout(id)},[visible,line])
+ useEffect(()=>{if(!visible)return;const id=window.setTimeout(()=>{const ledger=readLedger();writeLedger({...ledger,dismissals:0});setVisible(false);setMenu(false)},roamReaction?4500:5500);return()=>clearTimeout(id)},[visible,line,roamReaction])
  const talk=(value:string)=>{
   const phrase=value.trim().slice(0,300)
   if(!phrase)return
