@@ -1,0 +1,21 @@
+import { expect, test } from '@playwright/test'
+
+test('Collecta cover and Persecución load offline and keep the two local modes reachable', async ({ page, context }) => {
+  await page.addInitScript(() => { Element.prototype.requestFullscreen = () => Promise.reject(new DOMException('Unsupported', 'NotSupportedError')) })
+  await page.goto('/')
+  await expect(page.getByText('Snake disponible sin conexión', { exact: true })).toBeVisible({ timeout: 20000 })
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
+  await context.setOffline(true)
+  await page.goto('/test?seccion=arcade&juego=collecta')
+  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await expect.poll(() => page.locator('.collecta-cover img').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(600)
+  await page.getByRole('button', { name: /JUGAR PERSECUCIÓN/ }).click()
+  await expect(page.locator('.chase-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
+  await page.getByRole('button', { name: 'EMPEZAR PERSECUCIÓN', exact: true }).click()
+  await expect(page.locator('.chase-game')).toHaveAttribute('data-phase', 'playing')
+  await page.getByRole('button', { name: 'Salir de Persecución', exact: true }).click()
+  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
+  await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
+  await page.getByRole('button', { name: 'EMPEZAR DUELO', exact: true }).click()
+  await expect(page.locator('.arena-game')).toHaveAttribute('data-phase', 'playing')
+})

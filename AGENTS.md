@@ -43,8 +43,17 @@ necesite y la solicite; no dedicarle trabajo ni activarla en esta entrega.
 
 - Utilizar las portadas exactas aprobadas de Jack y Groove Ninja. No rediseñarlas
   ni intercambiar a sus protagonistas.
+- DANZ Collecta usa la portada «Día de cobro» aprobada el 15/11/2026, con el
+  protagonista de seguridad y la factura pagada. Conservar esa imagen exacta.
 - Biblioteca con una entrada por juego y apertura inmersiva; motores y
   puntuaciones independientes. Vinyl Cut y Scratch Session son modos de Groove.
+- La decisión posterior reúne Arena y Pilla-Pilla en **DANZ Collecta**: una sola
+  entrada y una selección de modos Arena / Persecución. No crear otra tarjeta de
+  Pilla-Pilla. Conservar las rutas directas antiguas. El modo contra la máquina
+  está solicitado y pendiente; no mostrarlo como jugable hasta implementarlo.
+- En los duelos locales, una persona juega desde cada extremo opuesto del móvil.
+  Girar juntos mando, etiquetas y flechas, y transformar la dirección al punto
+  de vista de cada jugador; al cambiar la orientación, pausar y soltar las entradas.
 - Tres juegos aprobados para desarrollar: una arena original inspirada en
   Bomberman, Yeppo Pilla-Pilla y DANZ Kart Mini. Prioridad a duelos 1vs1 en el mismo
   móvil y después online; no presentar el modo online como terminado sin probarlo.

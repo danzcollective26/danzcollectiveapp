@@ -15,14 +15,18 @@ async function start(page: Page) {
 
 test('Arena is reachable from /test and the library, with its own local duel', async ({ page }) => {
   await page.goto('/test')
-  await page.getByRole('button', { name: /ARENA DANZ.*PROBAR DUELO/ }).click()
+  await page.getByRole('button', { name: /DANZ COLLECTA.*PROBAR LOS MODOS/ }).click()
+  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
   await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'Salir de Arena DANZ', exact: true }).click()
-  await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
-  await page.locator('.arcade-choice').filter({ hasText: 'ARENA DANZ' }).click()
+  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await page.getByRole('button', { name: '← BIBLIOTECA ARCADANZ', exact: true }).click()
+  await page.locator('.arcade-choice').filter({ hasText: 'DANZ COLLECTA' }).click()
+  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
   await expect(page.getByRole('button', { name: 'EMPEZAR DUELO', exact: true })).toBeEnabled({ timeout: 15000 })
   await page.keyboard.press('Escape')
-  await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
+  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
   expect(await page.locator('body').evaluate(el => el.style.overflow)).not.toBe('hidden')
 })
 
@@ -46,8 +50,8 @@ test('two native fingers control both players while a third drops a disc', async
   test.skip(browserName !== 'chromium', 'Native touch through CDP')
   await page.setViewportSize({ width: 844, height: 390 })
   await start(page)
-  const a = await page.getByRole('button', { name: 'P1 Derecha', exact: true }).boundingBox()
-  const b = await page.getByRole('button', { name: 'P2 Izquierda', exact: true }).boundingBox()
+  const a = await page.getByRole('button', { name: 'P1 Arriba', exact: true }).boundingBox()
+  const b = await page.getByRole('button', { name: 'P2 Arriba', exact: true }).boundingBox()
   const disc = await page.getByRole('button', { name: 'P1 Soltar disco', exact: true }).boundingBox()
   const points = [{ x: a!.x + a!.width / 2, y: a!.y + a!.height / 2, id: 1 }, { x: b!.x + b!.width / 2, y: b!.y + b!.height / 2, id: 2 }]
   const cdp = await page.context().newCDPSession(page)

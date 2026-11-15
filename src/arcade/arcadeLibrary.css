@@ -23,6 +23,7 @@
 .arcade-library .snake-competition{margin-top:40px}
 .arcade-challenge-games{display:flex;flex-wrap:wrap;gap:8px}
 .arcade-challenge-games button[aria-pressed=false]{background:transparent;color:#e1fa95}
+@media(min-width:601px) and (max-width:1000px){.arcade-library .arcade-chooser{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .arcade-launch-setup{position:relative;z-index:3;display:grid;gap:14px;max-width:100%}
 .arcade-launch-pro .arcade-launch-exit{position:absolute;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));z-index:4;min-height:44px;padding:10px 14px;background:#111e;color:#f7f8f1;border:1px solid #e1fa95;font-size:10px;font-weight:800;cursor:pointer}
 .arcade-launch-exit:focus-visible{outline:3px solid white;outline-offset:3px}

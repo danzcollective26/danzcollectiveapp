@@ -64,7 +64,7 @@ Los modos online requieren además de los gráficos: salas, conexión y reconexi
 
 El usuario ha confirmado los tres: arena original inspirada en Bomberman, Yeppo
 Pilla-Pilla y DANZ Kart Mini. La aprobación corresponde a su desarrollo; el
-primer prototipo de Arena DANZ ya incluye duelo local. Pilla-Pilla, Kart y los modos online siguen pendientes. La biblioteca, Yeppo y `/test` ya tienen una primera entrega publicada; el
+primer prototipo de Arena DANZ ya incluye duelo local. La nueva Persecución se integra dentro de DANZ Collecta; Kart y los modos online siguen pendientes. La biblioteca, Yeppo y `/test` ya tienen una primera entrega publicada; el
 bloque actual incorpora la beta local de Arena DANZ. Las portadas existentes aprobadas no se vuelven a generar.
 
 ## Hugging Face y tareas aplazadas
@@ -88,3 +88,30 @@ se activa en esta entrega. El bloque actual sigue siendo Arcade, Yeppo y `/test`
 - Beta local: todavía no tiene salas online, IA rival ni recompensas competitivas.
 - Accesible desde la biblioteca y `/test`. Auditoría y límites en
   `docs/AUDITORIA_ARENA_DANZ_2026-11-15.md`.
+
+
+## DANZ Collecta — decisión e integración posterior del 15/11/2026
+
+El propietario reúne Arena y Pilla-Pilla bajo **DANZ Collecta**, una sola portada
+con selección de modos. La portada «Día de cobro», con el protagonista de
+seguridad y la factura pagada, ha sido aprobada para implementación. El tono
+mezcla orden en las fiestas y humor con cuentas/facturas; los protagonistas de
+las otras portadas mantienen su identidad. Jack y Groove no se rediseñan.
+
+- Arena conserva el motor de discos, cajas, cadenas y rondas. Persecución añade
+  un minuto de persecución con captura, cambio de papeles, obstáculos y sprint.
+- En ambos, mandos enfrentados: izquierda/derecha girados en horizontal y
+  arriba/abajo en vertical. Las direcciones se interpretan desde cada jugador;
+  girar el móvil pausa y libera las entradas.
+- Biblioteca y `/test` abren Collecta. Los enlaces directos `juego=arena` y
+  `juego=pilla-pilla` se conservan. `juego=collecta` abre sus modos.
+- El propietario también solicita jugar **contra la máquina** en Arena. Sigue
+  pendiente de un rival real; no simular que está disponible mediante un botón.
+- La integración gráfica del protagonista dentro de las partidas y el lore de
+  cada modo siguen por desarrollar. Las flores actuales son personajes beta.
+- Groove recibe cabina detallada, efectos suaves y Trazo Club, cosmético local
+  desbloqueable con 20 cortes. BPM/música reales y ranking siguen pendientes.
+
+Estado de este bloque: implementado localmente; 205 pruebas de reglas correctas.
+Build, CI de navegador/offline y auditoría conectada pendientes de cierre en
+`AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.md` antes de marcarlo publicado.

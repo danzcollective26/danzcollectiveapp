@@ -241,3 +241,24 @@ aplazado. Los datos/materiales que falten bloquean únicamente su tarea.
 - Auditoría: `AUDITORIA_SNAKE_Y_CONTINUIDAD_2026-11-15.md`.
 - Próximo bloque de desarrollo: Yeppo Pilla-Pilla local, sin duplicar el trabajo
   de Arena que el propietario continúe en Gemini; Groove mantiene G02–G08 visibles.
+
+
+## 13. Peticiones posteriores — Collecta, controles y Groove
+
+Esta sección prevalece sobre las filas históricas cuando cambia la estructura
+de juegos. La portada fue mostrada y el propietario pidió «Implémentala».
+
+| ID | Petición / decisión | Estado actual | Prioridad / siguiente paso |
+| --- | --- | --- | --- |
+| DC01 | Una entrada DANZ Collecta con Arena y Persecución (antes Pilla-Pilla independiente) | Implementado localmente; falta cierre de CI/QA/publicación | P1; probar biblioteca, modos, retorno y enlaces directos. |
+| DC02 | Portada «Día de cobro» con la cara y el humor de seguridad/facturas | Aprobada e integrada localmente en biblioteca, modos y `/test`; móvil 600×800, 200.798 bytes | P1; auditar encuadre completo y entrega online/offline. |
+| DC03 | Arena contra la máquina | Solicitado, pendiente | P1; desarrollar rival con estrategia y evasión; no publicar una simulación de online ni un modo vacío. |
+| DC04 | Lore y protagonista dentro de Collecta | Concepto registrado, parcial | P2; conservar portada exacta y definir las acciones de cada modo; las flores son personajes beta. |
+| A03 | Mandos de 1vs1 en extremos opuestos desde el punto de vista de cada persona | Implementado localmente en Arena y Persecución | P1; comprobar rotación, multitoque y pausa al girar en tres tamaños. |
+| J09 | Pilla-Pilla como Persecución de Collecta | Motor local de 60 s, obstáculos, captura/cambio de roles y sprint implementado; pruebas de reglas correctas | P1; navegador/Canvas 2D, pausa, salida y offline antes de publicación. |
+| G06 | Cosméticos locales de Groove sin ventaja competitiva | Trazo Club a los 20 cortes y preferencias persistentes implementados; reglas unitarias correctas | P1; completar desbloqueo mediante juego real, persistencia y foco. |
+| G07 | Gráficos, opciones y funcionamiento de Groove con las herramientas nuevas | Cabina detallada y ajuste de efectos suaves implementados localmente | P1; auditar móvil y regresiones de corte/armas/tiempo. G02/G03/G08 siguen pendientes. |
+
+Verificación local actual: 205 pruebas internas correctas. El resultado previo de
+668 comprobaciones pertenece a la entrega de Snake; no acredita este código.
+Auditoría y evidencia de publicación: `AUDITORIA_COLLECTA_Y_GROOVE_2026-11-15.md`.
