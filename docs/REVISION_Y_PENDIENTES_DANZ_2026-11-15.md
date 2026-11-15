@@ -177,6 +177,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | T01 | Pruebas Android/iPhone reales | Pendientes FPS, batería, comodidad multitoque, orientación y audio. Emulación de tamaños no sustituye dispositivo físico. |
 | T02 | Complementos/documentación | Context7 antes de juegos/Yeppo; consultar conexiones pertinentes, herramientas gratuitas primero. Una conexión autenticada no demuestra que todas sus funciones o diseños estén disponibles. |
 | T03 | Auditoría y `/test` | Mantener ruta accesible, controles táctiles, reduced-motion, pausa y lista de mejoras aplicadas/propuestas en cada entrega importante. |
+| T04 | Recuperar la ejecución de pruebas de navegador y offline | P0 de verificación. CI de PR 31 falla antes de ejecutar pasos y no genera logs; causa sin confirmar. Chromium local bloqueado al crear socket. Conservar los nuevos escenarios y ejecutarlos cuando vuelva a estar disponible, sin activar costes ni rebajar protecciones. |
 
 ## 10. Lo expresamente aplazado
 
@@ -253,7 +254,7 @@ de juegos. La portada fue mostrada y el propietario pidió «Implémentala».
 | DC01 | Una entrada DANZ Collecta con Arena y Persecución (antes Pilla-Pilla independiente) | Publicado y verificado, PR 30 | Cerrado: biblioteca, modos, retorno y enlaces directos comprobados. |
 | DC02 | Portada «Día de cobro» con la cara y el humor de seguridad/facturas | Aprobada y publicada en biblioteca, modos y `/test`; móvil 600×800, 200.798 bytes | Cerrado: encuadre completo y entrega online/offline comprobados. |
 | DC03 | Arena contra la máquina | Solicitado, pendiente | P1; desarrollar rival con estrategia y evasión; no publicar una simulación de online ni un modo vacío. |
-| DC04 | Lore y protagonista dentro de Collecta | Concepto registrado, parcial | P2; conservar portada exacta y definir las acciones de cada modo; las flores son personajes beta. |
+| DC04 | Lore y protagonista dentro de Collecta | Lore publicado en PR 31; personajes humanos pendientes | Conservar portada exacta. Las flores siguen como personajes beta; no confundir el lore cerrado con el acabado de sprites. |
 | A03 | Mandos de 1vs1 en extremos opuestos desde el punto de vista de cada persona | Publicado y verificado en Arena y Persecución | Cerrado en emulación y navegador; rotación, multitoque y pausa correctos. T01 conserva la prueba física. |
 | J09 | Pilla-Pilla como Persecución de Collecta | Beta local publicada y verificada: 60 s, obstáculos, captura/cambio de roles y sprint | Cerrado: navegador/Canvas 2D, pausa, salida y offline comprobados. |
 | G06 | Cosméticos locales de Groove sin ventaja competitiva | Trazo Club a los 20 cortes y preferencias persistentes publicados y verificados | Cerrado: desbloqueo jugando, persistencia y foco comprobados en CI. |
@@ -293,8 +294,8 @@ de continuar DC03; el rival contra la máquina conserva su lugar en el registro.
 
 | ID | Petición | Estado actual | Siguiente acción |
 | --- | --- | --- | --- |
-| DC05 | Personalizar Collecta y sus modos con el lore de seguridad/cobro | Implementado localmente: Arena — Cierre de pista; Persecución — Pasa el marrón; encargado/crew, factura y sello de trámite | Verificar textos/arte de partida en tamaños compactos y publicar. |
-| A04 | Joystick táctil opcional y enfrentado para cada persona | Implementado localmente; elección individual persistente, zona central sin deriva, retorno al soltar/cancelar y controles de teclado | Verificar dos dedos + acción, rotación, pausa, persistencia y offline. |
+| DC05 | Personalizar Collecta y sus modos con el lore de seguridad/cobro | Publicado y revisado manualmente, PR 31 | Cierre de pista y Pasa el marrón: encargado/crew, factura y sello de trámite. Portada conservada y textos compactos comprobados. |
+| A04 | Joystick táctil opcional y enfrentado para cada persona | Beta publicada, PR 31; build, 211 pruebas internas y revisión manual de tres tamaños correctos | Completar multitoque simultáneo, rotación y offline automatizados cuando arranque CI; prueba física en T01. No contar los escenarios escritos como ejecutados. |
 | DC04 | Protagonista humano dentro de las partidas | Sigue parcial | El lore y los objetos se personalizan; los personajes flor beta no se sustituyen por retratos ni se generan nuevas portadas. |
 
 Conservar las rutas actuales y la portada exacta aprobada. No cambia la física
@@ -302,3 +303,24 @@ de colisiones, las rondas, capturas, duración ni puntuación de los motores.
 El joystick de Arena elige una dirección de casilla; el de Persecución usa
 movimiento libre, diagonal y velocidad proporcional al desplazamiento.
 Auditoría: `AUDITORIA_COLLECTA_LORE_JOYSTICK_2026-11-15.md`.
+
+
+### Cierre de lore y joystick — PR 31
+
+- Publicado en `3fea5cb0740a465c8c738ecdca7b3381a7739080`. Producción Vercel
+  READY: `dpl_DB97o26nPtSGXPW6TaXTAgZD69ZD`. Navegador público: lore y elección
+  de mandos visibles; Persecución iniciada, P1 movido (110 → 290), pausa y retorno
+  correctos. La selección de ambos joysticks queda conservada.
+- Build y **211 pruebas internas correctos**. Preview revisado con el juego real
+  en Arena 320×568 y 390×844 y Persecución 844×390: movimiento de P1/P2 desde
+  lados opuestos, mandos de 96×96, disco/sprint, pausa y vuelta al centro.
+  Preferencias conservadas tras recargar. Página repetible: `/test-collecta-layouts.html`.
+- **Verificación incompleta:** CI 184/185 termina antes de ejecutar pasos, sin
+  logs de jobs. Chromium local no puede crear socket. Los escenarios nuevos
+  de dos dedos + acción, cancelación/rotación y offline están escritos pero
+  pendientes de ejecución. Las 705 comprobaciones de PR 30 son históricas.
+- Auditoría: `AUDITORIA_COLLECTA_LORE_JOYSTICK_2026-11-15.md`. No se afirma
+  medición de FPS, batería o dispositivo físico.
+- Seguimiento: T04 para CI, T01 para móviles físicos, DC03 para IA rival y DC04
+  para personajes humanos. Online, música/BPM, Kart, QR aplazados y retorno de
+  Gemini mantienen sus estados.

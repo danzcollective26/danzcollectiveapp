@@ -107,8 +107,8 @@ las otras portadas mantienen su identidad. Jack y Groove no se rediseñan.
   `juego=pilla-pilla` se conservan. `juego=collecta` abre sus modos.
 - El propietario también solicita jugar **contra la máquina** en Arena. Sigue
   pendiente de un rival real; no simular que está disponible mediante un botón.
-- La integración gráfica del protagonista dentro de las partidas y el lore de
-  cada modo siguen por desarrollar. Las flores actuales son personajes beta.
+- El lore de los modos está publicado en PR 31. La integración gráfica del
+  protagonista humano sigue pendiente; las flores actuales son personajes beta.
 - Groove recibe cabina detallada, efectos suaves y Trazo Club, cosmético local
   desbloqueable con 20 cortes. BPM/música reales y ranking siguen pendientes.
 
@@ -131,5 +131,7 @@ siguen pendientes; no se presentan como terminados.
   roles y señalética siguen el mismo tono del encargado y el cierre de fiesta.
 - Cada jugador elige flechas o joystick en el hub. Joystick analógico para
   Persecución y cardinal para Arena, enfrentados y sin movimiento al soltar.
-- Bloque implementado localmente, pendiente de cerrar auditoría y publicación.
+- Publicado en PR 31 (`3fea5cb0`), producción READY y revisión pública correctas.
+  Build y 211 pruebas internas correctos; revisión manual de tres tamaños.
+  CI no arranca: multitoque/rotación/offline automatizados pendientes (T04).
   No incluye la IA rival, online ni un rediseño de los personajes humanos.
