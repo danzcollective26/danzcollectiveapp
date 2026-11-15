@@ -3,6 +3,20 @@ import assert from 'node:assert/strict'
 import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, RACE_LAPS, raceOrder, type Race, type TrackId } from '../src/arcade/kart/engine.ts'
 
 function advance(s:Race,time:number,frame:number){let remaining=time;while(remaining>0){const dt=Math.min(remaining,frame);s=stepRace(s,[NO_INPUT,NO_INPUT],dt);remaining-=dt}return s}
+test('Full-width roads leave clearance through bends and between separate sections',()=>{
+  for(const track of Object.values(TRACKS))for(let i=0;i<track.points.length;i++){
+    const a=track.points[(i-1+track.points.length)%track.points.length],b=track.points[i],c=track.points[(i+1)%track.points.length]
+    const cross=Math.abs((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x))
+    if(cross>1e-8){
+      const radius=Math.hypot(a.x-b.x,a.y-b.y)*Math.hypot(b.x-c.x,b.y-c.y)*Math.hypot(a.x-c.x,a.y-c.y)/(2*cross)
+      assert.ok(radius>ROAD_WIDTH/2+13,`${track.id}: inner curb must not fold over`)
+    }
+    for(let j=i+1;j<track.points.length;j++){
+      const arc=Math.min(track.lengths[j]-track.lengths[i],track.length-(track.lengths[j]-track.lengths[i]))
+      if(arc>ROAD_WIDTH*2)assert.ok(Math.hypot(b.x-track.points[j].x,b.y-track.points[j].y)>ROAD_WIDTH+26,`${track.id}: separate barriers must not intersect`)
+    }
+  }
+})
 test('Kart countdown and pause never move the grid or consume race time',()=>{
   const s=startRace(createRace('duel')),counting=stepRace(s,[NO_INPUT],1500)
   // Catch-up is capped to 250 ms so a suspended tab cannot skip the start.

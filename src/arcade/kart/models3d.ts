@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
+import { batchMeshes } from './batch3d'
 
 const rubber=new THREE.MeshStandardMaterial({color:'#141b21',roughness:.92})
 const graphite=new THREE.MeshStandardMaterial({color:'#233138',roughness:.56,metalness:.25})
@@ -55,6 +56,7 @@ export function buildKart(color:string,id:number):KartModel{
   const flame=new THREE.Group();flame.position.set(-28,8,11)
   for(const [radius,length,hex] of [[3,13,'#caff7b'],[1.7,17,'#fff7c8']] as const){const m=mesh(new THREE.ConeGeometry(radius,length,10),new THREE.MeshBasicMaterial({color:hex,transparent:true,opacity:.75,depthWrite:false}),-length/2);m.rotation.z=Math.PI/2;flame.add(m)}
   flame.visible=false;root.add(flame)
+  batchMeshes(root,false)
   return {root,wheels,front,flame}
 }
 

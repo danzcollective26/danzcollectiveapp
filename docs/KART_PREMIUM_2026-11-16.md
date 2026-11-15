@@ -4,10 +4,10 @@ El propietario solicita terminar Kart con un acabado muy cuidado y buscar los
 recursos necesarios. El alcance es el juego local: Crew Race, Contrarreloj y
 duelo en un mismo móvil. Online conserva su estado separado.
 
-## Implementado, pendiente de revisión visual de esta versión
+## Implementado y auditado; validación GPU pendiente
 
 - Presentación 3D real en Three.js 0.186.0, con cámara de seguimiento o de toda
-  la pista. Se conserva la física fija ya probada: no se migran los motores de
+  la pista. Se conserva la integración física fija ya probada: no se migran los motores de
   Jack, Groove ni Collecta. Phaser queda disponible para la vista compatible.
 - Kart original con carrocería redondeada, pintura barnizada, metal, neumáticos,
   piloto con casco/visera, volante y brazos. Cuatro carrocerías cosméticas.
@@ -43,8 +43,40 @@ como textura ni se copia su logotipo. Las portadas de los otros juegos siguen in
 
 ## Verificación
 
-Las 227 pruebas internas previas pasan después de instalar la dependencia.
-Se añade prueba de preferencias corruptas/inaccesibles y se preparan escenarios
-de cambio 3D/2D para navegador. La revisión conectada y la producción se anotarán
-al cerrar. CI anterior 197 no ejecutó pasos: T04 sigue abierto hasta obtener
-evidencia nueva. T01 conserva la prueba física de tacto, batería y FPS.
+Build y **229 pruebas internas** correctos. Las nueve pruebas del motor Kart
+incluyen carreras completas en ambos circuitos, pausa/salida, cadencias distintas,
+contención, vueltas falsas, derrape/impulso, mandos independientes y separación de
+asfalto/barreras. Otra prueba cubre preferencias corruptas o inaccesibles.
+
+La auditoría de geometría con los modelos reales exportados a Blender/Cycles CPU
+ha detectado un solapamiento de curvas en la primera versión. Se corrigen ambos
+trazados con B-splines periódicas: radio mínimo 61,0/64,4 unidades y separación
+entre tramos no vecinos 134,5/135,7 (carretera de 94 + barreras). Se ajustan el
+garaje, la parrilla y el radio de contacto al tamaño del kart. Los récords del
+nuevo trazado usan una clave v2, sin borrar los registros v1 del navegador.
+
+Se agrupan piezas estáticas por material conservando ruedas y fuego animados;
+las barreras y tejados se instancian. La escena exportada contiene unas 59.000
+caras triangulares con cuatro karts. No es una medición de tiempo de GPU.
+
+En el navegador conectado **WebGL está desactivado** (error del contexto con
+GL_RENDERER Disabled). Se ha comprobado el fallback 2D automático, un solo canvas,
+pausa sin avance, preferencias, carrocería, circuitos, sonido on/off y mandos
+opuestos en tamaños 390×844 y 320×568. La geometría y cámaras se revisaron con
+render local; ese render no es una captura ni una medición del renderer WebGL.
+La revisión horizontal de producción y la publicación se anotarán al cerrar.
+
+CI 200 falla antes de ejecutar pasos: cuatro jobs sin steps ni logs; causa sin
+confirmar. No se cuentan los escenarios de navegador/offline como ejecutados.
+T04 conserva esta regresión pendiente. T01 conserva WebGL real Android/iPhone,
+comodidad multitoque, audio escuchado, FPS y batería. No se rebajan protecciones,
+se activan costes ni se cambia la configuración del navegador para superar esto.
+
+Atajos, objetos, fantasma, repetición y online no están implementados. El alcance
+entregado es la carrera local de tres modos y dos circuitos; esos contenidos
+adicionales siguen en la hoja de ruta.
+
+![Auditoría de geometría del circuito](audits/kart-premium-geometry-review.webp)
+
+Render de revisión de los modelos originales en Blender/Cycles CPU. Materiales
+e iluminación aproximados; no es una captura de WebGL ni acredita FPS.

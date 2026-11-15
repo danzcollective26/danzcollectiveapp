@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { TRACKS, ROAD_WIDTH, trackPoint, type Race, type Track } from './engine'
 import { KART_LIVERIES, type KartPreferences } from './preferences'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
+import { batchMeshes } from './batch3d'
 
 const point=(x:number,z:number,y=0)=>new THREE.Vector3(x-500,y,z-360)
 function ribbon(track:Track,inner:number,outer:number,height:number,colored=false){
@@ -34,12 +35,12 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   }
   barriers.count=caps.count=count;barriers.castShadow=shadows;barriers.receiveShadow=true;scene.add(barriers,caps)
   // Crew garage between the upper straight and the interior hairpin.
-  const garage=new THREE.Group();garage.position.copy(point(450,219))
-  garage.add(box(255,42,59,dark,0,22,0,2),box(267,5,70,silver,0,46,0,1))
-  const roof=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,1.4,67),dark,28)
+  const garage=new THREE.Group();garage.position.copy(point(450,200))
+  garage.add(box(255,42,35,dark,0,22,0,2),box(267,5,44,silver,0,46,0,1))
+  const roof=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,1.4,41),dark,28)
   for(let i=0;i<28;i++){transform.position.set(-128+i*9.5,49,0);transform.rotation.set(0,0,0);transform.updateMatrix();roof.setMatrixAt(i,transform.matrix)}garage.add(roof)
-  for(let i=0;i<3;i++){garage.add(box(62,28,1,concrete,-82+i*81,19,30,.3));for(let j=0;j<7;j++)garage.add(box(60,.5,1,dark,-82+i*81,7+j*3.5,31,.1))}
-  const sign=mesh(new THREE.PlaneGeometry(188,38),new THREE.MeshBasicMaterial({map:signTexture('DANZ RACING','AFTERHOURS / CREW GARAGE')}),0,45,36);garage.add(sign);scene.add(garage)
+  for(let i=0;i<3;i++){garage.add(box(62,28,1,concrete,-82+i*81,19,18,.3));for(let j=0;j<7;j++)garage.add(box(60,.5,1,dark,-82+i*81,7+j*3.5,19,.1))}
+  const sign=mesh(new THREE.PlaneGeometry(188,38),new THREE.MeshBasicMaterial({map:signTexture('DANZ RACING','AFTERHOURS / CREW GARAGE')}),0,45,23);garage.add(sign);scene.add(garage)
   const containerMat=new THREE.MeshStandardMaterial({color:'#8c9d83',metalness:.2,roughness:.72})
   for(const [x,z,color] of [[945,250,'#768e83'],[920,600,'#bc906d'],[80,60,'#718b7b']] as const){
     const container=new THREE.Group();container.position.copy(point(x,z));const body=box(76,37,38,containerMat,0,20,0,1);body.material=(body.material as THREE.MeshStandardMaterial).clone();(body.material as THREE.MeshStandardMaterial).color.set(color);container.add(body)
@@ -57,6 +58,7 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const grid=mesh(new THREE.PlaneGeometry(15,ROAD_WIDTH-4),new THREE.MeshStandardMaterial({map:gridTexture,roughness:.9}),0,5.15,0);grid.rotation.x=-Math.PI/2;gantry.add(grid)
   const routePoints=[];for(let d=0;d<track.length;d+=16){const p=trackPoint(track,d/track.length);routePoints.push(point(p.x,p.y,5.12))}routePoints.push(routePoints[0].clone())
   const route=new THREE.Line(new THREE.BufferGeometry().setFromPoints(routePoints),new THREE.LineDashedMaterial({color:'#cedca5',transparent:true,opacity:.19,dashSize:7,gapSize:13}));route.computeLineDistances();scene.add(route)
+  batchMeshes(scene)
 }
 
 /** Actual 3D presentation over the same deterministic, tested race simulation. */

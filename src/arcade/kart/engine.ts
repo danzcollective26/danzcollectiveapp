@@ -12,8 +12,8 @@ export type Race = {
   mode: KartMode; track: TrackId; phase: 'ready' | 'countdown' | 'playing' | 'paused' | 'finished'
   resume: 'countdown' | 'playing'; cars: Car[]; elapsed: number; countdown: number; carry: number
 }
-export const KART_WIDTH = 1000, KART_HEIGHT = 720, ROAD_WIDTH = 94, KART_RADIUS = 13
-export const RACE_LAPS = 3, RACE_LIMIT = 180000, KART_RECORD_KEY = 'danz-kart-best-v1'
+export const KART_WIDTH = 1000, KART_HEIGHT = 720, ROAD_WIDTH = 94, KART_RADIUS = 18
+export const RACE_LAPS = 3, RACE_LIMIT = 180000, KART_RECORD_KEY = 'danz-kart-best-v2'
 export const NO_INPUT: KartInput = { turn: 0, drift: false, brake: false }
 const STEP = 1000 / 120
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
@@ -26,7 +26,8 @@ function makeTrack(id: TrackId, name: string, subtitle: string, accent: string, 
     const [a,b,c,d] = [-1,0,1,2].map(offset => nodes[(i + offset + nodes.length) % nodes.length])
     for (let n = 0; n < 12; n++) {
       const t = n / 12, t2 = t*t, t3 = t2*t
-      const coord = (axis: number) => .5 * (2*b[axis] + (-a[axis]+c[axis])*t + (2*a[axis]-5*b[axis]+4*c[axis]-d[axis])*t2 + (-a[axis]+3*b[axis]-3*c[axis]+d[axis])*t3)
+      // A periodic cubic B-spline keeps the full-width road smooth through bends.
+      const coord = (axis: number) => ((1-3*t+3*t2-t3)*a[axis]+(4-6*t2+3*t3)*b[axis]+(1+3*t+3*t2-3*t3)*c[axis]+t3*d[axis])/6
       points.push({ x: coord(0), y: coord(1) })
     }
   }
@@ -38,8 +39,8 @@ function makeTrack(id: TrackId, name: string, subtitle: string, accent: string, 
   return { id, name, subtitle, accent, points, lengths, length: lengths.at(-1)! }
 }
 export const TRACKS: Record<TrackId, Track> = {
-  dock: makeTrack('dock', 'AFTERHOURS DOCK', 'El último ferry sale contigo.', '#c9f56d', [[780,575],[490,590],[235,560],[135,430],[165,255],[300,145],[540,140],[810,185],[865,315],[815,425],[680,425],[580,325],[440,315],[365,400],[435,485],[635,490]]),
-  backstage: makeTrack('backstage', 'BACKSTAGE RING', 'Flightcases fuera. Cero excusas.', '#82dadd', [[760,580],[490,580],[210,540],[150,365],[210,170],[425,145],[600,185],[800,145],[865,275],[760,350],[585,320],[490,395],[575,485],[790,465],[875,535]]),
+  dock: makeTrack('dock', 'AFTERHOURS DOCK', 'El último ferry sale contigo.', '#c9f56d', [[740,625],[500,625],[220,580],[120,420],[155,235],[310,125],[570,120],[760,135],[825,175],[850,235],[825,295],[760,320],[620,275],[430,280],[365,310],[340,360],[360,415],[420,450],[500,465],[700,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
+  backstage: makeTrack('backstage', 'BACKSTAGE RING', 'Flightcases fuera. Cero excusas.', '#82dadd', [[740,625],[500,625],[215,580],[120,420],[160,230],[310,120],[440,125],[560,165],[680,140],[770,130],[835,165],[865,220],[850,280],[805,320],[735,330],[620,300],[520,300],[450,295],[390,320],[365,380],[390,440],[450,465],[530,475],[740,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
 }
 
 export function trackPoint(track: Track, progress: number): Point & { angle: number } {
@@ -64,7 +65,7 @@ export function projectTrack(track: Track, point: Point) {
 export function createRace(mode: KartMode = 'race', track: TrackId = 'dock'): Race {
   const course = TRACKS[track], count = mode === 'race' ? 4 : mode === 'duel' ? 2 : 1
   const cars = Array.from({ length: count }, (_, id): Car => {
-    const progress = .02-id*.008, p = trackPoint(course, progress), side = id%2 ? -17 : 17
+    const progress = .02-id*.014, p = trackPoint(course, progress), side = id%2 ? -20 : 20
     return { id, x: p.x-Math.sin(p.angle)*side, y: p.y+Math.cos(p.angle)*side, angle: p.angle, speed: 0, progress: wrap(progress), distance: progress, laps: 0, checkpoint: 1, charge: 0, boosting: 0, drifting: false, finishedAt: null, lapAt: 0, bestLap: null }
   })
   return { mode, track, phase: 'ready', resume: 'playing', cars, elapsed: 0, countdown: 3000, carry: 0 }

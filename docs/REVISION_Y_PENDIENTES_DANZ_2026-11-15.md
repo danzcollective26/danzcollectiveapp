@@ -1,6 +1,6 @@
 # DANZ Collective — revisión general y registro de pendientes
 
-**Actualización:** 15 de noviembre de 2026, Europe/Madrid.
+**Actualización:** 16 de noviembre de 2026, Europe/Madrid.
 **Propósito:** mantener en un lugar las peticiones del propietario, las entregas
 comprobadas, lo pendiente y lo aplazado. Este es el registro general vigente;
 las especificaciones antiguas siguen siendo referencias históricas.
@@ -39,7 +39,7 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | G01 | Continuar mejoras de Jack y Groove | Parcial; primera entrega publicada | Cerrar S01; conservar optimización y especiales. Completar pendientes específicos G02–G07, sin afirmar que todo está terminado. |
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
 | J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
-| J10 | DANZ Kart Mini | Aprobado, pendiente | Prototipo cenital móvil, controles de dos personas, derrape y circuito legible. |
+| J10 | DANZ Kart Mini | Beta local publicada PR 34; acabado 3D en verificación PR 35 | Tres modos, dos circuitos, mandos enfrentados, derrape/impulso. Falta validación WebGL y móvil físico (T01/T04); online y contenidos adicionales separados. |
 
 ## 4. Lo ya publicado que debe conservarse
 
@@ -73,7 +73,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | M03 | Buscador, filtros y favoritas | Pendiente de completar. Mantener filtros por evento/fecha y búsqueda sin ampliar permisos; favoritos y búsqueda unificada no constan completos. |
 | M04 | Pases y pasaporte fiables | Parcial. Hay pase local y canje; recuperación por correo/entre navegadores y resiliencia avanzada siguen pendientes. El trabajo nuevo en QR se mantiene aparcado. |
 | M05 | DANZPOINTS claros y auditables | Parcial. Saldo, reservas y evidencias existen; faltan reglas posteriores al piloto, catálogo de premios, existencias, canje y cola durable de resultados. |
-| M06 | Arcade más visual, accesible y fluido | Parcial. Biblioteca, portadas, pausa, controles, optimización y corrección S01 publicados; medir en móviles físicos. |
+| M06 | Arcade más visual, accesible y fluido | Parcial. PR 34 añade materiales a Jack, rig de Groove y suelo/personajes de Collecta. Base, portadas aprobadas y marcos compactos conservados. Medir en móviles físicos. |
 | M07 | Armas diferentes y Groove menos repetitivo | Parcial. Tres armas de corte y ocho del modo Destrucción son ámbitos distintos. Revisar equilibrio, feedback y variedad; faltan música/BPM reales y competición. Trazo Club y efectos suaves locales incorporados en el bloque de PR 30. |
 | M08 | Yeppo vivo y poco intrusivo | Parcial. Tres paseos y contacto real publicados; conservar identidad, opt-in y movimiento reducido. IA generativa/3D siguen siendo fases distintas. |
 | M09 | Administración más ágil | Parcial. Hay administración y buzones; falta bandeja unificada con prioridades, moderación de fotos y seguimiento trazable. |
@@ -111,7 +111,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | A01 | Arena DANZ inspirado en Bomberman | Beta local publicada; memoria/kit entregados; pulido gráfico y siguientes mapas por integrar al recibir Gemini. |
 | A02 | Arena online desde dos móviles | Pendiente: salas, autoridad, tick, latencia, reconexión y resultados validados. No implementar una simulación de online. |
 | J09 | Persecución de DANZ Collecta | Beta local implementada: un minuto, capturas/cambio de papeles, obstáculos y sprint. CI de juego, multitoque, orientación y offline correctos; publicado y verificado, PR 30. |
-| J10 | DANZ Kart Mini | Aprobado; carreras cortas y derrape. Pendiente. |
+| J10 | DANZ Kart Mini | Beta local publicada PR 34; acabado 3D implementado PR 35. Tres modos, dos circuitos. Validación WebGL/móvil en T01/T04; objetos, atajos y online posteriores. |
 | E01 | Idle Studio | Externo/concepto aprobado; sigue «Próximamente». Puestos de música, moda, vídeo/diseño e impresión 3D, niveles y mejoras. Recibir proyecto de la otra IA antes de duplicarlo. El vídeo del estudio ya fue recibido como referencia privada. |
 | E02 | Plataformas desarrollado en Grok | Externo. Recibir ZIP completo; adaptación mínima, conservando arte, motor, niveles, física, controles, audio y progreso. |
 | E03 | DANZ Rush Party | Concepto histórico pendiente: exploración cenital tipo GTA 2D + pruebas tipo Mario Party. No descartarlo ni confundirlo con Arena. |
@@ -161,6 +161,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | P02 | Asistencia, compras y DANZERS | Piloto 13/11/2026: asistencia 1.000; ropa 5/euro, máximo 600/evento. Faltan reglas posteriores, clases/actividades/DJs/colaboradores; no extrapolar automáticamente. |
 | P03 | Premios y canje | Pendiente: niveles, catálogo, existencias, caducidad y canje QR/código individual. Familias: entradas, ropa, barra, VIP, digital y colaboradores. Nuevos QR aplazados. |
 | P04 | Verificación de Instagram | Implementada con revisión manual y correo DANZ confirmado; no es OAuth Meta. Puntos reservados hasta verificar. Evitar cuello de botella al escalar. |
+| P05 | Moneda visible, ahorro y gasto | Moneda y monedero publicados PR 34 sobre saldo disponible/reservado existente. Vista anónima comprobada. Pendientes catálogo/precios/canje real (P03) e historial transaccional; sin operaciones o saldo ficticios. |
 | N01 | Yeppo con IA generativa real | Propuesta/fase posterior. Hoy guía local; falta backend, permisos mínimos, límites y evaluación de una opción gratuita útil. No activar costes por defecto. |
 | N02 | Mi DANZ | Propuesta: historial privado de fiestas, sellos, favoritas y logros. Pendiente. |
 | N03 | Misiones colectivas | Propuesta. Los retos locales de Yeppo no son misiones validadas ni conceden premios. |
@@ -177,7 +178,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | T01 | Pruebas Android/iPhone reales | Pendientes FPS, batería, comodidad multitoque, orientación y audio. Emulación de tamaños no sustituye dispositivo físico. |
 | T02 | Complementos/documentación | Context7 antes de juegos/Yeppo; consultar conexiones pertinentes, herramientas gratuitas primero. Una conexión autenticada no demuestra que todas sus funciones o diseños estén disponibles. |
 | T03 | Auditoría y `/test` | Mantener ruta accesible, controles táctiles, reduced-motion, pausa y lista de mejoras aplicadas/propuestas en cada entrega importante. |
-| T04 | Recuperar la ejecución de pruebas de navegador y offline | P0 de verificación. CI de PR 31 falla antes de ejecutar pasos y no genera logs; causa sin confirmar. Chromium local bloqueado al crear socket. Conservar los nuevos escenarios y ejecutarlos cuando vuelva a estar disponible, sin activar costes ni rebajar protecciones. |
+| T04 | Recuperar la ejecución de pruebas de navegador y offline | P0 de verificación. CI de PR 31 y posteriores, incluido 200/PR 35, falla antes de ejecutar pasos y no genera logs; causa sin confirmar. Navegador conectado sin WebGL; validación GPU pendiente. Chromium local bloqueado al crear socket. Conservar los nuevos escenarios y ejecutarlos cuando vuelva a estar disponible, sin activar costes ni rebajar protecciones. |
 
 ## 10. Lo expresamente aplazado
 
@@ -254,7 +255,7 @@ de juegos. La portada fue mostrada y el propietario pidió «Implémentala».
 | DC01 | Una entrada DANZ Collecta con Arena y Persecución (antes Pilla-Pilla independiente) | Publicado y verificado, PR 30 | Cerrado: biblioteca, modos, retorno y enlaces directos comprobados. |
 | DC02 | Portada «Día de cobro» con la cara y el humor de seguridad/facturas | Aprobada y publicada en biblioteca, modos y `/test`; móvil 600×800, 200.798 bytes | Cerrado: encuadre completo y entrega online/offline comprobados. |
 | DC03 | Arena contra la máquina | Beta local publicada y revisada, PR 32 | Último turno: rival real con rutas, previsión de cadenas y escape. 219 pruebas internas, tres tamaños y partida pública comprobados. T04 conserva la regresión automatizada pendiente. |
-| DC04 | Lore y protagonista dentro de Collecta | Lore publicado en PR 31; personajes humanos pendientes | Conservar portada exacta. Las flores siguen como personajes beta; no confundir el lore cerrado con el acabado de sprites. |
+| DC04 | Lore y protagonista dentro de Collecta | Lore PR 31 y primer sprite humano ilustrado PR 34 publicados | Encargado y Yeppo con dos poses. Conservar portada exacta; fidelidad de retrato y arte definitivo siguen parciales. |
 | A03 | Mandos de 1vs1 en extremos opuestos desde el punto de vista de cada persona | Publicado y verificado en Arena y Persecución | Cerrado en emulación y navegador; rotación, multitoque y pausa correctos. T01 conserva la prueba física. |
 | J09 | Pilla-Pilla como Persecución de Collecta | Beta local publicada y verificada: 60 s, obstáculos, captura/cambio de roles y sprint | Cerrado: navegador/Canvas 2D, pausa, salida y offline comprobados. |
 | G06 | Cosméticos locales de Groove sin ventaja competitiva | Trazo Club a los 20 cortes y preferencias persistentes publicados y verificados | Cerrado: desbloqueo jugando, persistencia y foco comprobados en CI. |
@@ -296,7 +297,7 @@ de continuar DC03; el rival contra la máquina conserva su lugar en el registro.
 | --- | --- | --- | --- |
 | DC05 | Personalizar Collecta y sus modos con el lore de seguridad/cobro | Publicado y revisado manualmente, PR 31 | Cierre de pista y Pasa el marrón: encargado/crew, factura y sello de trámite. Portada conservada y textos compactos comprobados. |
 | A04 | Joystick táctil opcional y enfrentado para cada persona | Beta publicada, PR 31; build, 211 pruebas internas y revisión manual de tres tamaños correctos | Completar multitoque simultáneo, rotación y offline automatizados cuando arranque CI; prueba física en T01. No contar los escenarios escritos como ejecutados. |
-| DC04 | Protagonista humano dentro de las partidas | Sigue parcial | El lore y los objetos se personalizan; los personajes flor beta no se sustituyen por retratos ni se generan nuevas portadas. |
+| DC04 | Protagonista humano dentro de las partidas | Parcial, con primer sprite humano ilustrado publicado PR 34 | Encargado original con dos poses; falta acabado definitivo/fidelidad de retrato. No se generan ni sustituyen las portadas aprobadas. |
 
 Conservar las rutas actuales y la portada exacta aprobada. No cambia la física
 de colisiones, las rondas, capturas, duración ni puntuación de los motores.
@@ -380,12 +381,12 @@ Petición: el marco exterior ocupa demasiado. Publicado en PR 33,
   DC04, T01, T04, música/BPM, online, Kart y retorno de Gemini, conserva su estado.
 
 
-## 17. Gráficos, DANZ Kart Mini y moneda visible — bloque activo
+## 17. Gráficos, DANZ Kart Mini y moneda visible — publicado PR 34
 
 El propietario pide mejorar todos los gráficos y desarrollar ya Kart (M06/J10).
 Como inciso, quiere DANZPOINTS como moneda visible, para ahorrar y gastar (P05).
 
-- J10: primera beta local implementada, en verificación. Crew Race contra tres
+- J10: primera beta local publicada en PR 34, `92564a94`. Crew Race contra tres
   rivales, Contrarreloj con mejor sesión local y duelo con mandos enfrentados;
   dos circuitos, tres vueltas, derrape cargado, impulso, freno y colisiones.
 - M06: cable Jack con materiales/conector; cabinas Groove/Destrucción con rig
@@ -394,16 +395,21 @@ Como inciso, quiere DANZPOINTS como moneda visible, para ahorrar y gastar (P05).
 - P05: moneda gráfica y monedero implementados sobre el saldo real existente;
   se separa disponible/reservado. Catálogo, precios, historial transaccional y
   canje real quedan pendientes en P03/P05. No inventar saldo ni compras de prueba.
-- Build y 227 pruebas internas correctos, ocho nuevas de Kart. Auditoría visual,
-  jugabilidad y publicación en curso; no contar esta línea como producción.
+- Build y 227 pruebas internas correctos, ocho nuevas de Kart. Producción READY
+  `dpl_G8Bn74WQx1LjqLhbtDUQ2kXWtd5C`; revisión pública de Kart, Collecta, Jack,
+  Groove y monedero. El monedero se revisa anónimo, sin iniciar una cuenta ajena.
+  La corrección posterior `e84c48f3` ajusta la etiqueta DERRAPE al mando lateral.
 
 
 ## 18. Kart premium — ampliación solicitada el 16/11
 
-Se desarrolla el acabado 3D y la experiencia completa local tras la petición del
+Se implementa el acabado 3D de la carrera local tras la petición del
 propietario. Three.js, recursos CC0 de asfalto, kart y escenario propios, cámaras,
 sonido original, minimapa, ajustes de calidad y podio. Se conserva la física
 probada y el modo 2D compatible. Ver `KART_PREMIUM_2026-11-16.md`.
-En verificación, sin afirmar aún revisión pública de la presentación 3D.
+Build y 229 pruebas internas pasan. Auditoría de geometría con render CPU: se
+corrigen solapamientos de curvas, parrilla y garaje; agrupación de piezas por
+material. WebGL desactivado en el navegador conectado: fallback 2D comprobado,
+sin afirmar prueba de la GPU. En verificación de publicación; T01/T04 abiertos.
 La moneda visible P05 y el monedero de PR 34 se conservan; P03/canjes reales e
 historial transaccional siguen pendientes. Online y QR mantienen sus estados.
