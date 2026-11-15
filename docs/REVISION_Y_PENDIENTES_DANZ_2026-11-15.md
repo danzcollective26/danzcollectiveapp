@@ -354,3 +354,12 @@ Vercel producción READY: `dpl_4h9beU62i7z1gogKrgffd2KxiSRt`.
   los personajes beta se conservan. DC03 queda cerrado como beta local; DC04
   (sprites humanos), T01 (teléfonos físicos), T04, online, Groove/música/BPM,
   Kart y retorno de Gemini conservan sus estados. QR sigue aplazado.
+
+
+## 16. Marcos de todos los juegos — A05
+
+Petición: el marco exterior ocupa demasiado. Bloque en verificación: ajustar
+el borde al tablero real, retirar franjas decorativas vacías y reducir
+márgenes/sombras en Jack, Groove (Vinyl, Scratch y Destrucción) y los tres
+modos de Collecta. Conservar proporciones, controles, zona segura y reglas.
+No se declara publicado hasta cerrar build y auditoría visual.

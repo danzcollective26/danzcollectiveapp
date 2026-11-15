@@ -1,3 +1,4 @@
+import GameSurface from './GameSurface'
 import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
 import { memo, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
@@ -249,7 +250,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
         {game.mode === 'cut' ? <div className="gn-weapons" role="group" aria-label="Arma de corte">{(Object.keys(GROOVE_WEAPONS) as GrooveWeapon[]).map((key, i) => <button key={key} type="button" aria-pressed={game.weapon === key} onClick={() => { trail.current = []; commit(selectGrooveWeapon(current.current, key)) }}><span aria-hidden="true">{['╱', '〢', '✧'][i]}</span><span>{GROOVE_WEAPONS[key].name}<small>{GROOVE_WEAPONS[key].detail}</small></span></button>)}</div>
           : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>FLECHA = DIRECCIÓN · CORTO / LARGO = RECORRIDO</small></div>}
       </div>
-      <div className="gn-play-area">
+      <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className="gn-play-area">
         <svg ref={board} className="gn-board" viewBox="0 0 640 760" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
           <defs>
             <radialGradient id="gn-disc" cx="32%" cy="22%" r="80%"><stop stopColor="#505258"/><stop offset=".3" stopColor="#1b1c21"/><stop offset=".66" stopColor="#303137"/><stop offset="1" stopColor="#050607"/></radialGradient>
@@ -324,7 +325,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           {ended ? <><span className="gn-final-score">{game.score.toLocaleString('es-ES')}</span><span className="gn-result-details">{game.mode === 'cut' ? `${game.hits} CORTES · ${game.multiCuts} MULTICORTES · ${game.golds} DORADOS` : `${game.scratches} FRASES · ${game.perfects} GESTOS PERFECTOS`} · COMBO {game.bestCombo}</span></>
             : <p>{game.status === 'paused' ? 'Reanuda cuando quieras.' : game.mode === 'cut' ? 'Desliza sobre los vinilos al vuelo. Corta varios en una pasada y esquiva los acoples rojos.' : 'Sigue las flechas y el recorrido corto o largo. Termina cada gesto cuando el cursor llegue al pulso dorado. Puedes levantar el dedo para recolocarlo.'}</p>}
         </div>}
-      </div>
+      </div></GameSurface>
       <div className="gn-flow"><span>FLOW</span><div role="meter" aria-label="Racha de la sesión" aria-valuemin={0} aria-valuemax={20} aria-valuenow={Math.min(20, game.combo)}><i style={{ width: `${Math.min(100, game.combo * 5)}%` }}/></div><strong>×{grooveMultiplier(game.combo)}</strong></div>
       <p className="gn-message" role="status">{game.message}</p>
       <div className="gn-actions"><button type="button" className="primary-btn" onClick={play}>{running ? 'PAUSAR' : ended ? 'OTRA SESIÓN' : game.status === 'paused' ? 'REANUDAR' : 'JUGAR GROOVE NINJA'} <span>↗</span></button><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted ? 'SONIDO OFF' : 'SONIDO ON'}</button><button ref={optionsButton} type="button" className="outline-btn gn-options-button" onClick={() => { pause(); setOptionsOpen(true) }}>AJUSTES</button></div>

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import './App.css'
+import './arcade/gameSurface.css'
 import './arcade/gameScreen.css'
 import './arcade/arcadeLibrary.css'
 import { useAuth } from './auth/AuthProvider'
