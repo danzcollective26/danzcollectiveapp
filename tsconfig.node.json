@@ -5,5 +5,5 @@
     "skipLibCheck": true, "moduleResolution": "Bundler", "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true, "moduleDetection": "force", "noEmit": true,
     "strict": true, "types": ["node"]
-  }, "include": ["vite.config.ts", "api", "server"]
+  }, "include": ["vite.config.ts"]
 }

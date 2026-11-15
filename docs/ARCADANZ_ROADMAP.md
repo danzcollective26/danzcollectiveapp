@@ -60,16 +60,16 @@ Los modos online requieren además de los gráficos: salas, conexión y reconexi
 El usuario ha confirmado los tres: arena original inspirada en Bomberman, Yeppo
 Pilla-Pilla y DANZ Kart Mini. La aprobación corresponde a su desarrollo; los
 juegos nuevos y su modo online todavía no están implementados. El orden de
-trabajo es cerrar la biblioteca/Yeppo y QR Studio, después preparar la dirección
+trabajo es cerrar la biblioteca/Yeppo y `/test`, después preparar la dirección
 visual y el primer prototipo de duelo, empezando por la arena si no hay otra
 preferencia. Las portadas existentes aprobadas no se vuelven a generar.
 
-## Hugging Face y QR Studio
+## Hugging Face y tareas aplazadas
 
-El 15/11/2026 el usuario autorizó buscar e integrar herramientas útiles de Hugging
-Face y pidió dejar la preferencia gratuita como regla permanente. Se ha añadido
-`AGENTS.md` y un QR Studio administrativo: QR local, integración de Gradio en el
-servidor, secretos fuera del navegador y comprobación del contenido escaneado.
-Guía: `docs/QR_ARTISTICOS_HUGGING_FACE.md`. El estado de publicación y las pruebas
-del bloque se registran al terminar su validación; la existencia del código no
-equivale a que esté publicado.
+Se mantiene la preferencia por herramientas gratuitas útiles y las reglas de
+consulta de documentación y complementos recogidas en `AGENTS.md`.
+
+El usuario ha aclarado que no quiere trabajar ahora en nuevos QR. La integración
+artística de Hugging Face se reserva para cuando la necesite. El trabajo previo
+queda conservado en Git en la rama `future/qr-art-hugging-face`; no se incluye ni
+se activa en esta entrega. El bloque actual sigue siendo Arcade, Yeppo y `/test`.

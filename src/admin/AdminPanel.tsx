@@ -12,7 +12,6 @@ import './AdminPanel.css'
 import AdminPoints from '../points/AdminPoints'
 import AdminInstagram from '../auth/AdminInstagram'
 import YeppoInbox from './YeppoInbox'
-import QrArtStudio from './QrArtStudio'
 
 type Client = SupabaseClient<Database>
 type EventForm = { id: string; title: string; start: string; end: string; status: string }
@@ -198,7 +197,6 @@ function Workspace({ client, userId, permissions, albumsOnly }: { client: Client
           <div className="admin-actions"><button className="primary-btn" disabled={busy}>{busy ? 'GUARDANDO…' : 'GUARDAR EVENTO'}</button><button className="outline-btn" type="button" disabled={busy} onClick={() => setForm(null)}>CANCELAR EDICIÓN</button></div>
         </form></section> : event ? <section className="account-card"><h2>{event.title}</h2><p>Evento {statusLabel(event.status).toLowerCase()} · {date(event.starts_at)}</p>{canEvents && !albumsOnly && <button className="outline-btn" disabled={busy} onClick={() => setForm({ id: event.id, title: event.title, start: localDateTime(event.starts_at), end: localDateTime(event.ends_at), status: event.status })}>EDITAR EVENTO</button>}</section> : <div className="admin-state"><h2>Prepara la próxima noche.</h2><p>Crea el evento, publícalo y emite el pase que compartirás mediante QR.</p></div>}
         {!albumsOnly && <YeppoInbox client={client} />}
-        {canCodes && !albumsOnly && <QrArtStudio client={client} />}
         {canEvents && !albumsOnly && <AdminInstagram client={client} />}
         {event && canEvents && !albumsOnly && <AdminPoints key={`points-${event.id}`} client={client} eventId={event.id} />}
         {event && canEvents && <GalleryAdmin key={event.id} client={client} userId={userId} eventId={event.id} eventTitle={event.title} />}

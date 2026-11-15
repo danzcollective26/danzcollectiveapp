@@ -1,6 +1,3 @@
 {
-  "rewrites": [{ "source": "/test", "destination": "/index.html" }, { "source": "/test/", "destination": "/index.html" }],
-  "functions": {
-    "api/qr-art.ts": { "maxDuration": 150, "supportsCancellation": true }
-  }
+  "rewrites": [{ "source": "/test", "destination": "/index.html" }, { "source": "/test/", "destination": "/index.html" }]
 }

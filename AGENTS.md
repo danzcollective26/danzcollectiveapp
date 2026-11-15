@@ -4,6 +4,10 @@ Este repositorio contiene la app DANZ Collective. Mantener las decisiones y el
 trabajo pendiente en `docs/ARCADANZ_ROADMAP.md` y distinguir siempre lo probado,
 lo publicado y lo propuesto.
 
+Prioridad actual: biblioteca ARCADANZ, Yeppo, juegos y prueba móvil `/test`.
+La nueva integración de QR artísticos queda aplazada hasta que el usuario la
+necesite y la solicite; no dedicarle trabajo ni activarla en esta entrega.
+
 ## Hugging Face y herramientas gratuitas
 
 1. Antes de programar una función nueva de imágenes, audio, QR, texto u otra

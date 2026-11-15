@@ -66,8 +66,7 @@ Instalación: `docs/INSTALACION_PWA.md`. Activación SMTP pendiente:
 ## Desarrollo
 
 Las reglas permanentes están en `AGENTS.md`; las diez mejoras y los tres nuevos
-juegos aprobados están en `docs/ARCADANZ_ROADMAP.md`. QR Studio y su configuración
-gratuita se describen en `docs/QR_ARTISTICOS_HUGGING_FACE.md`.
+juegos aprobados están en `docs/ARCADANZ_ROADMAP.md`.
 
 Usar **Node.js 24**. Las versiones Supabase y el lockfile están fijados.
 
