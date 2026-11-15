@@ -396,3 +396,14 @@ Como inciso, quiere DANZPOINTS como moneda visible, para ahorrar y gastar (P05).
   canje real quedan pendientes en P03/P05. No inventar saldo ni compras de prueba.
 - Build y 227 pruebas internas correctos, ocho nuevas de Kart. Auditoría visual,
   jugabilidad y publicación en curso; no contar esta línea como producción.
+
+
+## 18. Kart premium — ampliación solicitada el 16/11
+
+Se desarrolla el acabado 3D y la experiencia completa local tras la petición del
+propietario. Three.js, recursos CC0 de asfalto, kart y escenario propios, cámaras,
+sonido original, minimapa, ajustes de calidad y podio. Se conserva la física
+probada y el modo 2D compatible. Ver `KART_PREMIUM_2026-11-16.md`.
+En verificación, sin afirmar aún revisión pública de la presentación 3D.
+La moneda visible P05 y el monedero de PR 34 se conservan; P03/canjes reales e
+historial transaccional siguen pendientes. Online y QR mantienen sus estados.

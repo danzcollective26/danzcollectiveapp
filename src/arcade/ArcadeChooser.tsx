@@ -41,7 +41,7 @@ export default function ArcadeChooser({ onSelect }: { onSelect: (choice: ArcadeC
     </button>
     <button type="button" className="arcade-choice" onClick={() => onSelect('kart')}>
       <img src="/arcade/kart-mini.svg" alt="" width="600" height="800" decoding="async"/>
-      <span className="arcade-choice-copy"><small>04 / RACING · BETA LOCAL</small><strong>DANZ KART MINI</strong><span>Derrapa. Suelta. Desaparece. <b>SALIR A PISTA ↗</b></span></span>
+      <span className="arcade-choice-copy"><small>04 / RACING · TRES MODOS</small><strong>DANZ KART MINI</strong><span>Derrapa. Suelta. Desaparece. <b>SALIR A PISTA ↗</b></span></span>
     </button>
     <div className="arcade-yeppo-challenge">
       <div><strong>🌸 YEPPO CHALLENGE</strong><span>Un reto extra para darle salsa a la partida. No modifica puntos ni rankings.</span></div>
