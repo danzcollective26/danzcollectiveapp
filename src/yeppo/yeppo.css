@@ -176,3 +176,11 @@
 @keyframes yeppo-roam-surprise{0%{transform:scale(1)}45%{transform:scale(1.2) rotate(-9deg)}100%{transform:scale(1)}}
 @media(max-width:500px){.yeppo.yeppo-walkabout{bottom:calc(env(safe-area-inset-bottom) + 76px)}.yeppo-roam-stage{width:155px}.yeppo-roam-speech{font-size:10px;max-width:155px}.yeppo-roam-mascot .yeppo-character{width:70px;height:78px}.yeppo-roam-mascot{min-height:80px}}
 @media(prefers-reduced-motion:reduce){.yeppo-roam-stage{animation:none;left:auto;right:12px}.yeppo-roam-mascot .yeppo-character,.yeppo-roam-mascot.yeppo-roam-react .yeppo-character{animation:none}}
+
+/* On-demand real walkabout preview, launched by the visitor from Yeppo chat. */
+.yeppo-walk-demo-launch{margin:7px 11px 2px;border:1px solid #ffe181;border-radius:7px;background:#392f1e;color:#fff1af;font-size:11px;letter-spacing:.06em;font-weight:900;min-height:42px;padding:10px;cursor:pointer}
+.yeppo-walk-demo-launch:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.yeppo-roam-stage.yeppo-roam-demo{animation-duration:8.2s}
+@media(hover:hover){.yeppo-roam-stage:hover{animation-play-state:paused}}
+@media(hover:none){.yeppo-roam-stage:hover{animation-play-state:running}}
+@media(prefers-reduced-motion:reduce){.yeppo-roam-stage.yeppo-roam-demo{animation:none}}
