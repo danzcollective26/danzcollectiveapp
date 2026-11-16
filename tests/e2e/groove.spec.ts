@@ -1,6 +1,11 @@
 import { menuTab, selectReel } from './consoleMenus'
 import { expect, test, type Page } from '@playwright/test'
 test.use({ hasTouch: true })
+// Deterministic clock scenarios exercise the offline practice loop. Real media
+// playback and its independent clock are verified in groove-music.spec.ts.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('danz-groove-music-v1', 'practice'))
+})
 
 async function openGroove(page: Page) {
   await page.addInitScript(() => { Element.prototype.requestFullscreen = () => Promise.reject(new DOMException('Unsupported', 'NotSupportedError')) })

@@ -2,9 +2,12 @@ import GameSurface from './GameSurface'
 import ClubRig from './ClubRig'
 import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
+import SelectionReel from './SelectionReel'
+import { useMusicAccess } from '../music/useMusicAccess'
 import { memo, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { GrooveAudio } from './GrooveAudio'
-import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DIRECTIONS, GROOVE_DURATION, GROOVE_VINYLS, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, setGroovePlaying, type GrooveCutDirection, type GrooveDisc, type GrooveMode, type GrooveSpecial, type GrooveWeapon, type GroovePoint, type GrooveState } from './groove'
+import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DIRECTIONS, GROOVE_DURATION, GROOVE_VINYLS, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, scratchOffset, setGroovePlaying, type GrooveCutDirection, type GrooveDisc, type GrooveMode, type GrooveSpecial, type GrooveWeapon, type GroovePoint, type GrooveState } from './groove'
+import { GrooveMusic, GROOVE_MUSIC_CHOICES, GROOVE_MUSIC_KEY, grooveSong, readGrooveMusic, type GrooveMusicStatus } from './grooveMusic'
 import { useGameScreen } from './useGameScreen'
 import { CLUB_UNLOCK_CUTS, GROOVE_PREFERENCES_KEY, readGroovePreferences } from './groovePreferences'
 import './groove.css'
@@ -45,11 +48,11 @@ function ScratchDeck({ game }: { game: GrooveState }) {
   const scratch = game.scratch
   if (!scratch) return null
   const pattern = SCRATCH_PATTERNS[scratch.pattern], step = pattern.steps[scratch.turns]
-  const target = scratch.firstAt + step.offset
-  const phase = (game.elapsed % 500) / 500
+  const target = scratch.firstAt + scratchOffset(game, step.offset)
+  const phase = (game.elapsed % game.beatMs) / game.beatMs
   const movement = scratch.anchor === null ? 0 : Math.max(0, Math.min(1, (scratch.pointer - scratch.anchor) * step.direction / step.distance))
-  const duration = pattern.steps.at(-1)!.offset + 1000
-  const cursor = Math.max(0, Math.min(1, (game.elapsed - scratch.firstAt + 500) / duration))
+  const duration = scratchOffset(game, pattern.steps.at(-1)!.offset) + game.beatMs * 2
+  const cursor = Math.max(0, Math.min(1, (game.elapsed - scratch.firstAt + game.beatMs) / duration))
   return <g className="gn-scratch" data-turns={scratch.turns} data-pattern={scratch.pattern} data-target={target} data-distance={step.distance} data-direction={step.direction} transform="translate(320 355)">
     <text y="-237" textAnchor="middle" fill="#f3d193" fontSize="19" fontWeight="900" letterSpacing="2">{pattern.name}</text>
     <text y="-185" textAnchor="middle" fill={Math.abs(game.elapsed - target) <= scratch.window ? '#d9ff6b' : '#fff3db'} fontSize="44" fontWeight="900">{step.direction > 0 ? '→' : '←'} {step.distance > 60 ? 'LARGO' : 'CORTO'}</text>
@@ -65,9 +68,9 @@ function ScratchDeck({ game }: { game: GrooveState }) {
       return <g key={i} transform={`translate(${x} 193)`}><rect x="-41" y="-24" width="82" height="48" rx="8" fill={i < scratch.turns ? '#304626' : i === scratch.turns ? '#7e4f32' : '#201c18'} stroke={i === scratch.turns ? '#ffe0a2' : '#66533c'} strokeWidth="2"/><text y="4" textAnchor="middle" fill={i < scratch.turns ? '#d9ff6b' : '#fff2d2'} fontSize="26" fontWeight="900">{i < scratch.turns ? '✓' : note.direction > 0 ? '→' : '←'}</text><text y="37" textAnchor="middle" fill="#d5c5ad" fontSize="13">{note.distance > 60 ? 'LARGO' : 'CORTO'}</text></g>
     })}
     <path d="M-215 262H215" stroke="#6b5539" strokeWidth="5"/>
-    {pattern.steps.map((note, i) => <g key={i} transform={`translate(${-215 + (note.offset + 500) / duration * 430} 262)`}><rect x={-scratch.window / duration * 430} y="-12" width={scratch.window * 2 / duration * 430} height="24" fill="#e8c06c" opacity=".2"/><circle r="7" fill={i < scratch.turns ? '#d9ff6b' : '#f6cb76'}/></g>)}
+    {pattern.steps.map((note, i) => <g key={i} transform={`translate(${-215 + (scratchOffset(game, note.offset) + game.beatMs) / duration * 430} 262)`}><rect x={-scratch.window / duration * 430} y="-12" width={scratch.window * 2 / duration * 430} height="24" fill="#e8c06c" opacity=".2"/><circle r="7" fill={i < scratch.turns ? '#d9ff6b' : '#f6cb76'}/></g>)}
     <path d={`M${-215 + cursor * 430} 245v34`} stroke="#fff" strokeWidth="4"/>
-    <text y="307" textAnchor="middle" fill="#cdbba2" fontSize="15">{scratch.turns}/{pattern.steps.length} GESTOS · 120 BPM · LEVANTAR RECOLOCA LA MANO</text>
+    <text y="307" textAnchor="middle" fill="#cdbba2" fontSize="15">{scratch.turns}/{pattern.steps.length} GESTOS · {Math.round(60_000 / game.beatMs)} BPM · LEVANTAR RECOLOCA LA MANO</text>
   </g>
 }
 const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
@@ -85,10 +88,16 @@ const CabinetDetails = memo(function CabinetDetails() {
 })
 
 export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () => void; autoEnter?: boolean }) {
-  const [game, setGame] = useState(initialGroove)
+  const [musicId, setMusicId] = useState(readGrooveMusic)
+  const [game, setGame] = useState(() => initialGroove(27, 'cut', 'katana', grooveSong(musicId)?.bpm))
+  const song = grooveSong(musicId)
+  const musicAccess = useMusicAccess(song?.id)
+  const [musicStatus, setMusicStatus] = useState<GrooveMusicStatus>('idle')
+  const musicElement = useRef<HTMLAudioElement>(null)
+  const music = useRef<GrooveMusic | null>(null)
   const [destructionOpen,setDestructionOpen]=useState(false)
   const current = useRef(game)
-  const [record, setRecord] = useState(readGrooveRecord)
+  const [record, setRecord] = useState(() => readGrooveRecord('cut', musicId))
   const [muted, setMuted] = useState(() => { try { return localStorage.getItem('danz-groove-muted') === 'true' } catch { return false } })
   const [audioIssue, setAudioIssue] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
@@ -128,37 +137,57 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
     current.current = next; setGame(next)
     if (next.hits > previous.hits) sound.current?.slice(next.sparks.at(-1)?.layer ?? 0)
     if (next.misses > previous.misses) sound.current?.stumble()
-    if (next.status !== 'playing') sound.current?.pause()
+    if (next.status !== 'playing') { sound.current?.pause(); music.current?.pause() }
   }
-  function pause() { gesture.current = null; trail.current = []; commit(setGroovePlaying(current.current, false)); sound.current?.pause() }
+  function pause() { gesture.current = null; trail.current = []; commit(setGroovePlaying(current.current, false)); sound.current?.pause(); music.current?.pause(); setMusicStatus('idle') }
+  function chooseMusic(id: string) {
+    if (id === musicId || (id !== 'practice' && !grooveSong(id))) return
+    pause(); music.current?.destroy(); music.current = null; setMusicId(id as typeof musicId); setAudioIssue(false)
+    const previous = current.current
+    commit(initialGroove(Date.now(), previous.mode, previous.weapon, grooveSong(id)?.bpm))
+    setRecord(readGrooveRecord(previous.mode, id))
+    try { localStorage.setItem(GROOVE_MUSIC_KEY, id) } catch { /* Optional preference. */ }
+  }
   function chooseMode(mode: GrooveMode) {
     if (mode === current.current.mode) return
     keyboardDirection.current = 'right'
-    pause(); commit(initialGroove(Date.now(), mode, current.current.weapon)); setRecord(readGrooveRecord(mode))
+    pause(); commit(initialGroove(Date.now(), mode, current.current.weapon, song?.bpm)); setRecord(readGrooveRecord(mode, musicId))
   }
+  useEffect(() => {
+    if (!song) return
+    pause(); music.current?.destroy(); music.current = null
+  }, [musicAccess.owner])
   function play() {
     if (current.current.status === 'playing') { pause(); return }
+    const source = song ? musicAccess.freshSource() : null
+    if (song && !source) { musicAccess.prepare(); return false }
     const previous = current.current
-    const next = setGroovePlaying(previous.status === 'over' || previous.status === 'complete' ? initialGroove(Date.now(), previous.mode, previous.weapon) : previous, true)
+    const next = setGroovePlaying(previous.status === 'over' || previous.status === 'complete' ? initialGroove(Date.now(), previous.mode, previous.weapon, song?.bpm) : previous, true)
     commit(next); screen.enter()
+    setAudioIssue(false)
+    if (song && musicElement.current) {
+      music.current ??= new GrooveMusic(musicElement.current, setMusicStatus, () => { pause(); setAudioIssue(true); setMusicStatus('error') })
+      void music.current.start({ ...song, src: source! }, next.elapsed, muted)
+    }
     if (!muted) {
       sound.current ??= new GrooveAudio()
-      void sound.current.start(next.elapsed, false).then(ok => { if (ok === false && current.current.status === 'playing') setAudioIssue(true) })
+      void sound.current.start(next.elapsed, false, !song).then(ok => { if (ok === false && current.current.status === 'playing' && !song) setAudioIssue(true) })
     }
   }
   function toggleSound() {
     const next = !muted; setMuted(next)
     try { localStorage.setItem('danz-groove-muted', String(next)) } catch { /* Optional preference. */ }
+    music.current?.mute(next)
     if (next) sound.current?.mute(true)
     else if (current.current.status === 'playing') {
       sound.current ??= new GrooveAudio()
-      void sound.current.start(current.current.elapsed, false).then(ok => { if (ok !== null) setAudioIssue(!ok) })
+      void sound.current.start(current.current.elapsed, false, !song).then(ok => { if (ok !== null && !song) setAudioIssue(!ok) })
     }
   }
-  useEffect(() => { heading.current?.focus({ preventScroll: true }); return () => { sound.current?.destroy(); sound.current = null } }, [])
+  useEffect(() => { heading.current?.focus({ preventScroll: true }); return () => { sound.current?.destroy(); sound.current = null; music.current?.destroy(); music.current = null } }, [])
   useEffect(() => {
-    if (game.score > record) setRecord(saveGrooveRecord(game.score, game.mode))
-  }, [game.score, game.mode, record])
+    if (game.score > record) setRecord(saveGrooveRecord(game.score, game.mode, musicId))
+  }, [game.score, game.mode, record, musicId])
   useEffect(() => {
     const hidden = () => { if (document.hidden) pause() }
     const blur = () => pause()
@@ -173,7 +202,10 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
     const tick = (now: number) => {
       if (last) {
         // Preserve active frame time so visual pulses stay with the audio clock.
-        let remaining = Math.min(1000, now - last), next = current.current
+        const clock = song ? music.current?.clock() : null
+        let remaining = song ? (clock === null || clock === undefined ? 0 : Math.max(0, clock - current.current.elapsed)) : Math.min(1000, now - last)
+        if (remaining > 1000) { pause(); return }
+        let next = current.current
         while (remaining > 0 && next.status === 'playing') { const step = Math.min(100, remaining); next = advanceGroove(next, step); remaining -= step }
         commit(next)
       }
@@ -182,7 +214,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [running])
+  }, [running, musicId])
   useEffect(() => {
     if (!running) return
     const key = (event: KeyboardEvent) => {
@@ -252,6 +284,12 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   }
   const path = trail.current.filter(p => game.elapsed - p.at < (preferences.style === 'club' ? 230 : 130)).map(p => `${p.x},${p.y}`).join(' ')
   const progress = Math.round(game.elapsed / GROOVE_DURATION * 100)
+  const musicNotice = song && musicAccess.status !== 'ready' ? <div className="gn-music-access" role="status">
+    <p>{musicAccess.status === 'signin' ? 'Inicia sesión para escuchar los temas. Ensayo funciona sin cuenta.' : musicAccess.status === 'error' ? 'No se pudo preparar la música. Reintenta o juega con Ensayo.' : 'Preparando acceso a la música…'}</p>
+    {musicAccess.status === 'signin' && <a href="/?seccion=cuenta">INICIAR SESIÓN</a>}
+    {musicAccess.status === 'error' && <button type="button" onClick={musicAccess.prepare}>REINTENTAR MÚSICA</button>}
+    <button type="button" onClick={() => chooseMusic('practice')}>USAR ENSAYO</button>
+  </div> : null
   if(destructionOpen)return <GrooveDestruction onBack={()=>{screen.enter();setDestructionOpen(false)}}/>
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
@@ -262,11 +300,12 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       <p>{game.mode === 'cut' ? <>Vinilos al vuelo. Cortes al beat.</> : <>Lee el patrón. Clava el gesto. Domina el pulso.</>}<br/>La cabina es tuya.</p>
       <figure className="gn-cover"><img src="/arcade/groove-ninja-approved-mobile.webp" alt="DJ con gafas negras y katana con la flor de DANZ" width="1086" height="1448" decoding="async"/><figcaption>CORTA. MEZCLA. REPITE.</figcaption></figure>
       <p className="gn-practice">PRÁCTICA · Récord separado para cada modo, en este navegador. Esta sesión no otorga DANZPOINTS.</p>
-      <p className="gn-sound-note">Música de ensayo. Los temas del colectivo llegarán después.</p>
+      <p className="gn-sound-note">Elige Funky Fiesta, WTHIMH o el ensayo sin conexión en AJUSTES. Cambiar de tema empieza otra sesión; cada tema y modo conserva su récord.</p>
     </div>
     <div ref={screen.panel} data-weapon={game.weapon} data-stage={stage} data-effects={preferences.effects} data-style={preferences.style} className={`gn-panel${screen.active ? ' gn-immersive' : ''}`} data-status={game.status} data-mode={game.mode} data-elapsed={game.elapsed.toFixed(1)}>
-      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} running={running} onPlay={play} onExit={()=>{screen.leave();onBack()}} onModeChange={chooseMode} onDestruction={()=>{pause();setDestructionOpen(true);screen.leave()}}><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted?'SONIDO OFF':'SONIDO ON'}</button></ArcadeLaunch>}
-      <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small></span>{screen.active && <button type="button" onClick={() => { screen.leave(); onBack() }} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
+      <audio ref={musicElement} className="gn-music-audio" preload="none" controlsList="nodownload noremoteplayback" hidden />
+      {screen.active && <ArcadeLaunch game="groove" mode={game.mode} running={running} onPlay={play} startDisabled={Boolean(song && musicAccess.status !== 'ready')} notice={musicNotice} onExit={()=>{screen.leave();onBack()}} onModeChange={chooseMode} onDestruction={()=>{pause();setDestructionOpen(true);screen.leave()}}><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted?'SONIDO OFF':'SONIDO ON'}</button><SelectionReel compact label="Música de Groove" choices={GROOVE_MUSIC_CHOICES} value={musicId} onChange={chooseMusic}/><p className="gn-music-note">Los temas necesitan sesión e Internet. Ensayo funciona sin conexión. Cambiar de tema inicia otra sesión.</p></ArcadeLaunch>}
+      <div className="gn-top"><span>GROOVE NINJA <small>{game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'}</small><small className="gn-track-name" aria-label="Música de la sesión" title={song?.artist} data-track={musicId}>{song?.title ?? 'ENSAYO'} · {Math.round(60_000 / game.beatMs)} BPM{muted ? ' · SILENCIO' : ''}</small></span>{screen.active && <button type="button" onClick={() => { screen.leave(); onBack() }} className="outline-btn">SALIR DEL JUEGO ↗</button>}</div>
       <div className="gn-hud" aria-label="Marcador de Groove Ninja">
         <span className="gn-score"><i className="gn-hud-vinyl" aria-hidden="true"/><span>PUNTUACIÓN<strong data-testid="groove-score">{String(game.score).padStart(5, '0')}</strong></span></span>
         <span>COMBO<strong className="gn-combo">×{grooveMultiplier(game.combo)} <small>{game.doubleUntil > game.elapsed ? `×2 LISTO · ${Math.ceil((game.doubleUntil-game.elapsed)/1000)}s` : game.strokeDoubleUntil > game.elapsed ? 'CORTE ×2' : `${game.combo} SEGUIDOS`}</small></strong></span>
@@ -354,21 +393,25 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           <strong>{game.status === 'over' ? 'PARTY OVER' : game.status === 'complete' ? 'BUENA SESIÓN.' : game.status === 'paused' ? 'EN PAUSA.' : game.mode === 'cut' ? <>CORTA<br/>EL GROOVE.</> : <>DALE<br/>AL SCRATCH.</>}</strong>
           {ended ? <><span className="gn-final-score">{game.score.toLocaleString('es-ES')}</span><span className="gn-result-details">{game.mode === 'cut' ? `${game.hits} CORTES · ${game.multiCuts} MULTICORTES · ${game.sequences} SECUENCIAS · ${game.golds} DORADOS` : `${game.scratches} FRASES · ${game.perfects} GESTOS PERFECTOS`} · COMBO {game.bestCombo}</span></>
             : <p>{game.status === 'paused' ? 'Reanuda cuando quieras.' : game.mode === 'cut' ? 'Desliza sobre los vinilos al vuelo. Corta varios en una pasada y esquiva los acoples rojos.' : 'Sigue las flechas y el recorrido corto o largo. Termina cada gesto cuando el cursor llegue al pulso dorado. Puedes levantar el dedo para recolocarlo.'}</p>}
+          {musicStatus === 'error' && <div className="gn-music-error" role="alert"><p>No se pudo reproducir el tema. Reintenta con REANUDAR o empieza otra sesión con ENSAYO.</p><button type="button" onClick={() => chooseMusic('practice')}>USAR ENSAYO</button></div>}
+          {!optionsOpen && musicNotice}
         </div>}
       </div></GameSurface>
       <div className="gn-flow"><span>FLOW</span><div role="meter" aria-label="Racha de la sesión" aria-valuemin={0} aria-valuemax={20} aria-valuenow={Math.min(20, game.combo)}><i style={{ width: `${Math.min(100, game.combo * 5)}%` }}/></div><strong>×{grooveMultiplier(game.combo)}</strong></div>
-      <p className="gn-message" role="status">{game.message}</p>
-      <div className="gn-actions"><button type="button" className="primary-btn" onClick={play}>{running ? 'PAUSAR' : ended ? 'OTRA SESIÓN' : game.status === 'paused' ? 'REANUDAR' : 'JUGAR GROOVE NINJA'} <span>↗</span></button><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted ? 'SONIDO OFF' : 'SONIDO ON'}</button><button ref={optionsButton} type="button" className="outline-btn gn-options-button" onClick={() => { pause(); setOptionsOpen(true) }}>AJUSTES</button></div>
+      <p className="gn-message" role="status">{running && song && musicStatus === 'loading' ? `CARGANDO ${song.title.toUpperCase()} · LA SESIÓN ESPERA A LA MÚSICA` : game.message}</p>
+      <div className="gn-actions"><button type="button" className="primary-btn" disabled={Boolean(song && !running && musicAccess.status !== 'ready')} onClick={play}>{running ? 'PAUSAR' : ended ? 'OTRA SESIÓN' : game.status === 'paused' ? 'REANUDAR' : 'JUGAR GROOVE NINJA'} <span>↗</span></button><button type="button" className="outline-btn" onClick={toggleSound} aria-pressed={!muted}>{muted ? 'SONIDO OFF' : 'SONIDO ON'}</button><button ref={optionsButton} type="button" className="outline-btn gn-options-button" onClick={() => { pause(); setOptionsOpen(true) }}>AJUSTES</button></div>
       {optionsOpen && <div ref={options} className="gn-options" role="dialog" aria-modal="true" aria-labelledby="gn-options-title" onKeyDown={event => {
         if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeOptions() }
         if (event.key === 'Tab') { const items = [...options.current!.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')]; const first = items[0], last = items.at(-1); if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() } }
       }}><header><h2 id="gn-options-title">TU CABINA.</h2><button type="button" onClick={closeOptions} aria-label="Cerrar ajustes de Groove">CERRAR ×</button></header>
-      <p>La sesión queda en pausa. Estos ajustes solo cambian el aspecto.</p>
+      <p>La sesión queda en pausa. Cambiar de tema empieza otra sesión; los ajustes visuales conservan la partida.</p>
+      <h3>MÚSICA</h3><SelectionReel compact label="Música de Groove" choices={GROOVE_MUSIC_CHOICES} value={musicId} onChange={chooseMusic}/>
+      {musicNotice}
       <h3>ESTILO DE CORTE</h3><div role="group" aria-label="Estilo de corte"><button type="button" aria-pressed={preferences.style === 'classic'} onClick={() => { trail.current = []; setPreferences(p => ({ ...p, style: 'classic' })) }}>CLÁSICO<small>Trazo corto y preciso</small></button><button type="button" disabled={preferences.bestCuts < CLUB_UNLOCK_CUTS} aria-pressed={preferences.style === 'club'} onClick={() => { trail.current = []; setPreferences(p => ({ ...p, style: 'club' })) }}>TRAZO CLUB<small>{preferences.bestCuts >= CLUB_UNLOCK_CUTS ? 'Estela larga · desbloqueado' : `${Math.min(preferences.bestCuts, CLUB_UNLOCK_CUTS)}/${CLUB_UNLOCK_CUTS} cortes en una sesión`}</small></button></div>
       <h3>EFECTOS VISUALES</h3><div role="group" aria-label="Efectos visuales"><button type="button" aria-pressed={preferences.effects === 'auto'} onClick={() => setPreferences(p => ({ ...p, effects: 'auto' }))}>AUTOMÁTICOS<small>Respeta reducir movimiento</small></button><button type="button" aria-pressed={preferences.effects === 'lite'} onClick={() => setPreferences(p => ({ ...p, effects: 'lite' }))}>SUAVES<small>Sin sacudidas ni luces animadas</small></button></div><p>Trazo Club se consigue al cortar 20 vinilos en una sesión. Se guarda en este navegador. No aumenta alcance, puntos, vidas ni duración.</p></div>}
       <div className="gn-bottom"><span>RÉCORD LOCAL {record.toLocaleString('es-ES')}</span><button type="button" onClick={() => setShowHelp(!showHelp)} aria-expanded={showHelp}>CÓMO JUGAR {showHelp ? '−' : '+'}</button></div>
       {audioIssue && <p className="gn-audio-issue" role="status">No se pudo activar el audio. Puedes seguir jugando sin sonido o volver a pulsar SONIDO.</p>}
     </div>
-    {showHelp && <div className="gn-help"><h2>LA CABINA ES TUYA.</h2><p>VINYL CUT: elige Katana (100 puntos), Doble Filo (80, más alcance y más riesgo de acoples) o Aguja (125, exige precisión). Cambia de arma durante la partida. Los dorados valen el triple: corta tres para un bonus de 750. El hielo ralentiza el vuelo tres segundos. Los discos con flecha exigen el sentido exacto: arriba, abajo, izquierda o derecha, y valen el doble. Corta los vinilos numerados en orden para ganar un bonus de 300. Un gesto incorrecto permite reintentar; perder la secuencia cuesta una vida en total. Combo Disc prepara una pasada ×2 durante cuatro segundos; un gesto sin aciertos no lo consume. Split Disc se divide en dos minivinilos de bonus que también puedes cortar; dejarlos caer no resta vidas. Cortar varios de una pasada da bonus. Los acoples rojos y los discos perdidos cuestan una vida.</p><p>SCRATCH SESSION: completa Baby Scratch, Long Pull, Double Time y Boomerang. Cada flecha indica dirección y recorrido: corto o largo. Termina el gesto al cruzar el pulso dorado de la línea de tiempo. La indicación PERFECTO premia la precisión. La puntuación se concede al completar toda la frase. Puedes levantar el dedo para recolocarlo; no cuenta como gesto. Un pulso perdido cuesta una vida y aparece otra frase. Primero practicas dos patrones, luego entran los cuatro y se reduce el margen de tiempo.</p><p>Cada cinco aciertos seguidos sube el multiplicador, hasta ×4. Tienes cinco vidas y un minuto en cada modo, con récords separados.</p><p>En teclado: Q/W/E cambian de arma; elige el sentido con ↑/↓/←/→ y pulsa 1–4 para cortar el vinilo CUT de ese número (Mayús + 1–4 corta hacia abajo); ← y → ejecutan el gesto de scratch al pulso; espacio pausa; Esc sale de pantalla completa.</p><p>La música de ensayo acompaña la partida y no depende de los aciertos. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS. Los temas del colectivo se incorporarán cuando estén disponibles.</p></div>}
+    {showHelp && <div className="gn-help"><h2>LA CABINA ES TUYA.</h2><p>VINYL CUT: elige Katana (100 puntos), Doble Filo (80, más alcance y más riesgo de acoples) o Aguja (125, exige precisión). Cambia de arma durante la partida. Los dorados valen el triple: corta tres para un bonus de 750. El hielo ralentiza el vuelo tres segundos. Los discos con flecha exigen el sentido exacto: arriba, abajo, izquierda o derecha, y valen el doble. Corta los vinilos numerados en orden para ganar un bonus de 300. Un gesto incorrecto permite reintentar; perder la secuencia cuesta una vida en total. Combo Disc prepara una pasada ×2 durante cuatro segundos; un gesto sin aciertos no lo consume. Split Disc se divide en dos minivinilos de bonus que también puedes cortar; dejarlos caer no resta vidas. Cortar varios de una pasada da bonus. Los acoples rojos y los discos perdidos cuestan una vida.</p><p>SCRATCH SESSION: completa Baby Scratch, Long Pull, Double Time y Boomerang. Cada flecha indica dirección y recorrido: corto o largo. Termina el gesto al cruzar el pulso dorado de la línea de tiempo. La indicación PERFECTO premia la precisión. La puntuación se concede al completar toda la frase. Puedes levantar el dedo para recolocarlo; no cuenta como gesto. Un pulso perdido cuesta una vida y aparece otra frase. Primero practicas dos patrones, luego entran los cuatro y se reduce el margen de tiempo.</p><p>Cada cinco aciertos seguidos sube el multiplicador, hasta ×4. Tienes cinco vidas y un minuto en cada modo, con récords separados por tema y modo.</p><p>En teclado: Q/W/E cambian de arma; elige el sentido con ↑/↓/←/→ y pulsa 1–4 para cortar el vinilo CUT de ese número (Mayús + 1–4 corta hacia abajo); ← y → ejecutan el gesto de scratch al pulso; espacio pausa; Esc sale de pantalla completa.</p><p>Funky Fiesta y WTHIMH usan su audio real y un pulso aproximado de 127 BPM: las oleadas y los patrones siguen el reloj de la canción. Si el audio carga, la sesión espera. Pausar conserva el punto del tema. El ensayo original funciona sin conexión a 120 BPM. Cambiar de tema empieza otra sesión. La música es continua y no depende de los aciertos. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS.</p></div>}
   </section>
 }

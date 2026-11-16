@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react'
 import DanzFlower from '../content/DanzFlower'
 import {DANZ_TRACKS} from './playlist'
+import {useMusicAccess} from './useMusicAccess'
 import './radio.css'
 
 const PREF='danz-radio-enabled-v1'
@@ -13,8 +14,8 @@ export default function DanzRadio({arcadeActive=false}:{arcadeActive?:boolean}){
  const [on,setOn]=useState(()=>readBool(PREF))
  const [playing,setPlaying]=useState(false)
  const [index,setIndex]=useState(0)
- const [available,setAvailable]=useState(false)
- const [checking,setChecking]=useState(true)
+ const [publicAvailable,setAvailable]=useState(false)
+ const [publicChecking,setChecking]=useState(true)
  // The radio never opens across the page by default; a small edge tab is sufficient.
  const [minimized,setMinimized]=useState(()=>readBool(HIDDEN,true))
  const [queue,setQueue]=useState(false)
@@ -24,50 +25,65 @@ export default function DanzRadio({arcadeActive=false}:{arcadeActive?:boolean}){
  const [duration,setDuration]=useState(0)
  const [error,setError]=useState('')
  const current=DANZ_TRACKS[index]
+ const musicAccess=useMusicAccess(current.protectedId)
+ const source=current.protectedId?musicAccess.src:current.src
+ const available=current.protectedId?musicAccess.status==='ready'&&Boolean(source):publicAvailable
+ const checking=current.protectedId?musicAccess.status==='loading':publicChecking
+ const resumeAt=useRef(0)
  useEffect(()=>{
   const controller=new AbortController()
-  void fetch(DANZ_TRACKS[0].src,{method:'HEAD',signal:controller.signal,cache:'no-store'}).then(response=>{
+  if(current.protectedId)return()=>controller.abort()
+  setAvailable(false);setChecking(true)
+  void fetch(current.src,{method:'HEAD',signal:controller.signal,cache:'no-store'}).then(response=>{
    if(!controller.signal.aborted){setAvailable(response.ok&&response.headers.get('content-type')?.includes('audio')===true);setChecking(false)}
   }).catch(()=>{if(!controller.signal.aborted){setAvailable(false);setChecking(false)}})
   return()=>controller.abort()
- },[])
+ },[current.src,current.protectedId])
  useEffect(()=>{try{localStorage.setItem(PREF,String(on))}catch{}},[on])
  useEffect(()=>{try{localStorage.setItem(HIDDEN,String(minimized))}catch{}},[minimized])
  useEffect(()=>{
   const audio=audioRef.current
   if(!audio)return
   if(!on||arcadeActive||!available){audio.pause();setPlaying(false);return}
-  void audio.play().then(()=>{setPlaying(true);setError('')}).catch(()=>{setPlaying(false);setOn(false);setError('Pulsa PLAY para activar la música.')})
- },[on,arcadeActive,index,available])
+  let cancelled=false
+  void audio.play().then(()=>{if(!cancelled){setPlaying(true);setError('')}}).catch(()=>{if(!cancelled){setPlaying(false);setOn(false);setError('Pulsa PLAY para activar la música.')}})
+  return()=>{cancelled=true}
+ },[on,arcadeActive,index,available,source])
+ useEffect(()=>{
+  if(!on||arcadeActive||!current.protectedId)return
+  const timer=setInterval(()=>{if(!musicAccess.freshSource())musicAccess.prepare()},30_000)
+  return()=>clearInterval(timer)
+ },[on,arcadeActive,current.protectedId,musicAccess.prepare])
  useEffect(()=>{
   if(!available||!on||arcadeActive)return
   setNotice(true)
   const timer=window.setTimeout(()=>setNotice(false),3600)
   return()=>window.clearTimeout(timer)
  },[index,available,on,arcadeActive])
- const choose=(n:number)=>{setIndex((n+DANZ_TRACKS.length)%DANZ_TRACKS.length);setPosition(0);setDuration(0);setError('')}
+ const choose=(n:number)=>{setAvailable(false);setChecking(true);resumeAt.current=0;setIndex((n+DANZ_TRACKS.length)%DANZ_TRACKS.length);setPosition(0);setDuration(0);setError('')}
  const toggle=()=>{
-  if(!available){setError('Los seis temas siguen pendientes de subida.');setMinimized(false);return}
+  if(!available){setError('Este tema no está disponible. Prueba otro en la lista.');setMinimized(false);return}
   if(arcadeActive)return
+  if(current.protectedId&&!musicAccess.freshSource()){musicAccess.prepare();return}
   if(!on){
    // Direct playback on the touch gesture is important for Android/iOS autoplay policies.
    void audioRef.current?.play().then(()=>setPlaying(true)).catch(()=>setError('Pulsa de nuevo PLAY para activar el audio.'))
   }else audioRef.current?.pause()
   setOn(value=>!value);setError('')
  }
- const seek=(value:number)=>{const audio=audioRef.current;if(audio&&Number.isFinite(audio.duration)&&audio.duration>0){audio.currentTime=value;setPosition(value)}}
+ const seek=(value:number)=>{const audio=audioRef.current;if(audio&&Number.isFinite(audio.duration)&&audio.duration>0){resumeAt.current=value;if(current.protectedId&&!musicAccess.freshSource()){musicAccess.prepare();return}audio.currentTime=value;setPosition(value)}}
  return <aside className={`danz-radio${minimized?' danz-radio-mini':''}${arcadeActive?' danz-radio-suspended':''}`} aria-label="Hilo musical DANZ">
    {/* Persistent audio element avoids restarting songs when the panel is collapsed or Arcade opens. */}
-   <audio ref={audioRef} src={current.src} preload="none" muted={muted}
-     onTimeUpdate={e=>setPosition(e.currentTarget.currentTime)}
-     onLoadedMetadata={e=>setDuration(e.currentTarget.duration)}
+   <audio ref={audioRef} src={source} preload="none" muted={muted} controlsList="nodownload noremoteplayback"
+     onTimeUpdate={e=>{if(!current.protectedId||(musicAccess.status==='ready'&&e.currentTarget.readyState>0)){resumeAt.current=e.currentTarget.currentTime;setPosition(e.currentTarget.currentTime)}}}
+     onLoadedMetadata={e=>{setDuration(e.currentTarget.duration);if(current.protectedId&&resumeAt.current>0)e.currentTarget.currentTime=Math.min(resumeAt.current,e.currentTarget.duration-.05)}}
      onEnded={()=>choose(index+1)}
      onPause={()=>setPlaying(false)} onPlay={()=>setPlaying(true)}
-     onError={()=>{if(available){setOn(false);setError('Este archivo no se puede reproducir.')}}} />
+     onError={()=>{if(available&&(!current.protectedId||musicAccess.status==='ready')){setOn(false);setError('Este archivo no se puede reproducir.')}}} />
    {!arcadeActive&&(minimized?
      <div className="danz-radio-tab">
        <button type="button" className="danz-radio-tab-open" onClick={()=>setMinimized(false)} aria-label="Abrir hilo musical">
-         <span aria-hidden="true">♫</span><span className="danz-radio-tab-copy"><strong>{available?current.title:'HILO DANZ'}</strong><small>{playing?'SONANDO':available?'EN PAUSA':'6 TEMAS · PENDIENTE'}</small></span>
+         <span aria-hidden="true">♫</span><span className="danz-radio-tab-copy"><strong>{available?current.title:'HILO DANZ'}</strong><small>{playing?'SONANDO':available?'EN PAUSA':`${DANZ_TRACKS.length} TEMAS · ${checking?'COMPROBANDO':'ELIGE OTRO'}`}</small></span>
        </button>
        {available&&<button type="button" className="danz-radio-tab-play" onClick={toggle} aria-label={playing?'Pausar música':'Reproducir música'}>{playing?'Ⅱ':'▶'}</button>}
      </div>:
@@ -89,7 +105,8 @@ export default function DanzRadio({arcadeActive=false}:{arcadeActive?:boolean}){
          </div>
          {queue&&<ol className="danz-radio-queue">{DANZ_TRACKS.map((track,n)=><li key={track.id}><button type="button" aria-current={n===index?'true':undefined} onClick={()=>choose(n)}><span>{String(n+1).padStart(2,'0')}</span><span><strong>{track.title}</strong><small>{track.artist}</small></span></button></li>)}</ol>}
          {error&&<p className="danz-radio-error" role="status">{error}</p>}
-         {!checking&&!available&&<p className="danz-radio-offline" role="status">El reproductor está preparado. Falta subir los seis MP3 al almacenamiento de DANZ.</p>}
+         {current.protectedId&&musicAccess.status==='signin'&&<p className="danz-radio-offline" role="status">Inicia sesión para escuchar este tema. <a href="/?seccion=cuenta">IR A MI CUENTA</a></p>}
+         {!checking&&!available&&musicAccess.status!=='signin'&&<p className="danz-radio-offline" role="status">Este tema no está disponible ahora. Puedes elegir otro en la lista.</p>}
        </section>
      </>
    )}

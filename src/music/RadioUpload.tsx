@@ -113,7 +113,7 @@ export default function RadioUpload(){
   <div className="danz-radio-upload-library">
     <strong>Temas publicados: {uploaded.length} / 6 {checking?'(comprobando…)':''}</strong>
     <button type="button" className="outline-btn" disabled={checking||phase==='uploading'} onClick={()=>setRefresh(n=>n+1)}>COMPROBAR CANCIONES</button>
-    <ol>{DANZ_TRACKS.map((track,n)=><li key={track.id}>{uploaded.includes(n+1)?'✓':'○'} {track.title} {uploaded.includes(n+1)?'· PUBLICADO':'· PENDIENTE'}</li>)}</ol>
+    <ol>{DANZ_TRACKS.filter(track=>!track.protectedId).map((track,n)=><li key={track.id}>{uploaded.includes(n+1)?'✓':'○'} {track.title} {uploaded.includes(n+1)?'· PUBLICADO':'· PENDIENTE'}</li>)}</ol>
   </div>
  </section>
 }
