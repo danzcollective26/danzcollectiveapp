@@ -6,14 +6,14 @@ import { createKartRenderer } from './renderKart'
 import { KartAudio } from './KartAudio'
 import KartMinimap from './KartMinimap'
 import KartController, { type Pedal } from './KartController'
-import KartGarage from './KartGarage'
-import { VENUES, buildKey, buildName, type KartBuild } from './garage'
+import KartMenu from './KartMenu'
+import { requestArcadeFullscreen } from '../arcadeFullscreen'
+import { buildKey, buildName, type KartBuild } from './garage'
 import { readKartPreferences, saveKartPreferences, type KartPreferences } from './preferences'
 import { createRace, startRace, pauseRace, stepRace, raceOrder, TRACKS, RACE_LAPS, formatRaceTime, readKartBest, saveKartBest, NO_INPUT, type Race, type KartMode, type TrackId, type KartInput } from './engine'
 import '../versusControls.css'
 import './kart.css'
 
-const MODES:[KartMode,string,string][]=[['race','CREW RACE','Tú y tres rivales'],['time','CONTRARRELOJ','Tu configuración, tu marca'],['duel','DUELO LOCAL','Dos, frente a frente']]
 const freshInputs=():[KartInput,KartInput]=>[{...NO_INPUT},{...NO_INPUT}]
 const grid=(mode:KartMode,track:TrackId,prefs:KartPreferences)=>createRace(mode,track,mode==='duel'?prefs.builds:[prefs.builds[0]])
 
@@ -35,7 +35,7 @@ export default function KartMini({onBack}:{onBack:()=>void}){
     clear();setSettingsOpen(false);if(state.current.phase!=='paused')setNewBest(false)
     if(preferencesRef.current.sound){try{audio.current??=new KartAudio();audio.current.start()}catch{setPreferences(v=>({...v,sound:false}))}}
     sync(startRace(state.current));panel.current?.focus({preventScroll:true})
-    try{void panel.current?.requestFullscreen?.({navigationUI:'hide'}).catch(()=>{})}catch{/* CSS viewport is retained. */}
+    requestArcadeFullscreen()
   }
   const exit=()=>{pause();if(document.fullscreenElement===panel.current)void document.exitFullscreen().catch(()=>{});onBack()}
   const actions=useRef({pause,exit});actions.current={pause,exit}
@@ -66,9 +66,9 @@ export default function KartMini({onBack}:{onBack:()=>void}){
     return()=>{alive=false;window.clearTimeout(timeout);renderer.current?.destroy();renderer.current=null;clear()}
   },[hud.track,hud.mode,retry,preferences.quality,artKey])
   useEffect(()=>{
-    const previous=document.body.style.overflow,element=panel.current;document.body.style.overflow='hidden';let native=false
+    const previous=document.body.style.overflow,element=panel.current;document.body.style.overflow='hidden';let native=Boolean(document.fullscreenElement)
     const hidden=()=>{if(document.hidden)actions.current.pause()},blur=()=>actions.current.pause()
-    const fullscreen=()=>{if(document.fullscreenElement===element)native=true;else if(native){native=false;actions.current.pause()}}
+    const fullscreen=()=>{if(document.fullscreenElement)native=true;else if(native){native=false;actions.current.pause()}}
     const key=(e:KeyboardEvent,down:boolean)=>{
       if((e.target as HTMLElement)?.closest('input,select,textarea')||e.defaultPrevented)return
       if(e.key==='Escape'&&down){actions.current.exit();return}
@@ -87,31 +87,14 @@ export default function KartMini({onBack}:{onBack:()=>void}){
   const controller=(id:0|1)=><KartController car={hud.cars[id]} active={moving} automatic={preferences.autoThrottle} onVector={v=>{inputs.current[id]={...inputs.current[id],vector:v}}} onHold={(key,held)=>hold(id,key,held)} onPit={()=>{inputs.current[id].pit=true}}/>
   const serviceText=p1.tow>0?`GRÚA EN ${Math.ceil(p1.tow/1000)} S`:p1.service>0?`REPARANDO · ${Math.ceil(p1.service/1000)} S`:p1.pit!==null?'ASISTENCIA EN BOXES':p1.pitRequested?'BOXES EN LA PRÓXIMA ENTRADA':''
   return <section ref={panel} tabIndex={-1} className={`kart-game${duel?' kart-duel':' kart-solo'}`} aria-label="DANZPORTER" data-phase={hud.phase} data-mode={hud.mode} data-track={hud.track} data-elapsed={Math.floor(hud.elapsed)} data-p1={`${p1.x.toFixed(1)},${p1.y.toFixed(1)}`} data-laps={p1.laps} data-drifting={p1.drifting} data-render-mode={renderMode} data-health={p1.health.toFixed(3)} data-speed={p1.speed.toFixed(1)} data-pit={p1.pit===null?'none':p1.service>0?'repair':'lane'} data-build={buildKey(p1.build)}>
-    <header className="kart-top"><button type="button" onClick={exit} aria-label="Salir de DANZPORTER">← ARCADE</button><div><strong>DANZ<em>PORTER</em></strong><small>COLLECTIVE RACING DEPARTMENT</small></div><button type="button" aria-label="Ajustes del kart" onClick={()=>{pause();setSettingsOpen(true)}}>···</button><button type="button" disabled={!moving&&hud.phase!=='paused'} onClick={()=>hud.phase==='paused'?play():pause()}>{hud.phase==='paused'?'REANUDAR':'PAUSAR'}</button></header>
-    <div className="kart-hud"><span>VUELTA <b>{Math.min(RACE_LAPS,p1.laps+1)}/{RACE_LAPS}</b></span><strong>{formatRaceTime(hud.elapsed)}</strong><span>{hud.mode==='time'?'RÉCORD':'POSICIÓN'} <b>{hud.mode==='time'?formatRaceTime(best):`${position}/${hud.cars.length}`}</b></span></div>
-    <div className="kart-layout">{duel&&controller(1)}<GameSurface ratio={1000/720} className={`kart-board-slot${renderMode==='3d'?' kart-board-3d':''}`}><div className="kart-board" ref={host} role="img" aria-label={`Circuito ${TRACKS[hud.track].name}, ${hud.cars.length} karts`} data-ready={ready}/>
+    <header className="kart-top" aria-hidden={!moving}><button type="button" onClick={exit} aria-label="Salir de DANZPORTER">← ARCADE</button><div><strong>DANZ<em>PORTER</em></strong><small>COLLECTIVE RACING DEPARTMENT</small></div><button type="button" aria-label="Ajustes del kart" onClick={()=>{pause();setSettingsOpen(true)}}>···</button><button type="button" disabled={!moving&&hud.phase!=='paused'} onClick={()=>hud.phase==='paused'?play():pause()}>{hud.phase==='paused'?'REANUDAR':'PAUSAR'}</button></header>
+    <div className="kart-hud" aria-hidden={!moving}><span>VUELTA <b>{Math.min(RACE_LAPS,p1.laps+1)}/{RACE_LAPS}</b></span><strong>{formatRaceTime(hud.elapsed)}</strong><span>{hud.mode==='time'?'RÉCORD':'POSICIÓN'} <b>{hud.mode==='time'?formatRaceTime(best):`${position}/${hud.cars.length}`}</b></span></div>
+    <div className="kart-layout" aria-hidden={!moving}>{duel&&controller(1)}<GameSurface ratio={1000/720} className={`kart-board-slot${renderMode==='3d'?' kart-board-3d':''}`}><div className="kart-board" ref={host} role="img" aria-label={`Circuito ${TRACKS[hud.track].name}, ${hud.cars.length} karts`} data-ready={ready}/>
       {moving&&preferences.camera==='follow'&&!duel&&renderMode==='3d'&&<KartMinimap race={hud}/>}
       {active&&<><div className="kart-speed"><strong>{Math.round(p1.speed*.46)}</strong><small>KM/H</small>{p1.boosting>0&&<b>IMPULSO</b>}</div>{serviceText&&<div className="kart-service-banner" role="status">{serviceText}</div>}{p1.health<.35&&!serviceText&&<div className="kart-service-banner damaged">KART DAÑADO · PIDE BOXES</div>}</>}
       {hud.phase==='countdown'&&<div className="kart-countdown" role="status">{Math.max(1,Math.ceil(hud.countdown/1000))}<small>AL VERDE, SALIMOS.</small></div>}
     </GameSurface>{controller(0)}</div>
-    <footer className="kart-foot">{hud.mode==='time'?`CONTRARRELOJ · ${buildName(p1.build)}`:'CARRERA LOCAL · SIN DANZPOINTS'}<span>GAS acelera · FRENO detiene · DERRAPE también da gas · BOXES repara</span></footer>
-    {!moving&&<div className="kart-menu"><div className="kart-menu-card"><span className="kart-eyebrow">{hud.phase==='finished'?'PARTY OVER / PARQUE CERRADO':hud.phase==='paused'?'PIT STOP':'ARCADANZ / GAME 004'}</span><h1>{hud.phase==='finished'?(newBest?'RÉCORD PERSONAL.':p1.finishedAt===null?'SE ACABÓ EL TURNO.':hud.mode==='time'?'SERVICIO COMPLETADO.':position===1?'PRIMERO EN LLEGAR.':'UNA MÁS Y CERRAMOS.'):hud.phase==='paused'?'RESPIRA. VUELVE.':'DANZPORTER.'}</h1><p>{error||(hud.phase==='finished'?`${formatRaceTime(hud.elapsed)} · ${p1.laps}/${RACE_LAPS} vueltas · ${position} de ${hud.cars.length}`:'Elige tus piezas. Pisa GAS, apunta el rumbo y cuida el kart. Los golpes pasan factura: pide BOXES para repararlo.')}</p>
-      {hud.phase==='ready'&&<><div className="kart-mode-picker" role="group" aria-label="Modo de DANZPORTER">{MODES.map(([mode,title,description])=><button type="button" key={mode} aria-pressed={hud.mode===mode} onClick={()=>choose(mode,hud.track)}><strong>{title}</strong><small>{description}</small></button>)}</div><div className="kart-track-picker" role="group" aria-label="Circuito de DANZPORTER">{Object.values(TRACKS).map(track=><button type="button" key={track.id} aria-pressed={hud.track===track.id} onClick={()=>choose(hud.mode,track.id)}>{track.name}<small>{track.subtitle}</small></button>)}</div>
-        <KartGarage builds={preferences.builds} duel={duel} onChange={configure}/>
-        <details className="kart-venue-picker"><summary>AMBIENTE DEL CIRCUITO <b>{VENUES.find(v=>v.id===preferences.venue)!.name}</b></summary><div>{VENUES.map(v=><button type="button" key={v.id} aria-pressed={preferences.venue===v.id} onClick={()=>setPreferences(p=>({...p,venue:v.id}))}><i style={{background:v.sky,borderColor:v.curb}}/>{v.name}<small>{v.note}</small></button>)}</div></details>
-        <p className="kart-howto"><b>EL TRUCO:</b> mantén GAS en recta. Cambia el pulgar a DERRAPE al girar, carga la barra y suelta para ganar impulso. BOXES solicita asistencia en la recta de salida.{duel?' Uno a cada extremo del móvil.':''}</p></>}
-      {hud.phase==='finished'&&<><div className="kart-podium">{order.slice(0,3).map((car,i)=><div key={car.id} data-place={i+1}><span>{i===0?'WINNER':'FINISHER'}</span><strong>{String(i+1).padStart(2,'0')}</strong><b>{hud.mode==='race'&&car.id>0?`CREW ${car.id}`:`P${car.id+1}`}</b></div>)}</div><ol className="kart-results">{order.map((car,i)=><li key={car.id}><b>{i+1}.</b><span>{hud.mode==='race'&&car.id>0?`CREW ${car.id}`:`P${car.id+1}`}<small>MEJOR VUELTA {formatRaceTime(car.bestLap)} · {car.stops} PIT STOPS</small></span><strong>{car.finishedAt===null?`${car.laps}/3 VUELTAS`:formatRaceTime(car.finishedAt)}</strong></li>)}</ol></>}
-      <details className="kart-preferences" open={settingsOpen} onToggle={e=>setSettingsOpen(e.currentTarget.open)}><summary>AJUSTES DE LA SESIÓN <span>+</span></summary><div>
-        <label>CÁMARA<select value={preferences.camera} disabled={duel||renderMode==='2d'} onChange={e=>setPreferences(v=>({...v,camera:e.target.value==='track'?'track':'follow'}))}><option value="follow">SEGUIMIENTO</option><option value="track">PISTA COMPLETA</option></select><small>{renderMode==='2d'?'La vista compatible muestra toda la pista.':duel?'En duelo se ve toda la pista.':'Elige la vista cercana o el circuito entero.'}</small></label>
-        <label>GRÁFICOS<select value={preferences.quality} onChange={e=>setPreferences(v=>({...v,quality:e.target.value as typeof v.quality}))}><option value="auto">3D · AUTOMÁTICO</option><option value="lite">3D · LIGERO</option><option value="high">3D · ALTA CALIDAD</option><option value="flat">2D · COMPATIBLE</option></select></label>
-        <button type="button" aria-pressed={preferences.autoThrottle} onClick={()=>{clear();setPreferences(v=>({...v,autoThrottle:!v.autoThrottle}))}}>ACELERACIÓN {preferences.autoThrottle?'AUTOMÁTICA':'MANUAL'}<small>{preferences.autoThrottle?'El kart da gas solo; FRENO sigue deteniéndolo.':'Mantén GAS, DERRAPE o W; al soltar, el kart rueda por inercia.'}</small></button>
-        <button type="button" aria-pressed={preferences.sound} onClick={()=>{setPreferences(v=>({...v,sound:!v.sound}));audio.current?.pause()}}>SONIDO {preferences.sound?'ON':'OFF'}<small>Motor · ruedas · salida · vueltas</small></button>
-        <small className="kart-keys">P1: W gas · S freno · A/D gira · F derrapa · B boxes.<br/>P2: flechas · L derrapa · O boxes. Al girar el teléfono se pausa y se sueltan los mandos.</small>
-      </div></details>
-      {ready&&renderMode==='2d'&&preferences.quality!=='flat'&&<p className="kart-howto">VISTA COMPATIBLE ACTIVA · Este dispositivo no ha podido abrir la presentación 3D.</p>}
-      {error?<button className="kart-start" type="button" onClick={()=>setRetry(n=>n+1)}>RECARGAR PARRILLA</button>:<button className="kart-start" type="button" disabled={!ready} onClick={play}>{!ready?'PREPARANDO PARRILLA…':hud.phase==='paused'?'VOLVER A PISTA':hud.phase==='finished'?'REVANCHA':'SALIR A PISTA'}</button>}
-      {(hud.phase==='finished'||hud.phase==='paused')&&<button className="kart-secondary" type="button" onClick={()=>choose(hud.mode,hud.track)}>MODOS Y CIRCUITOS</button>}
-      <small className="kart-disclosure">TRES MODOS LOCALES · DOS CIRCUITOS · TU RÉCORD SE GUARDA POR CHASIS Y RUEDAS</small>
-    </div></div>}
+    <footer className="kart-foot" aria-hidden={!moving}>{hud.mode==='time'?`CONTRARRELOJ · ${buildName(p1.build)}`:'CARRERA LOCAL · SIN DANZPOINTS'}<span>GAS acelera · FRENO detiene · DERRAPE también da gas · BOXES repara</span></footer>
+    {!moving&&<KartMenu race={hud} prefs={preferences} ready={ready} error={error} renderMode={renderMode} newBest={newBest} showSettings={settingsOpen} onPlay={play} onExit={exit} onRetry={()=>setRetry(n=>n+1)} onChoose={choose} onBuild={configure} onPreferences={change=>{clear();if(change.sound===false)audio.current?.pause();setPreferences(v=>({...v,...change}))}} onReset={()=>choose(hud.mode,hud.track)}/>}
   </section>
 }

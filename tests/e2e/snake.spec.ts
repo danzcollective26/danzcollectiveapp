@@ -1,3 +1,4 @@
+import { selectReel } from './consoleMenus'
 import { expect, test, type Page } from '@playwright/test'
 import { GRID, initialGame, MAZE_STAGES, mazeWalls } from '../../src/snake'
 
@@ -7,12 +8,12 @@ async function arcade(page: Page, select = true) {
   if (select) { await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click(); await finishIntro(page) }
 }
 async function finishIntro(page: Page) {
-  await expect(page.locator('.arcade-launch-loading')).toBeVisible()
+  await expect(page.getByRole('button',{name:'JUGAR AHORA',exact:true})).toBeVisible()
   await page.clock.runFor(3000)
   await expect(page.getByRole('button', { name: 'JUGAR AHORA', exact: true })).toBeVisible()
 }
 async function playSnake(page: Page) {
-  const launch = page.getByRole('region',{name:'Presentación del juego'})
+  const launch = page.locator('.arcade-console-menu')
   if (await launch.isVisible()) await launch.getByRole('button',{name:'JUGAR AHORA',exact:true}).click()
   else await page.locator('.game-actions').getByRole('button',{name:/^JUGAR/}).click()
 }
@@ -32,10 +33,10 @@ test('elegir una portada abre Snake inmersivo sin iniciar la partida', async ({ 
   await openArcade(page, false)
   await page.locator('.arcade-chooser').getByRole('button', { name: /LA QUE HAS LIAO, JACK/ }).click()
   await expect(page.locator('.game-panel')).toHaveClass(/is-immersive/)
-  await expect(page.locator('.arcade-launch')).toBeAttached()
-  await expect(page.locator('.arcade-launch-loading')).toBeVisible()
+  await expect(page.locator('.arcade-console-menu')).toBeAttached()
+  await expect(page.getByRole('button',{name:'JUGAR AHORA',exact:true})).toBeVisible()
   await page.clock.runFor(3000)
-  await expect(page.locator('.arcade-launch').getByRole('button', { name: 'JUGAR AHORA' })).toBeVisible()
+  await expect(page.locator('.arcade-console-menu').getByRole('button', { name: 'JUGAR AHORA' })).toBeVisible()
   expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
   await page.getByRole('button', { name: 'Volver a la biblioteca ARCADANZ', exact:true }).click()
   await expect(page.locator('.game-panel')).toHaveCount(0)
@@ -147,11 +148,10 @@ test('ocultar la pestaña pausa y no reanuda automáticamente', async ({ page })
 
 test('doce laberintos seleccionables conservan el recorrido al reiniciar', async ({ page }) => {
   await openArcade(page)
-  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'LABERINTO', exact:true }).click()
-  const select = page.getByLabel('Recorrido del laberinto', { exact: true })
-  await expect(select.locator('option')).toHaveCount(MAZE_STAGES.length)
+  await selectReel(page,'Modo de Snake','LABERINTO')
+  await expect(page.getByRole('group',{name:'Recorrido del laberinto',exact:true})).toContainText('01 / 12')
   for (let stage = 1; stage <= MAZE_STAGES.length; stage++) {
-    await select.selectOption(String(stage))
+    await selectReel(page,'Recorrido del laberinto',MAZE_STAGES[stage-1])
     await expect(page.locator('.game-board > .wall')).toHaveCount(mazeWalls(stage).length)
     expect(await headIndex(page)).toBe(index(spawn.x, spawn.y))
   }
@@ -161,7 +161,7 @@ test('doce laberintos seleccionables conservan el recorrido al reiniciar', async
   await page.getByRole('button', {name:/SALIR DEL JUEGO/}).click()
   await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click()
   await finishIntro(page)
-  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'CLÁSICO', exact: true }).click()
+  await selectReel(page,'Modo de Snake','CLÁSICO')
   await expect(page.locator('.game-board > .wall')).toHaveCount(0)
 })
 

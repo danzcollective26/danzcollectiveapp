@@ -1,3 +1,5 @@
+import CollectaMatchMenu from '../CollectaMatchMenu'
+import { requestArcadeFullscreen } from '../arcadeFullscreen'
 import GameSurface from '../GameSurface'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { createArena, pauseArena, placeBomb, startArena, stepArena, ROUND_MS, type Arena, type Direction, type PlayerId } from './engine'
@@ -42,7 +44,7 @@ export default function ArenaDuel({ onBack, controls = DEFAULT_COLLECTA_CONTROLS
   const play = () => {
     clear(); sync(startArena(state.current))
     panel.current?.focus({ preventScroll: true })
-    try { void panel.current?.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {}) } catch { /* Dedicated viewport remains available. */ }
+    requestArcadeFullscreen()
   }
   const exit = () => {
     pause()
@@ -88,12 +90,13 @@ export default function ArenaDuel({ onBack, controls = DEFAULT_COLLECTA_CONTROLS
 
   useEffect(() => {
     const previous = document.body.style.overflow, element = panel.current
-    let native = false
+    let native = Boolean(document.fullscreenElement)
     document.body.style.overflow = 'hidden'
     const hidden = () => { if (document.hidden) actions.current.pause() }
     const blur = () => actions.current.pause()
-    const fullscreen = () => { if (document.fullscreenElement === element) native = true; else if (native) { native = false; actions.current.pause() } }
+    const fullscreen = () => { if (document.fullscreenElement) native = true; else if (native) { native = false; actions.current.pause() } }
     const down = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return
       if (event.key === 'Escape') { actions.current.exit(); return }
       if ((event.target as HTMLElement)?.closest('input,textarea,select')) return
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key
@@ -131,13 +134,12 @@ export default function ArenaDuel({ onBack, controls = DEFAULT_COLLECTA_CONTROLS
   </div></div></section>
 
   return <section ref={panel} tabIndex={-1} className={`arena-game${solo ? ' arena-solo' : ''}`} aria-label={solo ? 'Arena DANZ, contra la máquina' : 'Arena DANZ, duelo local'} data-opponent={opponent} data-view={landscape ? 'landscape' : 'portrait'} data-phase={hud.phase} data-p1={`${hud.players[0].x},${hud.players[0].y}`} data-p2={`${hud.players[1].x},${hud.players[1].y}`} data-bombs={hud.bombs.length} data-elapsed={Math.floor(hud.elapsed)} data-round={hud.round}>
-    <header className="arena-top"><button type="button" onClick={exit} aria-label="Salir de Arena DANZ">← MODOS</button><div><strong>COLLECTA <em>{solo ? 'SOLO' : 'ARENA'}</em></strong><span>{solo ? 'ÚLTIMO TURNO · CREW AUTOMÁTICA' : 'CIERRE DE PISTA · EL ÚLTIMO TURNO'}</span></div><button type="button" disabled={!active && hud.phase !== 'paused'} onClick={() => active ? pause() : play()}>{hud.phase === 'paused' ? 'REANUDAR' : 'PAUSAR'}</button></header>
+    <header className="arena-top" aria-hidden={!active}><button type="button" onClick={exit} aria-label="Salir de Arena DANZ">← MODOS</button><div><strong>COLLECTA <em>{solo ? 'SOLO' : 'ARENA'}</em></strong><span>{solo ? 'ÚLTIMO TURNO · CREW AUTOMÁTICA' : 'CIERRE DE PISTA · EL ÚLTIMO TURNO'}</span></div><button type="button" disabled={!active && hud.phase !== 'paused'} onClick={() => active ? pause() : play()}>{hud.phase === 'paused' ? 'REANUDAR' : 'PAUSAR'}</button></header>
     <div className="arena-round"><span>RONDA {hud.round.toString().padStart(2, '0')}</span><strong aria-label="Tiempo de la ronda">{Math.max(0, Math.ceil((ROUND_MS - hud.elapsed) / 1000))}<small>s</small></strong><span>{solo ? <span aria-label="Victorias de la crew automática">CREW {hud.scores[1]}/3</span> : 'PRIMERO EN GANAR 3'}</span></div>
-    <div className="arena-layout versus-layout">{controller(0)}<GameSurface ratio={11/9} className="arena-board-wrap versus-board"><div className="arena-board" ref={host} role="img" aria-label="Pista de Arena DANZ con dos jugadores, altavoces y cajas destructibles" data-ready={ready}/>
-      {(!active || error) && <div className="arena-overlay"><span className="arena-kicker">{error ? 'UN MOMENTO' : hud.phase === 'match-over' ? 'PARTY OVER / TURNO CERRADO' : over ? 'PARTE DE CIERRE' : hud.phase === 'paused' ? 'EL ENCARGADO NECESITA UN RESPIRO' : solo ? 'TÚ CIERRAS / LA CREW SE RESISTE' : 'COLLECTA / CIERRE DE PISTA'}</span><h1>{title}</h1><p>{error || (over ? 'El parte no se firma solo. Cambia de camino, encadena avisos y vuelve a intentarlo.' : solo ? 'Juegas como el encargado. La crew automática abre caminos, prepara discos y esquiva ondas. Tu propio disco también te alcanza. Gana tres rondas para cerrar.' : 'P1 pone orden. P2 se escaquea. Despeja los flightcases con discos de aviso y escapa: tu propia onda también te alcanza.')}</p><div className="arena-versus"><span>P1 / EL ENCARGADO</span><b>VS</b><span>{solo ? 'CREW / AUTOMÁTICA' : 'P2 / LA CREW'}</span></div>
-      {error ? <button type="button" onClick={() => setRetry(n => n + 1)}>VOLVER A CARGAR</button> : <button type="button" disabled={!ready} onClick={play}>{!ready ? 'ABRIENDO LA PISTA…' : hud.phase === 'paused' ? solo ? 'SEGUIR EL TURNO' : 'SEGUIR EL DUELO' : hud.phase === 'match-over' ? 'REVANCHA' : over ? 'SIGUIENTE RONDA' : solo ? 'EMPEZAR TURNO' : 'EMPEZAR DUELO'}</button>}
-      <small>{solo ? 'Flechas o WASD para moverte · F suelta disco. También puedes usar joystick.' : 'Flechas o joystick desde tu lado. Gana quien cierre tres rondas.'}</small></div>}
+    <div className="arena-layout versus-layout" aria-hidden={!active}>{controller(0)}<GameSurface ratio={11/9} className="arena-board-wrap versus-board"><div className="arena-board" ref={host} role="img" aria-label="Pista de Arena DANZ con dos jugadores, altavoces y cajas destructibles" data-ready={ready}/>
+
     </GameSurface>{!solo && controller(1)}</div>
     <footer className="arena-note">{solo ? 'PRÁCTICA LOCAL · RIVAL AUTOMÁTICO' : 'PRÁCTICA LOCAL'} <span>Disco de aviso: 1,9 s · Flightcases y altavoces frenan la onda · + alcance / ◉ disco extra</span></footer>
+    {(!active||error)&&<CollectaMatchMenu game="arena" title={title} phase={hud.phase} solo={solo} score={`P1 ${hud.scores[0]} · ${hud.scores[1]} ${solo?'CREW':'P2'}`} disabled={!error&&!ready} error={error} onBack={exit} onPlay={error?()=>setRetry(n=>n+1):play} action={error?'VOLVER A CARGAR':!ready?'ABRIENDO LA PISTA…':hud.phase==='paused'?solo?'SEGUIR EL TURNO':'SEGUIR EL DUELO':hud.phase==='match-over'?'REVANCHA':over?'SIGUIENTE RONDA':solo?'EMPEZAR TURNO':'EMPEZAR DUELO'}/>}
   </section>
 }

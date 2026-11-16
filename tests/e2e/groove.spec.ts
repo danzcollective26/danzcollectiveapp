@@ -1,3 +1,4 @@
+import { menuTab, selectReel } from './consoleMenus'
 import { expect, test, type Page } from '@playwright/test'
 test.use({ hasTouch: true })
 
@@ -5,15 +6,17 @@ async function openGroove(page: Page) {
   await page.addInitScript(() => { Element.prototype.requestFullscreen = () => Promise.reject(new DOMException('Unsupported', 'NotSupportedError')) })
   await page.clock.install({ time: new Date('2026-11-12T15:00:00Z') })
   await page.goto('/?seccion=arcade&juego=groove-ninja')
-  await expect(page.getByRole('heading', { name: 'GROOVE NINJA.', exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog',{name:'Menú de GROOVE NINJA',exact:true})).toBeVisible()
   // React's lazy boundary must finish before freezing timers for input checks.
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000))
   await page.clock.runFor(3000)
-  const sound=page.locator('.arcade-launch').getByRole('button',{name:'SONIDO ON',exact:true})
+  await menuTab(page,'AJUSTES')
+  const sound=page.locator('.arcade-console-menu').getByRole('button',{name:'SONIDO ON',exact:true})
   if(await sound.isVisible()) await sound.click()
+  await menuTab(page,'JUGAR')
 }
 async function start(page: Page) {
-  const launch=page.locator('.arcade-launch')
+  const launch=page.locator('.arcade-console-menu')
   if(await launch.isVisible()) await launch.getByRole('button',{name:'JUGAR AHORA',exact:true}).click()
   else await page.locator('.gn-actions').getByRole('button',{name:/^(JUGAR GROOVE NINJA|REANUDAR)/}).click()
   await page.clock.runFor(700)
@@ -34,11 +37,11 @@ test('game selection opens Groove directly in full viewport, ready to play', asy
   await page.goto('/?seccion=arcade')
   await page.locator('.arcade-chooser').getByRole('button', { name: /GROOVE NINJA/ }).click()
   await expect(page.locator('.gn-panel')).toHaveClass(/gn-immersive/)
-  await expect(page.locator('.arcade-launch')).toBeAttached()
+  await expect(page.locator('.arcade-console-menu')).toBeAttached()
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'ready')
-  await expect(page.locator('.arcade-launch-loading')).toBeVisible()
+  await expect(page.getByRole('button',{name:'JUGAR AHORA',exact:true})).toBeVisible()
   await page.waitForTimeout(3200)
-  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'SCRATCH SESSION' }).click()
+  await selectReel(page,'Modo de Groove Ninja','SCRATCH SESSION')
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-mode', 'scratch')
   await expect(page.locator('.gn-panel')).toHaveClass(/gn-immersive/)
   await page.getByRole('button', { name: 'Volver a la biblioteca ARCADANZ', exact: true }).click()
@@ -120,7 +123,7 @@ test('pause, tab hiding and exit freeze play; local record and sound choice surv
   await page.clock.resume()
   await page.reload()
   await page.locator('.arcade-choice').filter({hasText:'GROOVE NINJA'}).click()
-  await expect(page.locator('.arcade-launch').getByRole('button', { name: 'SONIDO OFF', exact: true })).toBeVisible()
+  await menuTab(page,'AJUSTES');await expect(page.locator('.arcade-console-menu').getByRole('button', { name: 'SONIDO OFF', exact: true })).toBeVisible();await menuTab(page,'JUGAR')
   await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 100')
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'ready')
 })
@@ -139,7 +142,7 @@ async function keyboardPhrase(page: Page) {
 }
 test('scratch rejects early reversals and rewards a complete rhythmic pointer phrase', async ({ page }) => {
   await openGroove(page)
-  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'SCRATCH SESSION',exact:true }).click()
+  await selectReel(page,'Modo de Groove Ninja','SCRATCH SESSION')
   await start(page)
   const rect = await page.locator('.gn-board').boundingBox()
   const x = (n: number) => rect!.x + n * rect!.width / 640, y = rect!.y + 355 * rect!.height / 760
@@ -163,7 +166,7 @@ test('scratch rejects early reversals and rewards a complete rhythmic pointer ph
 })
 test('a long pull needs its full distance and releasing only repositions the hand', async ({ page }) => {
   await openGroove(page)
-  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'SCRATCH SESSION',exact:true }).click()
+  await selectReel(page,'Modo de Groove Ninja','SCRATCH SESSION')
   await start(page); await keyboardPhrase(page); await page.clock.runFor(700)
   await expect(page.locator('.gn-scratch')).toHaveAttribute('data-pattern', '1')
   const rect = await page.locator('.gn-board').boundingBox()
@@ -269,9 +272,9 @@ test('changing modes starts the selected challenge and keeps each local record s
   await openGroove(page); await start(page); await slice(page)
   await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
   await page.locator('.arcade-choice').filter({hasText:'GROOVE NINJA'}).click()
-  await expect(page.locator('.arcade-launch-loading')).toBeVisible()
+  await expect(page.getByRole('button',{name:'JUGAR AHORA',exact:true})).toBeVisible()
   await page.clock.runFor(3000)
-  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'SCRATCH SESSION',exact:true }).click()
+  await selectReel(page,'Modo de Groove Ninja','SCRATCH SESSION')
   await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 0')
   await start(page)
   await expect(page.locator('.gn-vinyl')).toHaveCount(0)
@@ -279,9 +282,9 @@ test('changing modes starts the selected challenge and keeps each local record s
   await expect(page.getByTestId('groove-score')).toHaveText('00500')
   await page.getByRole('button', { name: 'SALIR DEL JUEGO ↗', exact: true }).click()
   await page.locator('.arcade-choice').filter({hasText:'GROOVE NINJA'}).click()
-  await expect(page.locator('.arcade-launch-loading')).toBeVisible()
+  await expect(page.getByRole('button',{name:'JUGAR AHORA',exact:true})).toBeVisible()
   await page.clock.runFor(3000)
-  await page.locator('.arcade-launch-mode-picker').getByRole('button', { name: 'VINYL CUT',exact:true }).click()
+  await selectReel(page,'Modo de Groove Ninja','VINYL CUT')
   await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 100')
   await expect(page.getByTestId('groove-score')).toHaveText('00000')
 })

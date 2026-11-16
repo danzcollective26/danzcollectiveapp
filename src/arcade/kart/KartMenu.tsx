@@ -1,0 +1,30 @@
+import { useEffect, useState } from 'react'
+import ArcadeMenu from '../ArcadeMenu'
+import SelectionReel from '../SelectionReel'
+import KartGarage from './KartGarage'
+import { VENUES, type KartBuild } from './garage'
+import { TRACKS, formatRaceTime, raceOrder, type Race, type KartMode, type TrackId } from './engine'
+import type { KartPreferences, KartQuality, KartCamera } from './preferences'
+
+const MODES=[{id:'race',name:'CREW RACE',note:'Tú contra tres pilotos de la crew.',badge:'PARRILLA DE CUATRO'},{id:'time',name:'CONTRARRELOJ',note:'Tu kart. Tu mejor marca.',badge:'EN SOLITARIO'},{id:'duel',name:'DUELO LOCAL',note:'Uno a cada extremo del móvil.',badge:'DOS JUGADORES'}]
+const TABS=[{id:'race',label:'CORRER'},{id:'garage',label:'GARAJE'},{id:'track',label:'CIRCUITO'},{id:'settings',label:'AJUSTES'},{id:'help',label:'CÓMO JUGAR'}]
+const QUALITY=[{id:'auto',name:'3D AUTOMÁTICO'},{id:'lite',name:'3D LIGERO'},{id:'high',name:'3D ALTA CALIDAD'},{id:'flat',name:'2D COMPATIBLE'}]
+export default function KartMenu({race,prefs,ready,error,renderMode,newBest,showSettings,onPlay,onExit,onRetry,onChoose,onBuild,onPreferences,onReset}:{
+  race:Race;prefs:KartPreferences;ready:boolean;error:string;renderMode:string;newBest:boolean;showSettings:boolean;onPlay:()=>void;onExit:()=>void;onRetry:()=>void;onChoose:(mode:KartMode,track:TrackId)=>void;onBuild:(id:0|1,build:KartBuild)=>void;onPreferences:(change:Partial<KartPreferences>)=>void;onReset:()=>void
+}){
+  const [page,setPage]=useState(showSettings?'settings':race.phase==='finished'?'results':'race')
+  useEffect(()=>setPage(showSettings?'settings':race.phase==='finished'?'results':'race'),[race.phase,showSettings])
+  const paused=race.phase==='paused',finished=race.phase==='finished',order=raceOrder(race),p1=race.cars[0]
+  const tabs=paused?[{id:'race',label:'REANUDAR'},...TABS.slice(3)]:finished?[{id:'results',label:'RESULTADOS'},...TABS.slice(3)]:TABS
+  const course=TRACKS[race.track],points=course.points.map(p=>`${p.x},${p.y}`).join(' ')
+  const label=error?'RECARGAR PARRILLA':!ready?'PREPARANDO…':paused?'VOLVER A PISTA':finished?'REVANCHA':'SALIR A PISTA'
+  return <ArcadeMenu title="DANZPORTER" eyebrow={finished?'PARTY OVER / PARQUE CERRADO':'DANZ / RACING DEPARTMENT'} art="/arcade/danzporter-cover-v1.webp" accent="#edc45e" tabs={tabs} page={page} onPage={setPage} onBack={onExit} backLabel="Salir de DANZPORTER" action={{label,onClick:error?onRetry:onPlay,disabled:!error&&!ready}} footer="TRES VUELTAS · CARRERA LOCAL">
+    {page==='race'&&(paused?<div className="menu-help"><h2>RESPIRA. VUELVE.</h2><p>Tu kart te espera en pista.</p><button type="button" onClick={onReset}>MODOS Y CIRCUITOS</button></div>:<><SelectionReel label="Modo de DANZPORTER" choices={MODES} value={race.mode} onChange={id=>onChoose(id as KartMode,race.track)}/><p className="kart-console-course"><span>{course.name}</span><button type="button" onClick={()=>setPage('track')}>CAMBIAR CIRCUITO ›</button></p></>)}
+    {page==='garage'&&<KartGarage builds={prefs.builds} duel={race.mode==='duel'} onChange={onBuild}/>}
+    {page==='track'&&<><SelectionReel label="Circuito de DANZPORTER" choices={Object.values(TRACKS).map(t=>({id:t.id,name:t.name,note:t.subtitle}))} value={race.track} onChange={id=>onChoose(race.mode,id as TrackId)}><svg viewBox="0 0 1000 720"><polyline points={`${points} ${course.points[0].x},${course.points[0].y}`} fill="none" stroke="#0a1c24" strokeWidth="100" strokeLinejoin="round"/><polyline points={`${points} ${course.points[0].x},${course.points[0].y}`} fill="none" stroke={course.accent} strokeWidth="20" strokeLinejoin="round"/></svg></SelectionReel><SelectionReel compact label="Ambiente" choices={VENUES} value={prefs.venue} onChange={id=>onPreferences({venue:id as KartPreferences['venue']})}/></>}
+    {page==='settings'&&<div className="menu-settings"><SelectionReel compact label="Gráficos" choices={QUALITY} value={prefs.quality} onChange={id=>onPreferences({quality:id as KartQuality})}/><SelectionReel compact label="Cámara" choices={race.mode==='duel'||renderMode==='2d'?[{id:prefs.camera,name:'PISTA COMPLETA',note:'Vista de toda la carrera.'}]:[{id:'follow',name:'SEGUIMIENTO'},{id:'track',name:'PISTA COMPLETA'}]} value={prefs.camera} onChange={id=>onPreferences({camera:id as KartCamera})}/><button type="button" aria-pressed={prefs.autoThrottle} onClick={()=>onPreferences({autoThrottle:!prefs.autoThrottle})}>ACELERACIÓN <b>{prefs.autoThrottle?'AUTOMÁTICA':'MANUAL'}</b></button><button type="button" aria-pressed={prefs.sound} onClick={()=>onPreferences({sound:!prefs.sound})}>SONIDO <b>{prefs.sound?'ON':'OFF'}</b></button>{renderMode==='2d'&&<small>Vista 2D compatible activa.</small>}</div>}
+    {page==='help'&&<div className="menu-help"><h2>EL ÚLTIMO FERRY ES TUYO.</h2><p><b>GAS</b> para acelerar. <b>FRENO</b> para detenerte.</p><p><b>DERRAPE</b> también acelera: gira, carga y suelta para ganar impulso.</p><p>Los golpes pasan factura. <b>BOXES</b> pide reparación en la siguiente entrada.</p><details><summary>TECLADO Y REGLAS</summary><p>P1: W/S gas/freno · A/D gira · F derrapa · B boxes.<br/>P2: flechas · L derrapa · O boxes.</p><small>Tres vueltas. Piezas libres en esta versión local; sin DANZPOINTS competitivos. Al girar se pausa y se sueltan los controles.</small></details></div>}
+    {page==='results'&&<div><p className="menu-state">{newBest?'RÉCORD PERSONAL':p1.finishedAt===null?'FIN DEL TURNO':'SERVICIO COMPLETADO'}</p><ol className="kart-results">{order.map((car,i)=><li key={car.id}><b>{i+1}.</b><span>{race.mode==='race'&&car.id>0?`CREW ${car.id}`:`P${car.id+1}`}<small>{car.stops} PIT STOPS</small></span><strong>{car.finishedAt===null?`${car.laps}/3 VUELTAS`:formatRaceTime(car.finishedAt)}</strong></li>)}</ol><button type="button" onClick={onReset}>MODOS Y CIRCUITOS</button></div>}
+    {error&&<p role="alert">{error}</p>}
+  </ArcadeMenu>
+}

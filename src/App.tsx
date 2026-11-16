@@ -1,3 +1,5 @@
+import { requestArcadeFullscreen, releaseArcadeFullscreen } from './arcade/arcadeFullscreen'
+import SelectionReel from './arcade/SelectionReel'
 import { lazy, Suspense, useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import './App.css'
@@ -101,6 +103,8 @@ export default function App() {
   if (page === 'fotos' && photoSource === 'local') localGalleryOpened.current = true
   const [game, dispatch] = useReducer(gameReducer, initialGame())
   const [arcadeGame, setArcadeGame] = useState(locationGame)
+  useEffect(() => { const active=page==='arcade'&&arcadeGame!==null;document.documentElement.classList.toggle('arcade-session',active);if(!active)releaseArcadeFullscreen() },[page,arcadeGame])
+  useEffect(()=>()=>{document.documentElement.classList.remove('arcade-session');releaseArcadeFullscreen()},[])
   const [launchGroove, setLaunchGroove] = useState(() => locationGame() === 'groove')
   const gameScreen = useGameScreen(() => dispatch({ type: 'pause' }))
   const competition=useSnakeCompetition(game,(mode,seed)=>{
@@ -247,6 +251,7 @@ export default function App() {
     try { window.history.pushState(window.history.state, '', url) } catch { /* In-memory navigation remains available. */ }
     flushSync(() => { setPage('arcade'); setArcadeGame('snake') })
     gameScreen.enter()
+    requestArcadeFullscreen()
   }
   useEffect(() => { if (page === 'arcade' && arcadeGame === 'snake') gameScreen.enter() }, [page, arcadeGame])
   const snakeWasImmersive = useRef(false)
@@ -255,13 +260,14 @@ export default function App() {
     snakeWasImmersive.current = gameScreen.active
   }, [gameScreen.active])
 
-  const openGroove = (immersive = false) => {
+  const openGroove = (immersive = true) => {
     setLaunchGroove(immersive)
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'groove-ninja')
     try { window.history.pushState(window.history.state, '', url) } catch { /* In-memory navigation remains available. */ }
     setPage('arcade'); setArcadeGame('groove'); window.scrollTo({ top: 0 })
+    requestArcadeFullscreen()
   }
 
   const openArena = (mode: 'arena' | 'arena-solo' = 'arena') => {
@@ -270,6 +276,7 @@ export default function App() {
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', mode)
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
     setPage('arcade'); setArcadeGame(mode)
+    requestArcadeFullscreen()
   }
   const openChase = () => {
     dispatch({ type: 'pause' }); gameScreen.leave()
@@ -277,6 +284,7 @@ export default function App() {
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'pilla-pilla')
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
     setPage('arcade'); setArcadeGame('chase')
+    requestArcadeFullscreen()
   }
   const openKart = () => {
     dispatch({ type: 'pause' }); gameScreen.leave()
@@ -284,6 +292,7 @@ export default function App() {
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'kart')
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
     setPage('arcade'); setArcadeGame('kart'); window.scrollTo({top:0})
+    requestArcadeFullscreen()
   }
   const openCollecta = () => {
     dispatch({ type: 'pause' }); gameScreen.leave()
@@ -291,6 +300,7 @@ export default function App() {
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'collecta')
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
     setPage('arcade'); setArcadeGame('collecta'); window.scrollTo({top:0})
+    requestArcadeFullscreen()
   }
 
   useEffect(() => {
@@ -387,11 +397,11 @@ export default function App() {
           <article className="arcade-library-upcoming" aria-label="DANZ Idle Studio, próximamente"><img src="/arcade/idle-studio-industrial.webp" alt="Taller creativo de DANZ Idle Studio" width="1200" height="900" loading="lazy"/><div><span className="eyebrow">EN PREPARACIÓN</span><h2>DANZ IDLE STUDIO</h2><p>Música, moda, vídeo y diseño. El estudio del colectivo, a tu ritmo.</p><small>PRÓXIMAMENTE · Nombre y carátula provisionales</small></div></article>
           <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
         </section>}
-        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="content" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
-        {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="content" role="status">Preparando DANZPORTER…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
-        {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="content" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
-        {page === 'arcade' && (arcadeGame === 'arena' || arcadeGame === 'arena-solo') && <Suspense fallback={<p className="content" role="status">Abriendo Arena…</p>}><ArenaDuel key={arcadeGame} opponent={arcadeGame === 'arena-solo' ? 'cpu' : 'human'} controls={collectaControls} onBack={openCollecta} /></Suspense>}
-        {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="content inner-page" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="arcade-loading" role="status">Preparando DANZPORTER…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && (arcadeGame === 'arena' || arcadeGame === 'arena-solo') && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Arena…</p>}><ArenaDuel key={arcadeGame} opponent={arcadeGame === 'arena-solo' ? 'cpu' : 'human'} controls={collectaControls} onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'snake' && (
           <section className="content inner-page arcade-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
@@ -403,10 +413,9 @@ export default function App() {
               <GameCover className="snake-cover" />
             </div>
             <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}${game.seed!==undefined?' is-ranked':''}${competition.run?.status==='active'?' is-ranked-live':game.seed!==undefined?' is-ranked-result':''}`}>
-              {gameScreen.active && <ArcadeLaunch game="snake" running={game.running} onPlay={play} onExit={()=>{gameScreen.leave();go('arcade')}}>
-                <div className="arcade-launch-mode-picker" role="group" aria-label="Modo de Snake"><button type="button" aria-pressed={game.mode==='classic'} onClick={()=>{competition.clear();dispatch({type:'mode',mode:'classic'})}}>CLÁSICO</button><button type="button" aria-pressed={game.mode==='maze'} onClick={()=>{competition.clear();dispatch({type:'mode',mode:'maze'})}}>LABERINTO</button></div>
-                {game.mode==='maze'&&<label className="arcade-launch-maze">RECORRIDO <select aria-label="Recorrido del laberinto" value={game.stage} onChange={event=>{competition.clear();dispatch({type:'maze-level',stage:Number(event.target.value)})}}>{MAZE_STAGES.map((name,i)=><option key={name} value={i+1}>{i+1} · {name}</option>)}</select></label>}
-                <button type="button" className="outline-btn" aria-pressed={showControls} onClick={toggleControls}>{showControls?'OCULTAR BOTONES':'MOSTRAR BOTONES'} ⌘</button>
+              {gameScreen.active && <ArcadeLaunch game="snake" running={game.running} onPlay={play} onExit={()=>{gameScreen.leave();go('arcade')}} settings={<button type="button" aria-pressed={showControls} onClick={toggleControls}>BOTONES EN PANTALLA <b>{showControls?'ON':'OFF'}</b></button>}>
+                <SelectionReel label="Modo de Snake" choices={[{id:'classic',name:'CLÁSICO',note:'El cable crece. La crew no espera.'},{id:'maze',name:'LABERINTO',note:'Doce recorridos. Cero choques.'}]} value={game.mode} onChange={id=>{competition.clear();dispatch({type:'mode',mode:id==='maze'?'maze':'classic'})}}/>
+                {game.mode==='maze'&&<SelectionReel compact label="Recorrido del laberinto" choices={MAZE_STAGES.map((name,i)=>({id:String(i+1),name}))} value={String(game.stage)} onChange={id=>{competition.clear();dispatch({type:'maze-level',stage:Number(id)})}}/>}
               </ArcadeLaunch>}
               {gameScreen.active && <div className="game-screen-bar"><span>{GAME_SHORT_TITLE} · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={() => { gameScreen.leave(); go('arcade') }}>SALIR DEL JUEGO ↗</button></div>}
               <div className="game-modes" role="group" aria-label="Modo de Snake">

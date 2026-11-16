@@ -1,0 +1,10 @@
+import { useState } from 'react'
+import ArcadeMenu from './ArcadeMenu'
+
+export default function CollectaMatchMenu({game,title,phase,action,disabled,error,onPlay,onBack,score,solo=false}:{game:'arena'|'chase';title:string;phase:string;action:string;disabled:boolean;error:string;onPlay:()=>void;onBack:()=>void;score:string;solo?:boolean}){
+  const [page,setPage]=useState('play')
+  return <ArcadeMenu title={game==='chase'?'COLLECTA / PERSECUCIÓN':solo?'COLLECTA / SOLO':'COLLECTA / ARENA'} eyebrow={phase==='paused'?'PAUSA DE CIERRE':phase.includes('over')?'PARTY OVER / CUENTAS CERRADAS':'DANZ COLLECTA / DÍA DE COBRO'} art="/arcade/collecta-mobile-v1.webp" accent="#efc267" tabs={[{id:'play',label:phase==='paused'?'REANUDAR':'PARTIDA'},{id:'help',label:'CÓMO JUGAR'}]} page={page} onPage={setPage} onBack={onBack} backLabel={game==='arena'?'Salir de Arena DANZ':'Salir de Persecución'} action={{label:action,onClick:onPlay,disabled}} footer={solo?'PRÁCTICA LOCAL · CREW AUTOMÁTICA':'UNO A CADA EXTREMO · DUELO LOCAL'}>
+    {page==='play'&&<div className="collecta-match-card"><div className="console-mode-icon" aria-hidden="true">{game==='chase'?'↔':'◎'}</div><h2>{title}</h2><strong>{score}</strong><p>{error||(game==='chase'?'Pilla. Pasa la factura. Escápate.':solo?'Tú pones orden. La crew pone el caos.':'Despeja flightcases. Escapa de tu propia onda.')}</p></div>}
+    {page==='help'&&<div className="menu-help"><h2>{game==='chase'?'PASA EL MARRÓN.':'CIERRE DE PISTA.'}</h2><p>{game==='chase'?'Cada captura suma un punto y cambia quién persigue. Usa SPRINT para sorprender. Gana quien más veces pase la factura en 60 segundos.':'Suelta discos, rompe flightcases y escapa de las cadenas. Tu propia onda también te alcanza. Gana tres rondas.'}</p><p>{solo?'Un mando P1. Rival automático con las mismas reglas.':'Cada jugador controla desde su extremo, con flechas o joystick.'}</p><small>{solo?'Flechas o WASD · F disco.':'P1: WASD + F · P2: flechas + L.'} Al girar se pausa. Práctica local sin premios competitivos.</small></div>}
+  </ArcadeMenu>
+}

@@ -1,3 +1,4 @@
+import {menuTab,selectReel} from './consoleMenus'
 import { expect, test } from '@playwright/test'
 
 test.beforeEach(async({page})=>{
@@ -25,7 +26,7 @@ test('Kart opens from the library, drives, pauses and returns',async({page})=>{
 test('Kart local duel exposes opposed, independent sticks and clears on rotation',async({page})=>{
   await page.setViewportSize({width:390,height:844})
   await page.goto('/test?seccion=arcade&juego=kart')
-  await page.getByRole('button',{name:/DUELO LOCAL/}).click()
+  await selectReel(page,'Modo de DANZPORTER','DUELO LOCAL')
   await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
   await expect(page.locator('.kart-game')).toHaveAttribute('data-phase','playing',{timeout:8000})
   for(const p of [1,2]){
@@ -40,8 +41,8 @@ test('Kart local duel exposes opposed, independent sticks and clears on rotation
 })
 test('Both circuits can be selected without changing the chosen mode',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')
-  await page.getByRole('button',{name:/CONTRARRELOJ/}).click()
-  await page.getByRole('button',{name:/BACKSTAGE RING/}).click()
+  await selectReel(page,'Modo de DANZPORTER','CONTRARRELOJ')
+  await menuTab(page,'CIRCUITO');await selectReel(page,'Circuito de DANZPORTER','BACKSTAGE RING')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-track','backstage')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-mode','time')
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true')
@@ -50,26 +51,26 @@ test('Both circuits can be selected without changing the chosen mode',async({pag
 test('Graphics can switch to compatible 2D and back without losing the mode',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true')
-  await page.getByText('AJUSTES DE LA SESIÓN',{exact:false}).click()
-  await page.getByLabel('GRÁFICOS',{exact:true}).selectOption('flat')
+  await menuTab(page,'AJUSTES')
+  await selectReel(page,'Gráficos','2D COMPATIBLE')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-render-mode','2d')
   await expect(page.locator('.kart-board canvas')).toHaveCount(1)
-  await page.getByLabel('GRÁFICOS',{exact:true}).selectOption('lite')
+  await selectReel(page,'Gráficos','3D LIGERO')
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true')
   await expect(page.locator('.kart-board canvas')).toHaveCount(1)
 })
 
 test('Garage changes real parts and persists them across reloads',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')
-  await page.getByText('TU GARAJE',{exact:false}).click()
-  await page.getByRole('button',{name:'SPRINT',exact:true}).click()
-  await page.getByRole('button',{name:'SLICK',exact:true}).click()
-  await page.getByRole('button',{name:'NIGHT COURIER',exact:true}).click()
+  await menuTab(page,'GARAJE')
+  await selectReel(page,'CHASIS','SPRINT')
+  await page.getByRole('navigation',{name:'Piezas del garaje'}).getByRole('button',{name:'RUEDAS',exact:true}).click();await selectReel(page,'RUEDAS','SLICK')
+  await page.getByRole('navigation',{name:'Piezas del garaje'}).getByRole('button',{name:'PILOTO',exact:true}).click();await selectReel(page,'PILOTO','NIGHT COURIER')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-build','sprint:slick')
   await page.reload()
   await expect(page.locator('.kart-game')).toHaveAttribute('data-build','sprint:slick')
-  await page.getByText('TU GARAJE',{exact:false}).click()
-  await expect(page.getByRole('button',{name:'NIGHT COURIER',exact:true})).toHaveAttribute('aria-pressed','true')
+  await menuTab(page,'GARAJE')
+  await page.getByRole('navigation',{name:'Piezas del garaje'}).getByRole('button',{name:'PILOTO',exact:true}).click();await expect(page.getByRole('group',{name:'PILOTO',exact:true})).toContainText('NIGHT COURIER')
 })
 test('A pit request enters the real service lane and returns to the track',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')

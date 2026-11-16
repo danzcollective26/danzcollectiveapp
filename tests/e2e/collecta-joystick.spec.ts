@@ -1,3 +1,4 @@
+import { launchCollecta, collectaControl, menuTab } from './consoleMenus'
 import { expect, test, type Page } from '@playwright/test'
 test.use({hasTouch:true})
 test.beforeEach(async({page})=>{
@@ -8,8 +9,8 @@ test.beforeEach(async({page})=>{
 })
 async function choose(page:Page,both=true){
   await page.goto('/test?seccion=arcade&juego=collecta')
-  await page.getByRole('group',{name:'Mando P1',exact:true}).getByRole('button',{name:'JOYSTICK',exact:true}).click()
-  if(both)await page.getByRole('group',{name:'Mando P2',exact:true}).getByRole('button',{name:'JOYSTICK',exact:true}).click()
+  await collectaControl(page,1,'JOYSTICK')
+  if(both)await collectaControl(page,2,'JOYSTICK')
 }
 async function point(page:Page,id:number,x=0,y=0){
   return page.getByRole('button',{name:`P${id} Joystick`,exact:true}).locator('svg').evaluate((el,p)=>{
@@ -21,26 +22,27 @@ const pos=async(page:Page,id:number)=>(await page.locator('.chase-game').getAttr
 
 test('Collecta explains its two shifts and saves an independent controller for each player',async({page})=>{
   await choose(page,false)
-  await expect(page.getByText('CIERRE DE PISTA',{exact:true})).toBeVisible()
-  await expect(page.getByText('PASA EL MARRÓN',{exact:true})).toBeVisible()
-  await expect(page.locator('.collecta-story')).toContainText('encargado de DANZ')
+  await menuTab(page,'CÓMO JUGAR')
+  await expect(page.locator('.menu-help')).toContainText('Cada captura pasa la factura')
   await page.reload()
-  await expect(page.getByRole('group',{name:'Mando P1',exact:true}).getByRole('button',{name:'JOYSTICK',exact:true})).toHaveAttribute('aria-pressed','true')
-  await expect(page.getByRole('group',{name:'Mando P2',exact:true}).getByRole('button',{name:'FLECHAS',exact:true})).toHaveAttribute('aria-pressed','true')
-  await page.getByRole('button',{name:/JUGAR PERSECUCIÓN/}).click()
+  await menuTab(page,'MANDOS')
+  await expect(page.getByRole('group',{name:'Mando P1',exact:true})).toContainText('JOYSTICK')
+  await expect(page.getByRole('group',{name:'Mando P2',exact:true})).toContainText('FLECHAS')
+  await launchCollecta(page,'chase')
+  await page.getByRole('button',{name:'EMPEZAR PERSECUCIÓN',exact:true}).click()
   await expect(page.getByRole('button',{name:'P1 Joystick',exact:true})).toBeVisible()
   await expect(page.getByRole('button',{name:'P2 Arriba',exact:true})).toBeVisible()
-  await expect(page.getByRole('heading',{name:'PASA EL MARRÓN.',exact:true})).toBeVisible()
   await page.getByRole('button',{name:'Salir de Persecución',exact:true}).click()
-  await page.getByRole('group',{name:'Mando P1',exact:true}).getByRole('button',{name:'FLECHAS',exact:true}).click()
-  await page.getByRole('button',{name:/JUGAR ARENA 1 VS 1/}).click()
+  await collectaControl(page,1,'FLECHAS')
+  await launchCollecta(page,'arena')
+  await page.getByRole('button',{name:'EMPEZAR DUELO',exact:true}).click()
   await expect(page.getByRole('button',{name:'P1 Arriba',exact:true})).toBeVisible()
 })
 
 test('two analog joysticks and a third-finger sprint stay independent, release and pause safely',async({page,browserName})=>{
   test.skip(browserName!=='chromium')
   await page.setViewportSize({width:844,height:390});await choose(page)
-  await page.getByRole('button',{name:/JUGAR PERSECUCIÓN/}).click()
+  await launchCollecta(page,'chase')
   await expect(page.locator('.chase-board')).toHaveAttribute('data-ready','true',{timeout:15000})
   await page.getByRole('button',{name:'EMPEZAR PERSECUCIÓN',exact:true}).click()
   const cdp=await page.context().newCDPSession(page)
@@ -104,7 +106,7 @@ test('Arena sticks follow each rotated viewpoint in three sizes and still allow 
 
 test('a focused joystick supports keyboard, and recentering cannot leave a stuck direction',async({page})=>{
   await choose(page)
-  await page.getByRole('button',{name:/JUGAR PERSECUCIÓN/}).click()
+  await launchCollecta(page,'chase')
   await expect(page.locator('.chase-board')).toHaveAttribute('data-ready','true',{timeout:15000})
   await page.getByRole('button',{name:'EMPEZAR PERSECUCIÓN',exact:true}).click()
   const stick=page.getByRole('button',{name:'P1 Joystick',exact:true})
