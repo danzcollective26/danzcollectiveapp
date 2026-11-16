@@ -18,3 +18,4 @@
 @media(orientation:landscape){.kart-top>div{flex:0 1 auto}.kart-top>button[aria-label="Ajustes del kart"]{margin-left:auto}.kart-top{justify-content:start}.kart-top>div{margin-inline:auto}.kart-minimap{width:110px}.kart-menu-card{width:min(96%,660px)}}
 
 .kart-menu{background-image:linear-gradient(90deg,#06191fee,#06191fe3),url('/arcade/danzporter-cover-v1.webp');background-position:center 36%;background-size:cover}.kart-menu-card{scrollbar-width:thin;scrollbar-color:#bfaa6a #10252a}
+.kart-top{position:relative;z-index:6}.kart-menu{padding-top:54px}
