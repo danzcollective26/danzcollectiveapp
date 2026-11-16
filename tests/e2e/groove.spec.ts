@@ -133,10 +133,116 @@ test('pause, tab hiding and exit freeze play; local record and sound choice surv
   await expect(page.locator('.gn-bottom')).toContainText('RÉCORD LOCAL 100')
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'ready')
 })
-async function nextScratchPulse(page: Page) {
+async function nextScratchPulse(page: Page, offset = 0) {
   const target = Number(await page.locator('.gn-scratch').getAttribute('data-target'))
   const elapsed = Number(await page.locator('.gn-panel').getAttribute('data-elapsed'))
-  await page.clock.runFor(Math.max(0, target - elapsed))
+  await page.clock.runFor(Math.max(0, target + offset - elapsed))
+}
+
+test('Scratch notes arrive at a fixed gate, report early/late timing and freeze during pause', async ({ page }) => {
+  await openGroove(page); await selectReel(page, 'Modo de Groove Ninja', 'SCRATCH SESSION'); await start(page)
+  const note = page.locator('.gn-scratch-note[data-note="0"]')
+  const initialX = Number(await note.getAttribute('data-x'))
+  await page.clock.runFor(150)
+  expect(Number(await note.getAttribute('data-x'))).toBeLessThan(initialX)
+  await nextScratchPulse(page, -150); await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.gn-scratch-judgement')).toContainText('ADELANTADO')
+  await expect(page.locator('.gn-scratch')).toHaveAttribute('data-turns', '1')
+  const early = Number(await page.locator('.gn-scratch-judgement').getAttribute('data-offset'))
+  expect(early).toBeLessThan(-95); expect(early).toBeGreaterThan(-180)
+  await page.getByRole('button', { name: 'PAUSAR ↗', exact: true }).click()
+  const position = await page.locator('.gn-scratch-note[data-note="1"]').getAttribute('data-x')
+  await page.clock.runFor(3000)
+  await expect(page.locator('.gn-scratch-note[data-note="1"]')).toHaveAttribute('data-x', position!)
+  await page.getByRole('button', { name: 'REANUDAR ↗', exact: true }).click()
+  await nextScratchPulse(page, 150); await page.keyboard.press('ArrowLeft')
+  await expect(page.locator('.gn-scratch-judgement')).toContainText('TARDE')
+  expect(Number(await page.locator('.gn-scratch-judgement').getAttribute('data-offset'))).toBeGreaterThan(95)
+  for (const direction of ['ArrowRight', 'ArrowLeft']) {
+    await nextScratchPulse(page)
+    const next = page.locator('.gn-scratch-note[data-done="false"]').first()
+    expect(Math.abs(Number(await next.getAttribute('data-x')) - 142)).toBeLessThan(5)
+    await page.keyboard.press(direction)
+  }
+  await expect(page.getByTestId('groove-score')).toHaveText('00350')
+  await expect(page.locator('.gn-scratch')).toHaveCount(0)
+})
+
+test('Scratch keeps a fixed phrase for reduced motion and for soft effects without resetting the session', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await openGroove(page); await selectReel(page, 'Modo de Groove Ninja', 'SCRATCH SESSION'); await start(page)
+  const fixed = page.locator('.gn-scratch-rail-static')
+  await expect(fixed).toBeVisible(); await expect(page.locator('.gn-scratch-rail-scrolling')).toBeHidden()
+  await expect(page.locator('.gn-scratch-pulse')).toBeHidden()
+  const positions = await fixed.locator('g').evaluateAll(nodes => nodes.map(el => el.getAttribute('transform')))
+  await page.clock.runFor(200)
+  expect(await fixed.locator('g').evaluateAll(nodes => nodes.map(el => el.getAttribute('transform')))).toEqual(positions)
+  await nextScratchPulse(page); await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.gn-scratch')).toHaveAttribute('data-turns', '1')
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(page.locator('.gn-scratch-rail-scrolling')).toBeVisible()
+  await page.getByRole('button', { name: 'AJUSTES', exact: true }).click()
+  await page.getByRole('button', { name: /^SUAVES/ }).click()
+  await page.getByRole('button', { name: 'Cerrar ajustes de Groove', exact: true }).click()
+  await expect(fixed).toBeVisible(); await expect(page.locator('.gn-scratch-rail-scrolling')).toBeHidden()
+  await expect(page.locator('.gn-scratch')).toHaveAttribute('data-turns', '1')
+})
+
+test('a full Scratch session completes all stages with a meaningful precision result', async ({ page }) => {
+  test.setTimeout(60_000)
+  await openGroove(page); await selectReel(page, 'Modo de Groove Ninja', 'SCRATCH SESSION'); await start(page)
+  const patterns = new Set<string>()
+  let gestures = 0
+  while (await page.locator('.gn-panel').getAttribute('data-status') === 'playing') {
+    if (!await page.locator('.gn-scratch').count()) { await page.clock.runFor(100); continue }
+    const target = Number(await page.locator('.gn-scratch').getAttribute('data-target'))
+    if (target >= 60_000) {
+      const elapsed = Number(await page.locator('.gn-panel').getAttribute('data-elapsed'))
+      await page.clock.runFor(60_100 - elapsed); break
+    }
+    patterns.add((await page.locator('.gn-scratch').getAttribute('data-pattern'))!)
+    const direction = Number(await page.locator('.gn-scratch').getAttribute('data-direction'))
+    await nextScratchPulse(page); await page.keyboard.press(direction > 0 ? 'ArrowRight' : 'ArrowLeft'); gestures++
+  }
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'complete')
+  expect(patterns.size).toBe(4); expect(gestures).toBeGreaterThan(50)
+  await expect(page.locator('.gn-result-details')).toContainText(`${gestures}/${gestures} GESTOS PERFECTOS · 100%`)
+  await expect(page.locator('.gn-board')).toHaveAttribute('aria-label', /5 vidas$/)
+  await expect(page.getByText('BUENA SESIÓN.', { exact: true })).toBeVisible()
+})
+
+for (const size of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
+  test(`Scratch rail and a real touch phrase fit ${size.width}x${size.height}`, async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium')
+    await page.setViewportSize(size)
+    await openGroove(page); await selectReel(page, 'Modo de Groove Ninja', 'SCRATCH SESSION'); await start(page)
+    const bounds = (await page.locator('.gn-board').boundingBox())!
+    for (const selector of ['.gn-scratch-next', '.gn-scratch-rail-scrolling']) {
+      const r = (await page.locator(selector).boundingBox())!
+      expect(r.x).toBeGreaterThanOrEqual(bounds.x); expect(r.y).toBeGreaterThanOrEqual(bounds.y)
+      expect(r.x + r.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1)
+      expect(r.y + r.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1)
+    }
+    for (const button of await page.locator('.gn-actions button,.gn-top button').all()) {
+      expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+    }
+    const cdp = await page.context().newCDPSession(page)
+    const x = (n: number) => bounds.x + n * bounds.width / 640, y = bounds.y + 355 * bounds.height / 760
+    const scroll = await page.evaluate(() => window.scrollY)
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x(260), y }] })
+    let position = 260
+    for (let i = 0; i < 4; i++) {
+      await nextScratchPulse(page)
+      position += (i % 2 ? -1 : 1) * 70
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x(position), y }] })
+      if (i === 0) await test.info().attach(`scratch-${size.width}x${size.height}`, { body: await page.screenshot({ type: 'jpeg', quality: 80 }), contentType: 'image/jpeg' })
+      if (i < 3) await expect(page.locator('.gn-scratch')).toHaveAttribute('data-turns', String(i + 1))
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach()
+    await expect(page.getByTestId('groove-score')).toHaveText('00500')
+    expect(await page.evaluate(() => window.scrollY)).toBe(scroll)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  })
 }
 async function keyboardPhrase(page: Page) {
   const count = Number(await page.locator('.gn-scratch').getAttribute('data-pattern')) === 1 ? 3 : 4

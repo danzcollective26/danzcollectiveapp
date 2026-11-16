@@ -98,10 +98,10 @@ de esa versión, no pruebas nuevas de esta revisión.
 | --- | --- | --- |
 | G02 | Oleadas según BPM aproximado del tema real | Publicado PR 46: reloj del audio, oleadas y Scratch a 127 BPM aproximados. CI 235: 267 internas, 582 navegador y 16 offline correctos. Acceso privado y revisión pública comprobados. |
 | G03 | Funky Fiesta y WTHIMH para Groove | Publicado PR 46: ambos MP3 privados, sesión comprobada y enlaces de 120 s; acceso público rechazado. CI y revisión pública correctos; no hay archivos de audio en GitHub. |
-| G04 | Scratch con desafío rítmico entretenido tipo Guitar Hero | Parcial. Existen patrones temporizados; evaluar beatmap real, lectura y diversión. No declararlo acabado solo por pasar tests. |
+| G04 | Scratch con desafío rítmico entretenido tipo Guitar Hero | En revisión: notas anticipadas hacia marca fija, feedback adelantado/tarde y precisión de sesión; alternativa fija para movimiento reducido. Beatmap musical editado y valoración de diversión prolongada siguen pendientes. |
 | G05 | Cortes dirigidos arriba/abajo y secuencias | Publicado y verificado PR 43 (2ac95f3c): cuatro sentidos reales, secuencias numeradas de dos/tres vinilos y +300 al completarlas. CI 230: 253 internas, 564 navegador y 16 offline correctas; capturas y apertura pública revisadas. T01 conserva pruebas físicas. |
 | G06 | Estilos de corte desbloqueables localmente | Trazo Club a los 20 cortes y preferencias persistentes implementados y comprobados. No modifica alcance, puntuación, vidas ni duración. Publicado y verificado, PR 30. |
-| G07 | Variación de cabina, armas y multicortes | Parcial. Cabina detallada, feedback, efectos suaves y cosméticos comprobados; música/BPM real y evaluación de diversión a lo largo de una sesión siguen pendientes. |
+| G07 | Variación de cabina, armas y multicortes | Parcial. Cabina, feedback, efectos suaves, cosméticos y música/BPM aproximados publicados. Nueva lectura de Scratch en revisión; evaluación de diversión a lo largo de una sesión sigue pendiente. |
 | G08 | Ranking/competición online de Groove | Pendiente; no usar puntuación local como resultado verificado ni conceder DANZPOINTS desde el cliente. |
 
 ### Catálogo y trabajo externo
