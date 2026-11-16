@@ -7,6 +7,7 @@ import DanzFlower from '../content/DanzFlower'
 import PassArrivalGuide from './PassArrivalGuide'
 import { readWithDeadline } from '../cloud/readWithDeadline'
 import './EventPassport.css'
+import { PassportSkeleton } from '../feel/Skeleton'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
 type Props = {
@@ -145,7 +146,7 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
             {userId && <button type="button" className="outline-btn" onClick={() => setRetry(value => value + 1)} disabled={authLoading || passport.loading}>ACTUALIZAR SELLOS</button>}
           </div>
           {!userId && <div className="passport-empty"><span className="passport-next-stamp" aria-hidden="true"><DanzFlower /><span>TU PRÓXIMA<br />NOCHE</span></span><p>Inicia sesión para ver los sellos que ya has guardado.</p>{!authLoading && client && <button className="outline-btn" type="button" onClick={requestSignIn}>ABRIR MI PASAPORTE</button>}</div>}
-          {userId && (authLoading || passport.loading) && <p role="status">Cargando tu pasaporte…</p>}
+          {userId && (authLoading || passport.loading) && <div role="status"><p>Cargando tu pasaporte…</p><PassportSkeleton /></div>}
           {userId && !authLoading && passport.error && <p className="passport-empty" role="status">No hemos podido cargar tus sellos. Pulsa «Actualizar sellos» para volver a intentarlo.</p>}
           {stampsReady && items.length === 0 && <div className="passport-empty"><span className="passport-next-stamp" aria-hidden="true"><DanzFlower /><span>TU PRÓXIMA<br />NOCHE</span></span><p>Tu primera noche empieza aquí. Añade el código de un evento para estrenar tu pasaporte.</p></div>}
           <ul className="passport-stamps">{items.map((stamp, index) => <li key={stamp.event_id} className="passport-stamp" data-ink={index % 3}>

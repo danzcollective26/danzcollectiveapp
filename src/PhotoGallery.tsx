@@ -4,6 +4,7 @@ import {
   type StoredAlbum, type StoredPhoto,
 } from './galleryStorage'
 import './PhotoGallery.css'
+import { GallerySkeleton } from './feel/Skeleton'
 
 type Photo = { id: string; name: string; url: string }
 type EventAlbum = { id: string; name: string; date: string; photos: Photo[] }
@@ -338,7 +339,8 @@ export default function PhotoGallery({ active, onBack }: Props) {
         <span className="gallery-album-count">{events.length} EVENTO{events.length === 1 ? '' : 'S'} · {totalPhotos} FOTOS</span>
       </div>
 
-      {events.length === 0 && <p className="gallery-instructions">{isAdminPreview ? 'Todavía no tienes álbumes. Crea uno en el formulario inferior.' : 'Todavía no hay galerías para ver en esta demostración.'}</p>}
+      {loading && events.length === 0 && <GallerySkeleton label="Cargando álbumes" count={3} />}
+      {!loading && events.length === 0 && <p className="gallery-instructions">{isAdminPreview ? 'Todavía no tienes álbumes. Crea uno en el formulario inferior.' : 'Todavía no hay galerías para ver en esta demostración.'}</p>}
       <div className="gallery-event-grid" aria-label="Álbumes de eventos de prueba">
         {events.map((album) => (
           <button

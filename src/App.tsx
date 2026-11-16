@@ -44,6 +44,9 @@ import ArcadeLaunch from './arcade/ArcadeLaunch'
 import Yeppo, { markYeppoWelcomeDone, type YeppoDemoRequest } from './yeppo/Yeppo'
 import { setYeppoEnabled } from './yeppo/settings'
 import DanzRadio from './music/DanzRadio'
+import FeelLayer from './feel/FeelLayer'
+import { PageSkeleton, GallerySkeleton } from './feel/Skeleton'
+import { prefersReducedMotion, runViewTransition } from './feel/motion'
 
 const collective = parseCollective(content)
 
@@ -239,10 +242,13 @@ export default function App() {
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
     try { if (page !== destination || arcadeGame !== null) window.history.pushState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
-    setArcadeGame(null)
-    setLaunchGroove(false)
-    setPage(destination)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const apply = () => {
+      setArcadeGame(null)
+      setLaunchGroove(false)
+      setPage(destination)
+    }
+    runViewTransition(() => flushSync(apply))
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
   }
 
   const openSnake = () => {
@@ -304,10 +310,23 @@ export default function App() {
   }
 
   useEffect(() => {
-    const back = () => { dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
+    const back = () => {
+      runViewTransition(() => flushSync(() => {
+        dispatch({ type: 'pause' })
+        gameScreen.leave()
+        setLaunchGroove(locationGame() === 'groove')
+        setPage(locationPage())
+        setArcadeGame(locationGame())
+      }))
+    }
     window.addEventListener('popstate', back)
     return () => window.removeEventListener('popstate', back)
   }, [])
+
+  useEffect(() => {
+    const current = document.querySelector<HTMLElement>('.desktop-nav button.active')
+    current?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+  }, [page])
 
   return (
     <div className={`site-shell${quickArrival ? ' quick-arrival' : ''}`}>
@@ -327,10 +346,11 @@ export default function App() {
       </header>
 
       <PwaControls quiet={quickArrival || page === 'arcade'} />
+      <FeelLayer />
 
       <main>
         {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
-        {page === 'inicio' && testLab && <Suspense fallback={<p role="status">Abriendo zona de pruebas…</p>}><TestLab onKart={openKart} onCollecta={openCollecta} onJack={openSnake} onGroove={()=>openGroove(true)} onLibrary={()=>go('arcade')} onYeppo={move=>{markYeppoWelcomeDone();setYeppoEnabled(true);setYeppoDemo(previous=>({id:previous.id+1,move}))}}/></Suspense>}
+        {page === 'inicio' && testLab && <Suspense fallback={<PageSkeleton label="Abriendo zona de pruebas…" />}><TestLab onKart={openKart} onCollecta={openCollecta} onJack={openSnake} onGroove={()=>openGroove(true)} onLibrary={()=>go('arcade')} onYeppo={move=>{markYeppoWelcomeDone();setYeppoEnabled(true);setYeppoDemo(previous=>({id:previous.id+1,move}))}}/></Suspense>}
         {page === 'inicio' && !testLab && (
           <>
             <section className="intro content">
@@ -381,14 +401,14 @@ export default function App() {
           {managesPhotos && <button type="button" className="outline-btn" aria-pressed={photoSource === 'attendance'} onClick={() => setPhotoSource('attendance')}>Galerías con mi sello</button>}
           <button type="button" className="outline-btn" aria-pressed={photoSource === 'local'} onClick={() => setPhotoSource('local')}>Álbumes de este navegador</button>
         </div>}
-        {localGalleryOpened.current && <Suspense fallback={<p className="content" role="status">Abriendo tus álbumes…</p>}><PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} /></Suspense>}
-        {page === 'fotos' && photoSource !== 'local' && <Suspense fallback={<p className="content" role="status">Abriendo las galerías…</p>}>{admin.loading ? <p className="content" role="status">Comprobando tus álbumes…</p> : photoSource === 'private' && managesPhotos ? <section className="content inner-page"><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} albumsOnly /></section> : <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}</Suspense>}
+        {localGalleryOpened.current && <Suspense fallback={<PageSkeleton label="Abriendo tus álbumes…" />}><PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} /></Suspense>}
+        {page === 'fotos' && photoSource !== 'local' && <Suspense fallback={<PageSkeleton label="Abriendo las galerías…" />}>{admin.loading ? <div className="content" role="status"><p>Comprobando tus álbumes…</p><GallerySkeleton label="Comprobando tus álbumes" count={4} /></div> : photoSource === 'private' && managesPhotos ? <section className="content inner-page"><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} albumsOnly /></section> : <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}</Suspense>}
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
-          <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} /></Suspense>
+          <Suspense fallback={<PageSkeleton label="Abriendo tu cuenta…" />}><Account key={auth.user?.id ?? 'guest'} /></Suspense>
         </section>}
-        {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
+        {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<PageSkeleton label="Abriendo administración…" />}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
         {page === 'arcade' && arcadeGame === null && <section className="content inner-page arcade-library" aria-label="Biblioteca ARCADANZ">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
@@ -457,7 +477,7 @@ export default function App() {
           </section>
         )}
 
-        {page === 'danzpoints' && <section className="content inner-page points-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><div className="eyebrow">DANZ COLLECTIVE / RECOMPENSAS</div><h1 className="page-title">DANZ<br /><em>POINTS.</em></h1><Suspense fallback={<p role="status">Abriendo DANZPOINTS…</p>}><DanzPoints key={auth.user?.id??'guest'} onSignIn={()=>go('cuenta')} /></Suspense></section>}
+        {page === 'danzpoints' && <section className="content inner-page points-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><div className="eyebrow">DANZ COLLECTIVE / RECOMPENSAS</div><h1 className="page-title">DANZ<br /><em>POINTS.</em></h1><Suspense fallback={<PageSkeleton label="Abriendo DANZPOINTS…" />}><DanzPoints key={auth.user?.id??'guest'} onSignIn={()=>go('cuenta')} /></Suspense></section>}
 
         {page === 'danzin' && (
           <section className="content inner-page">
@@ -475,7 +495,7 @@ export default function App() {
             <div className="eyebrow">DANZ COLLECTIVE / CLOTHING</div>
             <h1 className="page-title">DANZ<br /><em>FLOR.</em></h1>
             <p className="page-lead">La ropa del colectivo. Diseñada para la música, hecha para llevarla contigo.</p>
-            <Suspense fallback={<p role="status">Abriendo DANZFLOR…</p>}><DanzShop /></Suspense>
+            <Suspense fallback={<PageSkeleton label="Abriendo DANZFLOR…" />}><DanzShop /></Suspense>
           </section>
         )}
       </main>

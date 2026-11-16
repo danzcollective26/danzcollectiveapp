@@ -5,6 +5,7 @@ import DanzFlower from '../content/DanzFlower'
 import OriginalFileActions from './OriginalFileActions'
 import { readWithDeadline } from './readWithDeadline'
 import './PrivateGallery.css'
+import { GallerySkeleton } from '../feel/Skeleton'
 
 export type PrivateGalleryProps = {
   client: SupabaseClient<Database> | null
@@ -284,7 +285,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   if (!client) return <div className="content private-gallery-state"><h2>Galerías privadas</h2><p>La conexión de las galerías todavía no está disponible.</p></div>
   if (authLoading) return <div className="content private-gallery-state" role="status">Comprobando tu sesión…</div>
   if (!userId) return <div className="content private-gallery-state"><h2>Los recuerdos de tu fiesta</h2><p>Inicia sesión para consultar las galerías a las que tienes acceso.</p><button className="primary-btn" onClick={onSignIn}>INICIAR SESIÓN</button></div>
-  if (!sameAccount(events, client, userId) || events.loading) return <div className="content private-gallery-state" role="status">Cargando tus galerías…</div>
+  if (!sameAccount(events, client, userId) || events.loading) return <div className="content private-gallery-state" role="status"><p>Cargando tus galerías…</p><GallerySkeleton label="Cargando tus galerías" count={3} /></div>
   if (events.error) return <div className="content private-gallery-state" role="alert"><p>No hemos podido cargar tus galerías. Inténtalo de nuevo.</p><button className="outline-btn" onClick={reload}>VOLVER A INTENTAR</button></div>
   if (!eventItems.length) return <div className="content private-gallery-state"><h2>Todavía no hay galerías disponibles para tu cuenta</h2><p>Aquí aparecerán los eventos y fotografías cuando tengas acceso y estén publicados.</p><button className="outline-btn" onClick={reload}>ACTUALIZAR GALERÍAS</button></div>
 
@@ -297,7 +298,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       </button>)}
     </div>
     <h2>{selectedEvent?.title}</h2>
-    {photosLoading ? <p role="status">Cargando fotografías…</p> : photosError ? <div role="alert"><p>No hemos podido abrir las fotografías de este evento.</p><button className="outline-btn" onClick={reload}>VOLVER A INTENTAR</button></div> : !photoItems.length ? <section className="private-gallery-waiting" aria-labelledby="gallery-waiting-title">
+    {photosLoading ? <div role="status"><p>Cargando fotografías…</p><GallerySkeleton /></div> : photosError ? <div role="alert"><p>No hemos podido abrir las fotografías de este evento.</p><button className="outline-btn" onClick={reload}>VOLVER A INTENTAR</button></div> : !photoItems.length ? <section className="private-gallery-waiting" aria-labelledby="gallery-waiting-title">
       <DanzFlower className="gallery-waiting-flower" />
       <div>
         <span className="gallery-waiting-label">DESPUÉS DE LA NOCHE</span>
