@@ -260,5 +260,6 @@ sin botón de descarga y sin audios en GitHub. Ambos MP3 ya están en Storage
 privado y sus URLs públicas se rechazan. Implementados selector, reloj media,
 oleadas/Scratch a 127 BPM aproximados, pausa y récord por tema/modo. El servidor
 valida sesión y emite enlaces de 120 s; Ensayo sigue sin cuenta y offline.
-267 internas y build correctos; CI y publicación en curso. Ver
+Publicado PR 46: CI 235 pasa build, 267 internas, 582 navegador y 16 offline.
+Backend protegido y apertura pública comprobados; T01 conserva prueba física. Ver
 GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.

@@ -1,6 +1,6 @@
 # Groove — música protegida
 
-16 de noviembre de 2026. Integración y publicación en curso.
+16 de noviembre de 2026. Publicado y verificado en PR 46.
 
 El propietario autoriza publicar el código y reproducir Funky Fiesta y WTHIMH
 con acceso protegido, sin botón de descarga y sin subir los audios a GitHub.
@@ -30,7 +30,27 @@ rutas/TTL fijos, errores sin filtración, enlaces inválidos, separación por cu
 cancelación y ausencia de audios en Git. Escenarios de navegador con fixture
 original sintetizado y usuarios ficticios; ningún master se publica en CI.
 
-Pendiente de registrar al cerrar: backend conectado, CI, capturas y revisión
-pública. T01 conserva teléfonos físicos, GPU, FPS, batería y audio escuchado.
+Backend conectado, CI y revisión pública verificados en el cierre siguiente. T01 conserva teléfonos físicos, GPU, FPS, batería y audio escuchado.
 G04/G07 mantiene evaluación musical/diversión; G08, puntos, fotos, otros módulos,
 entregas externas y QR mantienen sus estados.
+
+
+## Cierre comprobado
+
+- Merge `4b6e0082`, código probado `e448d25b`, producción READY
+  `dpl_2hyyE5QNx8z96f47ZZaHw5SqcA8G`. Alias público y /test comprobados.
+- CI 235: build, 267 internas, 582 navegador (194 por tamaño) y 16 offline
+  correctos sin reintentos fallidos. Fixture musical propio; ningún master en CI.
+- Ambos archivos reales: privados, lectura pública rechazada, reproducción por
+  rangos 206 con sesión válida y MIME audio/mpeg. Sin sesión/JWT inválido 401,
+  alteración de ruta/TTL 400, otro origen 403. Usuario sintético retirado; cero
+  usuarios QA restantes y acceso de la cuenta borrada rechazado. Auxiliar cerrado.
+- Revisión pública: selector de ambos temas, aviso de sesión y Ensayo jugable sin
+  cuenta. Cambio de tema restaura sesión; ajustes legibles, controles >=44 px y
+  sin desborde horizontal. Corregida una regla CSS que partía el carrusel en dos
+  columnas dentro de ajustes; se conserva el menú, la física y la protección.
+- Sin audios en la historia publicada de GitHub; el precaché tampoco contiene
+  los archivos ni enlaces temporales. Service role solo en servidor.
+- G02/G03 completos en este alcance. T01/G04/G07/G08 conservan sus límites.
+  No se afirma reproducción oída en un teléfono físico ni protección absoluta
+  contra captura de audio.
