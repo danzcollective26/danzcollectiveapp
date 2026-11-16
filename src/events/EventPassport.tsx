@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { clearPendingPass, normalizeEventCode, readPendingPass, savePendingPass } from './pass'
@@ -8,6 +8,9 @@ import PassArrivalGuide from './PassArrivalGuide'
 import { readWithDeadline } from '../cloud/readWithDeadline'
 import './EventPassport.css'
 import { PassportSkeleton } from '../feel/Skeleton'
+import { celebrate } from '../feel/celebrate'
+import { pulse } from '../feel/haptics'
+import { playDelight } from '../feel/sounds'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
 type Props = {
@@ -37,6 +40,16 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
   const busy = redemption.busy
   const [backup, setBackup] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
+  const celebratedStamp = useRef('')
+  useEffect(() => {
+    const message = redemption.message ?? ''
+    const token = `${redemption.revision}:${message}`
+    if (!message.startsWith('¡Sello guardado') || celebratedStamp.current === token) return
+    celebratedStamp.current = token
+    pulse('confirm')
+    playDelight('stamp')
+    celebrate(document.querySelector('.passport-message'))
+  }, [redemption.revision, redemption.message])
   const [passport, setPassport] = useState<{ owner: string | null; items: Stamp[]; loading: boolean; error: boolean }>({ owner: null, items: [], loading: true, error: false })
   useEffect(() => { setCode(pendingPass ?? ''); setBackup(null) }, [pendingPass])
   useEffect(() => { setMessage(launchIssue) }, [launchIssue])

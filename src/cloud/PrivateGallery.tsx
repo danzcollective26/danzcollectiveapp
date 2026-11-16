@@ -8,7 +8,9 @@ import './PrivateGallery.css'
 import { GallerySkeleton } from '../feel/Skeleton'
 import ProgressiveImage from '../feel/ProgressiveImage'
 import { favoriteKey } from '../feel/favorites'
+import { celebrate } from '../feel/celebrate'
 import { pulse } from '../feel/haptics'
+import { playDelight } from '../feel/sounds'
 import { useFavorites } from '../feel/useFavorites'
 import { clampScale } from '../feel/viewerGestures'
 
@@ -314,9 +316,12 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   }
 
   const reload = () => setRetry((value) => value + 1)
-  const markFavorite = (id: string) => {
+  const markFavorite = (id: string, origin?: Element | null) => {
     const saved = favorites.toggle(favoriteKey('private', id))
     pulse(saved ? 'confirm' : 'tap')
+    if (!saved) return
+    playDelight('tap')
+    celebrate(origin)
   }
   const visiblePhotos = onlyFavorites ? photoItems.filter(photo => favorites.has(favoriteKey('private', photo.id))) : photoItems
   if (!client) return <div className="content private-gallery-state"><h2>Galerías privadas</h2><p>La conexión de las galerías todavía no está disponible.</p></div>
@@ -353,7 +358,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
           <button type="button" className="private-photo-open" onClick={() => setViewer({ owner: userId, eventId, photoId: photo.id })} aria-label={`Abrir foto privada ${index + 1}`}>
             <ProgressiveImage src={photo.url} alt={`Fotografía ${index + 1} de ${selectedEvent?.title}`} referrerPolicy="no-referrer" eager={index < 4} />
           </button>
-          <button type="button" className="photo-favorite" aria-pressed={saved} aria-label={saved ? `Quitar foto ${index + 1} de favoritas` : `Guardar foto ${index + 1} en favoritas`} onClick={() => markFavorite(photo.id)}>{saved ? '♥' : '♡'}</button>
+          <button type="button" className="photo-favorite" aria-pressed={saved} aria-label={saved ? `Quitar foto ${index + 1} de favoritas` : `Guardar foto ${index + 1} en favoritas`} onClick={event => markFavorite(photo.id, event.currentTarget)}>{saved ? '♥' : '♡'}</button>
         </div>
       })}
     </div>
@@ -368,7 +373,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       <p className="private-viewer-hint">{ownZoom ? 'Arrastra para recorrer la foto · Pellizca o doble toque para ajustar.' : 'Desliza para pasar de foto · Pellizca para ampliar · Desliza hacia abajo para cerrar.'}</p>
       <div className="private-gallery-viewer-actions">
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Anterior foto privada" onClick={() => movePhoto(-1)}>←</button>}
-        <button type="button" className="outline-btn photo-favorite-inline" aria-pressed={favorites.has(favoriteKey('private', shownPhoto.id))} onClick={() => markFavorite(shownPhoto.id)}>{favorites.has(favoriteKey('private', shownPhoto.id)) ? 'EN FAVORITAS ♥' : 'GUARDAR FAVORITA ♡'}</button>
+        <button type="button" className="outline-btn photo-favorite-inline" aria-pressed={favorites.has(favoriteKey('private', shownPhoto.id))} onClick={event => markFavorite(shownPhoto.id, event.currentTarget)}>{favorites.has(favoriteKey('private', shownPhoto.id)) ? 'EN FAVORITAS ♥' : 'GUARDAR FAVORITA ♡'}</button>
         <button className="outline-btn" aria-label={ownZoom ? 'Restablecer tamaño de foto privada' : 'Ampliar foto privada'} aria-pressed={Boolean(ownZoom)} onClick={toggleZoom}>{ownZoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Siguiente foto privada" onClick={() => movePhoto(1)}>→</button>}
       </div>

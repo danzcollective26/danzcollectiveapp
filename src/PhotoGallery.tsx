@@ -7,7 +7,9 @@ import './PhotoGallery.css'
 import { GallerySkeleton } from './feel/Skeleton'
 import ProgressiveImage from './feel/ProgressiveImage'
 import { favoriteKey } from './feel/favorites'
+import { celebrate } from './feel/celebrate'
 import { pulse } from './feel/haptics'
+import { playDelight } from './feel/sounds'
 import { useFavorites } from './feel/useFavorites'
 import { clampScale, decideSwipe } from './feel/viewerGestures'
 
@@ -368,9 +370,12 @@ export default function PhotoGallery({ active, onBack }: Props) {
     if (decision === 'next') next()
     if (decision === 'previous') previous()
   }
-  const markFavorite = (id: string) => {
+  const markFavorite = (id: string, origin?: Element | null) => {
     const saved = favorites.toggle(favoriteKey('local', id))
     pulse(saved ? 'confirm' : 'tap')
+    if (!saved) return
+    playDelight('tap')
+    celebrate(origin)
   }
 
   const photo = selected === null ? null : photos[selected]
@@ -539,7 +544,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
                     <ProgressiveImage src={item.url} alt={item.name} eager={index < 4} />
                     <span className="gallery-photo-counter">{String(index + 1).padStart(2, '0')}</span>
                   </button>
-                  <button type="button" className="photo-favorite" aria-pressed={saved} aria-label={saved ? `Quitar ${item.name} de favoritas` : `Guardar ${item.name} en favoritas`} onClick={() => markFavorite(item.id)}>{saved ? '♥' : '♡'}</button>
+                  <button type="button" className="photo-favorite" aria-pressed={saved} aria-label={saved ? `Quitar ${item.name} de favoritas` : `Guardar ${item.name} en favoritas`} onClick={event => markFavorite(item.id, event.currentTarget)}>{saved ? '♥' : '♡'}</button>
                   {isAdminPreview && <button type="button" className="gallery-photo-remove" title="Quitar fotografía" aria-label={`Quitar ${item.name} de este álbum`} onClick={() => removePhoto(item.id)} disabled={locked}>✕</button>}
                 </div>
               )})}
@@ -568,7 +573,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
           <div className="gallery-lightbox-footer">
             <span title={photo.name}>{photo.name}</span>
             <div className="gallery-lightbox-actions">
-              <button type="button" className="gallery-lightbox-favorite" aria-pressed={favorites.has(favoriteKey('local', photo.id))} onClick={() => markFavorite(photo.id)}>{favorites.has(favoriteKey('local', photo.id)) ? 'EN FAVORITAS ♥' : 'GUARDAR FAVORITA ♡'}</button>
+              <button type="button" className="gallery-lightbox-favorite" aria-pressed={favorites.has(favoriteKey('local', photo.id))} onClick={event => markFavorite(photo.id, event.currentTarget)}>{favorites.has(favoriteKey('local', photo.id)) ? 'EN FAVORITAS ♥' : 'GUARDAR FAVORITA ♡'}</button>
               <a className="gallery-lightbox-download" href={photo.url} download={photo.name || 'danz-foto'}>DESCARGAR FOTO ↓</a>
               {isAdminPreview && <button type="button" className="gallery-lightbox-remove" onClick={() => removePhoto(photo.id)} disabled={locked}>QUITAR FOTO ✕</button>}
             </div>

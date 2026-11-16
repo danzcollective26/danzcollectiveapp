@@ -45,8 +45,12 @@ import Yeppo, { markYeppoWelcomeDone, type YeppoDemoRequest } from './yeppo/Yepp
 import { setYeppoEnabled } from './yeppo/settings'
 import DanzRadio from './music/DanzRadio'
 import FeelLayer from './feel/FeelLayer'
+import DelightToggle from './feel/DelightToggle'
 import { PageSkeleton, GallerySkeleton } from './feel/Skeleton'
+import { celebrate } from './feel/celebrate'
+import { pulse } from './feel/haptics'
 import { prefersReducedMotion, runViewTransition } from './feel/motion'
+import { playDelight } from './feel/sounds'
 
 const collective = parseCollective(content)
 
@@ -207,6 +211,13 @@ export default function App() {
   useEffect(() => {
     if (game.score > record) setRecords(previous => ({ ...previous, [game.mode]: saveSnakeRecord(game.score, game.mode) }))
   }, [game.score, game.mode, record])
+
+  useEffect(() => {
+    if (game.score <= 0 || game.score % 50 !== 0) return
+    pulse('confirm')
+    playDelight('achieve')
+    celebrate(document.querySelector('.snake-score-gain'))
+  }, [game.score])
 
   useEffect(() => {
     if (page !== 'arcade' || arcadeGame !== 'snake') return
@@ -502,7 +513,7 @@ export default function App() {
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
       <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
-      <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
+      <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><DelightToggle /><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )
 }

@@ -135,7 +135,21 @@
 @keyframes yeppo-head-sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
 @keyframes yeppo-surprise-head{0%,100%{transform:scale(1)}30%,65%{transform:scale(1.08)}}
 @media(max-width:500px){.yeppo-avatar .yeppo-character{width:76px;height:84px}.yeppo-peek-avatar .yeppo-character{width:58px;height:66px}.yeppo-welcome-face .yeppo-character{width:88px;height:100px}}
-@media(prefers-reduced-motion:reduce){.yeppo-character .yeppo-head,.yeppo-character .yeppo-left-arm,.yeppo-character .yeppo-left-hand,.yeppo-character .yeppo-right-arm{animation:none!important}}
+.yeppo-pose-point .yeppo-left-arm,.yeppo-pose-point .yeppo-left-hand{animation:yeppo-point 1.8s ease-in-out infinite}
+@keyframes yeppo-point{0%,100%{transform:rotate(-46deg)}50%{transform:rotate(-34deg)}}
+.yeppo-reply-point{display:flex;align-items:center;gap:8px;margin-top:8px}
+.yeppo-reply-point .yeppo-character{width:42px;height:48px;max-width:none}
+.yeppo.yeppo-available{opacity:.78}
+.yeppo.yeppo-available:hover,.yeppo.yeppo-available:focus-within{opacity:1}
+.yeppo-chat-launcher .yeppo-character .yeppo-head,
+.yeppo-chat-launcher .yeppo-character .yeppo-right-arm,
+.yeppo-chat-launcher .yeppo-character .yeppo-left-leg,
+.yeppo-chat-launcher .yeppo-character .yeppo-right-leg,
+.yeppo-chat-launcher .yeppo-character .yeppo-left-foot,
+.yeppo-chat-launcher .yeppo-character .yeppo-right-foot,
+.yeppo-chat-launcher .yeppo-character .yeppo-sparkles,
+.yeppo-chat-launcher .yeppo-character .yeppo-features{animation:none}
+@media(prefers-reduced-motion:reduce){.yeppo-character .yeppo-head,.yeppo-character .yeppo-left-arm,.yeppo-character .yeppo-left-hand,.yeppo-character .yeppo-right-arm,.yeppo-pose-point .yeppo-left-arm,.yeppo-pose-point .yeppo-left-hand{animation:none!important}}
 
 /* A small living character: alternating feet and tap reactions, never disruptive. */
 .yeppo-character .yeppo-left-leg,.yeppo-character .yeppo-right-leg{transform-origin:96px 106px;animation:yeppo-tiptoe-left 3.7s ease-in-out infinite}

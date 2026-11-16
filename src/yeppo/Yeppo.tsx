@@ -93,7 +93,7 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate,demoRe
    if(messageHasFacts(category)&&!verified)category='seccion'
    const phrase=nextPhrase(category,verified?.variables,ledger.count+Math.floor(now/60000)%9)
    if(!phrase)return
-   setLine(phrase);setExpression(expressions[(ledger.count+Math.floor(now/1000))%expressions.length]);setRoaming(ledger.count%2===0);setRoamMove(roamMoves[ledger.count%roamMoves.length]);setRoamDemo(false);setRoamReaction(0);setVisible(true);setMenu(false)
+   setLine(phrase);setExpression(expressions[(ledger.count+Math.floor(now/1000))%expressions.length]);setRoaming(ledger.count%4===0);setRoamMove(roamMoves[ledger.count%roamMoves.length]);setRoamDemo(false);setRoamReaction(0);setVisible(true);setMenu(false)
    writeLedger({...ledger,count:ledger.count+1,lastAt:now});active.current=0
    until.current=now+5500
   },1000)
@@ -184,13 +184,14 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate,demoRe
    </aside>
  </>
  if(!visible&&!chatOpen)return <aside className="yeppo yeppo-available" aria-label="Hablar con Yeppo">
-   <button type="button" className="yeppo-chat-launcher" onClick={openChat} aria-label="Hablar con Yeppo"><YeppoMascot expression="wink"/><span>HABLA CONMIGO</span></button>
+   <button type="button" className="yeppo-chat-launcher" onClick={openChat} aria-label="Hablar con Yeppo"><YeppoMascot expression="wink" pose="point"/><span>HABLA CONMIGO</span></button>
  </aside>
  if(chatOpen)return <aside className="yeppo yeppo-chat-shell" aria-label="Charla con Yeppo">
    <section className="yeppo-chat-dialog" role="dialog" aria-label="Hablar con Yeppo">
     <header className="yeppo-chat-header"><span>🌸 YEPPO <small>GUÍA DE DANZ · SIN IA GENERATIVA</small></span><button type="button" onClick={()=>setChatOpen(false)} aria-label="Cerrar charla con Yeppo">×</button></header>
     {feedbackOpen?<YeppoFeedback page={page} initialCategory={feedbackDraft.category} initialMessage={feedbackDraft.message} onClose={()=>setFeedbackOpen(false)}/>:<div className="yeppo-chat-messages" role="log" aria-live="polite">{chat.map((message,i)=><div key={i} className={message.from==='yeppo'?'yeppo-chat-reply':'yeppo-chat-question'}>
       <p>{message.text}</p>
+      {message.destination&&<span className="yeppo-reply-point" aria-hidden="true"><YeppoMascot expression="wink" pose="point"/></span>}
       {message.destination&&onNavigate&&<button type="button" onClick={()=>{setChatOpen(false);onNavigate(message.destination!)}}>{message.label??'IR A SECCIÓN'} ↗</button>}
       {message.feedbackCategory&&<button type="button" onClick={()=>{setFeedbackDraft({category:message.feedbackCategory!,message:message.feedbackDraft??''});setFeedbackOpen(true)}}>REGISTRAR {message.feedbackCategory==='sugerencia'?'SUGERENCIA':'INCIDENCIA'} ↗</button>}
     </div>)}</div>}
@@ -215,7 +216,7 @@ export default function Yeppo({page,gameActive=false,events=[],onNavigate,demoRe
   </aside>
  return <aside className="yeppo" aria-label="Yeppo, la flor de DANZ">
    <div className="yeppo-bubble"><span>{line}</span><button type="button" aria-label="Cerrar Yeppo" onClick={close}>×</button><button type="button" className="yeppo-bubble-talk" onClick={openChat}>PREGÚNTAME ↗</button></div>
-   <button type="button" className="yeppo-avatar" aria-label="Opciones de Yeppo" onClick={()=>setMenu(x=>!x)}><YeppoMascot expression={expression}/><span>YEPPO</span></button>
+   <button type="button" className="yeppo-avatar" aria-label="Opciones de Yeppo" onClick={()=>setMenu(x=>!x)}><YeppoMascot expression={expression} pose="point"/><span>YEPPO</span></button>
    {menu&&<div className="yeppo-menu"><button onClick={()=>{silenceYeppoForOneHour();setVisible(false)}}>Callar 1 hora</button><button onClick={()=>{setYeppoEnabled(false);setVisible(false)}}>Desactivar</button></div>}
  </aside>
 }

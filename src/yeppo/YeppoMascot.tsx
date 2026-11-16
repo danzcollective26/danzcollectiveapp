@@ -2,13 +2,13 @@
  * Vector drawing, with real limbs and facial moods; not a person or an Arcade avatar.
  */
 export type YeppoMood='neutral'|'smirk'|'wink'|'surprised'|'sleepy'|'eyebrow'
-export default function YeppoMascot({expression='smirk',interacting=false}:{expression?:YeppoMood;interacting?:boolean}){
+export default function YeppoMascot({expression='smirk',interacting=false,pose='idle'}:{expression?:YeppoMood;interacting?:boolean;pose?:'idle'|'point'}){
  const wink=expression==='wink'
  const sleepy=expression==='sleepy'
  const surprised=expression==='surprised'
  const brow=expression==='eyebrow'
  const smirk=expression==='smirk'
- return <svg className={`yeppo-flower yeppo-character yeppo-expression-${expression}`} viewBox="0 0 174 192" aria-hidden="true" focusable="false">
+ return <svg className={`yeppo-flower yeppo-character yeppo-expression-${expression}${pose==='point'?' yeppo-pose-point':''}`} viewBox="0 0 174 192" aria-hidden="true" focusable="false">
   <defs>
    <linearGradient id="yeppo-yellow" x1="0" y1="0" x2=".7" y2="1">
     <stop stopColor="#ffe98c"/><stop offset=".8" stopColor="#ffd268"/><stop offset="1" stopColor="#f8c85f"/>
