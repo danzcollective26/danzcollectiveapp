@@ -13,7 +13,7 @@ async function choose(page:Page,both=true){
   if(both)await collectaControl(page,2,'JOYSTICK')
 }
 async function point(page:Page,id:number,x=0,y=0){
-  return page.getByRole('button',{name:`P${id} Joystick`,exact:true}).locator('svg').evaluate((el,p)=>{
+  return page.locator(`.versus-p${id} .versus-stick svg`).evaluate((el,p)=>{
     const m=(el as SVGSVGElement).getScreenCTM()!,v=new DOMPoint(p.x*42,p.y*42).matrixTransform(m)
     return {x:v.x,y:v.y,id:p.id}
   },{id,x,y})
@@ -71,37 +71,38 @@ test('two analog joysticks and a third-finger sprint stay independent, release a
   await cdp.detach()
 })
 
-test('Arena sticks follow each rotated viewpoint in three sizes and still allow dropping a disc',async({page,browserName},testInfo)=>{
-  test.skip(browserName!=='chromium');test.setTimeout(45000)
+for(const size of [{width:320,height:568},{width:390,height:844},{width:844,height:390}]){
+test(`Arena sticks and third-finger disc follow both viewpoints at ${size.width}x${size.height}`,async({page,browserName},testInfo)=>{
+  test.skip(browserName!=='chromium')
+  await page.setViewportSize(size)
   await choose(page)
-  for(const size of [{width:320,height:568},{width:390,height:844},{width:844,height:390}]){
-    await page.setViewportSize(size)
     await page.goto('/test?seccion=arcade&juego=arena')
     await expect(page.locator('.arena-board')).toHaveAttribute('data-ready','true',{timeout:15000})
-    await page.getByRole('button',{name:'EMPEZAR DUELO',exact:true}).click()
     const centers=[await point(page,1),await point(page,2)],landscape=size.width>size.height
     const ends=landscape?[await point(page,1,0,-1),await point(page,2,0,-1)]:[await point(page,1,1,0),await point(page,2,1,0)]
     expect(ends[0].x).toBeGreaterThan(centers[0].x+20);expect(ends[1].x).toBeLessThan(centers[1].x-20)
     for(const id of [1,2]){
-      const r=(await page.getByRole('button',{name:`P${id} Joystick`,exact:true}).boundingBox())!
+      const r=(await page.locator(`.versus-p${id} .versus-stick`).boundingBox())!
       expect(r.width).toBeGreaterThanOrEqual(90);expect(r.height).toBeGreaterThanOrEqual(90)
       expect(r.x).toBeGreaterThanOrEqual(0);expect(r.x+r.width).toBeLessThanOrEqual(size.width)
       expect(r.y).toBeGreaterThanOrEqual(0);expect(r.y+r.height).toBeLessThanOrEqual(size.height)
     }
     const cdp=await page.context().newCDPSession(page)
+    const disc=(await page.locator('.versus-p1 .arena-drop').boundingBox())!
+    await page.getByRole('button',{name:'EMPEZAR DUELO',exact:true}).click()
+    await expect(page.locator('.arena-game')).toHaveAttribute('data-phase','playing')
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:centers})
     await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:ends})
     await expect.poll(()=>page.locator('.arena-game').getAttribute('data-p1')).not.toBe('1,1')
     await expect.poll(()=>page.locator('.arena-game').getAttribute('data-p2')).not.toBe('9,7')
-    const disc=(await page.getByRole('button',{name:'P1 Soltar disco',exact:true}).boundingBox())!
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[...ends,{id:3,x:disc.x+disc.width/2,y:disc.y+disc.height/2}]})
     await expect.poll(async()=>Number(await page.locator('.arena-game').getAttribute('data-bombs'))).toBeGreaterThan(0)
     await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]})
     await expect(page.locator('.versus-p1 .versus-stick')).toHaveAttribute('data-engaged','false')
     await testInfo.attach(`Collecta joystick ${size.width}x${size.height}`,{body:await page.screenshot(),contentType:'image/png'})
     await cdp.detach()
-  }
 })
+}
 
 test('a focused joystick supports keyboard, and recentering cannot leave a stuck direction',async({page})=>{
   await choose(page)
