@@ -230,14 +230,13 @@ test('tablero y controles caben en móvil vertical y horizontal', async ({ page 
   }
 })
 
-test('Idle Studio muestra una carátula provisional sin fingir que el juego está disponible',async({page})=>{
+test('Idle Studio abre desde la biblioteca y el código está en el repositorio',async({page})=>{
   await openArcade(page, false)
-  const coming=page.getByRole('article',{name:'DANZ Idle Studio, próximamente',exact:true})
+  const coming=page.getByRole('button',{name:'DANZ Idle Studio',exact:true})
   await coming.scrollIntoViewIfNeeded()
-  await expect(coming).toContainText('Nombre y carátula provisionales')
+  await expect(coming).toContainText('src/arcade/idle')
   const cover=coming.getByRole('img')
   await expect.poll(()=>cover.evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
-  await expect(coming.getByRole('button')).toHaveCount(0)
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)
 })
 

@@ -1,15 +1,13 @@
-# DANZ Idle Studio — dirección confirmada
+# DANZ Idle Studio
 
-Carátula y nombre provisionales. El juego continúa marcado «Próximamente»; no se ha implementado todavía.
+El juego ya está en este repositorio. No es una tarjeta vacía.
 
-## Progresión acordada con el usuario
+- Código: `src/arcade/idle`
+- Dibujos: `public/idle`
+- Entrada en la app: ARCADANZ, botón DANZ IDLE STUDIO, o `?seccion=arcade&juego=idle-studio`
+- Identificador: `idle-studio`
+- Los avisos de progreso llevan `claim: false`. Este juego no concede DANZPOINTS.
 
-El vídeo privado del estudio real aportado el 11 de noviembre sirve sobre todo como referencia para el espacio del juego, no como obligación de reproducirlo en la carátula. No publicar el vídeo ni sus fotogramas.
+Se puede jugar. El aspecto gráfico es el prototipo actual y todavía no es el acabado definitivo del estudio.
 
-- Cada puesto tiene niveles propios y mejoras de herramientas/equipos.
-- El progreso permite desbloquear nuevos puestos del estudio.
-- Mantener la mezcla de música, moda, vídeo, impresión 3D y diseño del colectivo.
-- Referencias observadas: mesas de trabajo con bases de corte verdes, paneles de herramientas, estanterías metálicas, cajas de materiales y una impresora 3D cerrada.
-- El usuario acepta que los juegos requieran conexión si eso mejora la experiencia. No se ha cambiado el funcionamiento actual de Snake.
-
-La paleta y la tipografía oficiales están pendientes de que el usuario las facilite. Conservar la flor y el wordmark DanzCollective®.
+La paleta oficial de la app sigue siendo la de ARCADANZ. Conservar la flor y el wordmark.

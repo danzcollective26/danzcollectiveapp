@@ -15,7 +15,7 @@
 .arcade-library .arcade-choice-copy>span{flex-wrap:wrap;color:#d1d4d2;line-height:1.5}
 .arcade-library .arcade-choice-copy b{display:inline-block;background:#e1fa95;color:#111;padding:7px 11px;font-size:11px;letter-spacing:.06em}
 .arcade-library .arcade-choice:hover{transform:translateY(-5px);border-color:#e1fa95;box-shadow:0 16px 36px #0008}
-.arcade-library-upcoming{display:flex;align-items:center;gap:24px;padding:20px;border:1px solid #353637;background:#151617;margin:36px 0}
+.arcade-library-upcoming{display:flex;align-items:center;gap:24px;padding:20px;border:1px solid #353637;background:#151617;margin:36px 0;width:100%;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .arcade-library-upcoming img{width:150px;max-width:30%;height:auto;aspect-ratio:4/3;object-fit:cover}
 .arcade-library-upcoming h2{margin:8px 0;font-size:22px}
 .arcade-library-upcoming p{color:var(--muted);line-height:1.6;margin:8px 0}

@@ -23,8 +23,7 @@ en `docs/PRUEBA_CORREO_Y_MOVIL.md`.
 - DANZ Snake local con teclado/gestos/botones opcionales, cuerpo continuo, récord
   por modo y velocidad progresiva. Clásico y tres laberintos: Islas, Pasillos y
   Circuito; cinco objetivos permiten avanzar y el último recorrido es infinito.
-- DANZ Idle Studio: tarjeta «Próximamente» con ilustración y nombre provisionales.
-  El juego completo y las caras de integrantes siguen pendientes.
+- DANZ Idle Studio: juego jugable en ARCADANZ (`?juego=idle-studio`). El código está en `src/arcade/idle` y los dibujos en `public/idle`. No concede DANZPOINTS. El apartado gráfico sigue siendo el prototipo actual, no un rediseño final.
 - Cartel A4 con QR de acceso general a la app y decoración inspirada en el amor.
   Generación e impresión: `docs/QR_IMPRIMIBLE.md`. No concede un sello de evento.
 - Web del colectivo opcional y desactivada por ahora; la app usa su propia URL.
