@@ -237,3 +237,15 @@ La cámara no altera récords ni añade un modo online. CI 225: 246 pruebas inte
 cambio de vista sin reinicio, preferencia y duelo revisados en la URL pública.
 T04 queda cerrado; T01 conserva GPU, móviles físicos, FPS, batería y audio.
 Ver auditoría de cámaras.
+
+
+## Groove — sentido del corte y secuencias (G05)
+
+Implementado en revisión el 16/11: arriba/abajo/izquierda/derecha se validan por
+el sentido real del gesto. Secuencias de dos/tres discos numerados con +300 al
+completarlas; orden y dirección incorrectos permiten reintento, y perder una
+secuencia cuesta una vida. Flechas de teclado eligen dirección y 1–4 cortan.
+Corregido el trazo lento por acumulación de muestras pequeñas. Se conserva
+práctica local, portadas aprobadas, menús, `/test`, Scratch y Destrucción.
+Ver registro general para CI, revisión visual y publicación final. G02/G03/G08
+y las pruebas físicas de T01 siguen pendientes.
