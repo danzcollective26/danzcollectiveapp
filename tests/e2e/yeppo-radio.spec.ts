@@ -24,7 +24,7 @@ test('disabling Yeppo prevents first-use teaser',async({page})=>{
  await page.getByRole('navigation').getByRole('button',{name:'ARCADANZ',exact:true}).click()
  await expect(page.getByRole('region',{name:'Yeppo te presenta DANZ'})).toHaveCount(0)
 })
-test('radio starts minimized, opens a six-track queue and minimizes without blocking navigation',async({page})=>{
+test('radio starts minimized, opens the seven-track queue and minimizes without blocking navigation',async({page})=>{
  await page.addInitScript(()=>{localStorage.removeItem('danz-radio-minimized-v2')})
  await page.goto('/')
  const radio=page.getByRole('complementary',{name:'Hilo musical DANZ'})
@@ -32,7 +32,7 @@ test('radio starts minimized, opens a six-track queue and minimizes without bloc
  await radio.getByRole('button',{name:'Abrir hilo musical'}).click()
  await expect(radio).not.toHaveClass(/danz-radio-mini/)
  await radio.getByRole('button',{name:'Mostrar lista de canciones'}).click()
- await expect(radio.locator('.danz-radio-queue li')).toHaveCount(6)
+ await expect(radio.locator('.danz-radio-queue li')).toHaveCount(7)
  await radio.getByRole('button',{name:'Minimizar reproductor'}).click()
  await expect(radio).toHaveClass(/danz-radio-mini/)
  await page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true}).click()

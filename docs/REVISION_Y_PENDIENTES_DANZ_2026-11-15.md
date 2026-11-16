@@ -96,8 +96,8 @@ de esa versión, no pruebas nuevas de esta revisión.
 
 | ID | Pendiente | Estado / siguiente acción |
 | --- | --- | --- |
-| G02 | Oleadas según BPM aproximado del tema real | Pendiente. El ritmo sintético/fijo no demuestra seguimiento del audio de la radio. |
-| G03 | Funky Fiesta y WTHIMH para Groove | Pendiente de confirmar recursos, disponibilidad y conexión al juego; no sustituirlos por stems inventados. |
+| G02 | Oleadas según BPM aproximado del tema real | Implementado en revisión: reloj media, oleadas y Scratch a 127 BPM aproximados. Validación y publicación de música protegida en curso. |
+| G03 | Funky Fiesta y WTHIMH para Groove | Ambos MP3 alojados en Storage privado; URLs públicas rechazadas. Código de acceso con sesión implementado en revisión; CI y publicación en curso. |
 | G04 | Scratch con desafío rítmico entretenido tipo Guitar Hero | Parcial. Existen patrones temporizados; evaluar beatmap real, lectura y diversión. No declararlo acabado solo por pasar tests. |
 | G05 | Cortes dirigidos arriba/abajo y secuencias | Publicado y verificado PR 43 (2ac95f3c): cuatro sentidos reales, secuencias numeradas de dos/tres vinilos y +300 al completarlas. CI 230: 253 internas, 564 navegador y 16 offline correctas; capturas y apertura pública revisadas. T01 conserva pruebas físicas. |
 | G06 | Estilos de corte desbloqueables localmente | Trazo Club a los 20 cortes y preferencias persistentes implementados y comprobados. No modifica alcance, puntuación, vidas ni duración. Publicado y verificado, PR 30. |
@@ -588,3 +588,25 @@ CI. Auditoría y capturas en GROOVE_CORTES_DIRIGIDOS_2026-11-16.md.
 Chromium local no puede abrir socket y la preview privada fue bloqueada por la
 política del navegador; se verifican CI y publicación pública sin cambiar
 accesos. No acredita teléfono físico, FPS, batería ni audio oído.
+
+
+## 22. Groove — música protegida autorizada, 16/11
+
+El propietario autoriza publicar el código y reproducir Funky Fiesta y WTHIMH
+con acceso protegido, sin botón de descarga y sin subir los audios a GitHub.
+Se sustituye la propuesta anterior de incluir MP3 en el repositorio público.
+No se promete impedir toda extracción o grabación de una reproducción autorizada.
+
+Código en revisión: selector, reloj media, oleadas/Scratch a 127 BPM aproximados,
+pausa, cancelación, errores, retorno a Ensayo y récord por tema/modo. El servidor
+valida la sesión y firma solo dos archivos fijos durante 120 segundos. Los enlaces
+se preparan antes de pulsar JUGAR para conservar el gesto de reproducción móvil.
+Ensayo sigue disponible sin cuenta y offline; Funky también se añade a la radio.
+
+Los dos MP3 ya se han subido al bucket privado y se ha comprobado que sus URLs
+públicas son rechazadas. Destino contrastado con la configuración de la app
+publicada y el proyecto Supabase existente. Sin MP3, originales, tokens o enlaces
+firmados en Git, localStorage o precaché. 267 internas y build correctos.
+Backend conectado, CI y revisión pública en curso; cierre en
+GROOVE_MUSICA_PROTEGIDA_2026-11-16.md. T01, G04/G07, G08, puntos, fotos,
+administración, entregas externas y QR conservan su estado.

@@ -28,3 +28,7 @@ native/**/local.properties
 *.jks
 
 native/**/.pilot-build/
+
+# La música autorizada se aloja en Storage privado, nunca en Git
+/public/music/
+/private-music/
