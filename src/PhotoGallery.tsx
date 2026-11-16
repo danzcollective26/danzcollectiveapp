@@ -1,11 +1,17 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type TouchEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent } from 'react'
 import {
   deleteAlbum, deletePhotos, loadGallery, openGalleryDB, saveAlbum, savePhotos,
   type StoredAlbum, type StoredPhoto,
 } from './galleryStorage'
 import './PhotoGallery.css'
+import LoadingSkeleton from './ui/LoadingSkeleton'
+import ProgressiveImage from './ui/ProgressiveImage'
+import { usePhotoFavorites } from './ui/favorites'
+import { haptic } from './ui/haptics'
+import { photoThumbnail } from './photoThumbnail'
+import { decideSwipe, clampScale } from './feel/viewerGestures'
 
-type Photo = { id: string; name: string; url: string }
+type Photo = { id: string; name: string; url: string; previewUrl?: string }
 type EventAlbum = { id: string; name: string; date: string; photos: Photo[] }
 type Props = { active: boolean; onBack: () => void }
 
@@ -54,12 +60,23 @@ export default function PhotoGallery({ active, onBack }: Props) {
   const [message, setMessage] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const objectUrls = useRef(new Set<string>())
-  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const [viewerZoom, setViewerZoom] = useState(1)
+  const [viewerPan, setViewerPan] = useState({ x: 0, y: 0 })
+  const pointers = useRef(new Map<number, { x: number; y: number }>())
+  const pinchStart = useRef<{ distance: number; scale: number } | null>(null)
+  const drag = useRef<{ id: number; x: number; y: number; ox: number; oy: number; moved: boolean } | null>(null)
+  const lastTap = useRef<{ at: number; x: number; y: number } | null>(null)
+  const lastPointerType = useRef('mouse')
+  useEffect(() => { setViewerZoom(1); setViewerPan({x:0,y:0}); pointers.current.clear(); pinchStart.current=null; drag.current=null; lastTap.current=null }, [selected,activeEventId,active])
 
   const currentEvent = events.find((album) => album.id === activeEventId) ?? events[0]
   const photos = currentEvent?.photos ?? []
   const totalPhotos = events.reduce((total, album) => total + album.photos.length, 0)
   const locked = loading || busy || Boolean(storageError)
+  const favorites = usePhotoFavorites(`local:${currentEvent?.id ?? 'none'}`)
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
+  const displayedPhotos = onlyFavorites ? photos.filter(item => favorites.ids.includes(item.id)) : photos
+  useEffect(() => { setOnlyFavorites(false) }, [currentEvent?.id])
 
   const switchPreview = (role: 'admin' | 'visitor') => {
     setPreviewRole(role)
@@ -87,7 +104,9 @@ export default function PhotoGallery({ active, onBack }: Props) {
           photos: stored.photos.filter((item) => item.eventId === album.id).map((item) => {
             const url = URL.createObjectURL(item.image)
             objectUrls.current.add(url)
-            return { id: item.id, name: item.name, url }
+            const previewUrl = item.thumbnail ? URL.createObjectURL(item.thumbnail) : undefined
+            if (previewUrl) objectUrls.current.add(previewUrl)
+            return { id: item.id, name: item.name, url, previewUrl }
           }),
         }))
         setEvents(albums)
@@ -143,7 +162,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
     setBusy(true)
     try {
       await task(db)
-      onSaved()
+      if (dbRef.current === db) onSaved()
     } catch (error) {
       setMessage(saveErrorMessage(error))
     } finally {
@@ -191,11 +210,16 @@ export default function PhotoGallery({ active, onBack }: Props) {
       setMessage('No se han añadido fotos. Comprueba el formato, el límite de 25 MB por archivo y el máximo del álbum.')
       return
     }
-    void commit((db) => savePhotos(db, rows), () => {
+    void commit(async db => {
+      for (const row of rows) row.thumbnail = await photoThumbnail(row.image)
+      await savePhotos(db, rows)
+    }, () => {
       const added = rows.map((item) => {
         const url = URL.createObjectURL(item.image)
         objectUrls.current.add(url)
-        return { id: item.id, name: item.name, url }
+        const previewUrl = item.thumbnail ? URL.createObjectURL(item.thumbnail) : undefined
+            if (previewUrl) objectUrls.current.add(previewUrl)
+            return { id: item.id, name: item.name, url, previewUrl }
       })
       setEvents((previous) => previous.map((album) => album.id === eventId
         ? { ...album, photos: [...album.photos, ...added] }
@@ -239,6 +263,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
     removed.forEach((item) => {
       URL.revokeObjectURL(item.url)
       objectUrls.current.delete(item.url)
+      if (item.previewUrl) { URL.revokeObjectURL(item.previewUrl); objectUrls.current.delete(item.previewUrl) }
     })
   }
 
@@ -287,20 +312,71 @@ export default function PhotoGallery({ active, onBack }: Props) {
   const previous = () => setSelected((index) => index === null || photos.length < 2 ? index : (index + photos.length - 1) % photos.length)
   const next = () => setSelected((index) => index === null || photos.length < 2 ? index : (index + 1) % photos.length)
 
-  const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    if (event.touches.length !== 1) return
-    touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+  const toggleViewerZoom = () => {
+    setViewerZoom(value => value > 1 ? 1 : 2)
+    setViewerPan({ x: 0, y: 0 })
+    lastTap.current = null
   }
-  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
-    const start = touchStart.current
-    touchStart.current = null
-    if (!start || !event.changedTouches.length || photos.length < 2) return
-    const dx = event.changedTouches[0].clientX - start.x
-    const dy = event.changedTouches[0].clientY - start.y
-    if (Math.abs(dx) >= 55 && Math.abs(dx) > Math.abs(dy) * 1.3) {
-      if (dx < 0) next()
-      else previous()
+
+  const onViewerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if(event.target instanceof Element && event.target.closest('button'))return
+    lastPointerType.current = event.pointerType
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    if (pointers.current.size > 1) {
+      drag.current = null
+      lastTap.current = null
+      if (pointers.current.size === 2) {
+        const [a, b] = [...pointers.current.values()]
+        pinchStart.current = { distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), scale: viewerZoom }
+      }
+      return
     }
+    if (!event.isPrimary || event.button !== 0) return
+    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, ox: viewerPan.x, oy: viewerPan.y, moved: false }
+    try { event.currentTarget.setPointerCapture(event.pointerId) } catch { /* Embedded views can still swipe without capture. */ }
+  }
+  const onViewerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!pointers.current.has(event.pointerId)) return
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    if (pointers.current.size >= 2 && pinchStart.current) {
+      const [a, b] = [...pointers.current.values()]
+      const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y))
+      setViewerZoom(clampScale(pinchStart.current.scale * (distance / pinchStart.current.distance)))
+      return
+    }
+    const start = drag.current
+    if (!start || start.id !== event.pointerId || viewerZoom <= 1) return
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    if (Math.hypot(dx, dy) > 8) start.moved = true
+    const image=event.currentTarget.querySelector<HTMLImageElement>('.photo-viewer-frame img')
+    const frame=image?.parentElement
+    if(!image?.naturalWidth||!image.naturalHeight||!frame)return
+    const fit=Math.min(frame.clientWidth/image.naturalWidth,frame.clientHeight/image.naturalHeight)
+    const maxX=Math.max(0,(image.naturalWidth*fit*viewerZoom-frame.clientWidth)/2)
+    const maxY=Math.max(0,(image.naturalHeight*fit*viewerZoom-frame.clientHeight)/2)
+    setViewerPan({ x: Math.max(-maxX,Math.min(maxX,start.ox+dx)), y: Math.max(-maxY,Math.min(maxY,start.oy+dy)) })
+  }
+  const onViewerUp = (event: PointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(event.pointerId)
+    if (pointers.current.size < 2) pinchStart.current = null
+    const start = drag.current
+    if (!start || start.id !== event.pointerId) return
+    drag.current = null
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    const moved = start.moved || Math.hypot(dx, dy) > 8
+    if (event.pointerType === 'touch' && !moved) {
+      const previousTap = lastTap.current
+      if (previousTap && event.timeStamp - previousTap.at < 320 && Math.hypot(event.clientX - previousTap.x, event.clientY - previousTap.y) < 24) toggleViewerZoom()
+      else lastTap.current = { at: event.timeStamp, x: event.clientX, y: event.clientY }
+      return
+    }
+    lastTap.current = null
+    const decision = decideSwipe(dx, dy, viewerZoom > 1, moved)
+    if (decision === 'dismiss') setSelected(null)
+    if (decision === 'next') next()
+    if (decision === 'previous') previous()
   }
 
   const photo = selected === null ? null : photos[selected]
@@ -338,7 +414,8 @@ export default function PhotoGallery({ active, onBack }: Props) {
         <span className="gallery-album-count">{events.length} EVENTO{events.length === 1 ? '' : 'S'} · {totalPhotos} FOTOS</span>
       </div>
 
-      {events.length === 0 && <p className="gallery-instructions">{isAdminPreview ? 'Todavía no tienes álbumes. Crea uno en el formulario inferior.' : 'Todavía no hay galerías para ver en esta demostración.'}</p>}
+      {loading && <LoadingSkeleton label="Cargando tus álbumes…"/>}
+      {!loading && events.length === 0 && <p className="gallery-instructions">{isAdminPreview ? 'Todavía no tienes álbumes. Crea uno en el formulario inferior.' : 'Todavía no hay galerías para ver en esta demostración.'}</p>}
       <div className="gallery-event-grid" aria-label="Álbumes de eventos de prueba">
         {events.map((album) => (
           <button
@@ -350,7 +427,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
             aria-pressed={album.id === activeEventId}
           >
             {album.photos.length ? (
-              <img className="gallery-event-cover" src={album.photos[0].url} alt="" />
+              <ProgressiveImage className="gallery-event-cover" src={album.photos[0].previewUrl ?? album.photos[0].url} alt=""/>
             ) : <span className="gallery-event-placeholder" aria-hidden="true">✳</span>}
             <span className="gallery-event-information">
               <span className="gallery-event-date">{formatDate(album.date)}</span>
@@ -457,11 +534,13 @@ export default function PhotoGallery({ active, onBack }: Props) {
         ) : (
           <>
             <p className="gallery-instructions">Pulsa una foto para ampliarla. Usa ← → o desliza horizontalmente para pasar a otra foto del mismo evento.</p>
+            <div className="photo-favorites-toolbar"><button type="button" className="outline-btn" aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setSelected(null); haptic('selection') }}>SOLO FAVORITAS ♡</button><p>Guardadas en este navegador · {photos.filter(item => favorites.ids.includes(item.id)).length} favoritas</p></div>
+            {onlyFavorites && !displayedPhotos.length && <p className="photo-favorites-empty">Abre una foto y pulsa el corazón para guardarla aquí.</p>}
             <div className="gallery-grid">
-              {photos.map((item, index) => (
+              {displayedPhotos.map((item, index) => (
                 <div className="gallery-photo-container" key={item.id}>
-                  <button type="button" className="gallery-photo" onClick={() => setSelected(index)} aria-label={`Abrir fotografía ${index + 1}: ${item.name}`}>
-                    <img src={item.url} alt={item.name} loading="lazy" decoding="async" />
+                  <button type="button" className="gallery-photo" onClick={() => { haptic('selection'); setSelected(photos.findIndex(photo => photo.id === item.id)) }} aria-label={`Abrir fotografía ${index + 1}: ${item.name}`}>
+                    <ProgressiveImage src={item.previewUrl ?? item.url} alt={item.name}/>{favorites.ids.includes(item.id) && <span className="photo-favorite-mark" aria-hidden="true">♥</span>}
                     <span className="gallery-photo-counter">{String(index + 1).padStart(2, '0')}</span>
                   </button>
                   {isAdminPreview && <button type="button" className="gallery-photo-remove" title="Quitar fotografía" aria-label={`Quitar ${item.name} de este álbum`} onClick={() => removePhoto(item.id)} disabled={locked}>✕</button>}
@@ -480,18 +559,20 @@ export default function PhotoGallery({ active, onBack }: Props) {
             <span className="gallery-lightbox-title">DANZ · {currentEvent.name} <span>{selected + 1} / {photos.length}</span></span>
             <button className="gallery-lightbox-close" onClick={() => setSelected(null)} aria-label="Cerrar fotografía">CERRAR ✕</button>
           </div>
-          <div className="gallery-lightbox-viewer" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+          <div className="gallery-lightbox-viewer" onPointerDown={onViewerDown} onPointerMove={onViewerMove} onPointerUp={onViewerUp} onPointerCancel={() => { pointers.current.clear(); pinchStart.current=null; drag.current=null; lastTap.current=null }} onDoubleClick={() => { if(lastPointerType.current!=='touch')toggleViewerZoom() }}>
             {photos.length > 1 && <button className="gallery-lightbox-arrow" onClick={previous} aria-label="Fotografía anterior">←</button>}
-            <img className="gallery-lightbox-image" src={photo.url} alt={photo.name} draggable={false} />
+            <ProgressiveImage key={photo.id} className="photo-viewer-frame" style={viewerZoom>1?{transform:`translate(${viewerPan.x}px,${viewerPan.y}px) scale(${viewerZoom})`}:undefined} src={photo.url} previewSrc={photo.previewUrl} alt={photo.name} loading="eager"/>
             {photos.length > 1 && <button className="gallery-lightbox-arrow" onClick={next} aria-label="Fotografía siguiente">→</button>}
           </div>
           <div className="gallery-lightbox-footer">
             <span title={photo.name}>{photo.name}</span>
             <div className="gallery-lightbox-actions">
+              <button type="button" className="outline-btn" onClick={toggleViewerZoom} aria-pressed={viewerZoom>1}>{viewerZoom>1?'AJUSTAR −':'AMPLIAR +'}</button>
+              <button type="button" className="outline-btn photo-favorite-button" aria-pressed={favorites.ids.includes(photo.id)} aria-label={favorites.ids.includes(photo.id) ? 'Quitar de favoritas' : 'Guardar en favoritas'} onClick={() => favorites.toggle(photo.id)}>{favorites.ids.includes(photo.id) ? '♥ FAVORITA' : '♡ FAVORITA'}</button>
               <a className="gallery-lightbox-download" href={photo.url} download={photo.name || 'danz-foto'}>DESCARGAR FOTO ↓</a>
               {isAdminPreview && <button type="button" className="gallery-lightbox-remove" onClick={() => removePhoto(photo.id)} disabled={locked}>QUITAR FOTO ✕</button>}
             </div>
-            <span>ESC PARA CERRAR</span>
+            <span>{favorites.persisted ? 'ESC PARA CERRAR' : 'Favorita solo para esta sesión: no se pudo guardar.'}</span>
           </div>
         </div>
       )}

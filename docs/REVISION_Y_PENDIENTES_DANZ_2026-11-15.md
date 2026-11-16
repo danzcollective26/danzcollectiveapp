@@ -31,6 +31,13 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 
 ## 3. Prioridad inmediata y siguiente trabajo
 
+Solicitud posterior del 16/11: **feature/premium-feel**, con commits separados
+y PR. PF01: transiciones/haptics/esqueletos; PF02: carga progresiva, miniaturas
+y favoritas; PF03: Yeppo menos intrusivo y celebración de sellos confirmados.
+Implementación y validación en revisión, sin presentarla como publicada en main.
+Detalle: `PREMIUM_FEEL_2026-11-16.md`. Scratch continúa conservado en PR 47,
+con CI 239 correcto, separado de esta rama.
+
 | ID | Petición | Estado comprobado | Siguiente acción / cierre |
 | --- | --- | --- | --- |
 | R01 | Entregar primero la memoria y kit para Gemini | Entregado; archivos existentes comprobados | Enlaces reenviados al inicio de la respuesta; esperar el ZIP de retorno para integrarlo. |
@@ -40,6 +47,7 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
 | J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
 | J10 | DANZPORTER (antes DANZ Kart Mini) | Carrera local, conducción y cámaras publicadas, PR 35–41 | Tres modos, dos circuitos, piezas, daños, boxes, vista Rally y primera persona. CI 225: 246 internas, 552 de navegador y 16 offline correctas. GPU y móvil físico en T01; online y contenidos adicionales separados. |
+| PF01 | Sensación de app instalada, galería y Yeppo | Implementado en rama, no publicado | Ver sección 23. Falta prueba en teléfono físico. No cierra M02, M03, M08 ni M10. |
 
 ## 4. Lo ya publicado que debe conservarse
 
@@ -589,7 +597,6 @@ Chromium local no puede abrir socket y la preview privada fue bloqueada por la
 política del navegador; se verifican CI y publicación pública sin cambiar
 accesos. No acredita teléfono físico, FPS, batería ni audio oído.
 
-
 ## 22. Groove — música protegida autorizada, 16/11
 
 El propietario autoriza publicar el código y reproducir Funky Fiesta y WTHIMH
@@ -638,3 +645,30 @@ G02/G03 cerrados para este alcance; G04/G07 conserva beatmap musical editado y
 evaluación prolongada de diversión. T01 sigue en teléfonos físicos, audio oído,
 GPU/FPS y batería. G08, DANZPOINTS, fotos, administración y retornos externos
 conservan su estado; QR continúa aplazado.
+
+## 23. Sensación premium — shell, galería y Yeppo (PF01), 16/11
+
+Implementado en `feature/premium-feel`. No está publicado. Build local
+correcto y 258 pruebas internas en verde, incluidas las de transición,
+favoritos, gestos y silencio de audio. No hay prueba de teléfono físico,
+vibración real, FPS ni audio oído.
+
+- Shell: View Transitions al pulsar una sección, con cambio inmediato si el
+  navegador no las soporta, si hay movimiento reducido o si hay partida de
+  arcade. El atrás del navegador sigue inmediato para no pisar un pase.
+  Vibración corta solo donde existe `navigator.vibrate`. Esqueletos en
+  galerías, pasaporte y cargas perezosas. Barra fija, áreas seguras, sin
+  rebote de desplazamiento y color de tema oscuro.
+- Galería: marco reservado y aparición con desenfoque, visor con
+  deslizamiento, pellizco, doble toque y cierre hacia abajo. Favoritas en
+  `localStorage` de este navegador. No hay miniaturas de servidor ni
+  búsqueda unificada: M02 y M03 siguen parciales.
+- Yeppo: el lanzador señala en vez de bailar, las respuestas con destino
+  apuntan y el paseo espontáneo es menos frecuente. El paseo pedido a
+  propósito se conserva. Sellos, niveles de Jack y favoritas tienen un
+  tono muy bajo y partículas, con el interruptor SONIDOS del pie. El
+  silencio de Groove sigue siendo el suyo. M08 sigue parcial: no hay IA
+  generativa ni Yeppo 3D.
+
+QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
+La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.

@@ -2,6 +2,9 @@ import { requestArcadeFullscreen, releaseArcadeFullscreen } from './arcade/arcad
 import SelectionReel from './arcade/SelectionReel'
 import { lazy, Suspense, useEffect, useReducer, useRef, useState, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
+import { haptic } from './ui/haptics'
+import { cancelSectionTransition, transitionSection } from './ui/sectionTransition'
+import LoadingSkeleton from './ui/LoadingSkeleton'
 import './App.css'
 import './arcade/gameSurface.css'
 import './arcade/gameScreen.css'
@@ -147,6 +150,7 @@ export default function App() {
   useEffect(() => {
     const receivePass = () => {
       if (!new URLSearchParams(window.location.hash.slice(1)).has('pase')) return
+      cancelSectionTransition()
       const incoming = captureLaunchPass()
       syncPasses(incoming.code)
       setPassIssue(incoming.invalid ? 'El enlace del pase no contiene un código válido.' : !incoming.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
@@ -239,14 +243,19 @@ export default function App() {
     if (destination !== 'admin' && destination !== 'fotos') url.searchParams.delete('album')
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
-    try { if (page !== destination || arcadeGame !== null) window.history.pushState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
-    setArcadeGame(null)
-    setLaunchGroove(false)
-    setPage(destination)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (window.location.href !== url.href) haptic('selection')
+    // History changes with the gesture; a snapshot must not delay browser Back.
+    try { if (window.location.href !== url.href) window.history.pushState(window.history.state, '', url) } catch { /* In-memory navigation remains usable. */ }
+    const destinationLocation = window.location.href
+    transitionSection(() => {
+      if (window.location.href !== destinationLocation) return
+      flushSync(() => { setArcadeGame(null); setLaunchGroove(false); setPage(destination) })
+      window.scrollTo({ top: 0, behavior: 'instant' })
+    }, page !== destination && arcadeGame === null)
   }
 
   const openSnake = () => {
+    cancelSectionTransition()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'jack')
     try { window.history.pushState(window.history.state, '', url) } catch { /* In-memory navigation remains available. */ }
@@ -262,6 +271,7 @@ export default function App() {
   }, [gameScreen.active])
 
   const openGroove = (immersive = true) => {
+    cancelSectionTransition()
     setLaunchGroove(immersive)
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
@@ -272,6 +282,7 @@ export default function App() {
   }
 
   const openIdle = () => {
+    cancelSectionTransition()
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'idle-studio')
@@ -280,6 +291,7 @@ export default function App() {
   }
 
   const openArena = (mode: 'arena' | 'arena-solo' = 'arena') => {
+    cancelSectionTransition()
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', mode)
@@ -288,6 +300,7 @@ export default function App() {
     requestArcadeFullscreen()
   }
   const openChase = () => {
+    cancelSectionTransition()
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'pilla-pilla')
@@ -296,6 +309,7 @@ export default function App() {
     requestArcadeFullscreen()
   }
   const openKart = () => {
+    cancelSectionTransition()
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'kart')
@@ -304,6 +318,7 @@ export default function App() {
     requestArcadeFullscreen()
   }
   const openCollecta = () => {
+    cancelSectionTransition()
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'collecta')
@@ -313,9 +328,9 @@ export default function App() {
   }
 
   useEffect(() => {
-    const back = () => { dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
+    const back = () => { cancelSectionTransition(); dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
     window.addEventListener('popstate', back)
-    return () => window.removeEventListener('popstate', back)
+    return () => { cancelSectionTransition(); window.removeEventListener('popstate', back) }
   }, [])
 
   return (
@@ -337,7 +352,7 @@ export default function App() {
 
       <PwaControls quiet={quickArrival || page === 'arcade'} />
 
-      <main>
+      <main className="app-main">
         {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
         {page === 'inicio' && testLab && <Suspense fallback={<p role="status">Abriendo zona de pruebas…</p>}><TestLab onKart={openKart} onCollecta={openCollecta} onJack={openSnake} onGroove={()=>openGroove(true)} onLibrary={()=>go('arcade')} onYeppo={move=>{markYeppoWelcomeDone();setYeppoEnabled(true);setYeppoDemo(previous=>({id:previous.id+1,move}))}}/></Suspense>}
         {page === 'inicio' && !testLab && (
@@ -390,8 +405,8 @@ export default function App() {
           {managesPhotos && <button type="button" className="outline-btn" aria-pressed={photoSource === 'attendance'} onClick={() => setPhotoSource('attendance')}>Galerías con mi sello</button>}
           <button type="button" className="outline-btn" aria-pressed={photoSource === 'local'} onClick={() => setPhotoSource('local')}>Álbumes de este navegador</button>
         </div>}
-        {localGalleryOpened.current && <Suspense fallback={<p className="content" role="status">Abriendo tus álbumes…</p>}><PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} /></Suspense>}
-        {page === 'fotos' && photoSource !== 'local' && <Suspense fallback={<p className="content" role="status">Abriendo las galerías…</p>}>{admin.loading ? <p className="content" role="status">Comprobando tus álbumes…</p> : photoSource === 'private' && managesPhotos ? <section className="content inner-page"><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} albumsOnly /></section> : <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}</Suspense>}
+        {localGalleryOpened.current && <Suspense fallback={<div className="content"><LoadingSkeleton label="Abriendo tus álbumes…"/></div>}><PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} /></Suspense>}
+        {page === 'fotos' && photoSource !== 'local' && <Suspense fallback={<div className="content"><LoadingSkeleton label="Abriendo las galerías…"/></div>}>{admin.loading ? <div className="content"><LoadingSkeleton label="Comprobando tus álbumes…"/></div> : photoSource === 'private' && managesPhotos ? <section className="content inner-page"><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} albumsOnly /></section> : <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}</Suspense>}
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}

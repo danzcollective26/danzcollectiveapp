@@ -2,13 +2,13 @@
  * Vector drawing, with real limbs and facial moods; not a person or an Arcade avatar.
  */
 export type YeppoMood='neutral'|'smirk'|'wink'|'surprised'|'sleepy'|'eyebrow'
-export default function YeppoMascot({expression='smirk',interacting=false}:{expression?:YeppoMood;interacting?:boolean}){
+export default function YeppoMascot({expression='smirk',interacting=false,pose='idle'}:{expression?:YeppoMood;interacting?:boolean;pose?:'idle'|'point'}){
  const wink=expression==='wink'
  const sleepy=expression==='sleepy'
  const surprised=expression==='surprised'
  const brow=expression==='eyebrow'
  const smirk=expression==='smirk'
- return <svg className={`yeppo-flower yeppo-character yeppo-expression-${expression}`} viewBox="0 0 174 192" aria-hidden="true" focusable="false">
+ return <svg className={`yeppo-flower yeppo-character yeppo-expression-${expression}${pose==='point'?' yeppo-pose-point':''}`} viewBox="0 0 174 192" aria-hidden="true" focusable="false">
   <defs>
    <linearGradient id="yeppo-yellow" x1="0" y1="0" x2=".7" y2="1">
     <stop stopColor="#ffe98c"/><stop offset=".8" stopColor="#ffd268"/><stop offset="1" stopColor="#f8c85f"/>
@@ -46,8 +46,8 @@ export default function YeppoMascot({expression='smirk',interacting=false}:{expr
   </g>
   <g className="yeppo-features" fill="none" stroke="#4b3338" strokeWidth="4" strokeLinecap="round">
    {brow&&<path d="M82 56l11-5"/>}
-   {sleepy?<><path d="M80 69q7 5 13 0"/><path d="M104 69q7 5 13 0"/></>
-    :<><path d={wink?'M80 71q7 4 13-1':'M86 65v7'}/><path d="M108 65v7"/></>}
+   <g className="yeppo-eyes">{sleepy?<><path d="M80 69q7 5 13 0"/><path d="M104 69q7 5 13 0"/></>
+    :<><path d={wink?'M80 71q7 4 13-1':'M86 65v7'}/><path d="M108 65v7"/></>}</g>
    {surprised?<ellipse cx="98" cy="83" rx="4.5" ry="7.5"/>:<path d={smirk||brow?'M88 83q11 10 22-1':'M87 82q11 13 23 0'}/>}
   </g>
   {wink&&<g className="yeppo-tongue"><path d="M96 89q7 2 7 8q-3 7-8 1Z" fill="#e97b7b" stroke="#4b3338" strokeWidth="2"/></g>}

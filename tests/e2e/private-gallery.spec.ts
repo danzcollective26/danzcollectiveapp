@@ -288,3 +288,19 @@ test('renews expiring photo URLs and removes images when renewed access is refus
   await expect(page.getByRole('button', { name: /^Abrir foto privada/ })).toHaveCount(0)
   await expect(page.locator('.private-gallery img')).toHaveCount(0)
 })
+
+
+test('private favorites persist only as identifiers across a reload', async ({ page }) => {
+  await installMultiplePhotos(page); await openPrivateGallery(page)
+  await page.getByRole('button',{name:'Abrir foto privada 1',exact:true}).click()
+  await page.getByRole('button',{name:'Guardar en favoritas',exact:true}).click()
+  await page.getByRole('button',{name:'Cerrar foto privada',exact:true}).click()
+  await page.getByRole('button',{name:'SOLO FAVORITAS ♡',exact:true}).click()
+  await expect(page.locator('.private-gallery-grid button')).toHaveCount(1)
+  const saved=await page.evaluate(()=>Object.keys(localStorage).filter(key=>key.startsWith('danz-photo-favorites-v1:')).map(key=>localStorage.getItem(key)))
+  expect(saved).toHaveLength(1); expect(saved[0]).not.toMatch(/https?:|token=|signedUrl/)
+  await test.info().attach('favoritas-privadas',{body:await page.screenshot({type:'jpeg',quality:75}),contentType:'image/jpeg'})
+  await page.reload()
+  await expect(page.getByRole('button',{name:'Abrir foto privada 1',exact:true})).toBeVisible()
+  await expect(page.locator('.photo-favorite-mark')).toHaveCount(1)
+})

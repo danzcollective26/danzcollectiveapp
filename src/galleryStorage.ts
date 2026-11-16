@@ -14,6 +14,7 @@ export type StoredPhoto = {
   eventId: string
   name: string
   image: Blob
+  thumbnail?: Blob
   addedAt: number
 }
 
