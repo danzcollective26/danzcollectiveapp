@@ -46,8 +46,8 @@ export default function YeppoMascot({expression='smirk',interacting=false}:{expr
   </g>
   <g className="yeppo-features" fill="none" stroke="#4b3338" strokeWidth="4" strokeLinecap="round">
    {brow&&<path d="M82 56l11-5"/>}
-   {sleepy?<><path d="M80 69q7 5 13 0"/><path d="M104 69q7 5 13 0"/></>
-    :<><path d={wink?'M80 71q7 4 13-1':'M86 65v7'}/><path d="M108 65v7"/></>}
+   <g className="yeppo-eyes">{sleepy?<><path d="M80 69q7 5 13 0"/><path d="M104 69q7 5 13 0"/></>
+    :<><path d={wink?'M80 71q7 4 13-1':'M86 65v7'}/><path d="M108 65v7"/></>}</g>
    {surprised?<ellipse cx="98" cy="83" rx="4.5" ry="7.5"/>:<path d={smirk||brow?'M88 83q11 10 22-1':'M87 82q11 13 23 0'}/>}
   </g>
   {wink&&<g className="yeppo-tongue"><path d="M96 89q7 2 7 8q-3 7-8 1Z" fill="#e97b7b" stroke="#4b3338" strokeWidth="2"/></g>}

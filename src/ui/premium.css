@@ -9,5 +9,8 @@
 @keyframes danz-section-out{to{opacity:0}}
 @keyframes danz-section-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 .site-shell nav button:active,.primary-btn:active,.outline-btn:active{filter:brightness(.9)}
+.feedback-settings{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:24px;padding:18px 0;border-top:1px solid var(--line);font-size:10px;letter-spacing:.06em}.feedback-settings>span{margin-right:auto;font-weight:800}.feedback-settings small{display:block;color:var(--muted);font-size:10px;font-weight:400;margin-top:6px;letter-spacing:0}.feedback-settings button{min-height:44px;font-size:10px}.feedback-settings button[aria-pressed=true]{border-color:#d4e8a8;color:#e5f5c7}.is-new-stamp .passport-ink-stamp{animation:danz-stamp-arrival .5s cubic-bezier(.2,.75,.2,1) both}.is-new-stamp{outline:1px solid #bed18e;outline-offset:4px;position:relative}.is-new-stamp:after{content:'✦';position:absolute;right:12px;top:8px;color:#d6ea99;font-size:25px;pointer-events:none;animation:danz-stamp-spark .75s ease-out both}
+@keyframes danz-stamp-arrival{from{opacity:.3;transform:scale(1.15) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}@keyframes danz-stamp-spark{from{opacity:0;transform:scale(.3)}45%{opacity:1;transform:scale(1.15)}to{opacity:0;transform:scale(.9)}}
 @media(max-width:600px){.skeleton-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 @media(prefers-reduced-motion:reduce){.skeleton-card i,.skeleton-card span{animation:none}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
+@media(prefers-reduced-motion:reduce){.is-new-stamp .passport-ink-stamp,.is-new-stamp:after{animation:none}.is-new-stamp:after{display:none}}

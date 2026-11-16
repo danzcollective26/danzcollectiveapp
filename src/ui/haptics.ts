@@ -1,14 +1,16 @@
 export type Haptic = 'tap' | 'selection' | 'success'
 export const FEEDBACK_KEY = 'danz-feedback-v1'
 export const FEEDBACK_CHANGE = 'danz-feedback-change'
+let sessionFallback: { haptics: boolean; sounds: boolean } | null = null
 export function readFeedback() {
+  if (sessionFallback) return sessionFallback
   try {
     const value = JSON.parse(localStorage.getItem(FEEDBACK_KEY) ?? '{}')
     return { haptics: value?.haptics !== false, sounds: value?.sounds === true }
   } catch { return { haptics: true, sounds: false } }
 }
 export function saveFeedback(value: ReturnType<typeof readFeedback>) {
-  try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify(value)) } catch { /* Optional preference. */ }
+  try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify(value)); sessionFallback = null } catch { sessionFallback = value }
   window.dispatchEvent(new Event(FEEDBACK_CHANGE))
 }
 let lastPulse = -Infinity
