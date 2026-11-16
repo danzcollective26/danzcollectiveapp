@@ -1,5 +1,8 @@
 :root{--black:#101011;--white:#f3f0e8;--muted:#aaa9a3;--acid:#d9ff6b;--rose:#ff789f;--violet:#ba9efa;--aqua:#8dd8c8;--line:#38383c;--ink:#151515}
 .site-shell{min-height:100vh;background:var(--black);color:var(--white);overflow:hidden}
+.site-shell:has(.danz-idle), .site-shell:has(.cast-screen){display:flex;flex-direction:column;height:100dvh}
+.site-shell:has(.danz-idle) main, .site-shell:has(.cast-screen) main{flex:1;min-height:0;display:flex}
+.site-shell:has(.danz-idle) .danz-idle, .site-shell:has(.cast-screen) .cast-screen{flex:1;height:auto;min-height:0}
 .content{width:min(1300px,calc(100% - 80px));margin-inline:auto}
 .topbar{height:86px;padding:0 40px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:28px}
 .wordmark{font-weight:950;letter-spacing:-.105em;font-size:34px;line-height:1;display:flex;align-items:center;cursor:pointer;color:#fff;background:transparent;border:0;padding:4px 0 8px;white-space:nowrap}

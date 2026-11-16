@@ -402,8 +402,8 @@ export default function App() {
         {page === 'arcade' && arcadeGame === null && <section className="content inner-page arcade-library" aria-label="Biblioteca ARCADANZ">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           <header className="arcade-library-heading"><div><span className="eyebrow">DANZ COLLECTIVE / PLAY TOGETHER</span><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724"/><h1>TU BIBLIOTECA.</h1><p>Elige una portada. La siguiente partida es tuya.</p></div><span className="arcade-library-count">05 <small>JUEGOS DISPONIBLES</small></span></header>
-          <ArcadeChooser onSelect={choice => choice === 'kart' ? openKart() : choice === 'collecta' ? openCollecta() : choice === 'groove' ? openGroove(true) : openSnake()} />
           <button type="button" className="arcade-library-upcoming" aria-label="DANZ Idle Studio" onClick={openIdle}><img src="/arcade/idle-studio-industrial.webp" alt="Taller creativo de DANZ Idle Studio" width="1200" height="900" loading="lazy"/><div><span className="eyebrow">05 / ESTUDIO</span><h2>DANZ IDLE STUDIO</h2><p>Música, moda, vídeo y el sello. El código del juego está en el repositorio.</p><small>JUGAR ↗ · src/arcade/idle</small></div></button>
+          <ArcadeChooser onSelect={choice => choice === 'kart' ? openKart() : choice === 'collecta' ? openCollecta() : choice === 'groove' ? openGroove(true) : openSnake()} />
           <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
         </section>}
         {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
