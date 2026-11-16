@@ -1,3 +1,5 @@
+import CollectaMatchMenu from '../CollectaMatchMenu'
+import { requestArcadeFullscreen } from '../arcadeFullscreen'
 import GameSurface from '../GameSurface'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { createChase, startChase, pauseChase, dashChase, stepChase, CHASE_DURATION, type Chase, type PlayerId, type Vector } from './engine'
@@ -29,7 +31,7 @@ export default function YeppoChase({ onBack, controls = DEFAULT_COLLECTA_CONTROL
   const dash = (id: PlayerId) => sync(dashChase(state.current, id))
   const play = () => {
     clear(); sync(startChase(state.current)); panel.current?.focus({ preventScroll: true })
-    try { void panel.current?.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {}) } catch { /* The dedicated viewport works without native fullscreen. */ }
+    requestArcadeFullscreen()
   }
   const exit = () => { pause(); if (document.fullscreenElement === panel.current) void document.exitFullscreen().catch(() => {}); back.current() }
   const actions = useRef({ pause, dash, exit }); actions.current = { pause, dash, exit }
@@ -60,12 +62,13 @@ export default function YeppoChase({ onBack, controls = DEFAULT_COLLECTA_CONTROL
 
   useEffect(() => {
     const previous = document.body.style.overflow, element = panel.current
-    let native = false
+    let native = Boolean(document.fullscreenElement)
     document.body.style.overflow = 'hidden'
     const hidden = () => { if (document.hidden) actions.current.pause() }
     const blur = () => actions.current.pause()
-    const fullscreen = () => { if (document.fullscreenElement === element) native = true; else if (native) { native = false; actions.current.pause() } }
+    const fullscreen = () => { if (document.fullscreenElement) native = true; else if (native) { native = false; actions.current.pause() } }
     const down = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return
       if (e.key === 'Escape') { actions.current.exit(); return }
       if ((e.target as HTMLElement)?.closest('input,textarea,select,[contenteditable=true]')) return
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
@@ -94,12 +97,12 @@ export default function YeppoChase({ onBack, controls = DEFAULT_COLLECTA_CONTROL
   </div></section>
   const title = hud.phase === 'paused' ? 'VAMOS A HABLAR.' : over ? hud.winner === 'draw' ? 'QUE PAGUE OTRO.' : `P${Number(hud.winner)+1} LO TRAMITA.` : 'PASA EL MARRÓN.'
   return <section ref={panel} tabIndex={-1} className="chase-game" aria-label="Persecución de DANZ Collecta, duelo local" data-phase={hud.phase} data-view={landscape ? 'landscape' : 'portrait'} data-p1={`${hud.players[0].x.toFixed(1)},${hud.players[0].y.toFixed(1)}`} data-p2={`${hud.players[1].x.toFixed(1)},${hud.players[1].y.toFixed(1)}`} data-hunter={hud.hunter} data-tags={hud.tags} data-elapsed={Math.floor(hud.elapsed)}>
-    <header className="chase-top"><button type="button" onClick={exit} aria-label="Salir de Persecución">← MODOS</button><div><strong>COLLECTA <em>PERSECUCIÓN</em></strong><span>PASA EL MARRÓN · CIERRE DE CUENTAS</span></div><button type="button" disabled={!active && hud.phase !== 'paused'} onClick={() => active ? pause() : play()}>{hud.phase === 'paused' ? 'REANUDAR' : 'PAUSAR'}</button></header>
+    <header className="chase-top" aria-hidden={!active}><button type="button" onClick={exit} aria-label="Salir de Persecución">← MODOS</button><div><strong>COLLECTA <em>PERSECUCIÓN</em></strong><span>PASA EL MARRÓN · CIERRE DE CUENTAS</span></div><button type="button" disabled={!active && hud.phase !== 'paused'} onClick={() => active ? pause() : play()}>{hud.phase === 'paused' ? 'REANUDAR' : 'PAUSAR'}</button></header>
     <div className="chase-status"><strong aria-label="Tiempo de Pilla-Pilla">{Math.max(0, Math.ceil((CHASE_DURATION - hud.elapsed) / 1000))}<small>s</small></strong><span role="status">{hud.elapsed - hud.lastTagAt < 1200 ? `P${Number(hud.lastCatcher)+1}: TRAMITADO. P${hud.hunter+1} LLEVA LA FACTURA.` : `P${hud.hunter+1} COBRA · P${hud.hunter===0?2:1} SE ESCAQUEA`}</span></div>
-    <div className="chase-layout versus-layout">{controller(0)}<GameSurface ratio={880/600} className="chase-board-wrap versus-board"><div className="chase-board" ref={host} role="img" aria-label="Club de Collecta con dos jugadores, cabina y altavoces" data-ready={ready}/>
-      {(!active || error) && <div className="chase-overlay"><span className="chase-kicker">{over ? 'PARTY OVER / CUENTAS CERRADAS' : hud.phase === 'paused' ? 'EL MARRÓN PUEDE ESPERAR' : 'COLLECTA / PASA EL MARRÓN'}</span><h1>{title}</h1><p>{error || (over ? `P1 ${hud.players[0].score} · ${hud.players[1].score} P2. Gana quien más veces pasa la factura. ¿Otro trámite?` : 'Llevas la factura: pilla al rival para pasarle el marrón. Ahora persigue él y tú te escaqueas. Cada captura suma un punto.')}</p><div className="chase-how"><span>1 / UNO A CADA EXTREMO</span><span>2 / FLECHAS O JOYSTICK A TU LADO</span><span>3 / PÁSALA MÁS VECES Y GANA</span></div>
-      <button type="button" disabled={!error && !ready} onClick={() => error ? setRetry(n => n + 1) : play()}>{error ? 'VOLVER A CARGAR' : !ready ? 'ABRIENDO EL CLUB…' : hud.phase === 'paused' ? 'SEGUIR CORRIENDO' : over ? 'REVANCHA' : 'EMPEZAR PERSECUCIÓN'}</button><small>Teclado: P1 WASD + F · P2 flechas + L. Direcciones según tu lado.</small></div>}
+    <div className="chase-layout versus-layout" aria-hidden={!active}>{controller(0)}<GameSurface ratio={880/600} className="chase-board-wrap versus-board"><div className="chase-board" ref={host} role="img" aria-label="Club de Collecta con dos jugadores, cabina y altavoces" data-ready={ready}/>
+
     </GameSurface>{controller(1)}</div>
     <footer className="chase-note">PRÁCTICA LOCAL · 60 s · SIN PREMIOS COMPETITIVOS<span>Al girar el móvil, se pausa la partida.</span></footer>
+    {(!active||error)&&<CollectaMatchMenu game="chase" title={title} phase={hud.phase} score={`P1 ${hud.players[0].score} · ${hud.players[1].score} P2`} disabled={!error&&!ready} error={error} onBack={exit} onPlay={error?()=>setRetry(n=>n+1):play} action={error?'VOLVER A CARGAR':!ready?'ABRIENDO EL CLUB…':hud.phase==='paused'?'SEGUIR CORRIENDO':over?'REVANCHA':'EMPEZAR PERSECUCIÓN'}/>}
   </section>
 }

@@ -1,3 +1,5 @@
+import { MAZE_STAGES } from '../../src/snake'
+import { selectReel } from './consoleMenus'
 import { expect, test } from '@playwright/test'
 
 test.beforeEach(async ({ page }) => {
@@ -26,9 +28,9 @@ test('Jack opens immersive, allows maze selection, plays and returns to the libr
   await page.goto('/?seccion=arcade')
   await page.locator('.arcade-choice').filter({ hasText: 'LA QUE HAS LIAO, JACK' }).click()
   await expect(page.locator('.game-panel')).toHaveClass(/is-immersive/)
-  const launch = page.getByRole('region', { name: 'Presentación del juego' })
-  await launch.getByRole('button', { name: 'LABERINTO', exact: true }).click()
-  await launch.getByLabel('Recorrido del laberinto').selectOption('12')
+  const launch = page.locator('.arcade-console-menu')
+  await selectReel(page,'Modo de Snake','LABERINTO')
+  await selectReel(page,'Recorrido del laberinto',MAZE_STAGES[11])
   await launch.getByRole('button', { name: 'JUGAR AHORA', exact: true }).click()
   await expect(launch).toHaveCount(0)
   await expect(page.locator('.game-heading')).toContainText('NIVEL 12')
@@ -43,8 +45,8 @@ test('Groove opens immersive, starts Scratch Session and Escape returns to the l
   await page.goto('/?seccion=arcade')
   await page.locator('.arcade-choice').filter({ hasText: 'GROOVE NINJA' }).click()
   await expect(page.locator('.gn-panel')).toHaveClass(/gn-immersive/)
-  const launch = page.getByRole('region', { name: 'Presentación del juego' })
-  await launch.getByRole('button', { name: 'SCRATCH SESSION', exact: true }).click()
+  const launch = page.locator('.arcade-console-menu')
+  await selectReel(page,'Modo de Groove Ninja','SCRATCH SESSION')
   await launch.getByRole('button', { name: 'JUGAR AHORA', exact: true }).click()
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-mode', 'scratch')
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'playing')

@@ -1,3 +1,4 @@
+import { launchCollecta, collectaControl } from './consoleMenus'
 import { expect, test } from '@playwright/test'
 
 test.beforeEach(async ({ page }) => {
@@ -9,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 
 test('Collecta opens a real automatic opponent, freezes it in pause and returns to the unchanged duel', async ({ page }) => {
   await page.goto('/test?seccion=arcade&juego=collecta')
-  await page.getByRole('button', { name: /JUGAR EN SOLITARIO/ }).click()
+  await launchCollecta(page,'solo')
   await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await expect(page.locator('.arena-game')).toHaveAttribute('data-opponent', 'cpu')
   await expect(page.getByRole('button', { name: 'P2 Soltar disco', exact: true })).toHaveCount(0)
@@ -25,22 +26,23 @@ test('Collecta opens a real automatic opponent, freezes it in pause and returns 
   await page.getByRole('button', { name: 'SEGUIR EL TURNO', exact: true }).click()
   await expect(page.locator('.arena-game')).toHaveAttribute('data-phase', 'playing')
   await page.getByRole('button', { name: 'Salir de Arena DANZ', exact: true }).click()
-  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
+  await launchCollecta(page,'arena')
   await expect(page.locator('.arena-game')).toHaveAttribute('data-opponent', 'human')
+  await page.getByRole('button',{name:'EMPEZAR DUELO',exact:true}).click()
   await expect(page.getByRole('button', { name: 'P2 Soltar disco', exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'EMPEZAR DUELO', exact: true })).toBeVisible()
 })
 
 test('solo reuses P1 joystick upright and responds to movement in three sizes', async ({ page }, testInfo) => {
   test.setTimeout(45000)
   await page.goto('/test?seccion=arcade&juego=collecta')
-  await page.getByRole('group', { name: 'Mando P1', exact: true }).getByRole('button', { name: 'JOYSTICK', exact: true }).click()
+  await collectaControl(page,1,'JOYSTICK')
   for (const size of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size)
     await page.goto('/test?seccion=arcade&juego=arena-solo')
     await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
+    await page.getByRole('button',{name:'EMPEZAR TURNO',exact:true}).click()
     const stick = page.getByRole('button', { name: 'P1 Joystick', exact: true }), rect = (await stick.boundingBox())!
-    expect(rect.width).toBe(96); expect(rect.height).toBe(96)
+    expect(rect.width).toBe(size.width>size.height?108:96); expect(rect.height).toBe(size.width>size.height?108:96)
     expect(rect.x).toBeGreaterThanOrEqual(0); expect(rect.y + rect.height).toBeLessThanOrEqual(size.height)
     const matrix = await page.locator('.versus-face').evaluate(el => getComputedStyle(el).transform)
     expect(matrix).toMatch(/^matrix\(1, 0, 0, 1,/)
@@ -49,7 +51,6 @@ test('solo reuses P1 joystick upright and responds to movement in three sizes', 
       expect(canvas.height).toBeGreaterThan(280)
       expect(rect.x + rect.width).toBeLessThan(canvas.x)
     }
-    await page.getByRole('button', { name: 'EMPEZAR TURNO', exact: true }).click()
     await stick.focus(); await page.keyboard.down('ArrowRight')
     await expect.poll(() => page.locator('.arena-game').getAttribute('data-p1')).not.toBe('1,1')
     await page.keyboard.up('ArrowRight')

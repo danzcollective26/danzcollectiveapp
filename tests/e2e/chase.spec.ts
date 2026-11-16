@@ -1,3 +1,4 @@
+import { launchCollecta } from './consoleMenus'
 import { expect, test, type Page } from '@playwright/test'
 test.use({ hasTouch: true })
 
@@ -26,17 +27,16 @@ test('Collecta has one approved complete cover and links to both local game mode
   await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(600)
   await expect(cover).toHaveCSS('object-fit', 'contain')
   await card.click()
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
-  await expect(page.locator('.collecta-cover img')).toHaveAttribute('src', '/arcade/collecta-mobile-v1.webp')
-  await expect(page.getByText('PENDIENTE DE DESARROLLO', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: /JUGAR PERSECUCIÓN/ }).click()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
+  await expect(page.getByRole('group',{name:'Modo de DANZ Collecta',exact:true})).toContainText('ARENA')
+  await launchCollecta(page,'chase')
   await expect(page.locator('.chase-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'Salir de Persecución', exact: true }).click()
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
-  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
+  await launchCollecta(page,'arena')
   await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'Salir de Arena DANZ', exact: true }).click()
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
   expect(await page.locator('body').evaluate(el => el.style.overflow)).not.toBe('hidden')
 })
 
@@ -122,7 +122,7 @@ test('Canvas-only rendering boots with reduced motion and Escape releases the vi
   })
   await start(page)
   await page.keyboard.press('Escape')
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
   expect(await page.locator('body').evaluate(el => el.style.overflow)).not.toBe('hidden')
   await expect(page.locator('.chase-board canvas')).toHaveCount(0)
 })

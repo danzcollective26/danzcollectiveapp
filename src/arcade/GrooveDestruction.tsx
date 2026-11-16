@@ -1,3 +1,7 @@
+import ArcadeMenu from './ArcadeMenu'
+import SelectionReel from './SelectionReel'
+import GameSurface from './GameSurface'
+import { requestArcadeFullscreen } from './arcadeFullscreen'
 import ClubRig from './ClubRig'
 import {useEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from 'react'
 import {DestructionFx,DestructionWeaponPreview} from './DestructionEffects'
@@ -32,6 +36,7 @@ function newTarget(id:number,elapsed:number):DestructionTarget{
  return {id,x:random(65,575),y:-60,vx:random(-24,24),vy:speed,radius,hp:kind==='shield'?3:1,kind,spin:random(-3,3)}
 }
 export default function GrooveDestruction({onBack}:{onBack:()=>void}){
+ const [menuOpen,setMenuOpen]=useState(true),[menuPage,setMenuPage]=useState('weapon')
  const [weapon,setWeapon]=useState<DestructionWeapon>('blaster')
  const [running,setRunning]=useState(false)
  const [elapsed,setElapsed]=useState(0)
@@ -50,6 +55,7 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
  selected.current=weapon
  useEffect(()=>()=>{if(impactTimer.current)clearTimeout(impactTimer.current)},[])
  const reset=()=>{
+  requestArcadeFullscreen();setMenuOpen(false)
   game.current={elapsed:0,targets:[],id:0,spawn:0,last:0,running:true,lastFire:-1000,combo:0,score:0,best:0,missed:0}
   setElapsed(0);setScore(0);setCombo(0);setBest(0);setMissed(0);setShot(null);setShowImpact(false);setTargets([]);setMessage('¡FUEGO A LOS VINILOS!');setRunning(true)
  }
@@ -63,7 +69,7 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
    const dt=g.last?Math.min(70,now-g.last):0
    g.last=now;g.elapsed+=dt
    if(g.elapsed>=DESTRUCTION_DURATION){
-    g.running=false;setRunning(false);setElapsed(DESTRUCTION_DURATION);setTargets([...g.targets]);return
+    g.running=false;setRunning(false);setMenuOpen(true);setElapsed(DESTRUCTION_DURATION);setTargets([...g.targets]);return
    }
    g.spawn+=dt
    const interval=Math.max(330,840-g.elapsed/130)
@@ -77,10 +83,14 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
   frame=requestAnimationFrame(tick)
   return()=>{game.current.last=0;cancelAnimationFrame(frame)}
  },[running])
+ const pause=()=>{game.current.running=false;setRunning(false);setMenuOpen(true)}
+ const pauseRef=useRef(pause);pauseRef.current=pause
  useEffect(()=>{
-  const hide=()=>{if(document.hidden)setRunning(false)}
-  document.addEventListener('visibilitychange',hide)
-  return()=>document.removeEventListener('visibilitychange',hide)
+  const hidden=()=>{if(document.hidden)pauseRef.current()},blur=()=>pauseRef.current(),rotation=window.matchMedia('(orientation: landscape)')
+  let native=Boolean(document.fullscreenElement)
+  const rotate=()=>pauseRef.current(),fullscreen=()=>{if(document.fullscreenElement)native=true;else if(native){native=false;pauseRef.current()}}
+  document.addEventListener('visibilitychange',hidden);window.addEventListener('blur',blur);rotation.addEventListener('change',rotate);document.addEventListener('fullscreenchange',fullscreen)
+  return()=>{document.removeEventListener('visibilitychange',hidden);window.removeEventListener('blur',blur);rotation.removeEventListener('change',rotate);document.removeEventListener('fullscreenchange',fullscreen)}
  },[])
  const fire=(event:ReactPointerEvent<SVGSVGElement>)=>{
   if(!running)return
@@ -130,13 +140,12 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
   impactTimer.current=window.setTimeout(()=>{setShot(previous=>previous?.born===timestamp?null:previous);setShowImpact(false)},650)
  }
  const leave=()=>{setRunning(false);onBack()}
- return <section className="content inner-page dn-page" aria-label="Groove Ninja Modo Destrucción">
-  <button className="back" type="button" onClick={leave}>← VOLVER A GROOVE NINJA</button>
-  <header className="dn-heading"><span>ARCADANZ / GROOVE NINJA</span><h1>MODO<br/><em>DESTRUCCIÓN.</em></h1><p>Vinilos al vuelo. Ocho armas absurdas. Sesiones de 60 segundos. Aquí no se cortan: ¡se hacen trizas!</p></header>
+ const resume=()=>{requestArcadeFullscreen();setMenuOpen(false);setRunning(true)}
+ return <section className="dn-page dn-immersive" aria-label="Groove Ninja Modo Destrucción" data-status={running?'playing':elapsed>=DESTRUCTION_DURATION?'over':'paused'}>
+  <header className="dn-session-top"><button type="button" onClick={leave}>← GROOVE</button><strong>DESTRUCCIÓN</strong><button type="button" onClick={pause}>ARSENAL / PAUSA</button></header>
   <div className="dn-layout">
-   <section className="dn-weapons" aria-label="Elegir arma de destrucción"><h2>ARSENAL DEL CAOS</h2><div className="dn-weapon-grid">{keys.map(key=><button type="button" key={key} aria-pressed={weapon===key} onClick={()=>setWeapon(key)}><span className="dn-weapon-symbol" aria-hidden="true">{DESTRUCTION_WEAPONS[key].icon}</span><span><strong>{DESTRUCTION_WEAPONS[key].name}</strong><small>{DESTRUCTION_WEAPONS[key].description}</small></span></button>)}</div><p>Apunta tocando el disco. Cada arma tiene alcance, potencia y tiempo de recarga propios. Los blindados necesitan más de un impacto.</p></section>
    <div className={`dn-stage dn-stage-${weapon}${showImpact?" dn-stage-impact":""}`} data-current-weapon={weapon}><div className="dn-hud"><div>PUNTOS <strong data-testid="destruction-score">{score.toLocaleString('es-ES')}</strong></div><div>TIEMPO <strong>{Math.ceil((DESTRUCTION_DURATION-elapsed)/1000)}s</strong></div><div>COMBO <strong>×{Math.min(4,1+Math.floor(combo/5))}</strong></div></div>
-    <div className="dn-board-wrap">
+    <GameSurface ratio={640/760} className="dn-play-slot"><div className="dn-board-wrap">
      <div className="dn-weapon-title" aria-live="polite"><b>{DESTRUCTION_WEAPONS[weapon].icon} {DESTRUCTION_WEAPONS[weapon].name.toUpperCase()}</b><span>{DESTRUCTION_WEAPONS[weapon].description}</span></div>
      <svg ref={board} onPointerDown={fire} viewBox="0 0 640 760" className="dn-board" role="img" aria-label="Dianas de vinilo para disparar" style={{touchAction:'none'}}>
       <defs><radialGradient id="dn-record"><stop stopColor="#525251"/><stop offset=".37" stopColor="#11151a"/><stop offset=".7" stopColor="#343940"/><stop offset="1" stopColor="#090d12"/></radialGradient><radialGradient id="dn-room"><stop stopColor="#535649"/><stop offset=".7" stopColor="#252c32"/><stop offset="1" stopColor="#111418"/></radialGradient></defs>
@@ -153,11 +162,14 @@ export default function GrooveDestruction({onBack}:{onBack:()=>void}){
       {shot&&<DestructionFx key={shot.born} shot={shot}/>} 
      </svg>
      <DestructionWeaponPreview weapon={weapon}/>
-     {!running&&<div className="dn-overlay"><strong>{elapsed>=DESTRUCTION_DURATION?'¡CABINA DESTROZADA!':'¿PREPARADO PARA EL CAOS?'}</strong><p>{elapsed>=DESTRUCTION_DURATION?`${score} PUNTOS · MEJOR RACHA ${best} · ${missed} VINILOS ESCAPADOS`:'Elige un arma y apunta a los discos. Los dorados puntúan más; los azules son blindados.'}</p><button type="button" onClick={reset}>{elapsed>=DESTRUCTION_DURATION?'OTRA DESTRUCCIÓN':'¡EMPEZAR DESTRUCCIÓN!'}</button>{elapsed>0&&elapsed<DESTRUCTION_DURATION&&<button type="button" className="dn-resume" onClick={()=>setRunning(true)}>REANUDAR PARTIDA</button>}</div>}
-    </div>
-    <div className="dn-footer"><span role="status">{message}</span><button type="button" onClick={()=>setRunning(x=>!x)} disabled={elapsed===0||elapsed>=DESTRUCTION_DURATION}>{running?'PAUSAR':'REANUDAR'}</button></div>
+    </div></GameSurface>
+    <div className="dn-footer"><span role="status">{message}</span><button type="button" onClick={pause}>CAMBIAR ARMA</button></div>
    </div>
   </div>
-  <p className="dn-local-note">MODO EXPERIMENTAL · Puntuación local de esta sesión, sin afectar los récords competitivos ni DANZPOINTS. Armas ficticias de arcade, sin efectos reales.</p>
+  {menuOpen&&<ArcadeMenu title="DESTRUCCIÓN" eyebrow="GROOVE NINJA / ARSENAL DEL CAOS" art="/arcade/groove-ninja-approved-mobile.webp" accent={DESTRUCTION_WEAPONS[weapon].color} tabs={[{id:'weapon',label:'ARSENAL'},{id:'help',label:'CÓMO JUGAR'}]} page={menuPage} onPage={setMenuPage} onBack={leave} backLabel="Volver a Groove Ninja" action={{label:elapsed>0&&elapsed<DESTRUCTION_DURATION?'VOLVER A LA CABINA':elapsed>=DESTRUCTION_DURATION?'OTRA DESTRUCCIÓN':'EMPEZAR DESTRUCCIÓN',onClick:elapsed>0&&elapsed<DESTRUCTION_DURATION?resume:reset}} footer="60 SEGUNDOS · PUNTUACIÓN LOCAL">
+    {menuPage==='weapon'&&<>{elapsed>=DESTRUCTION_DURATION&&<p className="menu-state">PARTY OVER · {score} PUNTOS <small>{best} MEJOR RACHA · {missed} ESCAPADOS</small></p>}<SelectionReel label="Arma de destrucción" choices={keys.map(id=>({id,name:DESTRUCTION_WEAPONS[id].name,note:DESTRUCTION_WEAPONS[id].description}))} value={weapon} onChange={id=>setWeapon(id as DestructionWeapon)}><div className="console-mode-icon">{DESTRUCTION_WEAPONS[weapon].icon}</div></SelectionReel></>}
+    {menuPage==='help'&&<div className="menu-help"><h2>HAZ TRIZAS LA CABINA.</h2><p>Toca los vinilos para disparar. Cada arma tiene su alcance, daño y recarga.</p><p>Los <b>dorados</b> puntúan más. Los <b>azules</b> resisten varios impactos.</p><small>Sesión local de 60 segundos, sin afectar los récords competitivos ni DANZPOINTS.</small></div>}
+  </ArcadeMenu>}
+
  </section>
 }

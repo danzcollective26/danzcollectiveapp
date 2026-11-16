@@ -498,3 +498,21 @@ DANZPORTER_CONDUCCION_2026-11-16.md para cierre público final.
 - K01–K05 y A06 quedan publicados para su alcance local. Permanecen T01/T04,
   contenidos adicionales/online, P03/P05 transaccional, música/BPM, fotos,
   moderación, administración y retorno externo de Gemini con sus estados previos.
+
+## 20. Menús de consola y pantalla completa — nueva petición del 16/11
+
+| ID | Petición | Estado / siguiente acción |
+| --- | --- | --- |
+| A07 | Menús seleccionables y desplazables como un videojuego clásico | En implementación: una selección central con flechas, deslizamiento y teclado; páginas de jugar, garaje, circuito, ajustes y ayuda. Identidad DANZ y portadas exactas conservadas. |
+| A08 | Todos los juegos a pantalla completa e información más comedida | En implementación: sesión inmersiva desde apertura, solicitud nativa en gesto de usuario, continuidad entre modos, Destrucción adaptable; información secundaria en ayuda/ajustes. Verificar móvil, navegación, pausa y salida. |
+
+No se copian logos o recursos de Crash Team Racing: la referencia es la forma de
+seleccionar, con arte y nombres propios de DANZ. Las peticiones anteriores y los
+límites de T01/T04 se conservan. Evidencia y publicación al cerrar este bloque.
+
+### Nueva dirección gráfica de DANZPORTER
+
+| ID | Petición | Estado / siguiente acción |
+| --- | --- | --- |
+| K06 | Acabado cercano a la referencia de Rush Rally Origins enviada por el propietario | Referencia visual recibida: cámara isométrica cercana, materiales/terreno e iluminación natural, manteniendo mundo DANZ y recursos originales. Revisar después de cerrar A07/A08. |
+| K07 | Opción de primera persona | Añadida a desarrollo como cámara opcional de la misma carrera; conservar física, garaje, daño y boxes. No confundir con nuevo modo competitivo ni declararla probada antes de validar render/cámara. |
