@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './arcadeChooser.css'
 
-type ArcadeChoice = 'snake' | 'groove' | 'collecta' | 'kart'
+type ArcadeChoice = 'snake' | 'groove' | 'collecta' | 'kart' | 'heist'
 const YEPPO_DARES: Record<ArcadeChoice, string[]> = {
   kart: ['Carga un derrape y suéltalo al salir de la curva. Que la crew te vea la matrícula.', 'Completa tres vueltas en Contrarreloj y guarda tu primera marca.'],
   collecta: ['Gana una ronda de Arena creando una cadena de discos. Pero sal de la onda, figura.', 'En Persecución, pilla al rival y escapa antes de que te la devuelva. Así, con cariño.'],
@@ -14,6 +14,10 @@ const YEPPO_DARES: Record<ArcadeChoice, string[]> = {
     'Encadena 5 cortes seguidos en Vinyl Cut sin perder una vida.',
     'Consigue un multicorte y termina la sesión con al menos 3 vidas.',
     'Prueba Scratch Session y clava 3 gestos PERFECTO en una sesión.',
+  ],
+  heist: [
+    'Sal con un vinilo antes de que la música baje del todo.',
+    'Cierra un pacto y rómpelo en la extracción. El récord se queda en el navegador.',
   ],
 }
 function dayNumber() {
@@ -43,10 +47,14 @@ export default function ArcadeChooser({ onSelect }: { onSelect: (choice: ArcadeC
       <img src="/arcade/danzporter-cover-v1.webp" alt="" width="600" height="800" decoding="async"/>
       <span className="arcade-choice-copy"><small>04 / RACING · TRES MODOS</small><strong>DANZPORTER</strong><span>Derrapa. Suelta. Desaparece. <b>SALIR A PISTA ↗</b></span></span>
     </button>
+    <button type="button" className="arcade-choice" onClick={() => onSelect('heist')}>
+      <img src="/arcade/manager-heist-cover.svg" alt="" width="600" height="800" decoding="async"/>
+      <span className="arcade-choice-copy"><small>06 / EXTRACCIÓN · BLUFF</small><strong>MANAGER HEIST</strong><span>Entra, miente y sal vivo. <b>ENTRAR ↗</b></span></span>
+    </button>
     <div className="arcade-yeppo-challenge">
       <div><strong>🌸 YEPPO CHALLENGE</strong><span>Un reto extra para darle salsa a la partida. No modifica puntos ni rankings.</span></div>
       <button type="button" aria-expanded={challengeOpen} onClick={() => setChallengeOpen(value => !value)}>{challengeOpen ? 'OCULTAR' : 'PONME UN RETO ↗'}</button>
-      {challengeOpen && <div className="arcade-yeppo-dare"><div className="arcade-challenge-games" role="group" aria-label="Juego del reto de Yeppo"><button type="button" aria-pressed={active==='snake'} onClick={()=>setActive('snake')}>JACK</button><button type="button" aria-pressed={active==='groove'} onClick={()=>setActive('groove')}>GROOVE NINJA</button><button type="button" aria-pressed={active==='collecta'} onClick={()=>setActive('collecta')}>DANZ COLLECTA</button></div><p role="status">{challenge}</p><button type="button" onClick={() => setChallengeIndex(index => index + 1)}>OTRO RETO ↻</button><small>Reto voluntario de Yeppo: todavía no registra cumplimiento ni concede premios.</small></div>}
+      {challengeOpen && <div className="arcade-yeppo-dare"><div className="arcade-challenge-games" role="group" aria-label="Juego del reto de Yeppo"><button type="button" aria-pressed={active==='snake'} onClick={()=>setActive('snake')}>JACK</button><button type="button" aria-pressed={active==='groove'} onClick={()=>setActive('groove')}>GROOVE NINJA</button><button type="button" aria-pressed={active==='collecta'} onClick={()=>setActive('collecta')}>DANZ COLLECTA</button><button type="button" aria-pressed={active==='heist'} onClick={()=>setActive('heist')}>HEIST</button></div><p role="status">{challenge}</p><button type="button" onClick={() => setChallengeIndex(index => index + 1)}>OTRO RETO ↻</button><small>Reto voluntario de Yeppo: todavía no registra cumplimiento ni concede premios.</small></div>}
     </div>
   </div>
 }
