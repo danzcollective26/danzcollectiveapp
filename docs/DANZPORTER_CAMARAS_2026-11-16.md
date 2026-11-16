@@ -21,7 +21,7 @@ Solo se recibió la captura de referencia de Rally; no se inventa una segunda im
   mandos enfrentados, aunque la preferencia de primera persona queda guardada.
 - Cambio de cámara en pausa conserva tiempo, piezas, salud y circuito. Modo
   compatible limitado a 30 actualizaciones visuales por segundo; RAF duerme en
-  menús/pausa, ResizeObserver y recursos se limpian al salir. Sin cabeceo ni shake.
+  menús/pausa; shaders y entorno se preparan solo al salir a pista. ResizeObserver y recursos se limpian al salir. Sin cabeceo ni shake.
 - Calidad automática cambia a compatible tras tres renders consecutivos de más
   de 95 ms durante carrera/cuenta atrás. No se considera una medición de FPS
   física ni cambia la calidad elegida por el usuario en ajustes.

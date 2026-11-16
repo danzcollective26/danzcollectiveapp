@@ -120,8 +120,8 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const cockpitCamera=new THREE.PerspectiveCamera(78,1,2,4000)
   const ambient=new THREE.HemisphereLight('#e9ecdb','#6d7252',venue.id==='night'?1.9:1.8);scene.add(ambient)
   const sun=new THREE.DirectionalLight(venue.sun,venue.id==='night'?2.4:3);sun.position.set(-350,800,-300);sun.castShadow=shadows;sun.shadow.mapSize.set(lite?512:innerWidth<650?512:1024,lite?512:innerWidth<650?512:1024);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;sun.shadow.camera.top=650;sun.shadow.camera.bottom=-650;sun.shadow.camera.far=1800;sun.shadow.normalBias=.6;sun.shadow.bias=-.0002;scene.add(sun)
-  const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment(),environment=pmrem.fromScene(room,.04)
-  scene.environment=environment.texture;scene.environmentIntensity=.45;room.dispose();pmrem.dispose()
+  let environment:THREE.WebGLRenderTarget|null=null
+  scene.environmentIntensity=.45
   const loader=new THREE.TextureLoader(),textures:THREE.Texture[]=[]
   const texture=(url:string,color=false)=>{const t=loader.load(url,loaded=>{if(disposed)loaded.dispose();else wake()},undefined,()=>{if(!disposed)parent.dataset.textureFallback='true'});t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=lite?1:4;if(color)t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t}
   const asphalt=new THREE.MeshStandardMaterial({map:texture('/arcade/kart/asphalt.webp',true),normalMap:lite?null:texture('/arcade/kart/asphalt-normal.webp'),normalScale:new THREE.Vector2(.3,.3),color:venue.road,roughness:venue.id==='night'?.4:.86,metalness:.03,side:THREE.DoubleSide})
@@ -175,8 +175,14 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
         lastMarks[id]=pos
       }else lastMarks[id]=null
     })
+    // The console covers the board. Avoid compiling shaders and environment
+    // maps behind it, especially when cycling quality settings on a slow GPU.
+    if(!['playing','countdown'].includes(s.phase))return
     const paintAt=performance.now()
-    try{renderer.render(scene,firstPerson?cockpitCamera:camera)}catch{onFailure();return}
+    try{
+      if(!environment){const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();try{environment=pmrem.fromScene(room,.04);scene.environment=environment.texture}finally{room.dispose();pmrem.dispose()}}
+      renderer.render(scene,firstPerson?cockpitCamera:camera)
+    }catch{onFailure();return}
     slowFrames=performance.now()-paintAt>95?slowFrames+1:0
     if(prefs.quality==='auto'&&slowFrames>=3&&['playing','countdown'].includes(s.phase)){parent.dataset.compatibleReason='slow-render';onFailure();return}
     if(now-lastReport>1000){lastReport=now;parent.dataset.drawCalls=String(renderer.info.render.calls);parent.dataset.triangles=String(renderer.info.render.triangles)}
@@ -189,6 +195,6 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     if(disposed)return;disposed=true;cancelAnimationFrame(frame);observer.disconnect();renderer.domElement.removeEventListener('webglcontextlost',lost)
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),allTextures=new Set<THREE.Texture>(textures)
     scene.traverse(o=>{if(o instanceof THREE.Mesh||o instanceof THREE.Line||o instanceof THREE.Sprite){if('geometry' in o)geometries.add(o.geometry);const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list){materials.add(m);for(const value of Object.values(m))if(value instanceof THREE.Texture)allTextures.add(value)}}})
-    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());allTextures.forEach(t=>t.dispose());environment.dispose();renderer.dispose();renderer.domElement.remove();delete parent.dataset.drawCalls;delete parent.dataset.triangles
+    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());allTextures.forEach(t=>t.dispose());environment?.dispose();renderer.dispose();renderer.domElement.remove();delete parent.dataset.drawCalls;delete parent.dataset.triangles
   }}
 }
