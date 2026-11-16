@@ -509,3 +509,10 @@ DANZPORTER_CONDUCCION_2026-11-16.md para cierre público final.
 No se copian logos o recursos de Crash Team Racing: la referencia es la forma de
 seleccionar, con arte y nombres propios de DANZ. Las peticiones anteriores y los
 límites de T01/T04 se conservan. Evidencia y publicación al cerrar este bloque.
+
+### Nueva dirección gráfica de DANZPORTER
+
+| ID | Petición | Estado / siguiente acción |
+| --- | --- | --- |
+| K06 | Acabado cercano a la referencia de Rush Rally Origins enviada por el propietario | Referencia visual recibida: cámara isométrica cercana, materiales/terreno e iluminación natural, manteniendo mundo DANZ y recursos originales. Revisar después de cerrar A07/A08. |
+| K07 | Opción de primera persona | Añadida a desarrollo como cámara opcional de la misma carrera; conservar física, garaje, daño y boxes. No confundir con nuevo modo competitivo ni declararla probada antes de validar render/cámara. |
