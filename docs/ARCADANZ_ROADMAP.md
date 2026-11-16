@@ -1,6 +1,6 @@
 # DANZ: mejoras y próximos juegos
 
-Actualizado: 16 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZ Kart Mini tiene tres modos locales publicados (PR 34) y acabado 3D implementado en revisión (PR 35).
+Actualizado: 16 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZ Kart Mini tiene tres modos locales publicados (PR 34) y presentación 3D publicada (PR 35), con validación GPU pendiente.
 
 Registro general de tareas, decisiones, dependencias y evidencia vigente:
 [Revisión y pendientes de DANZ](REVISION_Y_PENDIENTES_DANZ_2026-11-15.md).
@@ -174,7 +174,7 @@ Detalles: `DANZ_KART_MINI_2026-11-15.md`.
 
 ## Kart premium — 16/11
 
-PR 35: Three.js 0.186.0, kart/piloto originales, escenario de muelle, materiales
+PR 35 publicado (`50eb18d7`, producción READY): Three.js 0.186.0, kart/piloto originales, escenario de muelle, materiales
 CC0 locales, cámara cercana o completa, minimapa, audio original, cuatro
 carrocerías, podio y ajustes persistentes. Corrección de trazados para impedir
 solapamientos, parrilla más espaciada y contacto ajustado al vehículo.
@@ -184,3 +184,9 @@ navegador conectado tiene WebGL desactivado: se comprueba fallback 2D, sin
 afirmar validación GPU. T01/T04 conservan Android/iPhone, FPS, batería y
 regresión de navegador/offline. Atajos, objetos, fantasma y online posteriores.
 Detalles y fuentes: `KART_PREMIUM_2026-11-16.md`.
+
+Cierre: producción `dpl_D78kxanrTCTboqnFrpBT2JgdKpL2`. Carrera, duelo horizontal,
+menú pequeño, monedero anónimo y actualización de PWA comprobados públicamente.
+El navegador no dispone de WebGL: vista compatible probada y geometría 3D
+auditada en CPU; validación GPU y móvil físico pendientes. CI 201 no ejecuta
+pasos ni genera logs, por lo que T04 sigue abierto.

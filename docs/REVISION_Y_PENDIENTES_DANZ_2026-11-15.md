@@ -39,7 +39,7 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | G01 | Continuar mejoras de Jack y Groove | Parcial; primera entrega publicada | Cerrar S01; conservar optimización y especiales. Completar pendientes específicos G02–G07, sin afirmar que todo está terminado. |
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
 | J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
-| J10 | DANZ Kart Mini | Beta local publicada PR 34; acabado 3D en verificación PR 35 | Tres modos, dos circuitos, mandos enfrentados, derrape/impulso. Falta validación WebGL y móvil físico (T01/T04); online y contenidos adicionales separados. |
+| J10 | DANZ Kart Mini | Carrera local y presentación 3D publicadas, PR 35 | Tres modos, dos circuitos, mandos enfrentados, derrape/impulso. Falta validación WebGL y móvil físico (T01/T04); online y contenidos adicionales separados. |
 
 ## 4. Lo ya publicado que debe conservarse
 
@@ -111,7 +111,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | A01 | Arena DANZ inspirado en Bomberman | Beta local publicada; memoria/kit entregados; pulido gráfico y siguientes mapas por integrar al recibir Gemini. |
 | A02 | Arena online desde dos móviles | Pendiente: salas, autoridad, tick, latencia, reconexión y resultados validados. No implementar una simulación de online. |
 | J09 | Persecución de DANZ Collecta | Beta local implementada: un minuto, capturas/cambio de papeles, obstáculos y sprint. CI de juego, multitoque, orientación y offline correctos; publicado y verificado, PR 30. |
-| J10 | DANZ Kart Mini | Beta local publicada PR 34; acabado 3D implementado PR 35. Tres modos, dos circuitos. Validación WebGL/móvil en T01/T04; objetos, atajos y online posteriores. |
+| J10 | DANZ Kart Mini | Beta local publicada PR 34; acabado 3D publicado PR 35. Tres modos, dos circuitos. Validación WebGL/móvil en T01/T04; objetos, atajos y online posteriores. |
 | E01 | Idle Studio | Externo/concepto aprobado; sigue «Próximamente». Puestos de música, moda, vídeo/diseño e impresión 3D, niveles y mejoras. Recibir proyecto de la otra IA antes de duplicarlo. El vídeo del estudio ya fue recibido como referencia privada. |
 | E02 | Plataformas desarrollado en Grok | Externo. Recibir ZIP completo; adaptación mínima, conservando arte, motor, niveles, física, controles, audio y progreso. |
 | E03 | DANZ Rush Party | Concepto histórico pendiente: exploración cenital tipo GTA 2D + pruebas tipo Mario Party. No descartarlo ni confundirlo con Arena. |
@@ -178,7 +178,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | T01 | Pruebas Android/iPhone reales | Pendientes FPS, batería, comodidad multitoque, orientación y audio. Emulación de tamaños no sustituye dispositivo físico. |
 | T02 | Complementos/documentación | Context7 antes de juegos/Yeppo; consultar conexiones pertinentes, herramientas gratuitas primero. Una conexión autenticada no demuestra que todas sus funciones o diseños estén disponibles. |
 | T03 | Auditoría y `/test` | Mantener ruta accesible, controles táctiles, reduced-motion, pausa y lista de mejoras aplicadas/propuestas en cada entrega importante. |
-| T04 | Recuperar la ejecución de pruebas de navegador y offline | P0 de verificación. CI de PR 31 y posteriores, incluido 200/PR 35, falla antes de ejecutar pasos y no genera logs; causa sin confirmar. Navegador conectado sin WebGL; validación GPU pendiente. Chromium local bloqueado al crear socket. Conservar los nuevos escenarios y ejecutarlos cuando vuelva a estar disponible, sin activar costes ni rebajar protecciones. |
+| T04 | Recuperar la ejecución de pruebas de navegador y offline | P0 de verificación. CI de PR 31 y posteriores, incluidos 200 y 201/PR 35, falla antes de ejecutar pasos y no genera logs; causa sin confirmar. Navegador conectado sin WebGL; validación GPU pendiente. Chromium local bloqueado al crear socket. Conservar los nuevos escenarios y ejecutarlos cuando vuelva a estar disponible, sin activar costes ni rebajar protecciones. |
 
 ## 10. Lo expresamente aplazado
 
@@ -410,6 +410,28 @@ probada y el modo 2D compatible. Ver `KART_PREMIUM_2026-11-16.md`.
 Build y 229 pruebas internas pasan. Auditoría de geometría con render CPU: se
 corrigen solapamientos de curvas, parrilla y garaje; agrupación de piezas por
 material. WebGL desactivado en el navegador conectado: fallback 2D comprobado,
-sin afirmar prueba de la GPU. En verificación de publicación; T01/T04 abiertos.
+sin afirmar prueba de la GPU. Publicado en PR 35; T01/T04 abiertos.
 La moneda visible P05 y el monedero de PR 34 se conservan; P03/canjes reales e
 historial transaccional siguen pendientes. Online y QR mantienen sus estados.
+
+### Cierre PR 35 — 16/11/2026
+
+- Código publicado: `50eb18d7e4f7bae1eeeae0c2392944c3513d0faa`; producción
+  READY `dpl_D78kxanrTCTboqnFrpBT2JgdKpL2`, alias público confirmado.
+- Build y 229 pruebas internas correctos. CI 201 repite cuatro jobs fallidos sin
+  steps ni logs; no se afirma automatización de navegador/offline ejecutada.
+- Revisión pública: acceso directo a Kart, salida a pista, livery Petrol, duelo
+  en Backstage, mandos enfrentados en 844×390, menú 320×568 con inicio accesible,
+  monedero anónimo y actualización normal de la PWA. Preview también comprobó
+  pausa sin avance y cambio de gráficos sin perder modo/circuito ni duplicar canvas.
+- WebGL desactivado en este navegador: se prueba la vista compatible automática;
+  el modelo y trazados 3D se revisan con render CPU separado. GPU, audio escuchado,
+  FPS, batería y multitoque de Android/iPhone conservan T01/T04.
+- Captura de producción: modo compatible 2D, no presentarla como captura de 3D.
+  El render de `docs/audits/kart-premium-geometry-review.webp` es auditoría de
+  geometría en Blender/Cycles, con materiales/iluminación aproximados.
+- El alcance local incluye tres modos, dos circuitos, derrape/impulso, física,
+  bot, mandos opuestos, preferencias, podio y récords. Objetos, atajos, fantasma,
+  repetición y online siguen pendientes, sin reabrir la entrega local.
+- P05 conserva moneda/monedero; catálogo, precios, canjes e historial siguen
+  pendientes. No cambia la política de QR, música, fotos ni retorno de Gemini.

@@ -64,9 +64,9 @@ GL_RENDERER Disabled). Se ha comprobado el fallback 2D automático, un solo canv
 pausa sin avance, preferencias, carrocería, circuitos, sonido on/off y mandos
 opuestos en tamaños 390×844 y 320×568. La geometría y cámaras se revisaron con
 render local; ese render no es una captura ni una medición del renderer WebGL.
-La revisión horizontal de producción y la publicación se anotarán al cerrar.
+La revisión horizontal de producción y el cierre figuran debajo.
 
-CI 200 falla antes de ejecutar pasos: cuatro jobs sin steps ni logs; causa sin
+CI 200 y 201 fallan antes de ejecutar pasos: cuatro jobs sin steps ni logs; causa sin
 confirmar. No se cuentan los escenarios de navegador/offline como ejecutados.
 T04 conserva esta regresión pendiente. T01 conserva WebGL real Android/iPhone,
 comodidad multitoque, audio escuchado, FPS y batería. No se rebajan protecciones,
@@ -80,3 +80,19 @@ adicionales siguen en la hoja de ruta.
 
 Render de revisión de los modelos originales en Blender/Cycles CPU. Materiales
 e iluminación aproximados; no es una captura de WebGL ni acredita FPS.
+
+## Publicación comprobada
+
+PR 35 integrado: `50eb18d7e4f7bae1eeeae0c2392944c3513d0faa`. Producción
+READY `dpl_D78kxanrTCTboqnFrpBT2JgdKpL2` con alias público. Acceso directo:
+https://danzcollectiveapp.vercel.app/test?seccion=arcade&juego=kart
+
+Revisión conectada de la versión pública: carga del juego, menú y arranque;
+duelo Backstage con carrocería Petrol en 844×390, controles opuestos; inicio
+accesible en 320×568; monedero anónimo conservado y actualización de PWA por su
+diálogo normal. Preview final comprueba pausa con tiempo constante 17.533 ms,
+modo/circuito conservados al cambiar gráficos y un solo canvas.
+
+La captura pública muestra el modo compatible. El navegador no puede abrir
+WebGL; el renderer 3D está publicado pero su validación GPU sigue pendiente.
+No se afirma sonido escuchado ni un resultado de FPS, batería o teléfono físico.
