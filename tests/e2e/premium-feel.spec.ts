@@ -14,14 +14,17 @@ test('native section transitions keep URL, history and rapid navigation in sync'
   await page.getByRole('navigation').getByRole('button',{name:'PASAPORTE',exact:true}).click()
   await expect(page.getByRole('heading',{name:/CADA NOCHE/})).toBeVisible()
   await expect(page).toHaveURL(/seccion=pasaporte/)
+  await page.evaluate(()=>{const nav=document.querySelector('nav')!;for(const label of ['FOTOS','PASAPORTE']) [...nav.querySelectorAll('button')].find(button=>button.textContent===label)?.click()})
+  await expect(page).toHaveURL(/seccion=pasaporte/)
+  await expect(page.getByRole('navigation').getByRole('button',{name:'PASAPORTE',exact:true})).toHaveAttribute('aria-current','page')
   await page.evaluate(()=>{
     const nav=document.querySelector('nav')!
     for(const label of ['FOTOS','DANZ IN','DANZFLOR']) [...nav.querySelectorAll('button')].find(button=>button.textContent===label)?.click()
   })
   await expect(page.getByRole('navigation').getByRole('button',{name:'DANZFLOR',exact:true})).toHaveAttribute('aria-current','page')
   await expect(page).toHaveURL(/seccion=danzflor/)
-  await page.goBack(); await expect(page).toHaveURL(/seccion=pasaporte/)
-  await expect(page.getByRole('heading',{name:/CADA NOCHE/})).toBeVisible()
+  await page.goBack(); await expect(page).toHaveURL(/seccion=musica/)
+  await expect(page.getByRole('navigation').getByRole('button',{name:'DANZ IN',exact:true})).toHaveAttribute('aria-current','page')
   expect(errors).toEqual([])
 })
 

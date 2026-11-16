@@ -9,7 +9,7 @@ function environment(values: Record<string, unknown>) {
   return () => { cancelSectionTransition(); for (const [key, value] of descriptors) { if (value) Object.defineProperty(globalThis, key, value); else Reflect.deleteProperty(globalThis, key) } }
 }
 
-test('only the last queued section updates history/DOM after rapid navigation', async () => {
+test('only the last queued section updates the DOM after rapid navigation', async () => {
   const callbacks: (() => void)[] = [], changes: string[] = []
   let skips = 0
   const restore = environment({ document: { hidden: false, startViewTransition: (callback: () => void) => {

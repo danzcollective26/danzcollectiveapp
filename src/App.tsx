@@ -243,9 +243,12 @@ export default function App() {
     if (destination !== 'admin' && destination !== 'fotos') url.searchParams.delete('album')
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
-    if (page !== destination) haptic('selection')
+    if (window.location.href !== url.href) haptic('selection')
+    // History changes with the gesture; a snapshot must not delay browser Back.
+    try { if (window.location.href !== url.href) window.history.pushState(window.history.state, '', url) } catch { /* In-memory navigation remains usable. */ }
+    const destinationLocation = window.location.href
     transitionSection(() => {
-      try { if (page !== destination || arcadeGame !== null) window.history.pushState(window.history.state, '', url) } catch { /* Navigation still works in a restricted browser view. */ }
+      if (window.location.href !== destinationLocation) return
       flushSync(() => { setArcadeGame(null); setLaunchGroove(false); setPage(destination) })
       window.scrollTo({ top: 0, behavior: 'instant' })
     }, page !== destination && arcadeGame === null)

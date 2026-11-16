@@ -9,3 +9,6 @@
 @media(prefers-reduced-motion:reduce){.private-gallery-viewer-stage:not(:active) .photo-viewer-frame>img{transition:none}}
 
 .gallery-lightbox-viewer{touch-action:none;overflow:hidden}.gallery-lightbox-header button,.gallery-lightbox-footer button,.gallery-lightbox-footer a{min-height:44px}
+
+.gallery-lightbox-footer{height:auto;min-height:44px;flex-wrap:wrap;gap:10px}.gallery-lightbox-actions{min-width:0;flex:1 1 auto;justify-content:flex-end}.gallery-lightbox-footer>span:first-child{min-width:0;flex:1 1 120px;max-width:100%}.gallery-lightbox-footer>span:last-child{flex:0 1 auto}
+@media(max-width:900px){.gallery-lightbox-footer>span:last-child{display:none}.gallery-lightbox-actions{justify-content:flex-start}}

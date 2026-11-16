@@ -133,6 +133,13 @@ test('main sections and photo viewer fit the current viewport', async ({ page })
   await upload(page, 'Responsive QA', ['viewport.png'])
   await page.getByRole('button', { name: 'Abrir fotografía 1: viewport.png', exact: true }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
+  for (const control of await page.locator('.gallery-lightbox-footer button,.gallery-lightbox-footer a').all()) {
+    const box=(await control.boundingBox())!, viewport=page.viewportSize()!
+    expect(box.height).toBeGreaterThanOrEqual(44)
+    expect(box.y+box.height).toBeLessThanOrEqual(viewport.height+1)
+    expect(box.x+box.width).toBeLessThanOrEqual(viewport.width+1)
+  }
+  await test.info().attach('premium-viewer-controls',{body:await page.screenshot({type:'jpeg',quality:75}),contentType:'image/jpeg'})
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Cerrar fotografía', exact: true }).click()
 })
