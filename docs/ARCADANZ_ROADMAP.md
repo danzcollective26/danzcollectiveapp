@@ -198,3 +198,9 @@ imagen exacta, con identidad visual propia de conducción nocturna. Pendientes
 activos: gas/freno, daños/boxes, tres chasis y seis tipos de ruedas con stats,
 color/piloto, ambientes del circuito y horizontal solo donde resulte útil.
 No se implementan compras con DANZPOINTS ni online en este bloque.
+
+Portada/nombre publicados en PR 36 (`e0a3a359`), producción READY.
+Mecánicas K02–K05 y A06 implementadas en revisión: 240 pruebas internas y
+36 configuraciones/circuitos completados por simulación. Pedales, daños y
+boxes reales; piezas con estadísticas y récords separados. No modifica Snake
+competitivo, puntos, permisos ni las portadas aprobadas.

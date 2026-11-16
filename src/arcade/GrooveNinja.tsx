@@ -146,8 +146,10 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   useEffect(() => {
     const hidden = () => { if (document.hidden) pause() }
     const blur = () => pause()
+    const orientation=window.matchMedia('(orientation: landscape)')
     document.addEventListener('visibilitychange', hidden); window.addEventListener('blur', blur)
-    return () => { document.removeEventListener('visibilitychange', hidden); window.removeEventListener('blur', blur) }
+    orientation.addEventListener('change',blur)
+    return () => { document.removeEventListener('visibilitychange', hidden); window.removeEventListener('blur', blur);orientation.removeEventListener('change',blur) }
   }, [])
   useEffect(() => {
     if (!running) return

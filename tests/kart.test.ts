@@ -1,8 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, RACE_LAPS, raceOrder, type Race, type TrackId } from '../src/arcade/kart/engine.ts'
+import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, RACE_LAPS, raceOrder, type Race, type TrackId, type KartInput } from '../src/arcade/kart/engine.ts'
 
-function advance(s:Race,time:number,frame:number){let remaining=time;while(remaining>0){const dt=Math.min(remaining,frame);s=stepRace(s,[NO_INPUT,NO_INPUT],dt);remaining-=dt}return s}
+const GAS:KartInput={...NO_INPUT,throttle:1}
+function advance(s:Race,time:number,frame:number,input:KartInput=GAS){let remaining=time;while(remaining>0){const dt=Math.min(remaining,frame);s=stepRace(s,[input,input],dt);remaining-=dt}return s}
 test('Full-width roads leave clearance through bends and between separate sections',()=>{
   for(const track of Object.values(TRACKS))for(let i=0;i<track.points.length;i++){
     const a=track.points[(i-1+track.points.length)%track.points.length],b=track.points[i],c=track.points[(i+1)%track.points.length]
@@ -36,8 +37,9 @@ for(const id of ['dock','backstage'] as TrackId[])test(`A complete three-lap rac
   for(const car of s.cars)assert.ok(projectTrack(TRACKS[id],car).distance<=ROAD_WIDTH/2-KART_RADIUS+.001)
 })
 test('A stationary steering input cannot farm laps or leave the road',()=>{
-  const s=advance(startRace(createRace('time')),30000,33)
+  const initial=createRace('time'),s=advance(startRace(initial),30000,33,NO_INPUT)
   assert.equal(s.cars[0].laps,0)
+  assert.equal(s.cars[0].x,initial.cars[0].x);assert.equal(s.cars[0].y,initial.cars[0].y)
   assert.ok(projectTrack(TRACKS.dock,s.cars[0]).distance<=ROAD_WIDTH/2-KART_RADIUS+.001)
 })
 test('Ordered checkpoints reject reversing over start and teleporting',()=>{

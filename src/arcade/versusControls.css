@@ -21,3 +21,17 @@
 @media(orientation:landscape) and (max-height:360px){.versus-controller{height:212px}.versus-face{width:204px}}
 /* The SVG matrix includes the controller's rotation; no screen-axis guessing. */
 .versus-stick-wrap{display:grid;place-items:center;width:138px;height:96px;min-width:0}.versus-face .versus-stick{display:block;width:96px;height:96px;min-width:96px;min-height:96px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;color:var(--player);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}.versus-face .versus-stick:active{cursor:grabbing}.versus-stick svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}.stick-bezel{fill:#101d25;stroke:#718679;stroke-width:2}.stick-track{fill:#1b3036;stroke:currentColor;stroke-opacity:.45;stroke-width:1.5}.stick-guide{fill:none;stroke:#98ac92;stroke-opacity:.18;stroke-width:1;stroke-dasharray:2 5}.stick-ticks{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round}.stick-shadow{fill:#0008}.stick-cap{fill:#294247;stroke:currentColor;stroke-width:2}.stick-inner{fill:#1c3237;stroke:#a2c1ab;stroke-opacity:.3}.stick-mark{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.versus-stick[data-engaged=true] .stick-cap{fill:#40584c}.versus-stick-help{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* Extra thumb room where landscape leaves usable space around Collecta. */
+@media(orientation:landscape) and (min-width:640px) and (min-height:361px){
+ .arena-game:not(.arena-solo) .arena-layout.versus-layout,.chase-game .chase-layout.versus-layout{grid-template-columns:128px minmax(0,1fr) 128px}
+ .arena-game:not(.arena-solo) .versus-controller,.chase-game .versus-controller{width:128px;height:264px}
+ .arena-game .versus-face,.chase-game .versus-face{width:252px;height:116px;grid-template-columns:150px minmax(0,1fr)}
+ .arena-game .versus-stick-wrap,.chase-game .versus-stick-wrap{width:150px;height:108px}
+ .arena-game .versus-face .versus-stick,.chase-game .versus-face .versus-stick{width:108px;height:108px;min-width:108px;min-height:108px}
+ .arena-game .versus-face .versus-pad,.chase-game .versus-face .versus-pad{grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,48px)}
+ .arena-game .versus-face .versus-pad>button,.chase-game .versus-face .versus-pad>button{width:48px;height:48px;min-width:48px;min-height:48px}
+ .arena-game .versus-meta .versus-action,.chase-game .versus-meta .versus-action{min-height:56px;font-size:11px!important}
+ .arena-game.arena-solo .arena-layout.versus-layout{grid-template-columns:264px minmax(0,1fr)}
+ .arena-game.arena-solo .versus-controller{width:264px;height:128px}
+ .arena-game.arena-solo .versus-face{width:252px;height:116px;gap:8px;grid-template-columns:150px minmax(0,1fr)}
+}
