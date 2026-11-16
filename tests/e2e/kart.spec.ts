@@ -5,8 +5,8 @@ test.beforeEach(async({page})=>{
 })
 test('Kart opens from the library, drives, pauses and returns',async({page})=>{
   await page.goto('/test')
-  await page.getByRole('button',{name:/04 \/ NUEVO · RACING LOCAL DANZ KART MINI/}).click()
-  const game=page.getByRole('region',{name:'DANZ Kart Mini',exact:true})
+  await page.getByRole('button',{name:/04 \/ NUEVO · RACING LOCAL DANZPORTER/}).click()
+  const game=page.getByRole('region',{name:'DANZPORTER',exact:true})
   await expect(game.locator('.kart-board')).toHaveAttribute('data-ready','true')
   await game.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
   await expect(game).toHaveAttribute('data-phase','playing',{timeout:8000})
@@ -16,9 +16,9 @@ test('Kart opens from the library, drives, pauses and returns',async({page})=>{
   await expect(game).toHaveAttribute('data-phase','paused')
   const paused=await game.getAttribute('data-elapsed');await page.waitForTimeout(150)
   await expect(game).toHaveAttribute('data-elapsed',paused!)
-  await game.getByRole('button',{name:'Salir de DANZ Kart Mini',exact:true}).click()
+  await game.getByRole('button',{name:'Salir de DANZPORTER',exact:true}).click()
   await expect(page.getByRole('region',{name:'Biblioteca ARCADANZ',exact:true})).toBeVisible()
-  await expect(page.getByRole('button',{name:/04 \/ RACING · TRES MODOS DANZ KART MINI/})).toBeVisible()
+  await expect(page.getByRole('button',{name:/04 \/ RACING · TRES MODOS DANZPORTER/})).toBeVisible()
 })
 test('Kart local duel exposes opposed, independent sticks and clears on rotation',async({page})=>{
   await page.setViewportSize({width:390,height:844})

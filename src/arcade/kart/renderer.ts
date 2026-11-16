@@ -37,7 +37,7 @@ function mapArt(c: CanvasRenderingContext2D, track: Track) {
   for(let n=0;n<4;n++){const p=trackPoint(track,.02-n*.008);c.save();c.translate(p.x,p.y);c.rotate(p.angle);c.strokeStyle='#d6dfd57a';c.lineWidth=2;c.strokeRect(-17,n%2?-29:3,33,26);c.restore()}
   // Center paddock, speakers, shipping containers and leaf clusters.
   rounded(c,328,202,260,65,8,'#0006');rounded(c,322,191,260,65,8,'#18262a');rounded(c,326,195,252,52,6,'#a9b68c');
-  c.fillStyle='#1c2c2d';c.font='900 32px Arial';c.textAlign='left';c.fillText('DANZ KART',339,230);flower(c,551,219,17,'#273a35')
+  c.fillStyle='#1c2c2d';c.font='900 26px Arial';c.textAlign='left';c.fillText('DANZPORTER',339,230);flower(c,551,219,17,'#273a35')
   c.fillStyle='#b9c7b8';c.font='bold 10px Arial';c.fillText('COLLECTIVE RACING DEPARTMENT',340,250)
   for(const [x,y] of [[660,250],[690,254],[720,258]]){rounded(c,x+5,y+6,24,45,3,'#060e15');rounded(c,x,y,24,45,3,'#53646a');for(let k=0;k<5;k++){c.fillStyle='#aebcb551';c.fillRect(x+3,y+4+k*8,18,2)}}
   for(const [x,y] of [[75,90],[910,595],[300,650],[500,65]]){for(let j=0;j<6;j++){c.save();c.translate(x,y);c.rotate(j*Math.PI/3);c.fillStyle=j%2?'#526c48':'#3a563e';c.beginPath();c.ellipse(0,12,5,23,.2,0,Math.PI*2);c.fill();c.restore()}c.fillStyle='#8b9871';c.beginPath();c.arc(x,y,4,0,Math.PI*2);c.fill()}

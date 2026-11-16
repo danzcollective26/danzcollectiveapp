@@ -435,3 +435,21 @@ historial transaccional siguen pendientes. Online y QR mantienen sus estados.
   repetición y online siguen pendientes, sin reabrir la entrega local.
 - P05 conserva moneda/monedero; catálogo, precios, canjes e historial siguen
   pendientes. No cambia la política de QR, música, fotos ni retorno de Gemini.
+
+## 19. DANZPORTER — ampliación del propietario, 16/11
+
+El nombre definitivo es **DANZPORTER**, aprobado después de proponer alternativas
+con guiños a Taxi Driver, Transporter y el colectivo. El propietario aprueba la
+portada generada con su nueva foto: conservar exactamente esa imagen.
+
+| ID | Petición | Estado / siguiente paso |
+| --- | --- | --- |
+| K01 | Nombre y portada propios de DANZPORTER | Implementados; en verificación/publicación. Imagen aprobada en biblioteca y /test; rutas antiguas se conservan. |
+| K02 | Acelerador/freno y más control | En desarrollo: pedal de gas, frenado real, opción de ayuda y teclado. |
+| K03 | Daños de los vehículos y boxes | En desarrollo: impacto según velocidad, degradación, reparación y feedback visible, también en modo compatible. |
+| K04 | Personalizar karts y pilotos; piezas con características | En desarrollo: chasis, seis ruedas, color, piloto y ventajas/contrapartidas. Sin gastar DANZPOINTS ni inventar compras. |
+| K05 | Personalización del circuito | En desarrollo: ambientes de circuito propios, sin alterar las portadas ajenas. |
+| A06 | Horizontal y mandos mayores donde tenga utilidad real | Auditar Kart, Collecta y Groove; no imponerlo a todos los juegos ni cambiar geometría competitiva de Jack. |
+
+Las peticiones previas de app, fotos, música, puntos, entregas externas y QR
+aplazados mantienen sus estados. T01/T04 siguen pendientes con sus límites.

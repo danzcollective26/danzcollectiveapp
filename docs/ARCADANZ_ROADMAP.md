@@ -190,3 +190,11 @@ menú pequeño, monedero anónimo y actualización de PWA comprobados públicame
 El navegador no dispone de WebGL: vista compatible probada y geometría 3D
 auditada en CPU; validación GPU y móvil físico pendientes. CI 201 no ejecuta
 pasos ni genera logs, por lo que T04 sigue abierto.
+
+## Evolución a DANZPORTER
+
+Nombre y portada con el nuevo protagonista aprobados el 16/11. Se integra la
+imagen exacta, con identidad visual propia de conducción nocturna. Pendientes
+activos: gas/freno, daños/boxes, tres chasis y seis tipos de ruedas con stats,
+color/piloto, ambientes del circuito y horizontal solo donde resulte útil.
+No se implementan compras con DANZPOINTS ni online en este bloque.
