@@ -321,15 +321,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    const back = () => {
-      runViewTransition(() => flushSync(() => {
-        dispatch({ type: 'pause' })
-        gameScreen.leave()
-        setLaunchGroove(locationGame() === 'groove')
-        setPage(locationPage())
-        setArcadeGame(locationGame())
-      }))
-    }
+    const back = () => { dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
     window.addEventListener('popstate', back)
     return () => window.removeEventListener('popstate', back)
   }, [])

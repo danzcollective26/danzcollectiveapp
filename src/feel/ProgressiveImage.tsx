@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 
 type Props = {
   src: string
@@ -14,10 +14,15 @@ type Props = {
 
 /** Reserved frame, shimmer, then a short blur-up once the same file has decoded. */
 export default function ProgressiveImage({ src, alt, width = 4, height = 5, eager = false, fit = 'cover', className, style, referrerPolicy }: Props) {
+  const [node, setNode] = useState<HTMLImageElement | null>(null)
   const [ready, setReady] = useState(false)
+  useLayoutEffect(() => {
+    setReady(Boolean(node?.complete && node.naturalWidth > 0))
+  }, [src, node])
   return (
     <span className={`progressive-photo${fit === 'contain' ? ' is-contain' : ''}${ready ? ' is-ready' : ''}`}>
       <img
+        ref={setNode}
         src={src}
         alt={alt}
         width={width}

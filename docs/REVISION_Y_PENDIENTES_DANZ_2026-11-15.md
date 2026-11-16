@@ -597,11 +597,12 @@ correcto y 258 pruebas internas en verde, incluidas las de transición,
 favoritos, gestos y silencio de audio. No hay prueba de teléfono físico,
 vibración real, FPS ni audio oído.
 
-- Shell: View Transitions entre secciones, con cambio inmediato si el
+- Shell: View Transitions al pulsar una sección, con cambio inmediato si el
   navegador no las soporta, si hay movimiento reducido o si hay partida de
-  arcade. Vibración corta solo donde existe `navigator.vibrate`. Esqueletos
-  en galerías, pasaporte y cargas perezosas. Barra fija, áreas seguras,
-  sin rebote de desplazamiento y color de tema oscuro.
+  arcade. El atrás del navegador sigue inmediato para no pisar un pase.
+  Vibración corta solo donde existe `navigator.vibrate`. Esqueletos en
+  galerías, pasaporte y cargas perezosas. Barra fija, áreas seguras, sin
+  rebote de desplazamiento y color de tema oscuro.
 - Galería: marco reservado y aparición con desenfoque, visor con
   deslizamiento, pellizco, doble toque y cierre hacia abajo. Favoritas en
   `localStorage` de este navegador. No hay miniaturas de servidor ni
