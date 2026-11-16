@@ -13,7 +13,7 @@ export class GrooveAudio {
   private closed = false
   private lastScratchAt = -1
 
-  async start(elapsed: number, muted: boolean) {
+  async start(elapsed: number, muted: boolean, backing = true) {
     const generation = ++this.generation
     if (this.closed) return null
     try {
@@ -33,8 +33,8 @@ export class GrooveAudio {
       this.anchor = this.context.currentTime - elapsed / 1000 + .04
       this.step = Math.ceil(elapsed / 125)
       if (this.timer) clearInterval(this.timer)
-      this.timer = setInterval(() => this.schedule(), 25)
-      this.schedule()
+      this.timer = backing ? setInterval(() => this.schedule(), 25) : null
+      if (backing) this.schedule()
       return this.context.state === 'running'
     } catch { return false }
   }

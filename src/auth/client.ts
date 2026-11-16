@@ -6,6 +6,7 @@ import { availableSocialProviders, type SocialProvider } from './oauth'
 const env = (import.meta as ImportMeta & { env: Record<string, string | boolean | undefined> }).env
 const checked = clientConfiguration(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY, Boolean(env.DEV))
 export const configIssue = checked.issue
+export const supabaseOrigin = checked.config?.url ?? null
 
 /** Public Auth settings, never admin config or provider credentials. */
 export async function fetchSocialProviders(signal: AbortSignal): Promise<SocialProvider[]> {

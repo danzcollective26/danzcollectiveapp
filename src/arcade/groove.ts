@@ -34,18 +34,24 @@ export type GrooveState = {
   lives: number; hits: number; misses: number; scratches: number; nextScratchAt: number; discs: GrooveDisc[];
   scratch: GrooveScratch | null; sparks: GrooveSpark[]; seed: number; nextId: number; beat: number; message: string;
   weapon: GrooveWeapon; flightTime: number; freezeUntil: number; nextWaveAt: number; wave: number; golds: number; multiCuts: number; strokeHits: number; perfects: number; judgement: string; doubleUntil: number; strokeDoubleUntil: number;
-  cutSequence: GrooveSequence | null; sequences: number;
+  cutSequence: GrooveSequence | null; sequences: number; beatMs: number;
 }
 
-export function initialGroove(seed = 27, mode: GrooveMode = 'cut', weapon: GrooveWeapon = 'katana'): GrooveState {
+export function initialGroove(seed = 27, mode: GrooveMode = 'cut', weapon: GrooveWeapon = 'katana', bpm = 120): GrooveState {
   return { status: 'ready', mode, elapsed: 0, score: 0, combo: 0, bestCombo: 0, lives: 5, hits: 0, misses: 0, scratches: 0, nextScratchAt: 0,
     discs: [], scratch: null, sparks: [], seed: Math.max(1, Math.floor(seed) % 2147483647), nextId: 1, beat: -1,
     weapon, flightTime: 0, freezeUntil: 0, nextWaveAt: 0, wave: 0, golds: 0, multiCuts: 0, strokeHits: 0, perfects: 0, judgement: '', doubleUntil: 0, strokeDoubleUntil: 0,
-    cutSequence: null, sequences: 0,
+    cutSequence: null, sequences: 0, beatMs: 60_000 / (Number.isFinite(bpm) && bpm >= 60 && bpm <= 200 ? bpm : 120),
     message: mode === 'cut' ? 'DORADOS ×3 · HIELO RALENTIZA · SIGUE LAS FLECHAS.' : 'SIGUE LAS FLECHAS Y TERMINA CADA GESTO EN SU PULSO.' }
 }
 export function grooveStage(time: number) { return Math.min(3, 1 + Math.floor(time / 20_000)) }
 export function grooveMultiplier(combo: number) { return Math.min(4, 1 + Math.floor(combo / 5)) }
+/** Pattern offsets are authored at 120 BPM; distance and points stay unchanged. */
+export function scratchOffset(state: GrooveState, offset: number) { return offset * state.beatMs / GROOVE_BEAT }
+function nextWave(state: GrooveState, stage: number, long = false) {
+  if (state.beatMs === GROOVE_BEAT) return state.elapsed + [1400, 1200, 1000][stage - 1] + (long ? 250 : 0)
+  return (Math.round(state.elapsed / state.beatMs * 2) / 2 + [3, 2.5, 2][stage - 1] + (long ? .5 : 0)) * state.beatMs
+}
 export function discPosition(disc: GrooveDisc, time: number): GroovePoint {
   const age = Math.max(0, (time - disc.born) / 1000)
   return { x: disc.x + disc.drift * age, y: (disc.originY ?? 800) - disc.launch * age + 285 * age * age }
@@ -71,7 +77,7 @@ function spawnWave(state: GrooveState) {
       layer: (step + wave) % 4, born: state.flightTime, x: directions.length === 2 ? 175 + step * 290 : 140 + step * 180,
       drift: 0, launch: 720, spin: random(state) * 5 }))
     state.message = `SECUENCIA: ${directions.map(d => GROOVE_DIRECTIONS[d].arrow).join(' ')}. CORTA EN ORDEN PARA +300.`
-    state.nextWaveAt = state.elapsed + [1400, 1200, 1000][stage - 1]
+    state.nextWaveAt = nextWave(state, stage)
     return
   }
   const count = layout === 0 ? 1 : layout === 3 ? Math.min(3, stage + 1) : 2
@@ -87,7 +93,7 @@ function spawnWave(state: GrooveState) {
     const x = center > 320 ? 115 : 525
     state.discs.push({ id: state.nextId++, kind: 'feedback', layer: 0, born: state.flightTime, x, drift: 0, launch: 720, spin: 0 })
   }
-  state.nextWaveAt = state.elapsed + [1400, 1200, 1000][stage - 1] + (layout === 3 ? 250 : 0)
+  state.nextWaveAt = nextWave(state, stage, layout === 3)
 }
 function clone(state: GrooveState): GrooveState {
   return { ...state, discs: [...state.discs], sparks: [...state.sparks], scratch: state.scratch ? { ...state.scratch } : null, cutSequence: state.cutSequence ? { ...state.cutSequence } : null }
@@ -112,19 +118,19 @@ export function advanceGroove(previous: GrooveState, milliseconds: number): Groo
   state.elapsed = Math.min(GROOVE_DURATION, previous.elapsed + Math.min(100, milliseconds))
   const slowed = Math.max(0, Math.min(state.elapsed, previous.freezeUntil) - previous.elapsed)
   state.flightTime += state.elapsed - previous.elapsed - slowed * .5
-  const beat = Math.floor(state.elapsed / GROOVE_BEAT)
+  const beat = Math.floor(state.elapsed / state.beatMs)
   if (state.mode === 'cut' && state.elapsed >= state.nextWaveAt) spawnWave(state)
   state.beat = beat
   if (state.mode === 'scratch' && !state.scratch && state.elapsed >= state.nextScratchAt) {
     const pattern = (state.scratches + state.misses) % (grooveStage(state.elapsed) === 1 ? 2 : 4)
-    const firstAt = Math.ceil((state.elapsed + 1000) / GROOVE_BEAT) * GROOVE_BEAT
+    const firstAt = Math.ceil((state.elapsed + state.beatMs * 2) / state.beatMs) * state.beatMs
     const window = [230, 190, 160][grooveStage(state.elapsed) - 1]
     const steps = SCRATCH_PATTERNS[pattern].steps
-    state.scratch = { id: state.nextId++, until: firstAt + steps.at(-1)!.offset + window, turns: 0, direction: 0, anchor: null, pointer: 320, pattern, firstAt, window, perfect: 0 }
+    state.scratch = { id: state.nextId++, until: firstAt + scratchOffset(state, steps.at(-1)!.offset) + window, turns: 0, direction: 0, anchor: null, pointer: 320, pattern, firstAt, window, perfect: 0 }
     state.judgement = 'PREPARA EL GESTO'
     state.message = `${SCRATCH_PATTERNS[pattern].name}: ${steps.length} GESTOS AL PULSO. CORTO O LARGO SEGÚN LA FLECHA.`
   }
-  if (state.scratch && state.elapsed > state.scratch.firstAt + SCRATCH_PATTERNS[state.scratch.pattern].steps[state.scratch.turns].offset + state.scratch.window) {
+  if (state.scratch && state.elapsed > state.scratch.firstAt + scratchOffset(state, SCRATCH_PATTERNS[state.scratch.pattern].steps[state.scratch.turns].offset) + state.scratch.window) {
     state.scratch = null; state.nextScratchAt = state.elapsed + 750; state.judgement = 'FUERA DE TIEMPO'; miss(state, 'SE ESCAPÓ EL PULSO. PREPARA LA SIGUIENTE FRASE.')
   }
   if (state.status === 'playing') {
@@ -251,7 +257,7 @@ export function scratchGroove(previous: GrooveState, x: number, release = false)
   if (scratch.anchor === null) { scratch.anchor = x; return state }
   const delta = x - scratch.anchor
   const steps = SCRATCH_PATTERNS[scratch.pattern].steps, step = steps[scratch.turns]
-  const timing = state.elapsed - scratch.firstAt - step.offset
+  const timing = state.elapsed - scratch.firstAt - scratchOffset(state, step.offset)
   if (Math.abs(delta) < step.distance) return state
   if (Math.sign(delta) !== step.direction) { scratch.anchor = x; state.judgement = 'AL OTRO LADO'; return state }
   if (timing < -scratch.window) { state.judgement = 'ESPERA EL PULSO'; return state }
@@ -275,11 +281,11 @@ export function setGroovePlaying(state: GrooveState, playing: boolean): GrooveSt
   return state
 }
 const RECORD_KEY = 'danz-groove-ninja-record-v1'
-export function readGrooveRecord(mode: GrooveMode = 'cut') {
-  try { const value = Number(localStorage.getItem(`${RECORD_KEY}-${mode}`) ?? (mode === 'cut' ? localStorage.getItem(RECORD_KEY) : null)); return Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000 ? value : 0 } catch { return 0 }
+export function readGrooveRecord(mode: GrooveMode = 'cut', music = 'practice') {
+  try { const value = Number(localStorage.getItem(`${RECORD_KEY}-${mode}${music === 'practice' ? '' : `-${music}`}`) ?? (mode === 'cut' && music === 'practice' ? localStorage.getItem(RECORD_KEY) : null)); return Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000 ? value : 0 } catch { return 0 }
 }
-export function saveGrooveRecord(score: number, mode: GrooveMode = 'cut') {
-  const record = Math.max(readGrooveRecord(mode), Number.isSafeInteger(score) && score >= 0 && score <= 1_000_000 ? score : 0)
-  try { localStorage.setItem(`${RECORD_KEY}-${mode}`, String(record)) } catch { /* Optional practice record. */ }
+export function saveGrooveRecord(score: number, mode: GrooveMode = 'cut', music = 'practice') {
+  const record = Math.max(readGrooveRecord(mode, music), Number.isSafeInteger(score) && score >= 0 && score <= 1_000_000 ? score : 0)
+  try { localStorage.setItem(`${RECORD_KEY}-${mode}${music === 'practice' ? '' : `-${music}`}`, String(record)) } catch { /* Optional practice record. */ }
   return record
 }

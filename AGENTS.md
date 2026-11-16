@@ -72,6 +72,15 @@ necesite y la solicite; no dedicarle trabajo ni activarla en esta entrega.
 - Yeppo conserva la identidad de la flor de la bolsa. Movimientos coherentes,
   frases breves e ingeniosas y respeto a la preferencia de movimiento reducido.
 
+## Música protegida — decisión del propietario, 16/11
+
+- Funky Fiesta y WTHIMH se reproducen con acceso protegido y sin botón de descarga.
+- No subir audios, originales, copias, tokens o enlaces firmados a GitHub.
+  Mantener Storage privado y emitir accesos breves tras verificar la sesión.
+- No guardar audio protegido o enlaces firmados en precaché o localStorage.
+  Ensayo debe seguir disponible sin cuenta y sin conexión.
+- No afirmar que ocultar controles impide toda extracción o grabación.
+
 ## Documentación, complementos y prueba móvil
 
 1. Antes de escribir o modificar código de juegos o del muñeco interactivo,

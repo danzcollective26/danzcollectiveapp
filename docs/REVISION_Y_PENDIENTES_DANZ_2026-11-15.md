@@ -40,7 +40,7 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
 | J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
 | J10 | DANZPORTER (antes DANZ Kart Mini) | Carrera local, conducción y cámaras publicadas, PR 35–41 | Tres modos, dos circuitos, piezas, daños, boxes, vista Rally y primera persona. CI 225: 246 internas, 552 de navegador y 16 offline correctas. GPU y móvil físico en T01; online y contenidos adicionales separados. |
-| PF01 | Sensación de app instalada, galería y Yeppo | Implementado en rama, no publicado | Ver sección 22. Falta prueba en teléfono físico. No cierra M02, M03, M08 ni M10. |
+| PF01 | Sensación de app instalada, galería y Yeppo | Implementado en rama, no publicado | Ver sección 23. Falta prueba en teléfono físico. No cierra M02, M03, M08 ni M10. |
 
 ## 4. Lo ya publicado que debe conservarse
 
@@ -97,8 +97,8 @@ de esa versión, no pruebas nuevas de esta revisión.
 
 | ID | Pendiente | Estado / siguiente acción |
 | --- | --- | --- |
-| G02 | Oleadas según BPM aproximado del tema real | Pendiente. El ritmo sintético/fijo no demuestra seguimiento del audio de la radio. |
-| G03 | Funky Fiesta y WTHIMH para Groove | Pendiente de confirmar recursos, disponibilidad y conexión al juego; no sustituirlos por stems inventados. |
+| G02 | Oleadas según BPM aproximado del tema real | Publicado PR 46: reloj del audio, oleadas y Scratch a 127 BPM aproximados. CI 235: 267 internas, 582 navegador y 16 offline correctos. Acceso privado y revisión pública comprobados. |
+| G03 | Funky Fiesta y WTHIMH para Groove | Publicado PR 46: ambos MP3 privados, sesión comprobada y enlaces de 120 s; acceso público rechazado. CI y revisión pública correctos; no hay archivos de audio en GitHub. |
 | G04 | Scratch con desafío rítmico entretenido tipo Guitar Hero | Parcial. Existen patrones temporizados; evaluar beatmap real, lectura y diversión. No declararlo acabado solo por pasar tests. |
 | G05 | Cortes dirigidos arriba/abajo y secuencias | Publicado y verificado PR 43 (2ac95f3c): cuatro sentidos reales, secuencias numeradas de dos/tres vinilos y +300 al completarlas. CI 230: 253 internas, 564 navegador y 16 offline correctas; capturas y apertura pública revisadas. T01 conserva pruebas físicas. |
 | G06 | Estilos de corte desbloqueables localmente | Trazo Club a los 20 cortes y preferencias persistentes implementados y comprobados. No modifica alcance, puntuación, vidas ni duración. Publicado y verificado, PR 30. |
@@ -590,7 +590,56 @@ Chromium local no puede abrir socket y la preview privada fue bloqueada por la
 política del navegador; se verifican CI y publicación pública sin cambiar
 accesos. No acredita teléfono físico, FPS, batería ni audio oído.
 
-## 22. Sensación premium — shell, galería y Yeppo (PF01), 16/11
+## 22. Groove — música protegida autorizada, 16/11
+
+El propietario autoriza publicar el código y reproducir Funky Fiesta y WTHIMH
+con acceso protegido, sin botón de descarga y sin subir los audios a GitHub.
+Se sustituye la propuesta anterior de incluir MP3 en el repositorio público.
+No se promete impedir toda extracción o grabación de una reproducción autorizada.
+
+Publicado en PR 46: selector, reloj media, oleadas/Scratch a 127 BPM aproximados,
+pausa, cancelación, errores, retorno a Ensayo y récord por tema/modo. El servidor
+valida la sesión y firma solo dos archivos fijos durante 120 segundos. Los enlaces
+se preparan antes de pulsar JUGAR para conservar el gesto de reproducción móvil.
+Ensayo sigue disponible sin cuenta y offline; Funky también se añade a la radio.
+
+Los dos MP3 ya se han subido al bucket privado y se ha comprobado que sus URLs
+públicas son rechazadas. Destino contrastado con la configuración de la app
+publicada y el proyecto Supabase existente. Sin MP3, originales, tokens o enlaces
+firmados en Git, localStorage o precaché. 267 internas y build correctos.
+Backend, CI y revisión pública completados; cierre en
+GROOVE_MUSICA_PROTEGIDA_2026-11-16.md. T01, G04/G07, G08, puntos, fotos,
+administración, entregas externas y QR conservan su estado.
+
+
+### Cierre de música protegida — PR 46
+
+Publicado: `4b6e0082dc39ea9d05240f9bb60fac3e4f317d0b`. Código probado
+`e448d25bf47566cb1767569e16e7088adf195c48`; árbol idéntico al checkout revisado.
+Producción READY `dpl_2hyyE5QNx8z96f47ZZaHw5SqcA8G`, alias público verificado.
+CI 235 (`43917167919`): **267 internas, 582 de navegador —194 por tamaño— y
+16 offline correctos**, sin reintentos fallidos. Los seis escenarios de música
+protegen sesión, reproducción, pausa/silencio, Scratch, selección, fallos y radio.
+El audio de CI es un fixture original sintetizado, no los masters del propietario.
+
+Backend real: los dos MP3 privados, URLs públicas rechazadas; sesión válida
+obtiene respuestas 206 de audio/mpeg. Sin sesión/JWT inválido devuelve 401;
+rutas/TTL alterados, 400; otro origen, 403. Cuenta de prueba retirada (0
+restantes), acceso de esa cuenta ya borrada rechazado y auxiliar de preparación
+cerrado. Ningún audio, token o enlace firmado se incorpora a GitHub.
+
+Revisión pública desde /test: selector Funky/WTHIMH/Ensayo, restricción de sesión
+y ensayo sin cuenta comprobados. Partida de ensayo real, fin de sesión y ajustes
+funcionan; cambiar tema restaura cinco vidas y 60 s. Controles de 44 px mínimo
+y sin desborde horizontal. Se corrige la alineación del carrusel dentro del
+panel de ajustes por especificidad CSS; no modifica motor ni acceso.
+
+G02/G03 cerrados para este alcance; G04/G07 conserva beatmap musical editado y
+evaluación prolongada de diversión. T01 sigue en teléfonos físicos, audio oído,
+GPU/FPS y batería. G08, DANZPOINTS, fotos, administración y retornos externos
+conservan su estado; QR continúa aplazado.
+
+## 23. Sensación premium — shell, galería y Yeppo (PF01), 16/11
 
 Implementado en `feature/premium-feel`. No está publicado. Build local
 correcto y 258 pruebas internas en verde, incluidas las de transición,
@@ -615,3 +664,4 @@ vibración real, FPS ni audio oído.
   generativa ni Yeppo 3D.
 
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
+La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.

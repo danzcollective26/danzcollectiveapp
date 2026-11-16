@@ -251,3 +251,15 @@ CI 230: 253 internas, 564 navegador y 16 offline correctas. Capturas en tres
 tamaños y apertura pública revisadas; auditoría en
 GROOVE_CORTES_DIRIGIDOS_2026-11-16.md. G02/G03/G08 y las pruebas físicas de
 T01 siguen pendientes.
+
+
+## Groove — música protegida autorizada, 16/11
+
+Código y reproducción de Funky Fiesta/WTHIMH autorizados con acceso protegido,
+sin botón de descarga y sin audios en GitHub. Ambos MP3 ya están en Storage
+privado y sus URLs públicas se rechazan. Implementados selector, reloj media,
+oleadas/Scratch a 127 BPM aproximados, pausa y récord por tema/modo. El servidor
+valida sesión y emite enlaces de 120 s; Ensayo sigue sin cuenta y offline.
+Publicado PR 46: CI 235 pasa build, 267 internas, 582 navegador y 16 offline.
+Backend protegido y apertura pública comprobados; T01 conserva prueba física. Ver
+GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.
