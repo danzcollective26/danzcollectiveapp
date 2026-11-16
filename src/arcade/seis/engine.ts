@@ -48,6 +48,8 @@ export interface GameState {
   yeppoMessage: string | null
   winner: string | null
   turn: number
+  pendingDraw: number
+  skipNext: boolean
 }
 
 export function createDeck(): Card[] {
@@ -97,4 +99,21 @@ export function canPlay(card: Card, top: Card | undefined, currentColor: Color |
   if (card.symbol && card.symbol !== 'number' && (card.symbol === currentSymbol || card.symbol === top.symbol)) return true
   if (card.value !== undefined && top.value !== undefined && card.value === top.value) return true
   return false
+}
+
+export function drawCards(state: GameState, playerIndex: number, count: number): GameState {
+  const newState = {
+    ...state,
+    deck: [...state.deck],
+    players: state.players.map(p => ({ ...p, hand: [...p.hand] }))
+  }
+  const player = newState.players[playerIndex]
+  for (let i = 0; i < count && newState.deck.length > 0; i++) {
+    player.hand.push(newState.deck.pop()!)
+  }
+  return newState
+}
+
+export function nextPlayerIndex(state: GameState): number {
+  return (state.currentPlayer + state.direction + state.players.length) % state.players.length
 }
