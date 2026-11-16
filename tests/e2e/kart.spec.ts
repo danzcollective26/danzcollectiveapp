@@ -2,7 +2,7 @@ import {menuTab,selectReel} from './consoleMenus'
 import { expect, test } from '@playwright/test'
 
 test.beforeEach(async({page})=>{
-  await page.addInitScript(()=>{Element.prototype.requestFullscreen=()=>Promise.reject(new DOMException('Unsupported','NotSupportedError'))})
+  await page.addInitScript(()=>{Element.prototype.requestFullscreen=()=>Promise.reject(new DOMException('Unsupported','NotSupportedError'));if(!localStorage.getItem('danzporter-preferences-v3'))localStorage.setItem('danzporter-preferences-v3',JSON.stringify({quality:'flat'}))})
 })
 test('Kart opens from the library, drives, pauses and returns',async({page})=>{
   await page.goto('/test')

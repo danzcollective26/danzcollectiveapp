@@ -25,7 +25,7 @@ test('Collecta opens a real automatic opponent, freezes it in pause and returns 
   await expect(page.locator('.arena-game')).toHaveAttribute('data-elapsed', elapsed!)
   await page.getByRole('button', { name: 'SEGUIR EL TURNO', exact: true }).click()
   await expect(page.locator('.arena-game')).toHaveAttribute('data-phase', 'playing')
-  await page.getByRole('button', { name: 'Salir de Arena DANZ', exact: true }).click()
+  await page.keyboard.press('Escape')
   await launchCollecta(page,'arena')
   await expect(page.locator('.arena-game')).toHaveAttribute('data-opponent', 'human')
   await page.getByRole('button',{name:'EMPEZAR DUELO',exact:true}).click()

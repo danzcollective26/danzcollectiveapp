@@ -55,7 +55,7 @@ test('two analog joysticks and a third-finger sprint stay independent, release a
   const sprint=(await page.getByRole('button',{name:'P1 Sprint',exact:true}).boundingBox())!
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[...ends,{id:3,x:sprint.x+sprint.width/2,y:sprint.y+sprint.height/2}]})
   await expect(page.getByRole('button',{name:'P1 Sprint',exact:true})).toBeDisabled()
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[ends[1]]})
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[ends[0],{id:3,x:sprint.x+sprint.width/2,y:sprint.y+sprint.height/2}]})
   await page.waitForTimeout(350)
   const a=(await pos(page,1))[0],b=(await pos(page,2))[0]
   await page.waitForTimeout(200)
@@ -97,7 +97,6 @@ test('Arena sticks follow each rotated viewpoint in three sizes and still allow 
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[...ends,{id:3,x:disc.x+disc.width/2,y:disc.y+disc.height/2}]})
     await expect.poll(async()=>Number(await page.locator('.arena-game').getAttribute('data-bombs'))).toBeGreaterThan(0)
     await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]})
-    if(await page.getByRole('button',{name:'PAUSAR',exact:true}).isEnabled())await page.getByRole('button',{name:'PAUSAR',exact:true}).click()
     await expect(page.locator('.versus-p1 .versus-stick')).toHaveAttribute('data-engaged','false')
     await testInfo.attach(`Collecta joystick ${size.width}x${size.height}`,{body:await page.screenshot(),contentType:'image/png'})
     await cdp.detach()
