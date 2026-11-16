@@ -1,20 +1,25 @@
+import { DEFAULT_BUILD, KART_COLORS, buildKey, kartStats, normalizeBuild, type KartBuild } from './garage.ts'
+
 export type KartMode = 'race' | 'duel' | 'time'
 export type TrackId = 'dock' | 'backstage'
 export type Point = { x: number; y: number }
-export type KartInput = { turn: number; drift: boolean; brake: boolean; vector?: Point }
+export type KartInput = { turn: number; drift: boolean; brake: boolean; throttle?:number; pit?:boolean; vector?: Point }
 export type Track = { id: TrackId; name: string; subtitle: string; points: Point[]; length: number; lengths: number[]; accent: string }
 export type Car = Point & {
   id: number; angle: number; speed: number; progress: number; distance: number
   laps: number; checkpoint: number; charge: number; boosting: number
   drifting: boolean; finishedAt: number | null; lapAt: number; bestLap: number | null
+  build:KartBuild; steering:number; health:number; tires:number; damageCooldown:number; impacts:number
+  pitRequested:boolean; pitHeld:boolean; pit:number|null; service:number; tow:number; stops:number
 }
 export type Race = {
   mode: KartMode; track: TrackId; phase: 'ready' | 'countdown' | 'playing' | 'paused' | 'finished'
   resume: 'countdown' | 'playing'; cars: Car[]; elapsed: number; countdown: number; carry: number
 }
 export const KART_WIDTH = 1000, KART_HEIGHT = 720, ROAD_WIDTH = 94, KART_RADIUS = 18
-export const RACE_LAPS = 3, RACE_LIMIT = 180000, KART_RECORD_KEY = 'danz-kart-best-v2'
-export const NO_INPUT: KartInput = { turn: 0, drift: false, brake: false }
+export const RACE_LAPS = 3, RACE_LIMIT = 180000, KART_RECORD_KEY = 'danzporter-best-v3'
+export const PIT_ENTRY=.015,PIT_EXIT=.15,SERVICE_MS=3500,TOW_MS=3000
+export const NO_INPUT: KartInput = { turn: 0, drift: false, brake: false, throttle:0, pit:false }
 const STEP = 1000 / 120
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
 export const wrap = (v: number) => ((v % 1) + 1) % 1
@@ -62,17 +67,18 @@ export function projectTrack(track: Track, point: Point) {
   }
   return best
 }
-export function createRace(mode: KartMode = 'race', track: TrackId = 'dock'): Race {
+export function createRace(mode: KartMode = 'race', track: TrackId = 'dock',builds:readonly KartBuild[]=[]): Race {
   const course = TRACKS[track], count = mode === 'race' ? 4 : mode === 'duel' ? 2 : 1
   const cars = Array.from({ length: count }, (_, id): Car => {
     const progress = .02-id*.014, p = trackPoint(course, progress), side = id%2 ? -20 : 20
-    return { id, x: p.x-Math.sin(p.angle)*side, y: p.y+Math.cos(p.angle)*side, angle: p.angle, speed: 0, progress: wrap(progress), distance: progress, laps: 0, checkpoint: 1, charge: 0, boosting: 0, drifting: false, finishedAt: null, lapAt: 0, bestLap: null }
+    const build=normalizeBuild(builds[id],{...DEFAULT_BUILD,color:KART_COLORS[id%KART_COLORS.length],chassis:id===2?'hauler':id===3?'sprint':'club',wheels:id===1?'grip':id===2?'endurance':'street'})
+    return { id, x: p.x-Math.sin(p.angle)*side, y: p.y+Math.cos(p.angle)*side, angle: p.angle, speed: 0, progress: wrap(progress), distance: progress, laps: 0, checkpoint: 1, charge: 0, boosting: 0, drifting: false, finishedAt: null, lapAt: 0, bestLap: null,build,steering:0,health:1,tires:1,damageCooldown:0,impacts:0,pitRequested:false,pitHeld:false,pit:null,service:0,tow:0,stops:0 }
   })
   return { mode, track, phase: 'ready', resume: 'playing', cars, elapsed: 0, countdown: 3000, carry: 0 }
 }
 export function startRace(s: Race): Race {
   if (s.phase === 'paused') return { ...s, phase: s.resume, carry: 0 }
-  const fresh = createRace(s.mode, s.track)
+  const fresh = createRace(s.mode, s.track,s.cars.map(c=>c.build))
   return { ...fresh, phase: 'countdown' }
 }
 export function pauseRace(s: Race): Race {
@@ -84,7 +90,29 @@ export function raceOrder(s: Race): Car[] {
 export function cpuInput(s: Race, car: Car): KartInput {
   const track = TRACKS[s.track], point = trackPoint(track, car.progress + (46+car.speed*.15)/track.length)
   const difference = angleDifference(Math.atan2(point.y-car.y,point.x-car.x),car.angle)
-  return { turn: clamp(difference*1.85,-1,1), drift: false, brake: Math.abs(difference) > .85 }
+  return { turn: clamp(difference*1.85,-1,1), drift: false, brake: Math.abs(difference) > .85,throttle:1 }
+}
+
+/** A separate, guided service lane rejoins the same ordered race checkpoints. */
+export function pitPoint(track:Track,t:number):Point&{angle:number}{
+  const at=(u:number)=>{const p=trackPoint(track,PIT_ENTRY+(PIT_EXIT-PIT_ENTRY)*clamp(u,0,1)),offset=-78*Math.sin(Math.PI*clamp(u,0,1));return{x:p.x-Math.sin(p.angle)*offset,y:p.y+Math.cos(p.angle)*offset}}
+  const p=at(t),before=at(t-.001),after=at(t+.001)
+  return {...p,angle:Math.atan2(after.y-before.y,after.x-before.x)}
+}
+function hit(car:Car,closingSpeed:number):Car{
+  if(car.damageCooldown>0||closingSpeed<42||car.pit!==null||car.tow>0)return car
+  const stats=kartStats(car.build),severity=Math.min(.42,(closingSpeed-28)*.0017)
+  return {...car,health:Math.max(0,car.health-severity/stats.durability),tires:Math.max(.05,car.tires-severity*.5/stats.tireDurability),damageCooldown:.65,impacts:car.impacts+1,charge:0}
+}
+function serviceCar(car:Car,track:Track,dt:number,elapsed:number):Car{
+  if(car.service>0){
+    const ms=Math.min(car.service,dt*1000),fraction=ms/car.service,service=Math.max(0,car.service-ms)
+    return {...car,speed:0,service,health:car.health+(1-car.health)*fraction,tires:car.tires+(1-car.tires)*fraction}
+  }
+  const length=track.length*(PIT_EXIT-PIT_ENTRY),next=Math.min(1,(car.pit??0)+72*dt/length)
+  const arriving=(car.pit??0)<.5&&next>=.5,t=arriving?.5:next,p=pitPoint(track,t)
+  const updated=updateCheckpoint({...car,...p,speed:arriving?0:72,drifting:false,charge:0,boosting:0,pit:next>=1?null:t,service:arriving?SERVICE_MS:0,pitRequested:false},PIT_ENTRY+(PIT_EXIT-PIT_ENTRY)*t,elapsed)
+  return next>=1?{...updated,damageCooldown:.8}:updated
 }
 
 /** Ordered quarters prevent reverse laps and shortcuts from counting. */
@@ -102,46 +130,65 @@ export function updateCheckpoint(car: Car, progress: number, elapsed: number): C
   return next
 }
 function integrate(s: Race, inputs: readonly KartInput[], dt: number): Race {
-  const elapsed = s.elapsed+dt*1000, track = TRACKS[s.track]
-  let cars = s.cars.map(car => {
-    if (car.finishedAt !== null) return car
-    const cpu = s.mode === 'race' && car.id > 0
-    const input = cpu ? cpuInput(s,car) : inputs[car.id] ?? NO_INPUT
-    const vector = input.vector, aiming = vector && Math.hypot(vector.x,vector.y) > .15
-    const turn = aiming ? clamp(angleDifference(Math.atan2(vector.y,vector.x),car.angle)*1.7,-1,1) : clamp(Number.isFinite(input.turn) ? input.turn : 0,-1,1)
-    const drifting = input.drift && Math.abs(turn) > .18 && car.speed > 80 && !input.brake
-    let charge = drifting ? Math.min(1,car.charge+dt*.7) : 0
-    let boosting = Math.max(0,car.boosting-dt)
-    if (car.drifting && !input.drift && car.charge >= .35) { boosting = .55+car.charge*.85; charge = 0 }
-    const target = input.brake ? 68 : boosting > 0 ? 275 : cpu ? 164+car.id*7 : 198
-    const speed = car.speed+(target-car.speed)*Math.min(1,dt*(input.brake ? 5 : 1.6))
-    const angle = car.angle + turn * (drifting ? 3.2 : 2.65) * dt * Math.min(1,speed/70)
-    const slip = drifting ? -turn*.28 : 0
-    let x = car.x+Math.cos(angle+slip)*speed*dt, y = car.y+Math.sin(angle+slip)*speed*dt
-    let nextSpeed = speed
-    const projection = projectTrack(track,{x,y}), edge = ROAD_WIDTH/2-KART_RADIUS
-    if (projection.distance > edge) {
-      const scale = edge/projection.distance
-      x = projection.x+(x-projection.x)*scale; y = projection.y+(y-projection.y)*scale
-      nextSpeed = Math.max(35,speed*(1-Math.min(.6,dt*16))); charge = 0
+  const elapsed=s.elapsed+dt*1000,track=TRACKS[s.track]
+  let cars=s.cars.map(previous=>{
+    if(previous.finishedAt!==null)return previous
+    const cpu=s.mode==='race'&&previous.id>0,input=cpu?cpuInput(s,previous):inputs[previous.id]??NO_INPUT
+    const request=input.pit&&!previous.pitHeld?!previous.pitRequested:previous.pitRequested
+    let car:Car={...previous,damageCooldown:Math.max(0,previous.damageCooldown-dt),pitHeld:Boolean(input.pit),pitRequested:request||(cpu&&(previous.health<.48||previous.tires<.4))}
+    if(car.tow>0){
+      const tow=Math.max(0,car.tow-dt*1000)
+      if(tow>0)return {...car,tow,speed:0}
+      const p=pitPoint(track,.5)
+      return {...car,...p,tow:0,pit:.5,service:SERVICE_MS,speed:0,stops:car.stops+1,checkpoint:1,progress:PIT_ENTRY+(PIT_EXIT-PIT_ENTRY)*.5,distance:car.laps+PIT_ENTRY+(PIT_EXIT-PIT_ENTRY)*.5}
     }
-    return updateCheckpoint({ ...car, x, y, angle, speed: nextSpeed, drifting, charge, boosting },projectTrack(track,{x,y}).progress,elapsed)
+    if(car.health<=0&&car.pit===null)return {...car,tow:TOW_MS,speed:0,boosting:0,drifting:false,charge:0,pitRequested:false}
+    if(car.pit!==null)return serviceCar(car,track,dt,elapsed)
+    if(car.pitRequested&&car.progress>=PIT_ENTRY&&car.progress<=PIT_ENTRY+.025){
+      const t=(car.progress-PIT_ENTRY)/(PIT_EXIT-PIT_ENTRY)
+      return serviceCar({...car,pit:t,stops:car.stops+1,pitRequested:false},track,dt,elapsed)
+    }
+    const stats=kartStats(car.build),vector=input.vector,aiming=vector&&Math.hypot(vector.x,vector.y)>.15
+    const wanted=aiming?clamp(angleDifference(Math.atan2(vector.y,vector.x),car.angle)*1.7,-1,1):clamp(Number.isFinite(input.turn)?input.turn:0,-1,1)
+    const steering=car.steering+(wanted-car.steering)*Math.min(1,dt*11*stats.grip*(.7+car.tires*.3))
+    const drifting=input.drift&&Math.abs(steering)>.18&&car.speed>80&&!input.brake
+    let charge=drifting?Math.min(1,car.charge+dt*.7*stats.drift):0,boosting=Math.max(0,car.boosting-dt)
+    if(car.drifting&&!input.drift&&car.charge>=.35){boosting=.55+car.charge*.85;charge=0}
+    const pedal=clamp(Number.isFinite(input.throttle)?input.throttle!:0,0,1)
+    // Drift also applies gas, allowing steering + drift with two thumbs.
+    const throttle=input.brake?0:boosting>0||input.drift?1:pedal
+    const condition=.55+car.health*.45,target=input.brake?0:stats.speed*(cpu?.88+car.id*.025:1)*condition*(boosting>0?1.39:1)*throttle
+    const rate=input.brake?7:throttle>0?stats.acceleration:.38
+    const speed=Math.max(0,car.speed+(target-car.speed)*Math.min(1,dt*rate))
+    const angle=car.angle+steering*stats.steering*(drifting?1.2:1)*dt*Math.min(1,speed/70)*(.8+.2*car.tires)
+    const slip=drifting?-steering*.28*stats.drift/stats.grip:0
+    let x=car.x+Math.cos(angle+slip)*speed*dt,y=car.y+Math.sin(angle+slip)*speed*dt,nextSpeed=speed
+    const projection=projectTrack(track,{x,y}),edge=ROAD_WIDTH/2-KART_RADIUS
+    if(projection.distance>edge){
+      const nx=(x-projection.x)/projection.distance,ny=(y-projection.y)/projection.distance
+      const outward=Math.max(0,Math.cos(angle+slip)*speed*nx+Math.sin(angle+slip)*speed*ny)
+      car=hit(car,outward)
+      const scale=edge/projection.distance;x=projection.x+(x-projection.x)*scale;y=projection.y+(y-projection.y)*scale
+      nextSpeed=speed*(1-Math.min(.6,dt*16));charge=0
+    }
+    return updateCheckpoint({...car,x,y,angle,steering,speed:nextSpeed,drifting,charge,boosting,tires:Math.max(.05,car.tires-(drifting?dt*.003/stats.tireDurability:0))},projectTrack(track,{x,y}).progress,elapsed)
   })
-  // Equal-radius soft contacts: no items, hidden boosts or CPU collision immunity.
-  for (let a = 0; a < cars.length; a++) for (let b = a+1; b < cars.length; b++) {
-    const first = cars[a], second = cars[b], dx = second.x-first.x, dy = second.y-first.y, d = Math.hypot(dx,dy)
-    if (first.finishedAt !== null || second.finishedAt !== null || d >= KART_RADIUS*2 || d < .001) continue
-    const push = (KART_RADIUS*2-d)/2
-    cars[a] = { ...first, x: first.x-dx/d*push, y: first.y-dy/d*push, speed: first.speed*.97 }
-    cars[b] = { ...second, x: second.x+dx/d*push, y: second.y+dy/d*push, speed: second.speed*.97 }
+  // Separate vehicles physically; only closing impacts cause damage, never resting contact.
+  for(let a=0;a<cars.length;a++)for(let b=a+1;b<cars.length;b++){
+    const first=cars[a],second=cars[b],dx=second.x-first.x,dy=second.y-first.y,d=Math.hypot(dx,dy)
+    if(first.finishedAt!==null||second.finishedAt!==null||first.pit!==null||second.pit!==null||first.tow>0||second.tow>0||d>=KART_RADIUS*2||d<.001)continue
+    const nx=dx/d,ny=dy/d,closing=Math.max(0,-((Math.cos(second.angle)*second.speed-Math.cos(first.angle)*first.speed)*nx+(Math.sin(second.angle)*second.speed-Math.sin(first.angle)*first.speed)*ny))
+    const push=(KART_RADIUS*2-d)/2
+    cars[a]={...hit(first,closing),x:first.x-nx*push,y:first.y-ny*push}
+    cars[b]={...hit(second,closing),x:second.x+nx*push,y:second.y+ny*push}
   }
-  // Contacts may push a kart onto a curb; constrain again before the next step.
-  cars = cars.map(car => {
-    const p = projectTrack(track,car), edge = ROAD_WIDTH/2-KART_RADIUS
-    return p.distance <= edge ? car : { ...car, x:p.x+(car.x-p.x)*edge/p.distance, y:p.y+(car.y-p.y)*edge/p.distance }
+  cars=cars.map(car=>{
+    if(car.pit!==null||car.tow>0)return car
+    const p=projectTrack(track,car),edge=ROAD_WIDTH/2-KART_RADIUS
+    return p.distance<=edge?car:{...car,x:p.x+(car.x-p.x)*edge/p.distance,y:p.y+(car.y-p.y)*edge/p.distance}
   })
-  const ended = (s.mode === 'race' ? cars[0].finishedAt !== null : cars.some(c=>c.finishedAt !== null)) || elapsed >= RACE_LIMIT
-  return { ...s, elapsed, cars, phase: ended ? 'finished' : 'playing' }
+  const ended=(s.mode==='race'?cars[0].finishedAt!==null:cars.some(c=>c.finishedAt!==null))||elapsed>=RACE_LIMIT
+  return {...s,elapsed,cars,phase:ended?'finished':'playing'}
 }
 /** Fixed 120 Hz physics, capped catch-up; menus never advance a race. */
 export function stepRace(s: Race, inputs: readonly KartInput[], delta: number): Race {
@@ -161,10 +208,10 @@ export function formatRaceTime(ms: number | null) {
   const total = Math.max(0,ms), seconds = Math.floor(total/1000)
   return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}.${String(Math.floor(total%1000/10)).padStart(2,'0')}`
 }
-export function readKartBest(track: TrackId): number | null {
-  try { const n = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}')[track]; return Number.isFinite(n) && n > 0 && n <= RACE_LIMIT ? n : null } catch { return null }
+export function readKartBest(track: TrackId,build:KartBuild=DEFAULT_BUILD): number | null {
+  try { const n = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}')[track+':'+buildKey(build)]; return Number.isFinite(n) && n > 0 && n <= RACE_LIMIT ? n : null } catch { return null }
 }
-export function saveKartBest(track: TrackId, ms: number): boolean {
+export function saveKartBest(track: TrackId, ms: number,build:KartBuild=DEFAULT_BUILD): boolean {
   if (!Number.isFinite(ms) || ms <= 0 || ms > RACE_LIMIT) return false
-  try { const values = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}'), previous = readKartBest(track); if (previous !== null && previous <= ms) return false; localStorage.setItem(KART_RECORD_KEY,JSON.stringify({...values,[track]:ms})); return true } catch { return false }
+  try { const values = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}'), previous = readKartBest(track,build); if (previous !== null && previous <= ms) return false; localStorage.setItem(KART_RECORD_KEY,JSON.stringify({...values,[track+':'+buildKey(build)]:ms})); return true } catch { return false }
 }

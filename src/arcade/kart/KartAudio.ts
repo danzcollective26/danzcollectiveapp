@@ -12,6 +12,8 @@ export class KartAudio {
   private lap=0
   private count=0
   private boosted=false
+  private impacts=0
+  private inService=false
   private phase='ready'
   private timer:ReturnType<typeof setTimeout>|null=null
   start(){
@@ -39,19 +41,22 @@ export class KartAudio {
   }
   tick(s:Race,enabled:boolean){
     const ctx=this.context;if(!ctx||ctx.state!=='running')return
-    const car=s.cars[0],now=ctx.currentTime,playing=s.phase==='playing'&&enabled
+    const car=s.cars[0],now=ctx.currentTime,playing=s.phase==='playing'&&enabled&&car.health>0&&car.service===0&&car.tow===0
     this.engine?.frequency.setTargetAtTime(48+car.speed*.62,now,.08);this.harmonic?.frequency.setTargetAtTime(72+car.speed*.93,now,.1)
     this.motor?.gain.setTargetAtTime(playing ? .035+car.speed*.0001 : 0,now,.06);this.tires?.gain.setTargetAtTime(playing&&car.drifting ? .08 : 0,now,.035)
     const count=Math.ceil(s.countdown/1000)
     if(enabled&&s.phase==='countdown'&&count!==this.count)this.tone(270,.09)
     if(enabled&&this.phase==='countdown'&&s.phase==='playing')this.tone(810,.32)
     if(enabled&&car.boosting>0&&!this.boosted){this.tone(440,.12);this.tone(880,.2,.08)}
+    if(enabled&&car.impacts>this.impacts){this.tone(125,.08);this.tone(72,.14,.025)}
+    if(enabled&&car.service>0&&!this.inService){this.tone(330,.1);this.tone(220,.14,.09)}
+    if(enabled&&car.service===0&&this.inService){this.tone(660,.12);this.tone(880,.16,.12)}
     if(enabled&&car.laps>this.lap&&s.phase!=='finished'){this.tone(660,.15);this.tone(990,.18,.13)}
     if(enabled&&s.phase==='finished'&&this.phase!=='finished'){
       for(const [i,note] of [523,659,784,1047].entries())this.tone(note,.24,i*.12)
       this.timer=setTimeout(()=>this.pause(),900)
     }
-    this.phase=s.phase;this.count=count;this.lap=car.laps;this.boosted=car.boosting>0
+    this.phase=s.phase;this.count=count;this.lap=car.laps;this.boosted=car.boosting>0;this.impacts=car.impacts;this.inService=car.service>0
   }
   pause(){
     const ctx=this.context;if(!ctx)return

@@ -444,12 +444,24 @@ portada generada con su nueva foto: conservar exactamente esa imagen.
 
 | ID | Petición | Estado / siguiente paso |
 | --- | --- | --- |
-| K01 | Nombre y portada propios de DANZPORTER | Implementados; en verificación/publicación. Imagen aprobada en biblioteca y /test; rutas antiguas se conservan. |
-| K02 | Acelerador/freno y más control | En desarrollo: pedal de gas, frenado real, opción de ayuda y teclado. |
-| K03 | Daños de los vehículos y boxes | En desarrollo: impacto según velocidad, degradación, reparación y feedback visible, también en modo compatible. |
-| K04 | Personalizar karts y pilotos; piezas con características | En desarrollo: chasis, seis ruedas, color, piloto y ventajas/contrapartidas. Sin gastar DANZPOINTS ni inventar compras. |
-| K05 | Personalización del circuito | En desarrollo: ambientes de circuito propios, sin alterar las portadas ajenas. |
-| A06 | Horizontal y mandos mayores donde tenga utilidad real | Auditar Kart, Collecta y Groove; no imponerlo a todos los juegos ni cambiar geometría competitiva de Jack. |
+| K01 | Nombre y portada propios de DANZPORTER | Publicados PR 36, e0a3a359. Imagen aprobada integrada, build y preview revisados; producción READY. Rutas antiguas conservadas. |
+| K02 | Acelerador/freno y más control | Implementado, en verificación visual: gas manual, freno hasta detenerse, inercia, giro suavizado, auto opcional y teclado. |
+| K03 | Daños de los vehículos y boxes | Implementado, en verificación: daño por impacto de cierre, degradación, reparación en carril separado y grúa con penalización; visuales 3D/2D. |
+| K04 | Personalizar karts y pilotos; piezas con características | Implementado, en verificación: tres chasis × seis ruedas, color libre, tres pilotos y estadísticas reales. Disponible para ambos jugadores. Sin gastar DANZPOINTS ni inventar compras. |
+| K05 | Personalización del circuito | Implementado, en verificación: Muelle DANZ, Último servicio y Crew Paddock; materiales/luces/paleta en 3D y compatible. |
+| A06 | Horizontal y mandos mayores donde tenga utilidad real | Cambios en revisión: Kart 112 px; Collecta horizontal 108 px/flechas 48 px/acción 56 px donde cabe; Groove controles 48–52 px y pausa al girar. Jack conserva su geometría cuadrada. |
 
 Las peticiones previas de app, fotos, música, puntos, entregas externas y QR
 aplazados mantienen sus estados. T01/T04 siguen pendientes con sus límites.
+
+### Mecánicas de DANZPORTER — evidencia previa a revisión conectada
+
+Build y 240 pruebas internas pasan. Diez pruebas nuevas cubren pedales, daño,
+resistencia, boxes, recuperación, pausas y récords por piezas; se amplía la prueba
+de migración de preferencias. Simulación de las 18 combinaciones en dos circuitos:
+36/36 carreras completas, tiempos 41,983–51,533 s, 5,483 s de CPU del host.
+No son FPS de un móvil ni un resultado competitivo o humano.
+
+La portada aprobada se conserva. CI 205 de PR 36 no ejecutó pasos (cuatro jobs
+sin logs); T04 sigue abierto. Publicación de mecánicas, comprobación visual y
+validación 3D se anotarán al cerrar. Ver DANZPORTER_CONDUCCION_2026-11-16.md.
