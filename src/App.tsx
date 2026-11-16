@@ -90,6 +90,7 @@ export default function App() {
   // Keep setup only in this page's memory while a focus check revalidates the
   // account. A different verified owner or sign-out clears it before display.
   const adminMfaSetup = useRef<AdminMfaEnrollment | null>(null)
+  const navTicket = useRef(0)
   if (adminMfaSetup.current && (adminMfaSetup.current.client !== auth.client || (!auth.loading && adminMfaSetup.current.owner !== auth.user?.id))) adminMfaSetup.current = null
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [page, setPage] = useState<Page>(() => {
@@ -157,6 +158,7 @@ export default function App() {
       syncPasses(incoming.code)
       setPassIssue(incoming.invalid ? 'El enlace del pase no contiene un código válido.' : !incoming.saved ? 'Este navegador no permite guardar el pase. Conserva el código antes de cerrar la página.' : null)
       dispatch({ type: 'pause' })
+      navTicket.current += 1
       setPage('danzers')
     }
     receivePass()
@@ -258,7 +260,11 @@ export default function App() {
       setLaunchGroove(false)
       setPage(destination)
     }
-    runViewTransition(() => flushSync(apply))
+    const ticket = ++navTicket.current
+    runViewTransition(() => {
+      if (ticket !== navTicket.current) return
+      flushSync(apply)
+    })
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
   }
 
@@ -321,7 +327,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    const back = () => { dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
+    const back = () => { navTicket.current += 1; dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
     window.addEventListener('popstate', back)
     return () => window.removeEventListener('popstate', back)
   }, [])
