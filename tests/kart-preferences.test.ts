@@ -10,7 +10,7 @@ test('DANZPORTER handles corrupt preferences, invalid parts and unavailable stor
     data.set(KART_PREFERENCES_KEY,'invalid');assert.deepEqual(readKartPreferences(),DEFAULT_KART_PREFERENCES)
     data.set(KART_PREFERENCES_KEY,JSON.stringify({quality:'ultra',camera:'orbit',sound:'yes',livery:300,venue:'bad',builds:[{chassis:'unknown',wheels:null,color:'javascript:bad'}]}))
     assert.deepEqual(readKartPreferences(),DEFAULT_KART_PREFERENCES)
-    const valid={...DEFAULT_KART_PREFERENCES,quality:'flat' as const,camera:'track' as const,sound:false,livery:3,autoThrottle:true,venue:'night' as const,builds:[{...DEFAULT_BUILD,chassis:'sprint' as const,wheels:'slick' as const,driver:'courier' as const,color:'#123456'},{...DEFAULT_BUILD}] as typeof DEFAULT_KART_PREFERENCES.builds}
+    const valid={...DEFAULT_KART_PREFERENCES,quality:'flat' as const,camera:'cockpit' as const,sound:false,livery:3,autoThrottle:true,venue:'night' as const,builds:[{...DEFAULT_BUILD,chassis:'sprint' as const,wheels:'slick' as const,driver:'courier' as const,color:'#123456'},{...DEFAULT_BUILD}] as typeof DEFAULT_KART_PREFERENCES.builds}
     saveKartPreferences(valid);assert.deepEqual(readKartPreferences(),valid)
     Object.defineProperty(globalThis,'localStorage',{configurable:true,get(){throw new Error('Storage unavailable')}})
     assert.deepEqual(readKartPreferences(),DEFAULT_KART_PREFERENCES);assert.doesNotThrow(()=>saveKartPreferences(DEFAULT_KART_PREFERENCES))

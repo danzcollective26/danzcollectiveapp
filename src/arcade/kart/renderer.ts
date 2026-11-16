@@ -66,7 +66,7 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
 
 /** Artwork textures are created once. RAF sleeps on all menus and pauses. */
 export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(delta:number)=>void,ready:()=>void,options:()=>KartPreferences) {
-  let disposed=false,lastTick=performance.now()
+  let disposed=false,lastTick=performance.now();parent.dataset.projection='track'
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)')
   class KartScene extends Phaser.Scene {
     private cars: Phaser.GameObjects.Image[]=[]
