@@ -7,6 +7,11 @@ Registro general de tareas, decisiones, dependencias y evidencia vigente:
 Consultar ese registro para el estado de entregas posteriores y los pendientes
 de música, galería, cuenta, puntos y administración.
 
+Bloque siguiente de Groove (G04), en revisión: pista anticipada de Scratch,
+marca fija, aviso adelantado/tarde, precisión y frase fija para movimiento
+reducido. Se conservan los cuatro patrones, reglas y música protegida.
+Estado y auditoría: `GROOVE_SCRATCH_LECTURA_2026-11-16.md`.
+
 ## Base conservada y ampliación actual
 
 - Jack y Groove conservan sus portadas exactas. DANZ Collecta incorpora la portada aprobada «Día de cobro», con su protagonista de seguridad, en el bloque de PR 30.
