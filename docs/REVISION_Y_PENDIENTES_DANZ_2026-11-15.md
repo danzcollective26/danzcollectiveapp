@@ -99,7 +99,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | G02 | Oleadas según BPM aproximado del tema real | Pendiente. El ritmo sintético/fijo no demuestra seguimiento del audio de la radio. |
 | G03 | Funky Fiesta y WTHIMH para Groove | Pendiente de confirmar recursos, disponibilidad y conexión al juego; no sustituirlos por stems inventados. |
 | G04 | Scratch con desafío rítmico entretenido tipo Guitar Hero | Parcial. Existen patrones temporizados; evaluar beatmap real, lectura y diversión. No declararlo acabado solo por pasar tests. |
-| G05 | Cortes dirigidos arriba/abajo y secuencias | Implementado en revisión 16/11: cuatro sentidos reales, secuencias numeradas de dos/tres vinilos, +300 al completarlas y reintento de gesto incorrecto. Prueba interna correcta; navegador/CI/publicación pendientes de cierre. |
+| G05 | Cortes dirigidos arriba/abajo y secuencias | Publicado y verificado PR 43 (2ac95f3c): cuatro sentidos reales, secuencias numeradas de dos/tres vinilos y +300 al completarlas. CI 230: 253 internas, 564 navegador y 16 offline correctas; capturas y apertura pública revisadas. T01 conserva pruebas físicas. |
 | G06 | Estilos de corte desbloqueables localmente | Trazo Club a los 20 cortes y preferencias persistentes implementados y comprobados. No modifica alcance, puntuación, vidas ni duración. Publicado y verificado, PR 30. |
 | G07 | Variación de cabina, armas y multicortes | Parcial. Cabina detallada, feedback, efectos suaves y cosméticos comprobados; música/BPM real y evaluación de diversión a lo largo de una sesión siguen pendientes. |
 | G08 | Ranking/competición online de Groove | Pendiente; no usar puntuación local como resultado verificado ni conceder DANZPOINTS desde el cliente. |
@@ -561,7 +561,7 @@ Ese resultado es histórico. El cierre siguiente recoge la ejecución final.
 
 ## 21. Groove — cortes dirigidos y secuencias (G05), 16/11
 
-Implementado en revisión: flechas con sentido arriba/abajo/izquierda/derecha,
+Publicado y verificado en PR 43: flechas con sentido arriba/abajo/izquierda/derecha,
 vinilos numerados en orden, indicación del siguiente objetivo y bonus local de
 300 al cerrar cada secuencia. Dos objetivos primero; tres en el tramo final.
 Un gesto incorrecto conserva el vinilo y permite reintentar; si cae una secuencia
@@ -574,6 +574,17 @@ trazo lento. Menús, portadas, Scratch, Destrucción y `/test` conservados.
 Música/BPM real (G02/G03), evaluación larga G04/G07, competición G08, puntos,
 fotos, administración, entregas externas y QR conservan sus estados.
 
-Build y pruebas internas iniciales correctos. Chromium local no puede abrir
-socket; se lleva la verificación de navegador a CI y revisión conectada antes
-de marcar publicación. No acredita teléfono físico, FPS, batería ni audio oído.
+CI 230 del código 6373360: build, 253 internas, 564 escenarios de navegador
+(188 por escritorio/tableta/móvil) y 16 offline, todos correctos sin reintentos
+fallidos. Capturas 390×844, 320×568 y 844×390 revisadas: sentido/números legibles,
+siguiente objetivo diferenciado por forma, sin recorte ni desborde y controles
+principales de 44 px. Producción READY dpl_5ycDvToiYvTxBDCUGPuApGFr9f5U,
+merge 2ac95f3c214ea0887e5b019449a76e4ec5b1793f, alias público comprobado.
+
+Revisión pública: ayuda actualizada, siete cortes/1.250 puntos/cinco vidas y
+primera secuencia ↑/↓ observados; salida correcta a biblioteca desde /test.
+Tacto en ambos sentidos, orden, bonus y pausa comprobados con el juego real en
+CI. Auditoría y capturas en GROOVE_CORTES_DIRIGIDOS_2026-11-16.md.
+Chromium local no puede abrir socket y la preview privada fue bloqueada por la
+política del navegador; se verifican CI y publicación pública sin cambiar
+accesos. No acredita teléfono físico, FPS, batería ni audio oído.

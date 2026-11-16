@@ -241,11 +241,13 @@ Ver auditoría de cámaras.
 
 ## Groove — sentido del corte y secuencias (G05)
 
-Implementado en revisión el 16/11: arriba/abajo/izquierda/derecha se validan por
+Publicado PR 43 el 16/11 (2ac95f3c): arriba/abajo/izquierda/derecha se validan por
 el sentido real del gesto. Secuencias de dos/tres discos numerados con +300 al
 completarlas; orden y dirección incorrectos permiten reintento, y perder una
 secuencia cuesta una vida. Flechas de teclado eligen dirección y 1–4 cortan.
 Corregido el trazo lento por acumulación de muestras pequeñas. Se conserva
 práctica local, portadas aprobadas, menús, `/test`, Scratch y Destrucción.
-Ver registro general para CI, revisión visual y publicación final. G02/G03/G08
-y las pruebas físicas de T01 siguen pendientes.
+CI 230: 253 internas, 564 navegador y 16 offline correctas. Capturas en tres
+tamaños y apertura pública revisadas; auditoría en
+GROOVE_CORTES_DIRIGIDOS_2026-11-16.md. G02/G03/G08 y las pruebas físicas de
+T01 siguen pendientes.
