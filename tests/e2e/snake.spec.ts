@@ -1,4 +1,4 @@
-import { selectReel } from './consoleMenus'
+import { menuTab,selectReel } from './consoleMenus'
 import { expect, test, type Page } from '@playwright/test'
 import { GRID, initialGame, MAZE_STAGES, mazeWalls } from '../../src/snake'
 
@@ -99,7 +99,9 @@ test('el gesto táctil gira antes de levantar el dedo y sin desplazar la página
 test('botones opcionales responden al presionar y conservan la preferencia', async ({ page }) => {
   await openArcade(page)
   await expect(page.getByRole('button', { name: 'Arriba', exact: true })).toHaveCount(0)
-  await page.getByRole('button', { name: /MOSTRAR BOTONES/ }).click()
+  await menuTab(page,'AJUSTES')
+  await page.getByRole('dialog').getByRole('button',{name:'BOTONES EN PANTALLA OFF',exact:true}).click()
+  await menuTab(page,'JUGAR')
   await page.reload()
   await finishIntro(page)
   await playSnake(page)
@@ -129,7 +131,7 @@ test('pantalla completa alternativa, salida con pausa y navegación restaurada',
   await page.clock.runFor(1500)
   await arcade(page)
   expect(await headIndex(page)).toBe(before)
-  await expect(page.getByRole('button', { name: /^JUGAR/ })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'JUGAR AHORA',exact:true })).toBeVisible()
 })
 
 test('ocultar la pestaña pausa y no reanuda automáticamente', async ({ page }) => {
@@ -212,7 +214,9 @@ test('la flor y los rostros se integran sin cuadros ni sombras de casilla', asyn
 test('tablero y controles caben en móvil vertical y horizontal', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 })
   await openArcade(page)
-  await page.getByRole('button', { name: /MOSTRAR BOTONES/ }).click()
+  await menuTab(page,'AJUSTES')
+  await page.getByRole('dialog').getByRole('button',{name:'BOTONES EN PANTALLA OFF',exact:true}).click()
+  await menuTab(page,'JUGAR')
   await playSnake(page)
   for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size)

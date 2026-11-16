@@ -37,7 +37,14 @@ preferencia sin romper duelo; resultado de CI se añadirá al cierre.
 Auditoría CPU de geometría: 576 objetos, 102 geometrías, 67.668 triángulos, vistas
 isométrica y cabina renderizadas con Blender/Cycles, materiales/luces aproximados.
 No equivalen a captura del navegador, prueba de shader/WebGL, FPS ni móvil físico.
-Revisión conectada, publicación y prueba pública pendientes antes del cierre.
+Preview READY c75b4be8 revisado con el juego real en 390×844, 320×568 y 844×390:
+gas pulsado, joystick relativo con gas de teclado, retorno a cero, minimapa,
+pausa, cambio de vista sin perder 8.233 ms ni piezas (club:street), un canvas,
+persistencia tras recarga y duelo que fuerza pista compartida. Botones de gas
+44 px de alto en 320×568, sin overflow horizontal. El navegador tiene WebGL
+desactivado: estas capturas muestran la perspectiva compatible. El 3D se revisa
+por CPU; T01 conserva shader/GPU, dispositivo físico, FPS y multitoque real.
+Publicación y revisión pública pendientes antes del cierre.
 
 ## Cómo comprobarlo
 

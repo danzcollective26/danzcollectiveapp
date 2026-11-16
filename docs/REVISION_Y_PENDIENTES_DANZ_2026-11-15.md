@@ -515,7 +515,7 @@ límites de T01/T04 se conservan. Evidencia y publicación al cerrar este bloque
 | ID | Petición | Estado / siguiente acción |
 | --- | --- | --- |
 | K06 | Acabado cercano a la referencia de Rush Rally Origins enviada por el propietario | Referencia visual recibida: cámara isométrica cercana, materiales/terreno e iluminación natural, manteniendo mundo DANZ y recursos originales. Implementado en revisión: isométrica diagonal más cercana, suelo con textura procedural, vegetación instanciada e iluminación menos plástica; recursos propios y circuito sin modificar. |
-| K07 | Opción de primera persona | Implementada en revisión: perspectiva 3D y compatible por software, volante, dirección relativa y minimapa. Misma carrera y daños/boxes; duelo con pista compartida. Validación conectada/publicación pendientes. |
+| K07 | Opción de primera persona | Implementada en revisión: perspectiva 3D y compatible por software, volante, dirección relativa y minimapa. Misma carrera y daños/boxes; duelo con pista compartida. Preview comprobado en tres tamaños, con conducción, pausa, cambio de cámara sin reinicio, persistencia y guardia de duelo. Publicación pendiente. |
 
 ### Validación y regresión de menús
 
@@ -526,7 +526,8 @@ y 242 pruebas internas correctas. Auditoría conectada de 390×844, 320×568 y
 CI 215 ya ejecuta pasos y permite observar regresiones: selectores antiguos,
 retorno de Destrucción y navegación offline de Kart/solo. PR 40 corrige el
 retorno (comprobado en preview) y la lista pública del worker, manteniendo
-rechazo de tokens/fotos/callbacks. CI 217: 15/16 offline pasan; la restante usa
-el 3D por software del runner y se separa de las pruebas de mecánica 2D. Hay
-fallos pendientes de recorridos/tiempo de navegador; no se afirma CI verde.
+rechazo de tokens/fotos/callbacks. CI 218: 16/16 offline pasan y móvil ejecuta 178 escenarios (175 correctos;
+tres selectores antiguos de Jack, ajustados en f66abe2e). La mecánica del kart
+se prueba en 2D compatible, separada del coste de GPU por software del runner.
+CI general todavía pendiente; no se afirma verde.
 T04 cambia de bloqueo de arranque a regresión ejecutable; T01 físico/GPU sigue.
