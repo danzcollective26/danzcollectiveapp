@@ -1,3 +1,4 @@
+import { menuTab } from '../e2e/consoleMenus'
 import { test, expect } from '@playwright/test'
 
 test('a production build reopens offline and plays Snake without caching photos or callback credentials', async ({ page, context }) => {
@@ -36,7 +37,7 @@ test('Groove Ninja and its sound-free practice reopen offline from the cached ga
   await context.setOffline(true)
   await page.goto('/?seccion=arcade&juego=groove-ninja')
   await expect(page.getByRole('heading', { name: 'GROOVE NINJA.', exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'SONIDO ON', exact: true }).click()
+  await menuTab(page,'AJUSTES');await page.getByRole('dialog').getByRole('button', { name: 'SONIDO ON', exact: true }).click();await menuTab(page,'JUGAR')
   await page.getByRole('button', { name: 'JUGAR AHORA', exact: true }).click()
   await expect(page.getByRole('button', { name: 'PAUSAR ↗', exact: true })).toBeVisible()
   await expect.poll(() => page.locator('.gn-vinyl').count()).toBeGreaterThan(0)

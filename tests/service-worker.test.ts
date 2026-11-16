@@ -27,3 +27,16 @@ test('the SVG cache guard still rejects HTML, other MIME types and another origi
   await assert.rejects(workerFile('application/json').load(), /Unexpected application file type/)
   await assert.rejects(workerFile('image/svg+xml', 'https://another.example/brand/danz-flower.svg').load(), /Application file unavailable/)
 })
+
+test('offline navigation includes the local kart and solo Arena without accepting credential or photo queries',()=>{
+  const context=createContext({BUILD:{version:'test',paths:[]},URL,self:{location:{origin:'https://danz.example'},addEventListener(){}}})
+  runInContext(source,context)
+  for(const game of ['kart','danzporter','arena-solo']){
+    context.candidate=new URL(`https://danz.example/test?seccion=arcade&juego=${game}`)
+    assert.equal(runInContext('publicGameNavigation(candidate)',context),true)
+  }
+  for(const path of ['/test?seccion=arcade&juego=kart&token=private','/?token_hash=private&type=email','/private-photo.jpg?token=private','/test?seccion=arcade&juego=kart&juego=jack','/test?seccion=admin']){
+    context.candidate=new URL(`https://danz.example${path}`)
+    assert.equal(runInContext('publicGameNavigation(candidate)',context),false)
+  }
+})

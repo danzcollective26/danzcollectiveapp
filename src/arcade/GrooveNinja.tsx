@@ -229,7 +229,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   }
   const path = trail.current.filter(p => game.elapsed - p.at < (preferences.style === 'club' ? 230 : 130)).map(p => `${p.x},${p.y}`).join(' ')
   const progress = Math.round(game.elapsed / GROOVE_DURATION * 100)
-  if(destructionOpen)return <GrooveDestruction onBack={()=>setDestructionOpen(false)}/>
+  if(destructionOpen)return <GrooveDestruction onBack={()=>{screen.enter();setDestructionOpen(false)}}/>
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
     <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>PATRONES AL RITMO</small></button><button type="button" className="gn-destruction-launch" onClick={()=>{pause();screen.leave();setDestructionOpen(true)}}><strong>DESTRUCCIÓN ✹</strong><small>8 ARMAS · VINILOS AL VUELO</small></button></div>
