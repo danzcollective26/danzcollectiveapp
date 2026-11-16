@@ -8,6 +8,8 @@ import { memo, useEffect, useRef, useState, type PointerEvent as ReactPointerEve
 import { GrooveAudio } from './GrooveAudio'
 import { advanceGroove, beginGrooveCut, cutGroove, discPosition, GROOVE_COLORS, GROOVE_DIRECTIONS, GROOVE_DURATION, GROOVE_VINYLS, GROOVE_WEAPONS, SCRATCH_PATTERNS, selectGrooveWeapon, grooveMultiplier, grooveStage, initialGroove, keyCutGroove, readGrooveRecord, saveGrooveRecord, scratchGroove, scratchOffset, setGroovePlaying, type GrooveCutDirection, type GrooveDisc, type GrooveMode, type GrooveSpecial, type GrooveWeapon, type GroovePoint, type GrooveState } from './groove'
 import { GrooveMusic, GROOVE_MUSIC_CHOICES, GROOVE_MUSIC_KEY, grooveSong, readGrooveMusic, type GrooveMusicStatus } from './grooveMusic'
+import ArcadeIntro from './ArcadeIntro'
+import { browserSession, readArcadeIntroSeen, shouldPlayArcadeIntro } from './arcadeIntros'
 import { useGameScreen } from './useGameScreen'
 import { CLUB_UNLOCK_CUTS, GROOVE_PREFERENCES_KEY, readGroovePreferences } from './groovePreferences'
 import './groove.css'
@@ -111,7 +113,13 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   const trail = useRef<(GroovePoint & { at: number })[]>([])
   const heading = useRef<HTMLHeadingElement>(null)
   const screen = useGameScreen(pause)
-  useEffect(() => { if (autoEnter) screen.enter() }, [autoEnter])
+  const [introOpen, setIntroOpen] = useState(() => {
+    let reduced = false
+    try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { reduced = false }
+    return shouldPlayArcadeIntro('groove', readArcadeIntroSeen('groove', browserSession()), reduced)
+  })
+  const dismissIntro = () => { setIntroOpen(false); if (autoEnter) screen.enter() }
+  useEffect(() => { if (autoEnter && !introOpen) screen.enter() }, [autoEnter, introOpen])
   const wasImmersive = useRef(false)
   useEffect(() => {
     if (autoEnter && wasImmersive.current && !screen.active && !destructionOpen) onBack()
@@ -184,7 +192,8 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       void sound.current.start(current.current.elapsed, false, !song).then(ok => { if (ok !== null && !song) setAudioIssue(!ok) })
     }
   }
-  useEffect(() => { heading.current?.focus({ preventScroll: true }); return () => { sound.current?.destroy(); sound.current = null; music.current?.destroy(); music.current = null } }, [])
+  // Mount-only: closing the intro must not tear down the session audio.
+  useEffect(() => { if (!introOpen) heading.current?.focus({ preventScroll: true }); return () => { sound.current?.destroy(); sound.current = null; music.current?.destroy(); music.current = null } }, [])
   useEffect(() => {
     if (game.score > record) setRecord(saveGrooveRecord(game.score, game.mode, musicId))
   }, [game.score, game.mode, record, musicId])
@@ -292,6 +301,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   </div> : null
   if(destructionOpen)return <GrooveDestruction onBack={()=>{screen.enter();setDestructionOpen(false)}}/>
   return <section className="content inner-page gn-page" aria-label="GROOVE NINJA">
+    {introOpen && <ArcadeIntro gameId="groove" onDone={dismissIntro} />}
     <button type="button" className="back" onClick={onBack}>← VOLVER A ARCADANZ</button>
     <div className="gn-mode-picker" role="group" aria-label="Modo de Groove Ninja"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}><strong>VINYL CUT</strong><small>CORTES AL VUELO</small></button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}><strong>SCRATCH SESSION</strong><small>PATRONES AL RITMO</small></button><button type="button" className="gn-destruction-launch" onClick={()=>{pause();screen.leave();setDestructionOpen(true)}}><strong>DESTRUCCIÓN ✹</strong><small>8 ARMAS · VINILOS AL VUELO</small></button></div>
     <div className="gn-intro">
