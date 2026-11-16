@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-label="Portada de SEIS">
+  <rect width="600" height="800" fill="#101011"/>
+  <rect x="168" y="150" width="250" height="360" rx="18" transform="rotate(-10 293 330)" fill="#ba9efa"/>
+  <rect x="188" y="132" width="250" height="360" rx="18" transform="rotate(8 313 312)" fill="#ff789f"/>
+  <rect x="175" y="118" width="250" height="360" rx="18" fill="#d9ff6b" stroke="#101011" stroke-width="8"/>
+  <text x="300" y="300" text-anchor="middle" font-family="Impact, Arial Narrow, sans-serif" font-size="92" fill="#101011">SEIS</text>
+  <text x="300" y="348" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#101011">DE LA MAÑANA</text>
+  <circle cx="300" cy="400" r="18" fill="#101011"/>
+</svg>

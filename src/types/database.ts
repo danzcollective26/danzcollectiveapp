@@ -245,6 +245,8 @@ export type Database = {
       danz_instagram_review: { Args:{p_user:string;p_code:string;p_approve:boolean}; Returns:undefined }
       danz_snake_start: { Args: {p_id:string;p_mode:string;p_alias:string}; Returns:Json }
       danz_snake_submit: { Args: {p_id:string;p_moves:string}; Returns:Json }
+      danz_seis_start: { Args: { p_id: string; p_opponents: number; p_level: string; p_alias: string }; Returns: Json }
+      danz_seis_submit: { Args: { p_id: string; p_actions: string }; Returns: Json }
       danz_snake_board: { Args: {p_mode:string;p_period:string}; Returns:Json }
       danz_points_summary: { Args: Record<string, never>; Returns: Json }
       danz_points_suggest: { Args: { p_id: string; p_kind: string; p_body: string }; Returns: string }

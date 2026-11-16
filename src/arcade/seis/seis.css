@@ -1,0 +1,49 @@
+.seis-table{position:fixed;inset:0;z-index:1250;box-sizing:border-box;display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:10px;height:100dvh;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:#101011;color:#f3f0e8;overflow:hidden}
+.seis-top,.seis-yeppo,.seis-rivals,.seis-board,.seis-zone{width:min(100%,760px);justify-self:center}
+.seis-top,.seis-status,.seis-rivals{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.seis-top h1{margin:0;font:900 28px/1 Impact,'Arial Narrow',sans-serif;letter-spacing:.04em}
+.seis-top small,.seis-status,.seis-rivals small{font:800 10px/1.3 system-ui,sans-serif;letter-spacing:.08em;color:#aaa9a3}
+.seis-top div{display:flex;gap:8px}
+.seis-table button{box-sizing:border-box;min-height:44px;min-width:44px;border:1px solid #38383c;border-radius:6px;background:#19191a;color:#f3f0e8;font:800 12px/1.2 system-ui,sans-serif;letter-spacing:.04em;cursor:pointer;touch-action:manipulation}
+.seis-table button:focus-visible{outline:3px solid #d9ff6b;outline-offset:2px}
+.seis-table button:disabled{opacity:.38}
+.seis-yeppo{margin:0;padding:10px 12px;border-left:3px solid #d9ff6b;background:#17171c;font:700 14px/1.4 system-ui,sans-serif}
+.seis-rivals{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.seis-rival{min-width:0;padding:8px;border:1px solid #38383c;border-radius:8px;background:#17171c}
+.seis-rival strong,.seis-rival b{display:block;overflow:wrap:anywhere}
+.seis-rival b{color:#d9ff6b;font-size:18px}
+.seis-board{min-height:0;display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:end;align-content:end}
+.seis-deck,.seis-card{border-radius:10px}
+.seis-deck{display:grid;place-items:center;height:108px;background:#ba9efa;color:#101011;font:900 12px/1.1 system-ui,sans-serif;text-align:center}
+.seis-card{display:grid;align-content:space-between;width:96px;height:140px;padding:8px;border:2px solid #f3f0e8;box-shadow:0 8px 20px #0008;text-align:left}
+.seis-card b{font:900 28px/1 Impact,'Arial Narrow',sans-serif}
+.seis-card small{font:800 9px/1.2 system-ui,sans-serif;letter-spacing:.06em}
+.seis-card[data-color=negro]{background:#1a1a1c;color:#f3f0e8}
+.seis-card[data-color=lima]{background:#d9ff6b;color:#101011}
+.seis-card[data-color=rosa]{background:#ff789f;color:#101011}
+.seis-card[data-color=violeta]{background:#ba9efa;color:#101011}
+.seis-card[data-color=agua]{background:#8dd8c8;color:#101011}
+.seis-card[data-color=comodin]{background:#f3f0e8;color:#101011}
+.seis-hand{display:flex;gap:8px;overflow-x:auto;overscroll-behavior:contain;padding-bottom:4px;touch-action:pan-x}
+.seis-hand button,.seis-choice{padding:0;background:transparent;border:0}
+.seis-hand .seis-card,.seis-choice .seis-card{width:76px;height:112px;flex:0 0 auto}
+.seis-hand button[aria-pressed=false] .seis-card{transform:translateY(8px)}
+.seis-zone{display:grid;gap:8px;min-width:0}
+.seis-choices{display:flex;flex-wrap:wrap;gap:8px;align-content:start;max-height:160px;overflow:auto}
+.seis-choices button{padding:10px 12px}
+.seis-c-negro{background:#1a1a1c;color:#fff}
+.seis-c-lima{background:#d9ff6b;color:#101011}
+.seis-c-rosa{background:#ff789f;color:#101011}
+.seis-c-violeta{background:#ba9efa;color:#101011}
+.seis-c-agua{background:#8dd8c8;color:#101011}
+.seis-call{background:#d9ff6b;color:#101011;font-size:18px}
+.seis-note{margin:0;color:#aaa9a3;font:700 12px/1.4 system-ui,sans-serif}
+.seis-over{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;gap:12px;padding:24px;background:#101011e6;text-align:center}
+.seis-over h2{margin:0;font:900 clamp(42px,12vw,72px)/.9 Impact,'Arial Narrow',sans-serif}
+.seis-over p{max-width:36ch;margin:0}
+.seis-back{background-image:linear-gradient(135deg,#101011 25%,#d9ff6b 25% 50%,#101011 50% 75%,#ff789f 75%);background-size:16px 16px;color:transparent}
+.seis-table[data-back=lima] .seis-back{background-image:linear-gradient(135deg,#101011 40%,#d9ff6b 40%)}
+.seis-table[data-back=rosa] .seis-back{background-image:linear-gradient(135deg,#101011 40%,#ff789f 40%)}
+.seis-table[data-back=violeta] .seis-back{background-image:linear-gradient(135deg,#101011 40%,#ba9efa 40%)}
+@media(min-width:800px){.seis-table{padding-inline:max(24px,env(safe-area-inset-left))} .seis-board{grid-template-columns:120px minmax(0,1fr)} .seis-card{width:120px;height:176px} .seis-hand .seis-card{width:92px;height:136px}}
+@media(prefers-reduced-motion:reduce){.seis-table *{transition:none;animation:none}.seis-hand button[aria-pressed=false] .seis-card{transform:none}}

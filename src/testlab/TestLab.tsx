@@ -1,8 +1,8 @@
 import type { YeppoDemoRequest } from '../yeppo/Yeppo'
 import './testLab.css'
 
-export default function TestLab({ onCollecta, onJack, onGroove, onKart, onLibrary, onYeppo }: {
-  onCollecta: () => void; onJack: () => void; onGroove: () => void; onKart: () => void; onLibrary: () => void
+export default function TestLab({ onCollecta, onJack, onGroove, onKart, onSeis, onLibrary, onYeppo }: {
+  onCollecta: () => void; onJack: () => void; onGroove: () => void; onKart: () => void; onSeis: () => void; onLibrary: () => void
   onYeppo: (move: YeppoDemoRequest['move']) => void
 }) {
   return <section className="content inner-page test-lab" aria-label="Zona de pruebas DANZ">
@@ -14,6 +14,7 @@ export default function TestLab({ onCollecta, onJack, onGroove, onKart, onLibrar
       <button className="test-lab-game module" type="button" onClick={onGroove}><img src="/arcade/groove-ninja-approved-mobile.webp" alt="" width={1086} height={1448} decoding="async"/><span><small>VINYL CUT + SCRATCH SESSION</small><strong>GROOVE NINJA</strong><b>PROBAR JUEGO ↗</b></span></button>
     </div><p className="test-lab-note">Novedades: en Vinyl Cut, corta hacia la flecha y sigue las secuencias numeradas (+300). Prueba Persecución dentro de DANZ Collecta. En Groove, abre AJUSTES para suavizar los efectos y desbloquea Trazo Club con 20 cortes en una sesión.</p></section>
     <button className="test-lab-arena module" type="button" onClick={onKart}><img src="/arcade/danzporter-cover-v1.webp" alt="" width="600" height="800" decoding="async"/><span><small>04 / NUEVO · RACING LOCAL</small><strong>DANZPORTER</strong><p>Circuitos 3D, derrapes e impulso. Corre contra la crew, guarda tu contrarreloj o comparte el móvil en duelo.</p><b>SALIR A PISTA ↗</b></span></button>
+    <button className="test-lab-arena module" type="button" onClick={onSeis}><img src="/arcade/seis-mark.svg" alt="" width="600" height="800" decoding="async"/><span><small>05 / CARTAS · CONTRA LA IA</small><strong>SEIS</strong><p>De la mañana, qué jaleo. Quédate sin cartas y di SEIS a tiempo.</p><b>PROBAR SEIS ↗</b></span></button>
     <p className="test-lab-note">Prueba también al girar el móvil. MODOS vuelve a DANZ Collecta; desde allí puedes volver a la biblioteca. Los permisos de cuentas, galerías y administración son los habituales de DANZ.</p>
   </section>
 }

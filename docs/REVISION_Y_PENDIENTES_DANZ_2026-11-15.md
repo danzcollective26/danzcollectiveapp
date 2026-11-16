@@ -638,3 +638,13 @@ G02/G03 cerrados para este alcance; G04/G07 conserva beatmap musical editado y
 evaluación prolongada de diversión. T01 sigue en teléfonos físicos, audio oído,
 GPU/FPS y batería. G08, DANZPOINTS, fotos, administración y retornos externos
 conservan su estado; QR continúa aplazado.
+
+## 21. SEIS — petición del propietario, 16/11
+
+| ID | Petición | Estado / siguiente acción |
+| --- | --- | --- |
+| SE01 | Juego de cartas SEIS en ARCADANZ, contra 1-3 IA, con la regla SEIS y las especiales cerradas | Implementado en la rama de revisión. Motor puro con pruebas, mesa móvil, biblioteca, `/test` y premio validado en servidor. No publicado. Falta la revisión del PR y la prueba de teléfono físico (T01). |
+
+La práctica local no suma DANZPOINTS. El premio de 10 puntos solo sale si el
+servidor rejuega la partida. QR artísticos, música protegida, fotos y el resto
+de pendientes conservan su estado.

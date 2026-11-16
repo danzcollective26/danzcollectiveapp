@@ -27,6 +27,7 @@ const YeppoChase = lazy(() => import('./arcade/chase/YeppoChase'))
 const CollectaHub = lazy(() => import('./arcade/CollectaHub'))
 const KartMini = lazy(() => import('./arcade/kart/KartMini'))
 const DanzIdleStudio = lazy(() => import('./arcade/idle/DanzIdleStudio'))
+const SeisGame = lazy(() => import('./arcade/seis/SeisGame'))
 import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
 import content from './content/collective.json'
 import { parseCollective } from './content/collective'
@@ -71,9 +72,9 @@ const pages: { id: Page; label: string }[] = [
 function Arrow() { return <svg aria-hidden="true" className="arrow" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19 19 5M5 5h14v14" /></svg> }
 const launchPass = captureLaunchPass()
 const testLab = /^\/test\/?$/.test(window.location.pathname)
-function locationGame(): 'snake' | 'groove' | 'arena' | 'arena-solo' | 'chase' | 'collecta' | 'kart' | 'idle' | null {
+function locationGame(): 'snake' | 'groove' | 'arena' | 'arena-solo' | 'chase' | 'collecta' | 'kart' | 'idle' | 'seis' | null {
   const value = new URLSearchParams(window.location.search).get('juego')
-  return value === 'idle-studio' ? 'idle' : value === 'kart' ? 'kart' : value === 'arena-solo' ? 'arena-solo' : value === 'collecta' ? 'collecta' : value === 'pilla-pilla' ? 'chase' : value === 'arena' ? 'arena' : value === 'groove-ninja' ? 'groove' : value === 'jack' || value === 'snake' ? 'snake' : null
+  return value === 'seis' ? 'seis' : value === 'idle-studio' ? 'idle' : value === 'kart' ? 'kart' : value === 'arena-solo' ? 'arena-solo' : value === 'collecta' ? 'collecta' : value === 'pilla-pilla' ? 'chase' : value === 'arena' ? 'arena' : value === 'groove-ninja' ? 'groove' : value === 'jack' || value === 'snake' ? 'snake' : null
 }
 
 export default function App() {
@@ -303,6 +304,14 @@ export default function App() {
     setPage('arcade'); setArcadeGame('kart'); window.scrollTo({top:0})
     requestArcadeFullscreen()
   }
+  const openSeis = () => {
+    dispatch({ type: 'pause' }); gameScreen.leave()
+    const url = new URL(window.location.href)
+    url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'seis')
+    try { window.history.pushState(window.history.state, '', url) } catch { /* La partida sigue disponible en memoria. */ }
+    setPage('arcade'); setArcadeGame('seis'); window.scrollTo({ top: 0 })
+    requestArcadeFullscreen()
+  }
   const openCollecta = () => {
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
@@ -339,7 +348,7 @@ export default function App() {
 
       <main>
         {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
-        {page === 'inicio' && testLab && <Suspense fallback={<p role="status">Abriendo zona de pruebas…</p>}><TestLab onKart={openKart} onCollecta={openCollecta} onJack={openSnake} onGroove={()=>openGroove(true)} onLibrary={()=>go('arcade')} onYeppo={move=>{markYeppoWelcomeDone();setYeppoEnabled(true);setYeppoDemo(previous=>({id:previous.id+1,move}))}}/></Suspense>}
+        {page === 'inicio' && testLab && <Suspense fallback={<p role="status">Abriendo zona de pruebas…</p>}><TestLab onKart={openKart} onCollecta={openCollecta} onJack={openSnake} onGroove={()=>openGroove(true)} onSeis={openSeis} onLibrary={()=>go('arcade')} onYeppo={move=>{markYeppoWelcomeDone();setYeppoEnabled(true);setYeppoDemo(previous=>({id:previous.id+1,move}))}}/></Suspense>}
         {page === 'inicio' && !testLab && (
           <>
             <section className="intro content">
@@ -401,14 +410,15 @@ export default function App() {
 
         {page === 'arcade' && arcadeGame === null && <section className="content inner-page arcade-library" aria-label="Biblioteca ARCADANZ">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-          <header className="arcade-library-heading"><div><span className="eyebrow">DANZ COLLECTIVE / PLAY TOGETHER</span><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724"/><h1>TU BIBLIOTECA.</h1><p>Elige una portada. La siguiente partida es tuya.</p></div><span className="arcade-library-count">05 <small>JUEGOS DISPONIBLES</small></span></header>
-          <button type="button" className="arcade-library-upcoming" aria-label="DANZ Idle Studio" onClick={openIdle}><img src="/arcade/idle-studio-industrial.webp" alt="Taller creativo de DANZ Idle Studio" width="1200" height="900" loading="lazy"/><div><span className="eyebrow">05 / ESTUDIO</span><h2>DANZ IDLE STUDIO</h2><p>Música, moda, vídeo y el sello. El código del juego está en el repositorio.</p><small>JUGAR ↗ · src/arcade/idle</small></div></button>
-          <ArcadeChooser onSelect={choice => choice === 'kart' ? openKart() : choice === 'collecta' ? openCollecta() : choice === 'groove' ? openGroove(true) : openSnake()} />
+          <header className="arcade-library-heading"><div><span className="eyebrow">DANZ COLLECTIVE / PLAY TOGETHER</span><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724"/><h1>TU BIBLIOTECA.</h1><p>Elige una portada. La siguiente partida es tuya.</p></div><span className="arcade-library-count">06 <small>JUEGOS DISPONIBLES</small></span></header>
+          <button type="button" className="arcade-library-upcoming" aria-label="DANZ Idle Studio" onClick={openIdle}><img src="/arcade/idle-studio-industrial.webp" alt="Taller creativo de DANZ Idle Studio" width="1200" height="900" loading="lazy"/><div><span className="eyebrow">06 / ESTUDIO</span><h2>DANZ IDLE STUDIO</h2><p>Música, moda, vídeo y el sello. El código del juego está en el repositorio.</p><small>JUGAR ↗ · src/arcade/idle</small></div></button>
+          <ArcadeChooser onSelect={choice => choice === 'seis' ? openSeis() : choice === 'kart' ? openKart() : choice === 'collecta' ? openCollecta() : choice === 'groove' ? openGroove(true) : openSnake()} />
           <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
         </section>}
         {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
         {page === 'arcade' && arcadeGame === 'idle' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Idle Studio…</p>}><DanzIdleStudio onExit={() => go('arcade')} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="arcade-loading" role="status">Preparando DANZPORTER…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'seis' && <Suspense fallback={<p className="arcade-loading" role="status">Barajando SEIS…</p>}><SeisGame onBack={() => go('arcade')} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
         {page === 'arcade' && (arcadeGame === 'arena' || arcadeGame === 'arena-solo') && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Arena…</p>}><ArenaDuel key={arcadeGame} opponent={arcadeGame === 'arena-solo' ? 'cpu' : 'human'} controls={collectaControls} onBack={openCollecta} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
@@ -491,7 +501,7 @@ export default function App() {
       </main>
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
-      <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
+      <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'||arcadeGame==='seis'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )

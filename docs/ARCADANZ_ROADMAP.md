@@ -263,3 +263,14 @@ valida sesión y emite enlaces de 120 s; Ensayo sigue sin cuenta y offline.
 Publicado PR 46: CI 235 pasa build, 267 internas, 582 navegador y 16 offline.
 Backend protegido y apertura pública comprobados; T01 conserva prueba física. Ver
 GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.
+
+## SEIS — cartas contra la IA
+
+Juego nuevo en `src/arcade/seis/`, entrada de biblioteca y enlace
+`?seccion=arcade&juego=seis`, también en `/test`. Mano de siete cartas, mazo de
+90, regla SEIS estricta, especiales cerradas con el propietario e IA fácil,
+normal y difícil. La práctica guarda victorias y dorsos en el navegador y no
+suma DANZPOINTS. El modo con premio pide semilla al servidor y solo concede 10
+puntos si la repetición confirma la victoria, con tope de 3 por semana y 20 al
+año. No está publicado: queda en revisión, sin fusión. T01 sigue en el teléfono
+físico.
