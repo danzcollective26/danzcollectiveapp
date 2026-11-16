@@ -4,11 +4,13 @@ export async function menuTab(page:Page,name:string){
  await page.locator('.arcade-menu-body > .arcade-menu-tabs').getByRole('button',{name,exact:true}).click()
 }
 export async function selectReel(page:Page,label:string,name:string){
- const card=page.getByRole('group',{name:label,exact:true}).locator('.reel-card')
- await card.focus();await card.press('Home')
+ const group=page.getByRole('group',{name:label,exact:true}),card=group.locator('.reel-card')
+ const names=await group.locator('.reel-dots button').evaluateAll(elements=>elements.map(el=>el.getAttribute('aria-label')?.replace(/^Seleccionar /,'')))
+ const target=names.indexOf(name),fromEnd=target>=0&&target>names.length/2
+ await card.focus();await card.press(fromEnd?'End':'Home')
  for(let i=0;i<24;i++){
   if((await card.getAttribute('aria-label'))?.endsWith(`: ${name}`))return
-  await card.press('ArrowRight')
+  await card.press(fromEnd?'ArrowLeft':'ArrowRight')
  }
  await expect(card).toHaveAttribute('aria-label',`${label}: ${name}`)
 }

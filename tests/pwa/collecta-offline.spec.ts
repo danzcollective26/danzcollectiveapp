@@ -1,3 +1,4 @@
+import { launchCollecta,collectaControl } from '../e2e/consoleMenus'
 import { expect, test } from '@playwright/test'
 
 test('Collecta cover and Persecución load offline and keep the two local modes reachable', async ({ page, context }) => {
@@ -7,10 +8,10 @@ test('Collecta cover and Persecución load offline and keep the two local modes 
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
   await context.setOffline(true)
   await page.goto('/test?seccion=arcade&juego=collecta')
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
-  await expect.poll(() => page.locator('.collecta-cover img').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(600)
-  for(const id of [1,2]) await page.getByRole('group',{name:`Mando P${id}`,exact:true}).getByRole('button',{name:'JOYSTICK',exact:true}).click()
-  await page.getByRole('button', { name: /JUGAR PERSECUCIÓN/ }).click()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
+  await expect.poll(() => page.locator('.arcade-console-menu').evaluate(el=>new Promise<number>(resolve=>{const image=new Image();image.onload=()=>resolve(image.naturalWidth);image.onerror=()=>resolve(0);image.src=getComputedStyle(el).getPropertyValue('--menu-art').match(/url\(["']?(.*?)["']?\)/)![1]}))).toBe(600)
+  for(const id of [1,2] as const)await collectaControl(page,id,'JOYSTICK')
+  await launchCollecta(page,'chase')
   await expect(page.locator('.chase-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'EMPEZAR PERSECUCIÓN', exact: true }).click()
   await expect(page.locator('.chase-game')).toHaveAttribute('data-phase', 'playing')
@@ -20,13 +21,13 @@ test('Collecta cover and Persecución load offline and keep the two local modes 
   await expect.poll(()=>page.locator('.chase-game').getAttribute('data-p1')).not.toBe(initial)
   await page.keyboard.up('ArrowLeft')
   await page.getByRole('button', { name: 'Salir de Persecución', exact: true }).click()
-  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
+  await launchCollecta(page,'arena')
   await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'EMPEZAR DUELO', exact: true }).click()
   await expect(page.locator('.arena-game')).toHaveAttribute('data-phase', 'playing')
   await expect(page.getByRole('button',{name:'P2 Joystick',exact:true})).toBeEnabled()
   await page.getByRole('button', { name: 'Salir de Arena DANZ', exact: true }).click()
-  await page.getByRole('button', { name: /JUGAR EN SOLITARIO/ }).click()
+  await launchCollecta(page,'solo')
   await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'EMPEZAR TURNO', exact: true }).click()
   await expect(page.locator('.arena-game')).toHaveAttribute('data-opponent', 'cpu')

@@ -1,3 +1,4 @@
+import { launchCollecta } from './consoleMenus'
 import { expect, test, type Page } from '@playwright/test'
 test.use({ hasTouch: true })
 
@@ -16,17 +17,17 @@ async function start(page: Page) {
 test('Arena is reachable from /test and the library, with its own local duel', async ({ page }) => {
   await page.goto('/test')
   await page.getByRole('button', { name: /DANZ COLLECTA.*PROBAR LOS MODOS/ }).click()
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
-  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
+  await launchCollecta(page,'arena')
   await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
   await page.getByRole('button', { name: 'Salir de Arena DANZ', exact: true }).click()
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
-  await page.getByRole('button', { name: '← BIBLIOTECA ARCADANZ', exact: true }).click()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
+  await page.getByRole('button', { name: 'Volver a la biblioteca ARCADANZ', exact: true }).click()
   await page.locator('.arcade-choice').filter({ hasText: 'DANZ COLLECTA' }).click()
-  await page.getByRole('button', { name: /JUGAR ARENA 1 VS 1/ }).click()
+  await launchCollecta(page,'arena')
   await expect(page.getByRole('button', { name: 'EMPEZAR DUELO', exact: true })).toBeEnabled({ timeout: 15000 })
   await page.keyboard.press('Escape')
-  await expect(page.getByLabel('Modos de DANZ Collecta')).toBeVisible()
+  await expect(page.getByRole('dialog',{name:'Menú de DANZ COLLECTA',exact:true})).toBeVisible()
   expect(await page.locator('body').evaluate(el => el.style.overflow)).not.toBe('hidden')
 })
 
