@@ -4,7 +4,7 @@ Petición K06/K07: tomar la referencia enviada de Rush Rally Origins como guía
 para acercar la vista isométrica y naturalizar materiales; añadir primera persona.
 Solo se recibió la captura de referencia de Rally; no se inventa una segunda imagen.
 
-## Implementación en revisión
+## Implementación publicada — PR 41
 
 - Isométrica diagonal cercana con horizonte estable y minimapa. Suelo con grano,
   manchas de desgaste, vegetación/piedras instanciadas fuera de trazado y boxes;
@@ -44,7 +44,27 @@ persistencia tras recarga y duelo que fuerza pista compartida. Botones de gas
 44 px de alto en 320×568, sin overflow horizontal. El navegador tiene WebGL
 desactivado: estas capturas muestran la perspectiva compatible. El 3D se revisa
 por CPU; T01 conserva shader/GPU, dispositivo físico, FPS y multitoque real.
-Publicación y revisión pública pendientes antes del cierre.
+Publicación y revisión pública completadas en el cierre siguiente.
+
+## Cierre público y CI
+
+- Código `11868c0400fb10fb05fd8cebe178bd8a65008090`, PR 41. Producción
+  READY `dpl_CHucH5XqQwHZfL2XLTvWdrkFRa7h` y alias público comprobados.
+- CI 225: 246 internas, 552 escenarios de navegador y 16 offline correctos.
+  Los 31 archivos modificados coinciden con la copia local por hash.
+- Revisión pública: conducción, minimapa y un canvas en 320×568 y 844×390;
+  menú, preferencia y duelo en 390×844. Sin desborde en los tres tamaños. Los
+  cuatro botones de pedales/boxes conservan 44 px en el tamaño menor.
+- Cambiar de cámara en pausa mantiene 9.541 ms, piezas `sprint:endurance`
+  y salud 0,796. El duelo fuerza pista compartida; volver a carrera restaura
+  la primera persona guardada. Inicio directo `/test` comprobado.
+- PR 40 recupera la regresión completa (546 escenarios de navegador y 16
+  offline). Las medidas de layouts se hacen antes de iniciar la ronda para
+  no perder contra la crew durante las comprobaciones. T04 queda cerrado.
+- El navegador público usa la perspectiva compatible 2D. La vista previa
+  privada fue bloqueada por la revisión automática al redirigir a Vercel;
+  se verifica la app pública sin cambiar permisos. GPU, teléfonos físicos,
+  FPS, batería, audio escuchado y pantalla completa nativa permanecen en T01.
 
 ## Cómo comprobarlo
 
