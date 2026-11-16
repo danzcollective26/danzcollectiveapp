@@ -1,10 +1,15 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type TouchEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent } from 'react'
 import {
   deleteAlbum, deletePhotos, loadGallery, openGalleryDB, saveAlbum, savePhotos,
   type StoredAlbum, type StoredPhoto,
 } from './galleryStorage'
 import './PhotoGallery.css'
 import { GallerySkeleton } from './feel/Skeleton'
+import ProgressiveImage from './feel/ProgressiveImage'
+import { favoriteKey } from './feel/favorites'
+import { pulse } from './feel/haptics'
+import { useFavorites } from './feel/useFavorites'
+import { clampScale, decideSwipe } from './feel/viewerGestures'
 
 type Photo = { id: string; name: string; url: string }
 type EventAlbum = { id: string; name: string; date: string; photos: Photo[] }
@@ -52,10 +57,18 @@ export default function PhotoGallery({ active, onBack }: Props) {
   const [editedName, setEditedName] = useState('')
   const [editedDate, setEditedDate] = useState('')
   const [selected, setSelected] = useState<number | null>(null)
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
+  const [viewerZoom, setViewerZoom] = useState(1)
+  const [viewerPan, setViewerPan] = useState({ x: 0, y: 0 })
   const [message, setMessage] = useState('')
+  const favorites = useFavorites()
   const inputRef = useRef<HTMLInputElement>(null)
   const objectUrls = useRef(new Set<string>())
-  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const pointers = useRef(new Map<number, { x: number; y: number }>())
+  const pinchStart = useRef<{ distance: number; scale: number } | null>(null)
+  const drag = useRef<{ id: number; x: number; y: number; ox: number; oy: number; moved: boolean } | null>(null)
+  const lastTap = useRef<{ at: number; x: number; y: number } | null>(null)
+  const lastPointerType = useRef('mouse')
 
   const currentEvent = events.find((album) => album.id === activeEventId) ?? events[0]
   const photos = currentEvent?.photos ?? []
@@ -113,6 +126,15 @@ export default function PhotoGallery({ active, onBack }: Props) {
   useEffect(() => {
     if (!active) setSelected(null)
   }, [active])
+
+  useEffect(() => {
+    setViewerZoom(1)
+    setViewerPan({ x: 0, y: 0 })
+    pointers.current.clear()
+    pinchStart.current = null
+    drag.current = null
+    lastTap.current = null
+  }, [selected])
 
   useEffect(() => {
     if (!active || selected === null) return
@@ -287,21 +309,68 @@ export default function PhotoGallery({ active, onBack }: Props) {
 
   const previous = () => setSelected((index) => index === null || photos.length < 2 ? index : (index + photos.length - 1) % photos.length)
   const next = () => setSelected((index) => index === null || photos.length < 2 ? index : (index + 1) % photos.length)
-
-  const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    if (event.touches.length !== 1) return
-    touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+  const toggleViewerZoom = () => {
+    setViewerZoom(value => value > 1 ? 1 : 2)
+    setViewerPan({ x: 0, y: 0 })
+    lastTap.current = null
   }
-  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
-    const start = touchStart.current
-    touchStart.current = null
-    if (!start || !event.changedTouches.length || photos.length < 2) return
-    const dx = event.changedTouches[0].clientX - start.x
-    const dy = event.changedTouches[0].clientY - start.y
-    if (Math.abs(dx) >= 55 && Math.abs(dx) > Math.abs(dy) * 1.3) {
-      if (dx < 0) next()
-      else previous()
+
+  const onViewerDown = (event: PointerEvent<HTMLDivElement>) => {
+    lastPointerType.current = event.pointerType
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    if (pointers.current.size > 1) {
+      drag.current = null
+      lastTap.current = null
+      if (pointers.current.size === 2) {
+        const [a, b] = [...pointers.current.values()]
+        pinchStart.current = { distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), scale: viewerZoom }
+      }
+      return
     }
+    if (!event.isPrimary || event.button !== 0) return
+    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, ox: viewerPan.x, oy: viewerPan.y, moved: false }
+    try { event.currentTarget.setPointerCapture(event.pointerId) } catch { /* Embedded views can still swipe without capture. */ }
+  }
+  const onViewerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!pointers.current.has(event.pointerId)) return
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    if (pointers.current.size >= 2 && pinchStart.current) {
+      const [a, b] = [...pointers.current.values()]
+      const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y))
+      setViewerZoom(clampScale(pinchStart.current.scale * (distance / pinchStart.current.distance)))
+      return
+    }
+    const start = drag.current
+    if (!start || start.id !== event.pointerId || viewerZoom <= 1) return
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    if (Math.hypot(dx, dy) > 8) start.moved = true
+    setViewerPan({ x: start.ox + dx, y: start.oy + dy })
+  }
+  const onViewerUp = (event: PointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(event.pointerId)
+    if (pointers.current.size < 2) pinchStart.current = null
+    const start = drag.current
+    if (!start || start.id !== event.pointerId) return
+    drag.current = null
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    const moved = start.moved || Math.hypot(dx, dy) > 8
+    if (event.pointerType === 'touch' && !moved) {
+      const previousTap = lastTap.current
+      if (previousTap && event.timeStamp - previousTap.at < 320 && Math.hypot(event.clientX - previousTap.x, event.clientY - previousTap.y) < 24) toggleViewerZoom()
+      else lastTap.current = { at: event.timeStamp, x: event.clientX, y: event.clientY }
+      return
+    }
+    lastTap.current = null
+    const decision = decideSwipe(dx, dy, viewerZoom > 1, moved)
+    if (decision === 'dismiss') setSelected(null)
+    if (decision === 'next') next()
+    if (decision === 'previous') previous()
+  }
+  const markFavorite = (id: string) => {
+    const saved = favorites.toggle(favoriteKey('local', id))
+    pulse(saved ? 'confirm' : 'tap')
   }
 
   const photo = selected === null ? null : photos[selected]
@@ -443,6 +512,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
               {photos.length ? 'AÑADIR MÁS' : 'SELECCIONAR FOTOS'} <span>＋</span>
             </button>
             {photos.length > 0 && <button type="button" className="outline-btn" onClick={clearCurrentEvent} disabled={locked}>VACIAR ÁLBUM</button>}
+            {photos.length > 0 && <button type="button" className="outline-btn gallery-favorite-filter" aria-pressed={onlyFavorites} onClick={() => setOnlyFavorites(value => !value)}>{onlyFavorites ? 'VER TODAS' : 'SOLO FAVORITAS'}</button>}
           </div>}
         </div>
         {message && <p className="gallery-notice" role="status">{message}</p>}
@@ -458,18 +528,23 @@ export default function PhotoGallery({ active, onBack }: Props) {
           </div>
         ) : (
           <>
-            <p className="gallery-instructions">Pulsa una foto para ampliarla. Usa ← → o desliza horizontalmente para pasar a otra foto del mismo evento.</p>
+            <p className="gallery-instructions">Pulsa una foto para ampliarla. Desliza en horizontal para pasar de foto, hacia abajo para cerrar, y pellizca o haz doble toque para ampliar.</p>
             <div className="gallery-grid">
-              {photos.map((item, index) => (
+              {photos.map((item, index) => {
+                const saved = favorites.has(favoriteKey('local', item.id))
+                if (onlyFavorites && !saved) return null
+                return (
                 <div className="gallery-photo-container" key={item.id}>
                   <button type="button" className="gallery-photo" onClick={() => setSelected(index)} aria-label={`Abrir fotografía ${index + 1}: ${item.name}`}>
-                    <img src={item.url} alt={item.name} loading="lazy" decoding="async" />
+                    <ProgressiveImage src={item.url} alt={item.name} eager={index < 4} />
                     <span className="gallery-photo-counter">{String(index + 1).padStart(2, '0')}</span>
                   </button>
+                  <button type="button" className="photo-favorite" aria-pressed={saved} aria-label={saved ? `Quitar ${item.name} de favoritas` : `Guardar ${item.name} en favoritas`} onClick={() => markFavorite(item.id)}>{saved ? '♥' : '♡'}</button>
                   {isAdminPreview && <button type="button" className="gallery-photo-remove" title="Quitar fotografía" aria-label={`Quitar ${item.name} de este álbum`} onClick={() => removePhoto(item.id)} disabled={locked}>✕</button>}
                 </div>
-              ))}
+              )})}
             </div>
+            {onlyFavorites && photos.every(item => !favorites.has(favoriteKey('local', item.id))) && <p className="gallery-instructions">Todavía no hay favoritas en este álbum. Márcalas con el corazón.</p>}
           </>
         )}
       </>}
@@ -482,14 +557,18 @@ export default function PhotoGallery({ active, onBack }: Props) {
             <span className="gallery-lightbox-title">DANZ · {currentEvent.name} <span>{selected + 1} / {photos.length}</span></span>
             <button className="gallery-lightbox-close" onClick={() => setSelected(null)} aria-label="Cerrar fotografía">CERRAR ✕</button>
           </div>
-          <div className="gallery-lightbox-viewer" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+          <div className="gallery-lightbox-viewer">
             {photos.length > 1 && <button className="gallery-lightbox-arrow" onClick={previous} aria-label="Fotografía anterior">←</button>}
-            <img className="gallery-lightbox-image" src={photo.url} alt={photo.name} draggable={false} />
+            <div className={`gallery-lightbox-stage${viewerZoom > 1 ? ' is-zoomed' : ''}`} onPointerDown={onViewerDown} onPointerMove={onViewerMove} onPointerUp={onViewerUp} onPointerCancel={() => { pointers.current.clear(); pinchStart.current = null; drag.current = null }} onDoubleClick={() => { if (lastPointerType.current !== 'touch') toggleViewerZoom() }}>
+              <ProgressiveImage className="gallery-lightbox-image" fit="contain" eager src={photo.url} alt={photo.name} style={viewerZoom > 1 ? { transform: `translate(${viewerPan.x}px, ${viewerPan.y}px) scale(${viewerZoom})` } : undefined} />
+            </div>
             {photos.length > 1 && <button className="gallery-lightbox-arrow" onClick={next} aria-label="Fotografía siguiente">→</button>}
           </div>
+          <p className="gallery-instructions">{viewerZoom > 1 ? 'Arrastra para recorrer la foto. Doble toque para ajustar.' : 'Desliza para pasar de foto, hacia abajo para cerrar, o pellizca para ampliar.'}</p>
           <div className="gallery-lightbox-footer">
             <span title={photo.name}>{photo.name}</span>
             <div className="gallery-lightbox-actions">
+              <button type="button" className="gallery-lightbox-favorite" aria-pressed={favorites.has(favoriteKey('local', photo.id))} onClick={() => markFavorite(photo.id)}>{favorites.has(favoriteKey('local', photo.id)) ? 'EN FAVORITAS ♥' : 'GUARDAR FAVORITA ♡'}</button>
               <a className="gallery-lightbox-download" href={photo.url} download={photo.name || 'danz-foto'}>DESCARGAR FOTO ↓</a>
               {isAdminPreview && <button type="button" className="gallery-lightbox-remove" onClick={() => removePhoto(photo.id)} disabled={locked}>QUITAR FOTO ✕</button>}
             </div>
