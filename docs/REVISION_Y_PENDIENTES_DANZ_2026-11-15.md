@@ -39,7 +39,7 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | G01 | Continuar mejoras de Jack y Groove | Parcial; primera entrega publicada | Cerrar S01; conservar optimización y especiales. Completar pendientes específicos G02–G07, sin afirmar que todo está terminado. |
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
 | J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
-| J10 | DANZPORTER (antes DANZ Kart Mini) | Carrera local, presentación 3D y ampliación de conducción publicadas, PR 35–38 | Tres modos, dos circuitos, piezas mecánicas, daños, boxes y mandos enfrentados. Falta validación WebGL y móvil físico (T01/T04); online y contenidos adicionales separados. |
+| J10 | DANZPORTER (antes DANZ Kart Mini) | Carrera local, conducción y cámaras publicadas, PR 35–41 | Tres modos, dos circuitos, piezas, daños, boxes, vista Rally y primera persona. CI 225: 246 internas, 552 de navegador y 16 offline correctas. GPU y móvil físico en T01; online y contenidos adicionales separados. |
 
 ## 4. Lo ya publicado que debe conservarse
 
@@ -178,7 +178,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | T01 | Pruebas Android/iPhone reales | Pendientes FPS, batería, comodidad multitoque, orientación y audio. Emulación de tamaños no sustituye dispositivo físico. |
 | T02 | Complementos/documentación | Context7 antes de juegos/Yeppo; consultar conexiones pertinentes, herramientas gratuitas primero. Una conexión autenticada no demuestra que todas sus funciones o diseños estén disponibles. |
 | T03 | Auditoría y `/test` | Mantener ruta accesible, controles táctiles, reduced-motion, pausa y lista de mejoras aplicadas/propuestas en cada entrega importante. |
-| T04 | Recuperar la ejecución de pruebas de navegador y offline | P0 de verificación. CI de PR 31 y posteriores, incluidos 200 y 201/PR 35, falla antes de ejecutar pasos y no genera logs; causa sin confirmar. Navegador conectado sin WebGL; validación GPU pendiente. Chromium local bloqueado al crear socket. Conservar los nuevos escenarios y ejecutarlos cuando vuelva a estar disponible, sin activar costes ni rebajar protecciones. |
+| T04 | Recuperar la ejecución de pruebas de navegador y offline | Cerrado el 16/11: CI 224 y 225 ejecutan y pasan sus cuatro jobs. CI 225: 246 pruebas internas, 184 escenarios en cada uno de escritorio/tableta/móvil y 16 offline, sin reintentos fallidos. Chromium local sigue sin poder crear socket; se usa CI y navegador conectado. La GPU y el teléfono físico pertenecen a T01. No se cambian costes ni protecciones. |
 
 ## 10. Lo expresamente aplazado
 
@@ -254,7 +254,7 @@ de juegos. La portada fue mostrada y el propietario pidió «Implémentala».
 | --- | --- | --- | --- |
 | DC01 | Una entrada DANZ Collecta con Arena y Persecución (antes Pilla-Pilla independiente) | Publicado y verificado, PR 30 | Cerrado: biblioteca, modos, retorno y enlaces directos comprobados. |
 | DC02 | Portada «Día de cobro» con la cara y el humor de seguridad/facturas | Aprobada y publicada en biblioteca, modos y `/test`; móvil 600×800, 200.798 bytes | Cerrado: encuadre completo y entrega online/offline comprobados. |
-| DC03 | Arena contra la máquina | Beta local publicada y revisada, PR 32 | Último turno: rival real con rutas, previsión de cadenas y escape. 219 pruebas internas, tres tamaños y partida pública comprobados. T04 conserva la regresión automatizada pendiente. |
+| DC03 | Arena contra la máquina | Beta local publicada y revisada, PR 32 | Último turno: rival real con rutas, previsión de cadenas y escape. Regresión completa recuperada en CI 224/225; teclado con joystick comprobado en público. T01 conserva la prueba física. |
 | DC04 | Lore y protagonista dentro de Collecta | Lore PR 31 y primer sprite humano ilustrado PR 34 publicados | Encargado y Yeppo con dos poses. Conservar portada exacta; fidelidad de retrato y arte definitivo siguen parciales. |
 | A03 | Mandos de 1vs1 en extremos opuestos desde el punto de vista de cada persona | Publicado y verificado en Arena y Persecución | Cerrado en emulación y navegador; rotación, multitoque y pausa correctos. T01 conserva la prueba física. |
 | J09 | Pilla-Pilla como Persecución de Collecta | Beta local publicada y verificada: 60 s, obstáculos, captura/cambio de roles y sprint | Cerrado: navegador/Canvas 2D, pausa, salida y offline comprobados. |
@@ -296,7 +296,7 @@ de continuar DC03; el rival contra la máquina conserva su lugar en el registro.
 | ID | Petición | Estado actual | Siguiente acción |
 | --- | --- | --- | --- |
 | DC05 | Personalizar Collecta y sus modos con el lore de seguridad/cobro | Publicado y revisado manualmente, PR 31 | Cierre de pista y Pasa el marrón: encargado/crew, factura y sello de trámite. Portada conservada y textos compactos comprobados. |
-| A04 | Joystick táctil opcional y enfrentado para cada persona | Beta publicada, PR 31; build, 211 pruebas internas y revisión manual de tres tamaños correctos | Completar multitoque simultáneo, rotación y offline automatizados cuando arranque CI; prueba física en T01. No contar los escenarios escritos como ejecutados. |
+| A04 | Joystick táctil opcional y enfrentado para cada persona | Publicado PR 31; regresión de tres tamaños ejecutada y correcta en CI 224/225 | Dos joysticks, tercer dedo para disco/sprint, pausa, cancelación y rotación comprobados en navegador. Teléfono físico en T01. |
 | DC04 | Protagonista humano dentro de las partidas | Parcial, con primer sprite humano ilustrado publicado PR 34 | Encargado original con dos poses; falta acabado definitivo/fidelidad de retrato. No se generan ni sustituyen las portadas aprobadas. |
 
 Conservar las rutas actuales y la portada exacta aprobada. No cambia la física
@@ -514,8 +514,8 @@ límites de T01/T04 se conservan. Evidencia y publicación al cerrar este bloque
 
 | ID | Petición | Estado / siguiente acción |
 | --- | --- | --- |
-| K06 | Acabado cercano a la referencia de Rush Rally Origins enviada por el propietario | Referencia visual recibida: cámara isométrica cercana, materiales/terreno e iluminación natural, manteniendo mundo DANZ y recursos originales. Implementado en revisión: isométrica diagonal más cercana, suelo con textura procedural, vegetación instanciada e iluminación menos plástica; recursos propios y circuito sin modificar. |
-| K07 | Opción de primera persona | Implementada en revisión: perspectiva 3D y compatible por software, volante, dirección relativa y minimapa. Misma carrera y daños/boxes; duelo con pista compartida. Preview comprobado en tres tamaños, con conducción, pausa, cambio de cámara sin reinicio, persistencia y guardia de duelo. Publicación pendiente. |
+| K06 | Acabado cercano a la referencia de Rush Rally Origins enviada por el propietario | Publicado PR 41, 11868c04: isométrica diagonal cercana, suelo con textura procedural, vegetación instanciada e iluminación menos plástica. Mundo DANZ y recursos originales; circuito y simulación conservados. Geometría CPU revisada; GPU física pendiente T01. |
+| K07 | Opción de primera persona | Publicado y verificado en público PR 41: perspectiva 3D y compatible por software, volante, giro relativo y minimapa. Cambio en pausa sin perder tiempo, piezas ni salud; preferencia conservada, duelo con pista compartida. CI 225 correcta y revisión pública 320×568, 390×844 y 844×390. |
 
 ### Validación y regresión de menús
 
@@ -529,5 +529,31 @@ retorno (comprobado en preview) y la lista pública del worker, manteniendo
 rechazo de tokens/fotos/callbacks. CI 218: 16/16 offline pasan y móvil ejecuta 178 escenarios (175 correctos;
 tres selectores antiguos de Jack, ajustados en f66abe2e). La mecánica del kart
 se prueba en 2D compatible, separada del coste de GPU por software del runner.
-CI general todavía pendiente; no se afirma verde.
-T04 cambia de bloqueo de arranque a regresión ejecutable; T01 físico/GPU sigue.
+Ese resultado es histórico. El cierre siguiente recoge la ejecución final.
+
+### Cierre de menús, cámaras y regresión — PR 40/41
+
+- PR 40: `56a065722fe35e664f77cc9e38a33ddfda37d04d`. CI 224 pasa
+  build, pruebas internas, 546 escenarios de navegador y 16 offline.
+- PR 41: `11868c0400fb10fb05fd8cebe178bd8a65008090`. Producción READY
+  `dpl_CHucH5XqQwHZfL2XLTvWdrkFRa7h`, alias público confirmado.
+- CI 225: **246 internas, 552 de navegador (184 por tamaño) y 16 offline**,
+  todos correctos. Los 31 archivos modificados coinciden por hash con la copia
+  local revisada. Las dos pruebas de layout se separan por tamaño y miden antes
+  de jugar: antes la crew ganaba durante la medición, a los 4,2 s; el mando
+  funcionaba. Se conserva la comprobación del movimiento y tercer dedo reales.
+- Navegador público: primera persona, gas/velocidad y un canvas comprobados
+  en 320×568 y 844×390; menú, preferencia y duelo revisados en 390×844.
+  No hay desborde en los tres tamaños.
+  En 320 los cuatro botones miden 44 px. Cambio a pista completa en pausa
+  conserva 9.541 ms, `sprint:endurance` y salud 0,796. Duelo fuerza pista
+  compartida; volver a carrera recupera la primera persona guardada.
+- Mejoras cerradas: retorno de Destrucción al menú Groove, rutas públicas
+  offline, menús desplazables, cámaras y revisión automatizada T04. La portada
+  exacta aprobada, piezas, daño, boxes y récords se conservan.
+- Límites: el navegador conectado usa compatible 2D; no acredita GPU, FPS,
+  batería, audio escuchado, pantalla completa nativa ni multitoque físico.
+  T01 sigue pendiente. La revisión automática bloqueó la preview privada al
+  redirigir a Vercel; se verificó la publicación pública, sin alterar accesos.
+- App, música/BPM, fotos, puntos/canjes, moderación y retornos externos
+  conservan sus estados. QR continúa aplazado.

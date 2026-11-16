@@ -229,7 +229,11 @@ con gesto; fallback CSS comprobado en tres tamaños. Portadas exactas preservada
 PR 40 revisa retorno de Destrucción a Groove y rutas públicas del worker. CI
 ahora ejecuta pasos y conserva sus fallos explícitos en T04 hasta resolverlos.
 
-K06/K07 en revisión: vista Rally isométrica, materiales/suelo y vegetación,
+K06/K07 publicados en PR 41 (11868c04): vista Rally isométrica, materiales/suelo y vegetación,
 primera persona 3D más compatible por software, volante y giro relativo. Se
 conservan carrera, piezas, daño y boxes; duelo con pista completa para ambos.
-La cámara no altera récords ni añade un modo online. Ver auditoría de cámaras.
+La cámara no altera récords ni añade un modo online. CI 225: 246 pruebas internas,
+552 escenarios de navegador y 16 offline correctos. Primera persona, gas,
+cambio de vista sin reinicio, preferencia y duelo revisados en la URL pública.
+T04 queda cerrado; T01 conserva GPU, móviles físicos, FPS, batería y audio.
+Ver auditoría de cámaras.
