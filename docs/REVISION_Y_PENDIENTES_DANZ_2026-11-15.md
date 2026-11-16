@@ -39,7 +39,7 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 | G01 | Continuar mejoras de Jack y Groove | Parcial; primera entrega publicada | Cerrar S01; conservar optimización y especiales. Completar pendientes específicos G02–G07, sin afirmar que todo está terminado. |
 | A01 | Arena con estética propia y duelo 1vs1 | Beta local publicada; mejora gráfica externa preparada | Gemini continúa el módulo; revisar arte, mapas y controles antes de integrarlo. |
 | J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
-| J10 | DANZ Kart Mini | Carrera local y presentación 3D publicadas, PR 35 | Tres modos, dos circuitos, mandos enfrentados, derrape/impulso. Falta validación WebGL y móvil físico (T01/T04); online y contenidos adicionales separados. |
+| J10 | DANZPORTER (antes DANZ Kart Mini) | Carrera local, presentación 3D y ampliación de conducción publicadas, PR 35–38 | Tres modos, dos circuitos, piezas mecánicas, daños, boxes y mandos enfrentados. Falta validación WebGL y móvil físico (T01/T04); online y contenidos adicionales separados. |
 
 ## 4. Lo ya publicado que debe conservarse
 
@@ -445,16 +445,16 @@ portada generada con su nueva foto: conservar exactamente esa imagen.
 | ID | Petición | Estado / siguiente paso |
 | --- | --- | --- |
 | K01 | Nombre y portada propios de DANZPORTER | Publicados PR 36, e0a3a359. Imagen aprobada integrada, build y preview revisados; producción READY. Rutas antiguas conservadas. |
-| K02 | Acelerador/freno y más control | Implementado, en verificación visual: gas manual, freno hasta detenerse, inercia, giro suavizado, auto opcional y teclado. |
-| K03 | Daños de los vehículos y boxes | Implementado, en verificación: daño por impacto de cierre, degradación, reparación en carril separado y grúa con penalización; visuales 3D/2D. |
-| K04 | Personalizar karts y pilotos; piezas con características | Implementado, en verificación: tres chasis × seis ruedas, color libre, tres pilotos y estadísticas reales. Disponible para ambos jugadores. Sin gastar DANZPOINTS ni inventar compras. |
-| K05 | Personalización del circuito | Implementado, en verificación: Muelle DANZ, Último servicio y Crew Paddock; materiales/luces/paleta en 3D y compatible. |
-| A06 | Horizontal y mandos mayores donde tenga utilidad real | Cambios en revisión: Kart 112 px; Collecta horizontal 108 px/flechas 48 px/acción 56 px donde cabe; Groove controles 48–52 px y pausa al girar. Jack conserva su geometría cuadrada. |
+| K02 | Acelerador/freno y más control | Publicado PR 37, dc5fe5e8: gas manual, freno hasta detenerse, inercia, giro suavizado, auto opcional y teclado. |
+| K03 | Daños de los vehículos y boxes | Publicado PR 37, dc5fe5e8: daño por impacto de cierre, degradación, reparación en carril separado y grúa con penalización; visuales 3D/2D. |
+| K04 | Personalizar karts y pilotos; piezas con características | Publicado PR 37, dc5fe5e8: tres chasis × seis ruedas, color libre, tres pilotos y estadísticas reales. Disponible para ambos jugadores. Sin gastar DANZPOINTS ni inventar compras. |
+| K05 | Personalización del circuito | Publicado PR 37, dc5fe5e8: Muelle DANZ, Último servicio y Crew Paddock; materiales/luces/paleta en 3D y compatible. |
+| A06 | Horizontal y mandos mayores donde tenga utilidad real | Publicado PR 37: Kart 112 px; Collecta horizontal 108 px/flechas 48 px/acción 56 px donde cabe; Groove controles 48–52 px y pausa al girar. Jack conserva su geometría cuadrada. |
 
 Las peticiones previas de app, fotos, música, puntos, entregas externas y QR
 aplazados mantienen sus estados. T01/T04 siguen pendientes con sus límites.
 
-### Mecánicas de DANZPORTER — evidencia previa a revisión conectada
+### Mecánicas de DANZPORTER — validación interna y conectada
 
 Build y 240 pruebas internas pasan. Diez pruebas nuevas cubren pedales, daño,
 resistencia, boxes, recuperación, pausas y récords por piezas; se amplía la prueba
@@ -462,6 +462,39 @@ de migración de preferencias. Simulación de las 18 combinaciones en dos circui
 36/36 carreras completas, tiempos 41,983–51,533 s, 5,483 s de CPU del host.
 No son FPS de un móvil ni un resultado competitivo o humano.
 
-La portada aprobada se conserva. CI 205 de PR 36 no ejecutó pasos (cuatro jobs
-sin logs); T04 sigue abierto. Publicación de mecánicas, comprobación visual y
-validación 3D se anotarán al cerrar. Ver DANZPORTER_CONDUCCION_2026-11-16.md.
+La portada aprobada se conserva. PR 37, dc5fe5e8, está publicado; producción
+READY dpl_DxeWwfqsggzAE9AxdKcTvWXF9w3r. Revisión preview del juego real en
+390×844, 320×568 y 844×390: garaje persistente, piezas independientes en duelo,
+gas/freno táctiles y teclado, daño por choque, pausa sin avance, calidad sin
+perder estado ni duplicar canvas, entrada/salida de boxes y mandos enfrentados.
+Collecta inicia con flechas de 48 px; Groove inicia/pausa con armas de 52 px.
+
+Geometría 3D y boxes revisados por CPU, 498 objetos exportados, iluminación
+aproximada. WebGL desactivado en el navegador conectado: no equivale a prueba
+GPU, móvil físico, FPS, batería o audio escuchado (T01). CI 207 de PR 37 repite
+cuatro jobs sin steps ni logs; navegador/offline automatizados siguen en T04.
+Los escenarios escritos no se cuentan como ejecutados. Rotación física y
+multitoque simultáneo siguen pendientes.
+
+La comprobación pública detectó el garaje largo detrás de la cabecera en
+horizontal. PR 38, 49a55708, limita el panel al espacio real y mantiene scroll
+e inicio accesibles. Preview comprobada en escritorio y 320×568: cabecera hasta
+y48, panel desde y54 y margen inferior 10 px. Ver
+DANZPORTER_CONDUCCION_2026-11-16.md para cierre público final.
+
+### Cierre público de DANZPORTER — PR 36, 37 y 38
+
+- Nombre y portada exacta aprobados integrados; imagen 720×960 cargada en público.
+- PR 37: gas, freno, piezas, daño, boxes y ambientes publicados y revisados.
+- PR 38: `49a5570816fe06ed48d957d8425806a24de9eda7`, producción READY
+  `dpl_21m1nYH7Bto3eNNYpXVeNweVJGJB`. Garaje largo bajo la cabecera comprobado
+  en la URL pública; sesión de Contrarreloj con boxes, retorno al 100%, pausa,
+  salida y reapertura correctos, sin sumar vueltas por entrar a reparar.
+- Último build correcto; 68 archivos del shell y revisión de scroll/áreas útiles.
+  Las 240 pruebas internas de mecánica y la batería 36/36 siguen vigentes.
+- CI 209 también tiene cuatro jobs fallidos sin pasos ni logs. No se presenta
+  navegador/offline automatizado como ejecutado; no se modifica la seguridad,
+  facturación ni configuración del proyecto para sortearlo. T01/T04 abiertos.
+- K01–K05 y A06 quedan publicados para su alcance local. Permanecen T01/T04,
+  contenidos adicionales/online, P03/P05 transaccional, música/BPM, fotos,
+  moderación, administración y retorno externo de Gemini con sus estados previos.

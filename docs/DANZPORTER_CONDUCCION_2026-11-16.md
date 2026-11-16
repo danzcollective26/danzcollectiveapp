@@ -1,6 +1,6 @@
 # DANZPORTER — conducción, garaje, boxes y horizontal
 
-## Implementado, pendiente de revisión conectada y publicación de esta versión
+## Publicado en PR 37; ajuste de altura en PR 38
 
 - Gas manual, inercia al soltar y freno hasta detenerse. DERRAPE también aplica
   gas para jugar con dos pulgares; autoaceleración opcional. Giro suavizado y
@@ -52,9 +52,51 @@ migración de preferencias; siguen las carreras de tres vueltas, cadencias
 (18 builds × dos pistas): todas completan tres vueltas en 41,983–51,533 s.
 Host 5,483 s para la batería; no es una medida de GPU, batería o móvil.
 
+Preview READY de PR 37 revisada manualmente con el juego real en 390×844,
+320×568 y 844×390. El garaje conserva chasis, ruedas, pintura y piloto al
+recargar; P2 mantiene piezas independientes. GAS táctil pasa de 0 a 83 km/h y
+FRENO vuelve a 0; teclado W/S también funciona con joystick enfocado. Choque
+real reduce estado a 90%; pausa mantiene tiempo/daño y calidad no duplica
+canvas ni pierde piezas. Solicitud de boxes entra al carril y regresa con estado
+100% sin sumar vueltas. Mandos horizontales de 112 px, girados ±90°.
+Collecta inicia con flechas 48×48; Groove inicia y pausa, armas 52 px de alto.
+No se afirma multitoque simultáneo o giro físico del dispositivo.
+
+Render de geometría separado en Blender/Cycles CPU: 498 objetos, 100 pares de
+geometría/material, vista general y estación. Carril y canopy no bloquean pista;
+las piezas de diferentes configuraciones se conservan. Materiales/iluminación
+aproximados. El navegador conectado tiene WebGL desactivado y activa compatible
+2D: estas imágenes no son captura del renderer WebGL ni prueba de rendimiento.
+
+Código PR 37: dc5fe5e8d793bf0cb7e33c37f44da1fa7ef2d03a. Producción READY
+dpl_DxeWwfqsggzAE9AxdKcTvWXF9w3r. Nombre, portada 720×960 cargada y
+garaje/ambiente comprobados en la URL pública. PR 38, 49a55708, corrige un
+solapamiento del garaje largo detectado en esa revisión: fila reducible y panel
+con alto máximo relativo. Preview escritorio y 320×568: cabecera termina en
+y48, panel desde y54, 10 px al borde inferior; inicio y opciones alcanzables.
+
 Escenarios de navegador escritos: acelerador, foco del joystick, garaje
-persistente, boxes, mandos opuestos, orientación y calidad. No contarlos como
-ejecutados sin CI. CI 205 de portada no arrancó pasos; T04 sigue pendiente.
-El navegador conectado anterior tiene WebGL desactivado: validar vista
-compatible y revisar geometría 3D en CPU, sin presentar ese render como captura
-WebGL. T01 conserva prueba física y audio escuchado. Evidencia final al cerrar.
+persistente, boxes, mandos opuestos, orientación y calidad. CI 207 termina con
+cuatro jobs sin steps/logs; no contarlos como automatizados ejecutados (T04).
+T01 conserva GPU, Android/iPhone físicos, audio escuchado, FPS y batería.
+La revisión de componentes mantiene estado de simulación/entradas en refs,
+HUD acotado, renderer diferido, materiales agrupados y limpieza de capturas,
+eventos, audio y timers. Sin dependencias nuevas en este bloque.
+
+## Cierre público final
+
+PR 38 publicado: `49a5570816fe06ed48d957d8425806a24de9eda7`; producción READY
+`dpl_21m1nYH7Bto3eNNYpXVeNweVJGJB`. URL pública comprobada:
+https://danzcollectiveapp.vercel.app/test?seccion=arcade&juego=kart
+
+Garaje expandido desde y54 bajo cabecera y48, sin solapamiento; las preferencias
+de Sprint/Endurance y Último servicio sobreviven a la navegación. Inicio real
+en Contrarreloj, boxes guiados, retorno con salud 100% y cero vueltas falsas,
+pausa, salida a biblioteca y reapertura correctos. Portada aprobada cargada a
+720×960 en biblioteca. Captura del garaje público conservada en la sesión.
+
+Build final correcto, 68 archivos del shell; versión local `18f644eafd8fc32a`.
+Las 240 pruebas internas verifican la mecánica; el cambio final solo ajusta CSS
+más el nombre de la ventana de revisión. CI 209 vuelve a terminar sin ejecutar
+pasos (cuatro jobs, sin logs); T04 sigue abierto sin causa confirmada. T01/T04,
+contenido adicional y online conservan los límites descritos arriba.

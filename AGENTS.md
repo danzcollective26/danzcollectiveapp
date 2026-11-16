@@ -45,6 +45,9 @@ necesite y la solicite; no dedicarle trabajo ni activarla en esta entrega.
   ni intercambiar a sus protagonistas.
 - DANZ Collecta usa la portada «Día de cobro» aprobada el 15/11/2026, con el
   protagonista de seguridad y la factura pagada. Conservar esa imagen exacta.
+- DANZPORTER es el nombre definitivo del antiguo Kart Mini. Conservar la portada
+  exacta `public/arcade/danzporter-cover-v1.webp`, aprobada el 16/11/2026 con la
+  nueva foto del propietario; no regenerarla ni sustituir su protagonista.
 - Biblioteca con una entrada por juego y apertura inmersiva; motores y
   puntuaciones independientes. Vinyl Cut y Scratch Session son modos de Groove.
 - La decisión posterior reúne Arena y Pilla-Pilla en **DANZ Collecta**: una sola

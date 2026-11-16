@@ -22,3 +22,7 @@ dpl_7JUqMnxGenRW3Uc6jadq8Tre8S1Z. Preview confirma imagen completa, nombre,
 apertura y retorno; se corrige la capa del menú que tapaba la salida.
 CI 205 no ejecuta pasos ni tiene logs; no se afirma su batería de navegador. Las nuevas mecánicas siguen
 en el registro K02–K05; esta portada no se cuenta como esas funciones terminadas.
+
+Cierre: portada exacta cargada a 720×960 desde la biblioteca pública tras PR 38.
+DANZPORTER abre con su garaje nuevo; salir devuelve a la biblioteca. PR 37 y PR 38
+conservan los bytes de la imagen aprobada y las otras tres portadas.

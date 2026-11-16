@@ -1,6 +1,6 @@
 # DANZ: mejoras y próximos juegos
 
-Actualizado: 16 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZ Kart Mini tiene tres modos locales publicados (PR 34) y presentación 3D publicada (PR 35), con validación GPU pendiente.
+Actualizado: 16 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZPORTER (antes Kart Mini) tiene tres modos locales, presentación 3D, garaje mecánico, daños y boxes publicados (PR 34–38), con validación GPU pendiente.
 
 Registro general de tareas, decisiones, dependencias y evidencia vigente:
 [Revisión y pendientes de DANZ](REVISION_Y_PENDIENTES_DANZ_2026-11-15.md).
@@ -204,3 +204,18 @@ Mecánicas K02–K05 y A06 implementadas en revisión: 240 pruebas internas y
 36 configuraciones/circuitos completados por simulación. Pedales, daños y
 boxes reales; piezas con estadísticas y récords separados. No modifica Snake
 competitivo, puntos, permisos ni las portadas aprobadas.
+
+
+## DANZPORTER — ampliación de conducción y garaje
+
+Nombre definitivo y portada exacta aprobados/publicados PR 36 (e0a3a359).
+PR 37 (dc5fe5e8): gas manual, freno, auto opcional, tres chasis y seis ruedas,
+pintura libre y tres pilotos, daño/degradación, boxes y recuperación con grúa.
+Tres ambientes, récords por piezas mecánicas y migración de preferencias.
+Horizontal con controles mayores en Kart/Collecta y botones laterales de Groove;
+Jack conserva tablero cuadrado. Build, 240 pruebas internas y 36 combinaciones
+de carreras correctos; revisión manual de tres tamaños y geometría CPU.
+PR 38 (49a55708) encaja el garaje desplegado bajo la cabecera. T01/T04 siguen
+abiertos para GPU/móvil físico y CI que no arranca pasos. La versión local abre
+piezas sin compras: catálogo, canjes y movimientos reales de DANZPOINTS siguen
+pendientes en P03/P05; online y contenido extra del Kart conservan su estado.
