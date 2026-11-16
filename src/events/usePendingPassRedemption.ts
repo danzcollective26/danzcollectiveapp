@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { clearPendingPass } from './pass'
+import { achievementFeedback } from '../ui/achievementFeedback'
 
 export type PassRedemption = {
   busy: boolean
   message: string | null
   retry: () => void
   revision: number
+  celebration: { owner: string; eventId: string; until: number } | null
 }
 
 type PendingOperation = {
@@ -22,6 +24,7 @@ type PendingOperation = {
 /** Only a server-validated account can turn a locally saved QR into a stamp. */
 export function usePendingPassRedemption(client: SupabaseClient<Database> | null, userId: string | null, authLoading: boolean, codes: string[]): PassRedemption {
   const [revision, setRevision] = useState(0)
+  const [celebration, setCelebration] = useState<PassRedemption['celebration']>(null)
   const [attempt, setAttempt] = useState(0)
   const [online, setOnline] = useState(navigator.onLine)
   const [state, setState] = useState({ owner: userId, busy: false, message: null as string | null })
@@ -81,6 +84,10 @@ export function usePendingPassRedemption(client: SupabaseClient<Database> | null
           pending.finished = true
           const status = data?.[0]?.status
           if (status === 'granted' || status === 'already_attended') {
+            if (status === 'granted' && data?.[0]?.event_id) {
+              setCelebration({ owner: userId, eventId: data[0].event_id, until: Date.now() + 4000 })
+              achievementFeedback()
+            }
             setState({ owner: userId, busy: false, message: status === 'granted' ? '¡Sello guardado! Ya tienes acceso a la galería de este evento.' : 'Ya tienes este sello. Puedes abrir su galería desde tu pasaporte.' })
             setRevision(value => value + 1)
             clearPendingPass(code)
@@ -113,5 +120,6 @@ export function usePendingPassRedemption(client: SupabaseClient<Database> | null
     message: !authLoading && state.owner === userId ? state.message : null,
     retry: () => { if (!operation.current) { tried.current.codes.clear(); setAttempt(value => value + 1) } },
     revision,
+    celebration: !authLoading && celebration?.owner === userId ? celebration : null,
   }
 }

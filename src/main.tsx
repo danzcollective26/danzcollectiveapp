@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import { AuthProvider } from './auth/AuthProvider'
 import './index.css'
-import './feel/feel.css'
 import { rememberNativePhotoLaunch } from './cloud/nativePhoto'
 import NativePhotosNotice from './cloud/NativePhotosNotice'
 

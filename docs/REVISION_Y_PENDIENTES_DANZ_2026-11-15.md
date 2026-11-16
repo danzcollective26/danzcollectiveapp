@@ -31,6 +31,13 @@ posterior. Una prioridad orienta el orden, no promete una fecha.
 
 ## 3. Prioridad inmediata y siguiente trabajo
 
+Solicitud posterior del 16/11: **feature/premium-feel**, con commits separados
+y PR. PF01: transiciones/haptics/esqueletos; PF02: carga progresiva, miniaturas
+y favoritas; PF03: Yeppo menos intrusivo y celebración de sellos confirmados.
+Implementación y validación en revisión, sin presentarla como publicada en main.
+Detalle: `PREMIUM_FEEL_2026-11-16.md`. Scratch continúa conservado en PR 47,
+con CI 239 correcto, separado de esta rama.
+
 | ID | Petición | Estado comprobado | Siguiente acción / cierre |
 | --- | --- | --- | --- |
 | R01 | Entregar primero la memoria y kit para Gemini | Entregado; archivos existentes comprobados | Enlaces reenviados al inicio de la respuesta; esperar el ZIP de retorno para integrarlo. |

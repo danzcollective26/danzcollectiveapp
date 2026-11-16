@@ -28,7 +28,7 @@ test('the app opens its own sections without connecting to the collective websit
   const studio = page.locator('.arcade-library-upcoming img')
   await expect(studio).toHaveAttribute('src', '/arcade/idle-studio-industrial.webp')
   await expect.poll(() => studio.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1200)
-  await expect(page.locator('.arcade-library-upcoming')).toContainText('Nombre y carátula provisionales')
+  await expect(page.locator('.arcade-library-upcoming')).toContainText('src/arcade/idle')
   await page.locator('.arcade-choice').filter({hasText:'LA QUE HAS LIAO, JACK'}).click()
   await expect(page.locator('.game-board > .cell')).toHaveCount(361)
   const head = page.locator('.game-board .head img')

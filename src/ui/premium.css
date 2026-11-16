@@ -1,0 +1,16 @@
+.loading-skeleton{width:100%;min-width:0;margin:18px 0 28px}.loading-skeleton>p{font-size:12px;line-height:1.5;color:var(--muted,#b7b7b0);margin:0 0 16px}.skeleton-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.skeleton-card{min-width:0;overflow:hidden;border:1px solid #30332d;background:#181b17;border-radius:6px;padding:10px}.skeleton-card i,.skeleton-card span{display:block;background:#2b3028;border-radius:3px;animation:danz-skeleton 1.6s ease-in-out infinite alternate}.skeleton-card i{aspect-ratio:4/5;margin-bottom:12px}.skeleton-card span{height:9px;width:75%;margin-top:8px}.skeleton-card span:last-child{width:45%}.skeleton-passport .skeleton-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.skeleton-passport .skeleton-card i{aspect-ratio:1;width:64px;border-radius:50%;margin:8px auto 18px}.skeleton-passport .skeleton-card{padding:16px;min-height:150px}
+@keyframes danz-skeleton{to{opacity:.45}}
+.app-main{view-transition-name:danz-section}
+::view-transition{pointer-events:none}
+::view-transition-old(root),::view-transition-new(root){animation:none}
+::view-transition-group(danz-section){animation-duration:180ms}
+::view-transition-old(danz-section){animation:danz-section-out 110ms ease-out both}
+::view-transition-new(danz-section){animation:danz-section-in 180ms cubic-bezier(.2,.7,.2,1) both}
+@keyframes danz-section-out{to{opacity:0}}
+@keyframes danz-section-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.site-shell nav button:active,.primary-btn:active,.outline-btn:active{filter:brightness(.9)}
+.feedback-settings{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:24px;padding:18px 0;border-top:1px solid var(--line);font-size:10px;letter-spacing:.06em}.feedback-settings>span{margin-right:auto;font-weight:800}.feedback-settings small{display:block;color:var(--muted);font-size:10px;font-weight:400;margin-top:6px;letter-spacing:0}.feedback-settings button{min-height:44px;font-size:10px}.feedback-settings button[aria-pressed=true]{border-color:#d4e8a8;color:#e5f5c7}.is-new-stamp .passport-ink-stamp{animation:danz-stamp-arrival .5s cubic-bezier(.2,.75,.2,1) both}.is-new-stamp{outline:1px solid #bed18e;outline-offset:4px;position:relative}.is-new-stamp:after{content:'✦';position:absolute;right:12px;top:8px;color:#d6ea99;font-size:25px;pointer-events:none;animation:danz-stamp-spark .75s ease-out both}
+@keyframes danz-stamp-arrival{from{opacity:.3;transform:scale(1.15) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}@keyframes danz-stamp-spark{from{opacity:0;transform:scale(.3)}45%{opacity:1;transform:scale(1.15)}to{opacity:0;transform:scale(.9)}}
+@media(max-width:600px){.skeleton-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+@media(prefers-reduced-motion:reduce){.skeleton-card i,.skeleton-card span{animation:none}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
+@media(prefers-reduced-motion:reduce){.is-new-stamp .passport-ink-stamp,.is-new-stamp:after{animation:none}.is-new-stamp:after{display:none}}

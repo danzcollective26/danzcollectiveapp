@@ -373,3 +373,16 @@
  .yeppo-roam-stage.yeppo-roam-dash,
  .yeppo-roam-stage.yeppo-roam-demo{animation:none!important}
 }
+
+/* Intentional idle: a quiet blink; stronger gestures follow interaction. */
+.yeppo-available .yeppo-character *{animation:none!important}
+.yeppo-available .yeppo-character .yeppo-eyes{transform-origin:97px 69px;animation:yeppo-calm-blink 11s linear infinite!important}
+.yeppo-available .yeppo-chat-launcher{animation:yeppo-calm-idle 7s ease-in-out infinite;min-width:58px;min-height:66px}
+.yeppo-available:hover .yeppo-character .yeppo-head,.yeppo-available:focus-within .yeppo-character .yeppo-head{animation:yeppo-intent-nod .5s ease-out both!important}
+.yeppo-chat-presence{display:block;flex:none;width:35px;height:39px;animation:yeppo-intent-nod .4s ease-out both}
+.yeppo-chat-presence .yeppo-character{width:35px;height:39px;max-width:none}.yeppo-chat-presence .yeppo-character *{animation:none!important}
+.yeppo-chat-header>span:nth-child(2){flex:1}.yeppo-bubble{padding-right:54px}.yeppo-bubble>button:first-of-type{min-width:44px;min-height:44px;top:0;right:0}
+@keyframes yeppo-calm-idle{0%,70%,100%{transform:translateY(0)}80%{transform:translateY(-1.5px)}}
+@keyframes yeppo-calm-blink{0%,45%,47%,100%{transform:scaleY(1)}46%{transform:scaleY(.15)}}
+@keyframes yeppo-intent-nod{0%,100%{transform:rotate(0)}45%{transform:rotate(-6deg) translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){.yeppo-available .yeppo-chat-launcher,.yeppo-available .yeppo-character .yeppo-eyes,.yeppo-available:hover .yeppo-character .yeppo-head,.yeppo-available:focus-within .yeppo-character .yeppo-head,.yeppo-chat-presence{animation:none!important}}

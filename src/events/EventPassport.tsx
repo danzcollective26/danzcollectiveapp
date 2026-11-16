@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { clearPendingPass, normalizeEventCode, readPendingPass, savePendingPass } from './pass'
@@ -6,11 +6,10 @@ import type { PassRedemption } from './usePendingPassRedemption'
 import DanzFlower from '../content/DanzFlower'
 import PassArrivalGuide from './PassArrivalGuide'
 import { readWithDeadline } from '../cloud/readWithDeadline'
+import LoadingSkeleton from '../ui/LoadingSkeleton'
+import { haptic } from '../ui/haptics'
+import FeedbackSettings from '../ui/FeedbackSettings'
 import './EventPassport.css'
-import { PassportSkeleton } from '../feel/Skeleton'
-import { celebrate } from '../feel/celebrate'
-import { pulse } from '../feel/haptics'
-import { playDelight } from '../feel/sounds'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
 type Props = {
@@ -40,16 +39,14 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
   const busy = redemption.busy
   const [backup, setBackup] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
-  const celebratedStamp = useRef('')
+  const [celebrating, setCelebrating] = useState('')
   useEffect(() => {
-    const message = redemption.message ?? ''
-    const token = `${redemption.revision}:${message}`
-    if (!message.startsWith('¡Sello guardado') || celebratedStamp.current === token) return
-    celebratedStamp.current = token
-    pulse('confirm')
-    playDelight('stamp')
-    celebrate(document.querySelector('.passport-message'))
-  }, [redemption.revision, redemption.message])
+    const celebration = redemption.celebration
+    if (!celebration || celebration.owner !== userId || celebration.until <= Date.now()) { setCelebrating(''); return }
+    setCelebrating(celebration.eventId)
+    const timer = setTimeout(() => setCelebrating(''), celebration.until - Date.now())
+    return () => clearTimeout(timer)
+  }, [redemption.celebration, userId])
   const [passport, setPassport] = useState<{ owner: string | null; items: Stamp[]; loading: boolean; error: boolean }>({ owner: null, items: [], loading: true, error: false })
   useEffect(() => { setCode(pendingPass ?? ''); setBackup(null) }, [pendingPass])
   useEffect(() => { setMessage(launchIssue) }, [launchIssue])
@@ -76,6 +73,7 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
     if (busy || authLoading) return
     const normalized = normalizeEventCode(code)
     if (!normalized) { setMessage('Revisa el código: debe contener entre 12 y 64 letras o números.'); return }
+    haptic()
     const saved = savePendingPass(normalized)
     onPendingPass(normalized)
     if (!userId) {
@@ -159,10 +157,10 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
             {userId && <button type="button" className="outline-btn" onClick={() => setRetry(value => value + 1)} disabled={authLoading || passport.loading}>ACTUALIZAR SELLOS</button>}
           </div>
           {!userId && <div className="passport-empty"><span className="passport-next-stamp" aria-hidden="true"><DanzFlower /><span>TU PRÓXIMA<br />NOCHE</span></span><p>Inicia sesión para ver los sellos que ya has guardado.</p>{!authLoading && client && <button className="outline-btn" type="button" onClick={requestSignIn}>ABRIR MI PASAPORTE</button>}</div>}
-          {userId && (authLoading || passport.loading) && <div role="status"><p>Cargando tu pasaporte…</p><PassportSkeleton /></div>}
+          {userId && (authLoading || passport.loading) && <LoadingSkeleton kind="passport" label="Cargando tu pasaporte…"/>}
           {userId && !authLoading && passport.error && <p className="passport-empty" role="status">No hemos podido cargar tus sellos. Pulsa «Actualizar sellos» para volver a intentarlo.</p>}
           {stampsReady && items.length === 0 && <div className="passport-empty"><span className="passport-next-stamp" aria-hidden="true"><DanzFlower /><span>TU PRÓXIMA<br />NOCHE</span></span><p>Tu primera noche empieza aquí. Añade el código de un evento para estrenar tu pasaporte.</p></div>}
-          <ul className="passport-stamps">{items.map((stamp, index) => <li key={stamp.event_id} className="passport-stamp" data-ink={index % 3}>
+          <ul className="passport-stamps">{items.map((stamp, index) => <li key={stamp.event_id} className={`passport-stamp${celebrating === stamp.event_id ? ' is-new-stamp' : ''}`} data-ink={index % 3}>
             <div className="passport-ink-stamp" aria-hidden="true"><span>DANZ COLLECTIVE</span><DanzFlower /><span>ASISTENCIA</span></div>
             <div className="passport-stamp-copy"><h3>{stamp.title}</h3><p>{date(stamp.starts_at) || 'Evento DANZ'} · Sello del {date(stamp.granted_at)}</p><p className="passport-confirmed">ASISTENCIA GUARDADA</p>
               {['published', 'archived'].includes(stamp.event_status) ? <button type="button" className="outline-btn" onClick={() => onGallery(stamp.event_id)}>ABRIR GALERÍA ↗</button> : <p>El sello se conserva. La galería no está publicada ahora.</p>}
@@ -183,5 +181,6 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
         {pendingPass && !busy && <button type="button" className="outline-btn" onClick={discard}>DESCARTAR PASE PENDIENTE</button>}
       </section>
     </div>
+    <FeedbackSettings/>
   </>
 }
