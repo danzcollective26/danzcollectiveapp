@@ -263,3 +263,11 @@ valida sesión y emite enlaces de 120 s; Ensayo sigue sin cuenta y offline.
 Publicado PR 46: CI 235 pasa build, 267 internas, 582 navegador y 16 offline.
 Backend protegido y apertura pública comprobados; T01 conserva prueba física. Ver
 GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.
+
+## MANAGER HEIST — primer MVP, 16/11
+
+Extracción con bluff en la biblioteca ARCADANZ (`juego=manager-heist` y `/test`).
+Partida local de 6 minutos, dos afters, botín, alianzas y PARTY OVER. Sin
+DANZPOINTS y con récord solo en el navegador. El arte es un marcador de
+posición; el diseño completo (PvP, más facciones, powers de Vinyl Survivors)
+sigue pendiente. No está publicado.

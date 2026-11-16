@@ -31,7 +31,7 @@ test('the SVG cache guard still rejects HTML, other MIME types and another origi
 test('offline navigation includes the local kart and solo Arena without accepting credential or photo queries',()=>{
   const context=createContext({BUILD:{version:'test',paths:[]},URL,self:{location:{origin:'https://danz.example'},addEventListener(){}}})
   runInContext(source,context)
-  for(const game of ['kart','danzporter','arena-solo']){
+  for(const game of ['kart','danzporter','arena-solo','manager-heist']){
     context.candidate=new URL(`https://danz.example/test?seccion=arcade&juego=${game}`)
     assert.equal(runInContext('publicGameNavigation(candidate)',context),true)
   }

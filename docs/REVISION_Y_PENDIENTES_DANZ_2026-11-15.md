@@ -672,3 +672,22 @@ vibración real, FPS ni audio oído.
 
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
 La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.
+
+## 24. MANAGER HEIST — extracción y bluff (MH01), 16/11
+
+Implementado en `feature/manager-heist`. No está publicado. Es un MVP jugable
+dentro de ARCADANZ, no el diseño completo. Portada de marcador de posición en
+SVG, sin logo nuevo. Sin DANZPOINTS. Récord local `danz-manager-heist-record-v1`.
+
+- Hecho: vista cenital, dos afters (estudio: técnicos y crew; terraza: managers
+  y bouncers), tres botines, EXTRAER con canal interrumpible, aguante de 3,
+  PARTY OVER, alianza de 45 s, traición, bluff distinto por facción, humo,
+  resacas al bajar la música, cierre a los 6 minutos, pausa al ocultar o girar,
+  audio solo tras el gesto de entrar, controles táctiles y teclado.
+- El marcador de una extracción es botín × tiempo restante (con un extra de
+  riesgo) × pactos o traiciones. Morir o quedarse dentro no guarda récord.
+- Aplazado: PvP y modo mixto, más facciones, loot de rescate y audio logs,
+  powers hacia Vinyl Survivors, extracciones múltiples móviles salvo el taxi
+  de la terraza, arte final del propietario.
+- Siguiente: prueba en teléfono físico, arte aprobado y, si se pide, el resto
+  de facciones. No activar QR artístico en esta entrega.
