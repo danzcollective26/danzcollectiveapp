@@ -1,10 +1,11 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
+import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
 import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
 import { batchMeshes } from './batch3d'
+import { cockpitFov, cockpitPose, effectiveCamera } from './camera'
 
 const point=(x:number,z:number,y=0)=>new THREE.Vector3(x-500,y,z-360)
 function ribbon(track:Track,inner:number,outer:number,height:number,colored=false,accent='#b6d374'){
@@ -19,7 +20,12 @@ function ribbon(track:Track,inner:number,outer:number,height:number,colored=fals
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));if(colored)g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g
 }
 function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shadows:boolean,venue:typeof VENUES[number]=VENUES[0]){
-  const concrete=new THREE.MeshStandardMaterial({color:venue.ground,roughness:.95}),dark=new THREE.MeshStandardMaterial({color:'#253a3e',roughness:.65,metalness:.28}),silver=new THREE.MeshStandardMaterial({color:'#b3bdb1',roughness:.45,metalness:.55}),lime=new THREE.MeshStandardMaterial({color:venue.curb,roughness:.8})
+  const groundTexture=canvasTexture(256,256,c=>{
+    c.fillStyle='#aab29a';c.fillRect(0,0,256,256)
+    for(let n=0;n<5200;n++){const x=n*127.31%256,y=n*73.79%256;c.fillStyle=n%3?'#28362915':'#f7e9cb28';c.fillRect(x,y,n%5?1:3,n%7?1:2)}
+    for(let n=0;n<28;n++){const x=n*41.71%256,y=n*79.31%256,g=c.createRadialGradient(x,y,1,x,y,28);g.addColorStop(0,n%2?'#66784430':'#cebb8c30');g.addColorStop(1,'#0000');c.fillStyle=g;c.fillRect(x-28,y-28,56,56)}
+  });groundTexture.wrapS=groundTexture.wrapT=THREE.RepeatWrapping;groundTexture.repeat.set(7,5)
+  const concrete=new THREE.MeshStandardMaterial({color:venue.ground,map:groundTexture,roughness:1}),dark=new THREE.MeshStandardMaterial({color:'#253a3e',roughness:.82,metalness:.16}),silver=new THREE.MeshStandardMaterial({color:'#b3bdb1',roughness:.58,metalness:.45}),lime=new THREE.MeshStandardMaterial({color:venue.curb,roughness:.85})
   const seaTex=canvasTexture(256,256,c=>{c.fillStyle=venue.water;c.fillRect(0,0,256,256);for(let n=0;n<100;n++){c.strokeStyle=n%2?'#2a4c561a':'#accdc41b';c.beginPath();c.moveTo(n*61%256,n*73%256);c.lineTo(n*61%256+40,n*73%256-5);c.stroke()}});seaTex.wrapS=seaTex.wrapT=THREE.RepeatWrapping;seaTex.repeat.set(18,18)
   const sea=mesh(new THREE.PlaneGeometry(7000,7000),new THREE.MeshStandardMaterial({color:'#698c90',map:seaTex,roughness:.28,metalness:.28}),0,-27,0);sea.rotation.x=-Math.PI/2;sea.castShadow=false;scene.add(sea)
   scene.add(box(1055,25,741,concrete,0,-11,0,15))
@@ -49,6 +55,20 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
     for(let i=0;i<11;i++)container.add(box(1.4,34,39,silver,-34+i*6.7,20,0,.2));scene.add(container)
   }
   for(const [x,z,h] of [[85,125,89],[910,637,85],[310,665,74],[620,58,80],[72,590,94]])scene.add(palm(x-500,z-360,h))
+  // Port-side scrub and gravel stay clear of the race and service lane.
+  // Instancing keeps the extra natural detail to two draw calls.
+  const plants=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),new THREE.MeshStandardMaterial({color:'#738260',roughness:1,flatShading:true}),90)
+  const stones=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),new THREE.MeshStandardMaterial({color:'#9d9b82',roughness:1,flatShading:true}),60)
+  const servicePoints=Array.from({length:21},(_,n)=>pitPoint(track,n/20));let plantCount=0,stoneCount=0
+  for(let n=0;n<180;n++){
+    const x=55+(n*137.23%890),z=45+(n*91.37%630)
+    if(projectTrack(track,{x,y:z}).distance<ROAD_WIDTH/2+26||servicePoints.some(p=>Math.hypot(p.x-x,p.y-z)<35)||(x>300&&x<600&&z>165&&z<235))continue
+    transform.position.copy(point(x,z,5));transform.rotation.set(0,n*1.79,0)
+    if(plantCount<90){transform.scale.set(8+n%9,4+n%7,6+n%9);transform.updateMatrix();plants.setMatrixAt(plantCount,transform.matrix);plants.setColorAt(plantCount,new THREE.Color(n%3?'#687852':'#8a9164'));plantCount++}
+    if(stoneCount<60){transform.position.x+=15;transform.position.y=3;transform.scale.set(3+n%4,2+n%2,4+n%3);transform.updateMatrix();stones.setMatrixAt(stoneCount++,transform.matrix)}
+  }
+  plants.count=plantCount;stones.count=stoneCount;plants.castShadow=shadows;plants.receiveShadow=stones.receiveShadow=true;scene.add(plants,stones)
+  transform.scale.set(1,1,1)
   // Floodlights and speaker stacks give the circuit its club/paddock identity.
   const lampMat=new THREE.MeshStandardMaterial({color:'#e6d8b6',emissive:'#ffe5b1',emissiveIntensity:1.8})
   for(const [x,z] of [[170,65],[865,65],[80,640],[935,510]]){const p=point(x,z);scene.add(mesh(new THREE.CylinderGeometry(1.5,2.3,85,8),silver,p.x,42,p.z),box(23,8,9,dark,p.x,85,p.z,1),box(20,5,.7,lampMat,p.x,85,p.z+5,.3))}
@@ -88,7 +108,7 @@ function addPitLane(scene:THREE.Scene,track:Track,accent:THREE.Material,metal:TH
 
 /** Actual 3D presentation over the same deterministic, tested race simulation. */
 export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advance:(dt:number)=>void,ready:()=>void,options:()=>KartPreferences,onFailure:()=>void){
-  let disposed=false,frame=0,last=performance.now(),lastReport=last,lastRaf=last,budget=0
+  let disposed=false,frame=0,last=performance.now(),lastReport=last,lastRaf=last,budget=0,slowFrames=0
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)'),prefs=options(),lite=prefs.quality==='lite',shadows=!lite,venue=VENUES.find(v=>v.id===prefs.venue)??VENUES[0]
   const renderer=new THREE.WebGLRenderer({antialias:!lite,powerPreference:'high-performance',alpha:false})
   renderer.setPixelRatio(lite?1:Math.min(devicePixelRatio,prefs.quality==='high'?2:1.5));renderer.setClearColor(venue.sky)
@@ -97,10 +117,11 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   renderer.domElement.style.cssText='display:block;width:100%;height:100%;touch-action:none';parent.appendChild(renderer.domElement);parent.dataset.renderMode='3d'
   const scene=new THREE.Scene();scene.fog=new THREE.Fog(venue.sky,1400,3500)
   const camera=new THREE.OrthographicCamera(-600,600,432,-432,.5,4000)
-  const ambient=new THREE.HemisphereLight('#d5e9e4','#798765',2.6);scene.add(ambient)
-  const sun=new THREE.DirectionalLight(venue.sun,venue.id==='night'?2.4:3.3);sun.position.set(-350,800,-300);sun.castShadow=shadows;sun.shadow.mapSize.set(lite?512:innerWidth<650?512:1024,lite?512:innerWidth<650?512:1024);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;sun.shadow.camera.top=650;sun.shadow.camera.bottom=-650;sun.shadow.camera.far=1800;sun.shadow.normalBias=.6;sun.shadow.bias=-.0002;scene.add(sun)
-  const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment(),environment=pmrem.fromScene(room,.04)
-  scene.environment=environment.texture;scene.environmentIntensity=.45;room.dispose();pmrem.dispose()
+  const cockpitCamera=new THREE.PerspectiveCamera(78,1,2,4000)
+  const ambient=new THREE.HemisphereLight('#e9ecdb','#6d7252',venue.id==='night'?1.9:1.8);scene.add(ambient)
+  const sun=new THREE.DirectionalLight(venue.sun,venue.id==='night'?2.4:3);sun.position.set(-350,800,-300);sun.castShadow=shadows;sun.shadow.mapSize.set(lite?512:innerWidth<650?512:1024,lite?512:innerWidth<650?512:1024);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;sun.shadow.camera.top=650;sun.shadow.camera.bottom=-650;sun.shadow.camera.far=1800;sun.shadow.normalBias=.6;sun.shadow.bias=-.0002;scene.add(sun)
+  let environment:THREE.WebGLRenderTarget|null=null
+  scene.environmentIntensity=.45
   const loader=new THREE.TextureLoader(),textures:THREE.Texture[]=[]
   const texture=(url:string,color=false)=>{const t=loader.load(url,loaded=>{if(disposed)loaded.dispose();else wake()},undefined,()=>{if(!disposed)parent.dataset.textureFallback='true'});t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=lite?1:4;if(color)t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t}
   const asphalt=new THREE.MeshStandardMaterial({map:texture('/arcade/kart/asphalt.webp',true),normalMap:lite?null:texture('/arcade/kart/asphalt-normal.webp'),normalScale:new THREE.Vector2(.3,.3),color:venue.road,roughness:venue.id==='night'?.4:.86,metalness:.03,side:THREE.DoubleSide})
@@ -114,7 +135,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const skid=new THREE.LineSegments(markGeometry,new THREE.LineBasicMaterial({color:'#111b23',transparent:true,opacity:.55,depthWrite:false}));skid.frustumCulled=false;scene.add(skid)
   let markIndex=0,markCount=0;const lastMarks:(THREE.Vector3|null)[]=read().cars.map(()=>null)
   const focus=new THREE.Vector3(),target=new THREE.Vector3(),look=new THREE.Vector3();let initialized=false,viewWidth=1180
-  const resize=(repaint=true)=>{if(disposed)return;const r=parent.getBoundingClientRect();if(r.width<1||r.height<1)return;renderer.setSize(r.width,r.height,false);camera.left=-viewWidth/2;camera.right=viewWidth/2;camera.top=viewWidth/r.width*r.height/2;camera.bottom=-camera.top;camera.updateProjectionMatrix();if(repaint)wake()}
+  const resize=(repaint=true)=>{if(disposed)return;const r=parent.getBoundingClientRect();if(r.width<1||r.height<1)return;renderer.setSize(r.width,r.height,false);camera.left=-viewWidth/2;camera.right=viewWidth/2;camera.top=viewWidth/r.width*r.height/2;camera.bottom=-camera.top;camera.updateProjectionMatrix();cockpitCamera.aspect=r.width/r.height;cockpitCamera.fov=cockpitFov(cockpitCamera.aspect);cockpitCamera.updateProjectionMatrix();if(repaint)wake()}
   const observer=new ResizeObserver(()=>resize())
   function render(now:number){
     frame=0;if(disposed)return
@@ -123,17 +144,20 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     if(['playing','countdown'].includes(read().phase)&&budget<drawingStep-.25){frame=requestAnimationFrame(render);return}
     budget%=drawingStep
     const dt=Math.min(250,Math.max(0,now-last));last=now;advance(dt);const s=read(),p=s.cars[0]
-    const follow=options().camera==='follow'&&s.mode!=='duel'&&!reduced.matches&&['playing','countdown'].includes(s.phase)
+    const view=effectiveCamera(options().camera,s.mode),firstPerson=view==='cockpit'
+    const follow=view==='follow'&&['playing','countdown'].includes(s.phase)
     const ratio=Math.max(.3,parent.clientWidth/Math.max(1,parent.clientHeight))
     const desired=follow?Math.max(310,Math.min(480,ratio*450)):Math.max(1180,ratio*850)
     if(Math.abs(viewWidth-desired)>.1){viewWidth=reduced.matches?desired:viewWidth+(desired-viewWidth)*Math.min(1,dt/180);resize(false)}
     target.set(follow?p.x-500+Math.cos(p.angle)*32:0,0,follow?p.y-360+Math.sin(p.angle)*32:0)
     if(!initialized||reduced.matches){focus.copy(target);initialized=true}else focus.lerp(target,1-Math.exp(-dt/100))
-    camera.position.set(focus.x,follow?510:1050,focus.z+(follow?370:780));look.set(focus.x,0,focus.z);camera.lookAt(look)
+    camera.position.set(focus.x+(follow?160:0),follow?390:1050,focus.z+(follow?260:780));look.set(focus.x,0,focus.z);camera.lookAt(look)
+    if(firstPerson){const pose=cockpitPose(p);cockpitCamera.position.copy(point(pose.x,pose.z,pose.y));look.copy(cockpitCamera.position).add(new THREE.Vector3(Math.cos(pose.heading)*200,-Math.tan(pose.pitch)*200,Math.sin(pose.heading)*200));cockpitCamera.lookAt(look)}
+    parent.dataset.projection=firstPerson?'cockpit':follow?'isometric':'track'
     s.cars.forEach((car,id)=>{
       const model=cars[id],x=car.x-500,z=car.y-360,turn=Math.atan2(Math.sin(car.angle-model.previousAngle),Math.cos(car.angle-model.previousAngle));model.previousAngle=car.angle
       model.root.position.set(x,5,z);model.root.rotation.y=-car.angle;model.root.rotation.x=car.drifting&&!reduced.matches?Math.sin(now*.02)*.025:0
-      model.root.visible=car.finishedAt===null||s.phase==='finished';model.label.visible=model.root.visible;model.label.position.set(x,53,z)
+      model.root.visible=!(firstPerson&&id===0)&&(car.finishedAt===null||s.phase==='finished');model.label.visible=model.root.visible;model.label.position.set(x,53,z)
       model.wheels.forEach(w=>{w.rotation.z-=car.speed*dt/1000/6.7});model.front.forEach(w=>{w.rotation.y=-Math.max(-.38,Math.min(.38,turn*12))})
       if(model.lastHealth!==car.health){model.lastHealth=car.health;model.paint.color.set(car.build.color).lerp(new THREE.Color('#5b4b3b'),(1-car.health)*.6)}
       model.bumper.rotation.z=(1-car.health)*.25;model.bumper.position.y=5-(1-car.health)*2;model.bumper.visible=car.health>.22
@@ -151,7 +175,16 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
         lastMarks[id]=pos
       }else lastMarks[id]=null
     })
-    try{renderer.render(scene,camera)}catch{onFailure();return}
+    // The console covers the board. Avoid compiling shaders and environment
+    // maps behind it, especially when cycling quality settings on a slow GPU.
+    if(!['playing','countdown'].includes(s.phase))return
+    const paintAt=performance.now()
+    try{
+      if(!environment){const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();try{environment=pmrem.fromScene(room,.04);scene.environment=environment.texture}finally{room.dispose();pmrem.dispose()}}
+      renderer.render(scene,firstPerson?cockpitCamera:camera)
+    }catch{onFailure();return}
+    slowFrames=performance.now()-paintAt>95?slowFrames+1:0
+    if(prefs.quality==='auto'&&slowFrames>=3&&['playing','countdown'].includes(s.phase)){parent.dataset.compatibleReason='slow-render';onFailure();return}
     if(now-lastReport>1000){lastReport=now;parent.dataset.drawCalls=String(renderer.info.render.calls);parent.dataset.triangles=String(renderer.info.render.triangles)}
     if(['playing','countdown'].includes(s.phase))frame=requestAnimationFrame(render)
   }
@@ -162,6 +195,6 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     if(disposed)return;disposed=true;cancelAnimationFrame(frame);observer.disconnect();renderer.domElement.removeEventListener('webglcontextlost',lost)
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),allTextures=new Set<THREE.Texture>(textures)
     scene.traverse(o=>{if(o instanceof THREE.Mesh||o instanceof THREE.Line||o instanceof THREE.Sprite){if('geometry' in o)geometries.add(o.geometry);const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list){materials.add(m);for(const value of Object.values(m))if(value instanceof THREE.Texture)allTextures.add(value)}}})
-    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());allTextures.forEach(t=>t.dispose());environment.dispose();renderer.dispose();renderer.domElement.remove();delete parent.dataset.drawCalls;delete parent.dataset.triangles
+    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());allTextures.forEach(t=>t.dispose());environment?.dispose();renderer.dispose();renderer.domElement.remove();delete parent.dataset.drawCalls;delete parent.dataset.triangles
   }}
 }

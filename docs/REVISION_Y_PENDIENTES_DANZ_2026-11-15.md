@@ -503,8 +503,8 @@ DANZPORTER_CONDUCCION_2026-11-16.md para cierre público final.
 
 | ID | Petición | Estado / siguiente acción |
 | --- | --- | --- |
-| A07 | Menús seleccionables y desplazables como un videojuego clásico | En implementación: una selección central con flechas, deslizamiento y teclado; páginas de jugar, garaje, circuito, ajustes y ayuda. Identidad DANZ y portadas exactas conservadas. |
-| A08 | Todos los juegos a pantalla completa e información más comedida | En implementación: sesión inmersiva desde apertura, solicitud nativa en gesto de usuario, continuidad entre modos, Destrucción adaptable; información secundaria en ayuda/ajustes. Verificar móvil, navegación, pausa y salida. |
+| A07 | Menús seleccionables y desplazables como un videojuego clásico | Publicado PR 39, 49f571e5: selección central con flechas, deslizamiento y teclado; páginas de jugar, garaje, circuito, ajustes y ayuda. Identidad DANZ y portadas exactas conservadas. |
+| A08 | Todos los juegos a pantalla completa e información más comedida | Publicado PR 39, 49f571e5: sesión inmersiva al abrir, solicitud nativa en gesto, continuidad entre modos, Destrucción adaptable y ayuda secundaria. Preview revisado en tres tamaños; este navegador rechaza fullscreen nativo y mantiene CSS completo. T01 conserva prueba física. |
 
 No se copian logos o recursos de Crash Team Racing: la referencia es la forma de
 seleccionar, con arte y nombres propios de DANZ. Las peticiones anteriores y los
@@ -514,5 +514,20 @@ límites de T01/T04 se conservan. Evidencia y publicación al cerrar este bloque
 
 | ID | Petición | Estado / siguiente acción |
 | --- | --- | --- |
-| K06 | Acabado cercano a la referencia de Rush Rally Origins enviada por el propietario | Referencia visual recibida: cámara isométrica cercana, materiales/terreno e iluminación natural, manteniendo mundo DANZ y recursos originales. Revisar después de cerrar A07/A08. |
-| K07 | Opción de primera persona | Añadida a desarrollo como cámara opcional de la misma carrera; conservar física, garaje, daño y boxes. No confundir con nuevo modo competitivo ni declararla probada antes de validar render/cámara. |
+| K06 | Acabado cercano a la referencia de Rush Rally Origins enviada por el propietario | Referencia visual recibida: cámara isométrica cercana, materiales/terreno e iluminación natural, manteniendo mundo DANZ y recursos originales. Implementado en revisión: isométrica diagonal más cercana, suelo con textura procedural, vegetación instanciada e iluminación menos plástica; recursos propios y circuito sin modificar. |
+| K07 | Opción de primera persona | Implementada en revisión: perspectiva 3D y compatible por software, volante, dirección relativa y minimapa. Misma carrera y daños/boxes; duelo con pista compartida. Preview comprobado en tres tamaños, con conducción, pausa, cambio de cámara sin reinicio, persistencia y guardia de duelo. Publicación pendiente. |
+
+### Validación y regresión de menús
+
+PR 39 publicado, producción READY `dpl_BDqBrYLwLve881Vey1ooTtHDsUfj`. Build
+y 242 pruebas internas correctas. Auditoría conectada de 390×844, 320×568 y
+844×390: carruseles, swipe, garaje P1/P2, salida, pausa y juegos reales.
+
+CI 215 ya ejecuta pasos y permite observar regresiones: selectores antiguos,
+retorno de Destrucción y navegación offline de Kart/solo. PR 40 corrige el
+retorno (comprobado en preview) y la lista pública del worker, manteniendo
+rechazo de tokens/fotos/callbacks. CI 218: 16/16 offline pasan y móvil ejecuta 178 escenarios (175 correctos;
+tres selectores antiguos de Jack, ajustados en f66abe2e). La mecánica del kart
+se prueba en 2D compatible, separada del coste de GPU por software del runner.
+CI general todavía pendiente; no se afirma verde.
+T04 cambia de bloqueo de arranque a regresión ejecutable; T01 físico/GPU sigue.

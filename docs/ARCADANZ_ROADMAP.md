@@ -219,3 +219,17 @@ PR 38 (49a55708) encaja el garaje desplegado bajo la cabecera. T01/T04 siguen
 abiertos para GPU/móvil físico y CI que no arranca pasos. La versión local abre
 piezas sin compras: catálogo, canjes y movimientos reales de DANZPOINTS siguen
 pendientes en P03/P05; online y contenido extra del Kart conservan su estado.
+
+
+## Menús clásicos y nuevas vistas — 16/11
+
+A07/A08 publicados en PR 39 (49f571e5): menús de consola con carruseles, teclado,
+swipe, foco contenido y apertura inmersiva. Pantalla completa nativa solicitada
+con gesto; fallback CSS comprobado en tres tamaños. Portadas exactas preservadas.
+PR 40 revisa retorno de Destrucción a Groove y rutas públicas del worker. CI
+ahora ejecuta pasos y conserva sus fallos explícitos en T04 hasta resolverlos.
+
+K06/K07 en revisión: vista Rally isométrica, materiales/suelo y vegetación,
+primera persona 3D más compatible por software, volante y giro relativo. Se
+conservan carrera, piezas, daño y boxes; duelo con pista completa para ambos.
+La cámara no altera récords ni añade un modo online. Ver auditoría de cámaras.

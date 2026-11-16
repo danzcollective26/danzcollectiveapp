@@ -7,6 +7,8 @@ import { KartAudio } from './KartAudio'
 import KartMinimap from './KartMinimap'
 import KartController, { type Pedal } from './KartController'
 import KartMenu from './KartMenu'
+import Cockpit from './Cockpit'
+import { cockpitSteering, effectiveCamera } from './camera'
 import { requestArcadeFullscreen } from '../arcadeFullscreen'
 import { buildKey, buildName, type KartBuild } from './garage'
 import { readKartPreferences, saveKartPreferences, type KartPreferences } from './preferences'
@@ -26,6 +28,7 @@ export default function KartMini({onBack}:{onBack:()=>void}){
   const [ready,setReady]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0)
   const [best,setBest]=useState(()=>readKartBest('dock',preferences.builds[0]))
   const duel=hud.mode==='duel',active=hud.phase==='playing',moving=active||hud.phase==='countdown'
+  const camera=effectiveCamera(preferences.camera,hud.mode),cockpit=camera==='cockpit'
   const artKey=JSON.stringify(hud.cars.map(c=>c.build))+preferences.venue
   const clear=()=>{inputs.current=freshInputs();keys.current.clear()}
   const sync=(next:Race)=>{const reset=next.phase!==state.current.phase;state.current=next;setHud(next);renderer.current?.wake(reset)}
@@ -54,8 +57,9 @@ export default function KartMini({onBack}:{onBack:()=>void}){
       if(!alive)return
       const control=inputs.current.map((input,id)=>{
         const turn=(keys.current.has(id===0?'d':'ArrowRight')?1:0)-(keys.current.has(id===0?'a':'ArrowLeft')?1:0)
-        const vector=input.vector&&(view.current.duel?worldVector(input.vector,id as 0|1,view.current.landscape):input.vector)
-        return {...input,vector,turn,throttle:preferencesRef.current.autoThrottle||input.throttle===1||keys.current.has(id===0?'w':'ArrowUp')?1:0,drift:input.drift||keys.current.has(id===0?'f':'l'),brake:input.brake||keys.current.has(id===0?'s':'ArrowDown')}
+        const firstPerson=effectiveCamera(preferencesRef.current.camera,state.current.mode)==='cockpit'
+        const vector=firstPerson?undefined:input.vector&&(view.current.duel?worldVector(input.vector,id as 0|1,view.current.landscape):input.vector)
+        return {...input,vector,turn:firstPerson?cockpitSteering(input.vector,turn):turn,throttle:preferencesRef.current.autoThrottle||input.throttle===1||keys.current.has(id===0?'w':'ArrowUp')?1:0,drift:input.drift||keys.current.has(id===0?'f':'l'),brake:input.brake||keys.current.has(id===0?'s':'ArrowDown')}
       })
       inputs.current.forEach(input=>{input.pit=false})
       const previous=state.current,next=stepRace(previous,control,dt);state.current=next;publish+=dt;audio.current?.tick(next,preferencesRef.current.sound)
@@ -84,13 +88,14 @@ export default function KartMini({onBack}:{onBack:()=>void}){
   },[])
   const hold=(id:0|1,key:Pedal,value:boolean)=>{inputs.current[id]={...inputs.current[id],[key]:key==='throttle'?(value?1:0):value}}
   const order=raceOrder(hud),position=order.findIndex(c=>c.id===0)+1,p1=hud.cars[0]
-  const controller=(id:0|1)=><KartController car={hud.cars[id]} active={moving} automatic={preferences.autoThrottle} onVector={v=>{inputs.current[id]={...inputs.current[id],vector:v}}} onHold={(key,held)=>hold(id,key,held)} onPit={()=>{inputs.current[id].pit=true}}/>
+  const controller=(id:0|1)=><KartController car={hud.cars[id]} active={moving} automatic={preferences.autoThrottle} firstPerson={cockpit} onVector={v=>{inputs.current[id]={...inputs.current[id],vector:v}}} onHold={(key,held)=>hold(id,key,held)} onPit={()=>{inputs.current[id].pit=true}}/>
   const serviceText=p1.tow>0?`GRÚA EN ${Math.ceil(p1.tow/1000)} S`:p1.service>0?`REPARANDO · ${Math.ceil(p1.service/1000)} S`:p1.pit!==null?'ASISTENCIA EN BOXES':p1.pitRequested?'BOXES EN LA PRÓXIMA ENTRADA':''
-  return <section ref={panel} tabIndex={-1} className={`kart-game${duel?' kart-duel':' kart-solo'}`} aria-label="DANZPORTER" data-phase={hud.phase} data-mode={hud.mode} data-track={hud.track} data-elapsed={Math.floor(hud.elapsed)} data-p1={`${p1.x.toFixed(1)},${p1.y.toFixed(1)}`} data-laps={p1.laps} data-drifting={p1.drifting} data-render-mode={renderMode} data-health={p1.health.toFixed(3)} data-speed={p1.speed.toFixed(1)} data-pit={p1.pit===null?'none':p1.service>0?'repair':'lane'} data-build={buildKey(p1.build)}>
+  return <section ref={panel} tabIndex={-1} className={`kart-game${duel?' kart-duel':' kart-solo'}${cockpit?' kart-first-person':''}`} aria-label="DANZPORTER" data-camera={camera} data-phase={hud.phase} data-mode={hud.mode} data-track={hud.track} data-elapsed={Math.floor(hud.elapsed)} data-p1={`${p1.x.toFixed(1)},${p1.y.toFixed(1)}`} data-laps={p1.laps} data-drifting={p1.drifting} data-render-mode={renderMode} data-health={p1.health.toFixed(3)} data-speed={p1.speed.toFixed(1)} data-pit={p1.pit===null?'none':p1.service>0?'repair':'lane'} data-build={buildKey(p1.build)}>
     <header className="kart-top" aria-hidden={!moving}><button type="button" onClick={exit} aria-label="Salir de DANZPORTER">← ARCADE</button><div><strong>DANZ<em>PORTER</em></strong><small>COLLECTIVE RACING DEPARTMENT</small></div><button type="button" aria-label="Ajustes del kart" onClick={()=>{pause();setSettingsOpen(true)}}>···</button><button type="button" disabled={!moving&&hud.phase!=='paused'} onClick={()=>hud.phase==='paused'?play():pause()}>{hud.phase==='paused'?'REANUDAR':'PAUSAR'}</button></header>
     <div className="kart-hud" aria-hidden={!moving}><span>VUELTA <b>{Math.min(RACE_LAPS,p1.laps+1)}/{RACE_LAPS}</b></span><strong>{formatRaceTime(hud.elapsed)}</strong><span>{hud.mode==='time'?'RÉCORD':'POSICIÓN'} <b>{hud.mode==='time'?formatRaceTime(best):`${position}/${hud.cars.length}`}</b></span></div>
-    <div className="kart-layout" aria-hidden={!moving}>{duel&&controller(1)}<GameSurface ratio={1000/720} className={`kart-board-slot${renderMode==='3d'?' kart-board-3d':''}`}><div className="kart-board" ref={host} role="img" aria-label={`Circuito ${TRACKS[hud.track].name}, ${hud.cars.length} karts`} data-ready={ready}/>
-      {moving&&preferences.camera==='follow'&&!duel&&renderMode==='3d'&&<KartMinimap race={hud}/>}
+    <div className="kart-layout" aria-hidden={!moving}>{duel&&controller(1)}<GameSurface ratio={1000/720} className={`kart-board-slot${renderMode==='3d'||cockpit?' kart-board-3d':''}`}><div className="kart-board" ref={host} role="img" aria-label={`Circuito ${TRACKS[hud.track].name}, ${hud.cars.length} karts`} data-ready={ready}/>
+      {moving&&camera!=='track'&&!duel&&(renderMode==='3d'||cockpit)&&<KartMinimap race={hud}/>}
+      {moving&&cockpit&&<Cockpit car={p1}/>}
       {active&&<><div className="kart-speed"><strong>{Math.round(p1.speed*.46)}</strong><small>KM/H</small>{p1.boosting>0&&<b>IMPULSO</b>}</div>{serviceText&&<div className="kart-service-banner" role="status">{serviceText}</div>}{p1.health<.35&&!serviceText&&<div className="kart-service-banner damaged">KART DAÑADO · PIDE BOXES</div>}</>}
       {hud.phase==='countdown'&&<div className="kart-countdown" role="status">{Math.max(1,Math.ceil(hud.countdown/1000))}<small>AL VERDE, SALIMOS.</small></div>}
     </GameSurface>{controller(0)}</div>
