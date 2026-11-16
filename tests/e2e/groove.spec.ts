@@ -73,10 +73,11 @@ test('Split Disc produces two cuttable minis and Combo Disc visibly arms the nex
   let found = false
   for(let i=0;i<24&&!found;i++) {
     await page.clock.runFor(300)
-    const discs = await page.locator('.gn-vinyl').evaluateAll(nodes=>nodes.map(el=>({layer:Number(el.getAttribute('data-layer')),y:Number(el.getAttribute('data-y')),axis:el.getAttribute('data-axis'),special:el.getAttribute('data-special')})))
+    const discs = await page.locator('.gn-vinyl').evaluateAll(nodes=>nodes.map(el=>({layer:Number(el.getAttribute('data-layer')),y:Number(el.getAttribute('data-y')),direction:el.getAttribute('data-direction'),special:el.getAttribute('data-special')})))
     for(const disc of discs) {
       if(disc.y<=80||disc.y>=650)continue
-      await page.keyboard.press(`${disc.special==='arrow'&&disc.axis==='y'?'Shift+':''}Digit${disc.layer+1}`)
+      if(disc.direction) await page.keyboard.press(`Arrow${disc.direction[0].toUpperCase()}${disc.direction.slice(1)}`)
+      await page.keyboard.press(`Digit${disc.layer+1}`)
       if(disc.special==='combo'){found=true;break}
     }
   }
@@ -323,10 +324,11 @@ test('twenty successful vinyl cuts unlock Trazo Club without changing score or t
   for (let i=0; i<90; i++) {
     const hits = Number((await page.locator('.gn-board').getAttribute('aria-label'))?.match(/(\d+) cortes/)?.[1] ?? 0)
     if (hits >= 20) break
-    const discs = await page.locator('.gn-vinyl').evaluateAll(nodes => nodes.map(el => ({ layer: Number(el.getAttribute('data-layer')), y: Number(el.getAttribute('data-y')), axis: el.getAttribute('data-axis'), special: el.getAttribute('data-special') })))
+    const discs = await page.locator('.gn-vinyl').evaluateAll(nodes => nodes.map(el => ({ layer: Number(el.getAttribute('data-layer')), y: Number(el.getAttribute('data-y')), direction: el.getAttribute('data-direction'), special: el.getAttribute('data-special') })))
     for (const disc of discs) {
       if (disc.y<=80 || disc.y>=650) continue
-      await page.keyboard.press(`${disc.special==='arrow' && disc.axis==='y' ? 'Shift+' : ''}Digit${disc.layer+1}`)
+      if(disc.direction) await page.keyboard.press(`Arrow${disc.direction[0].toUpperCase()}${disc.direction.slice(1)}`)
+      await page.keyboard.press(`Digit${disc.layer+1}`)
     }
     await page.clock.runFor(250)
   }
@@ -343,3 +345,94 @@ test('twenty successful vinyl cuts unlock Trazo Club without changing score or t
   await page.locator('.arcade-choice').filter({ hasText: 'GROOVE NINJA' }).click()
   await expect(page.locator('.gn-panel')).toHaveAttribute('data-style', 'club')
 })
+
+async function waitForSequence(page: Page) {
+  for (let i = 0; i < 30; i++) {
+    const sequence = page.locator('.gn-vinyl[data-step="0"]')
+    if (await sequence.count() && Number(await sequence.getAttribute('data-y')) < 540) return
+    const discs = await page.locator('.gn-vinyl:not([data-sequence])').evaluateAll(nodes => nodes.map(el => ({ layer: Number(el.getAttribute('data-layer')), y: Number(el.getAttribute('data-y')) })))
+    for (const disc of discs) if (disc.y > 80 && disc.y < 650) await page.keyboard.press(`Digit${disc.layer + 1}`)
+    await page.clock.runFor(200)
+  }
+  throw new Error('No playable numbered sequence appeared')
+}
+async function directedTouch(page: Page, step: number, sign: number) {
+  const disc = page.locator(`.gn-vinyl[data-step="${step}"]`)
+  const target = await disc.evaluate(el => ({ x: Number(el.getAttribute('data-x')), y: Number(el.getAttribute('data-y')), direction: el.getAttribute('data-direction') }))
+  const rect = (await page.locator('.gn-board').boundingBox())!
+  const x = rect.x + target.x * rect.width / 640, y = rect.y + target.y * rect.height / 760
+  const dy = (target.direction === 'up' ? -1 : 1) * sign * 70 * rect.height / 760
+  const cdp = await page.context().newCDPSession(page)
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: y - dy }] })
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y + dy }] })
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  await cdp.detach()
+}
+test('numbered up/down sequences reject reversed touch and order, then complete once after pause', async ({ page }) => {
+  await openGroove(page); await start(page); await waitForSequence(page)
+  await expect(page.locator('.gn-cut-sequence')).toHaveAttribute('data-next', '0')
+  await test.info().attach('groove-sequence', { body: await page.screenshot(), contentType: 'image/png' })
+  const first = page.locator('.gn-vinyl[data-step="0"]'), second = page.locator('.gn-vinyl[data-step="1"]')
+  await expect(first).toHaveAttribute('data-direction', 'up')
+  await expect(second).toHaveAttribute('data-direction', 'down')
+  const before = Number(await page.getByTestId('groove-score').textContent()), scroll = await page.evaluate(() => window.scrollY)
+  await directedTouch(page, 1, 1)
+  await expect(page.getByTestId('groove-score')).toHaveText(String(before).padStart(5, '0'))
+  await expect(page.getByRole('status').filter({ hasText: 'PRIMERO EL DISCO 1' })).toBeVisible()
+  await directedTouch(page, 0, -1)
+  await expect(first).toHaveCount(1)
+  await expect(page.getByRole('status').filter({ hasText: 'CORTE HACIA ARRIBA' })).toBeVisible()
+  await directedTouch(page, 0, 1)
+  await expect(first).toHaveCount(0)
+  await expect(page.locator('.gn-cut-sequence')).toHaveAttribute('data-next', '1')
+  await page.getByRole('button', { name: 'PAUSAR ↗', exact: true }).click()
+  const elapsed = await page.locator('.gn-panel').getAttribute('data-elapsed')
+  await page.clock.runFor(3000)
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-elapsed', elapsed!)
+  await expect(page.locator('.gn-cut-sequence')).toHaveAttribute('data-next', '1')
+  await page.getByRole('button', { name: 'REANUDAR ↗', exact: true }).click()
+  await directedTouch(page, 1, 1)
+  await expect(second).toHaveCount(0)
+  await expect(page.locator('.gn-cut-sequence')).toHaveCount(0)
+  await expect(page.getByRole('status').filter({ hasText: 'SECUENCIA COMPLETA' })).toBeVisible()
+  expect(Number(await page.getByTestId('groove-score').textContent()) - before).toBeGreaterThanOrEqual(700)
+  expect(await page.evaluate(() => window.scrollY)).toBe(scroll)
+})
+test('slow pointer samples accumulate enough travel to cut without lifting', async ({ page }) => {
+  await openGroove(page); await start(page)
+  const p = await target(page), ratio = (await page.locator('.gn-board').boundingBox())!.width / 640
+  await page.mouse.move(p.x - p.dx, p.y); await page.mouse.down()
+  for (let n = -95; n <= 0; n += 2) await page.mouse.move(p.x + n * ratio, p.y)
+  await expect(page.getByTestId('groove-score')).toHaveText('00100')
+  await page.mouse.up()
+})
+
+for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }]) {
+  test(`directed sequence cues and controls fit ${size.width}x${size.height}`, async ({ page }) => {
+    await page.setViewportSize(size)
+    await openGroove(page); await start(page); await waitForSequence(page)
+    const bounds = await page.locator('.gn-board').boundingBox()
+    for (const selector of ['.gn-cut-sequence', '.gn-direction-cue']) {
+      for (const cue of await page.locator(selector).all()) {
+        const r = (await cue.boundingBox())!
+        expect(r.x).toBeGreaterThanOrEqual(bounds!.x)
+        expect(r.y).toBeGreaterThanOrEqual(bounds!.y)
+        expect(r.x + r.width).toBeLessThanOrEqual(bounds!.x + bounds!.width + 1)
+        expect(r.y + r.height).toBeLessThanOrEqual(bounds!.y + bounds!.height + 1)
+      }
+    }
+    for (const button of await page.locator('.gn-actions button').all()) {
+      const r = (await button.boundingBox())!
+      expect(r.height).toBeGreaterThanOrEqual(44)
+      expect(r.y + r.height).toBeLessThanOrEqual(size.height)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    await test.info().attach(`groove-sequence-${size.width}x${size.height}`, { body: await page.screenshot(), contentType: 'image/png' })
+    const disc = page.locator('.gn-vinyl[data-step="0"]')
+    const layer = Number(await disc.getAttribute('data-layer'))
+    await page.keyboard.press('ArrowDown'); await page.keyboard.press(`Digit${layer + 1}`)
+    await expect(disc).toHaveCount(1)
+    await page.keyboard.press('ArrowUp'); await page.keyboard.press(`Digit${layer + 1}`)
+    await expect(disc).toHaveCount(0)
+  })
+}
