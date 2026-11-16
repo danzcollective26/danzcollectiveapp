@@ -5,8 +5,12 @@ import {
 } from './galleryStorage'
 import './PhotoGallery.css'
 import LoadingSkeleton from './ui/LoadingSkeleton'
+import ProgressiveImage from './ui/ProgressiveImage'
+import { usePhotoFavorites } from './ui/favorites'
+import { haptic } from './ui/haptics'
+import { photoThumbnail } from './photoThumbnail'
 
-type Photo = { id: string; name: string; url: string }
+type Photo = { id: string; name: string; url: string; previewUrl?: string }
 type EventAlbum = { id: string; name: string; date: string; photos: Photo[] }
 type Props = { active: boolean; onBack: () => void }
 
@@ -61,6 +65,10 @@ export default function PhotoGallery({ active, onBack }: Props) {
   const photos = currentEvent?.photos ?? []
   const totalPhotos = events.reduce((total, album) => total + album.photos.length, 0)
   const locked = loading || busy || Boolean(storageError)
+  const favorites = usePhotoFavorites(`local:${currentEvent?.id ?? 'none'}`)
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
+  const displayedPhotos = onlyFavorites ? photos.filter(item => favorites.ids.includes(item.id)) : photos
+  useEffect(() => { setOnlyFavorites(false) }, [currentEvent?.id])
 
   const switchPreview = (role: 'admin' | 'visitor') => {
     setPreviewRole(role)
@@ -88,7 +96,9 @@ export default function PhotoGallery({ active, onBack }: Props) {
           photos: stored.photos.filter((item) => item.eventId === album.id).map((item) => {
             const url = URL.createObjectURL(item.image)
             objectUrls.current.add(url)
-            return { id: item.id, name: item.name, url }
+            const previewUrl = item.thumbnail ? URL.createObjectURL(item.thumbnail) : undefined
+            if (previewUrl) objectUrls.current.add(previewUrl)
+            return { id: item.id, name: item.name, url, previewUrl }
           }),
         }))
         setEvents(albums)
@@ -144,7 +154,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
     setBusy(true)
     try {
       await task(db)
-      onSaved()
+      if (dbRef.current === db) onSaved()
     } catch (error) {
       setMessage(saveErrorMessage(error))
     } finally {
@@ -192,11 +202,16 @@ export default function PhotoGallery({ active, onBack }: Props) {
       setMessage('No se han añadido fotos. Comprueba el formato, el límite de 25 MB por archivo y el máximo del álbum.')
       return
     }
-    void commit((db) => savePhotos(db, rows), () => {
+    void commit(async db => {
+      for (const row of rows) row.thumbnail = await photoThumbnail(row.image)
+      await savePhotos(db, rows)
+    }, () => {
       const added = rows.map((item) => {
         const url = URL.createObjectURL(item.image)
         objectUrls.current.add(url)
-        return { id: item.id, name: item.name, url }
+        const previewUrl = item.thumbnail ? URL.createObjectURL(item.thumbnail) : undefined
+            if (previewUrl) objectUrls.current.add(previewUrl)
+            return { id: item.id, name: item.name, url, previewUrl }
       })
       setEvents((previous) => previous.map((album) => album.id === eventId
         ? { ...album, photos: [...album.photos, ...added] }
@@ -240,6 +255,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
     removed.forEach((item) => {
       URL.revokeObjectURL(item.url)
       objectUrls.current.delete(item.url)
+      if (item.previewUrl) { URL.revokeObjectURL(item.previewUrl); objectUrls.current.delete(item.previewUrl) }
     })
   }
 
@@ -352,7 +368,7 @@ export default function PhotoGallery({ active, onBack }: Props) {
             aria-pressed={album.id === activeEventId}
           >
             {album.photos.length ? (
-              <img className="gallery-event-cover" src={album.photos[0].url} alt="" />
+              <ProgressiveImage className="gallery-event-cover" src={album.photos[0].previewUrl ?? album.photos[0].url} alt=""/>
             ) : <span className="gallery-event-placeholder" aria-hidden="true">✳</span>}
             <span className="gallery-event-information">
               <span className="gallery-event-date">{formatDate(album.date)}</span>
@@ -459,11 +475,13 @@ export default function PhotoGallery({ active, onBack }: Props) {
         ) : (
           <>
             <p className="gallery-instructions">Pulsa una foto para ampliarla. Usa ← → o desliza horizontalmente para pasar a otra foto del mismo evento.</p>
+            <div className="photo-favorites-toolbar"><button type="button" className="outline-btn" aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setSelected(null); haptic('selection') }}>SOLO FAVORITAS ♡</button><p>Guardadas en este navegador · {photos.filter(item => favorites.ids.includes(item.id)).length} favoritas</p></div>
+            {onlyFavorites && !displayedPhotos.length && <p className="photo-favorites-empty">Abre una foto y pulsa el corazón para guardarla aquí.</p>}
             <div className="gallery-grid">
-              {photos.map((item, index) => (
+              {displayedPhotos.map((item, index) => (
                 <div className="gallery-photo-container" key={item.id}>
-                  <button type="button" className="gallery-photo" onClick={() => setSelected(index)} aria-label={`Abrir fotografía ${index + 1}: ${item.name}`}>
-                    <img src={item.url} alt={item.name} loading="lazy" decoding="async" />
+                  <button type="button" className="gallery-photo" onClick={() => { haptic('selection'); setSelected(photos.findIndex(photo => photo.id === item.id)) }} aria-label={`Abrir fotografía ${index + 1}: ${item.name}`}>
+                    <ProgressiveImage src={item.previewUrl ?? item.url} alt={item.name}/>{favorites.ids.includes(item.id) && <span className="photo-favorite-mark" aria-hidden="true">♥</span>}
                     <span className="gallery-photo-counter">{String(index + 1).padStart(2, '0')}</span>
                   </button>
                   {isAdminPreview && <button type="button" className="gallery-photo-remove" title="Quitar fotografía" aria-label={`Quitar ${item.name} de este álbum`} onClick={() => removePhoto(item.id)} disabled={locked}>✕</button>}
@@ -484,16 +502,17 @@ export default function PhotoGallery({ active, onBack }: Props) {
           </div>
           <div className="gallery-lightbox-viewer" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {photos.length > 1 && <button className="gallery-lightbox-arrow" onClick={previous} aria-label="Fotografía anterior">←</button>}
-            <img className="gallery-lightbox-image" src={photo.url} alt={photo.name} draggable={false} />
+            <ProgressiveImage key={photo.id} className="photo-viewer-frame" src={photo.url} previewSrc={photo.previewUrl} alt={photo.name} loading="eager"/>
             {photos.length > 1 && <button className="gallery-lightbox-arrow" onClick={next} aria-label="Fotografía siguiente">→</button>}
           </div>
           <div className="gallery-lightbox-footer">
             <span title={photo.name}>{photo.name}</span>
             <div className="gallery-lightbox-actions">
+              <button type="button" className="outline-btn photo-favorite-button" aria-pressed={favorites.ids.includes(photo.id)} aria-label={favorites.ids.includes(photo.id) ? 'Quitar de favoritas' : 'Guardar en favoritas'} onClick={() => favorites.toggle(photo.id)}>{favorites.ids.includes(photo.id) ? '♥ FAVORITA' : '♡ FAVORITA'}</button>
               <a className="gallery-lightbox-download" href={photo.url} download={photo.name || 'danz-foto'}>DESCARGAR FOTO ↓</a>
               {isAdminPreview && <button type="button" className="gallery-lightbox-remove" onClick={() => removePhoto(photo.id)} disabled={locked}>QUITAR FOTO ✕</button>}
             </div>
-            <span>ESC PARA CERRAR</span>
+            <span>{favorites.persisted ? 'ESC PARA CERRAR' : 'Favorita solo para esta sesión: no se pudo guardar.'}</span>
           </div>
         </div>
       )}

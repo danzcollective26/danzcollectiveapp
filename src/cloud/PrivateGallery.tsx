@@ -5,6 +5,9 @@ import DanzFlower from '../content/DanzFlower'
 import OriginalFileActions from './OriginalFileActions'
 import { readWithDeadline } from './readWithDeadline'
 import LoadingSkeleton from '../ui/LoadingSkeleton'
+import ProgressiveImage from '../ui/ProgressiveImage'
+import { usePhotoFavorites } from '../ui/favorites'
+import { haptic } from '../ui/haptics'
 import './PrivateGallery.css'
 
 export type PrivateGalleryProps = {
@@ -74,6 +77,10 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
     ? photoItems.find((photo) => photo.id === viewer.photoId) : undefined
   const ownZoom = zoom?.owner === userId && zoom.eventId === eventId && zoom.photoId === shownPhoto?.id ? zoom : null
   const photoIndex = shownPhoto ? photoItems.findIndex(photo => photo.id === shownPhoto.id) : -1
+  const favorites = usePhotoFavorites(`private:${userId ?? 'guest'}:${eventId}`)
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
+  const displayedPhotos = onlyFavorites ? photoItems.filter(photo => favorites.ids.includes(photo.id)) : photoItems
+  useEffect(() => { setOnlyFavorites(false) }, [userId, eventId])
 
   useEffect(() => {
     const onVisibility = () => setVisible(document.visibilityState !== 'hidden')
@@ -298,6 +305,8 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       </button>)}
     </div>
     <h2>{selectedEvent?.title}</h2>
+    {!photosLoading && !photosError && photoItems.length > 0 && <div className="photo-favorites-toolbar"><button type="button" className="outline-btn" aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setViewer(null); haptic('selection') }}>SOLO FAVORITAS ♡</button><p>{photoItems.filter(photo => favorites.ids.includes(photo.id)).length} favoritas · Solo en este navegador</p></div>}
+    {onlyFavorites && !photosLoading && photoItems.length > 0 && !displayedPhotos.length && <p className="photo-favorites-empty">Abre una foto y pulsa el corazón para guardarla aquí.</p>}
     {photosLoading ? <LoadingSkeleton label="Cargando fotografías…"/> : photosError ? <div role="alert"><p>No hemos podido abrir las fotografías de este evento.</p><button className="outline-btn" onClick={reload}>VOLVER A INTENTAR</button></div> : !photoItems.length ? <section className="private-gallery-waiting" aria-labelledby="gallery-waiting-title">
       <DanzFlower className="gallery-waiting-flower" />
       <div>
@@ -308,22 +317,24 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
         <div className="gallery-waiting-actions"><button className="primary-btn" onClick={reload}>ACTUALIZAR FOTOS</button><a className="outline-btn external-btn" href="/?seccion=pasaporte">VER MI PASAPORTE</a></div>
       </div>
     </section> : <div className="private-gallery-grid">
-      {photoItems.map((photo, index) => <button type="button" key={photo.id} onClick={() => setViewer({ owner: userId, eventId, photoId: photo.id })} aria-label={`Abrir foto privada ${index + 1}`}>
-        <img src={photo.url} referrerPolicy="no-referrer" alt={`Fotografía ${index + 1} de ${selectedEvent?.title}`} loading="lazy" />
+      {displayedPhotos.map((photo, index) => <button type="button" key={photo.id} onClick={() => { haptic('selection'); setViewer({ owner: userId, eventId, photoId: photo.id }) }} aria-label={`Abrir foto privada ${index + 1}`}>
+        <ProgressiveImage src={photo.url} referrerPolicy="no-referrer" alt={`Fotografía ${index + 1} de ${selectedEvent?.title}`}/>{favorites.ids.includes(photo.id) && <span className="photo-favorite-mark" aria-hidden="true">♥</span>}
       </button>)}
     </div>}
     {!photosLoading && !photosError && photoItems.length === pageSize && <button className="outline-btn" onClick={() => setPageSize(n => n + 60)}>CARGAR MÁS FOTOS</button>}
     {shownPhoto && <div className="private-gallery-viewer" ref={viewerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`Foto privada de ${selectedEvent?.title}`}>
       <div className="private-gallery-viewer-heading"><div><strong>{selectedEvent?.title}</strong><span className="private-photo-position" role="status">Foto {photoIndex + 1} de {photoItems.length}{photoItems.length === pageSize ? ' cargadas' : ''}</span></div><button className="outline-btn" onClick={() => setViewer(null)} aria-label="Cerrar foto privada">CERRAR ✕</button></div>
       <div className={`private-gallery-viewer-stage${ownZoom ? ' is-zoomed' : ''}`} ref={stageRef} onPointerDown={startPhotoGesture} onPointerMove={panPhoto} onPointerUp={endPhotoGesture} onPointerCancel={event => { activePointers.current.delete(event.pointerId); gesture.current = null; lastTap.current = null }} onDoubleClick={() => { if (lastPointerType.current !== 'touch') toggleZoom() }}>
-        <img draggable={false} style={{ transform: ownZoom ? `translate(${ownZoom.x}px, ${ownZoom.y}px) scale(2)` : undefined }} src={fullPhoto?.owner === userId && fullPhoto.eventId === eventId && fullPhoto.id === shownPhoto.id ? fullPhoto.url : shownPhoto.url} referrerPolicy="no-referrer" alt={`Fotografía de ${selectedEvent?.title}`} />
+        <ProgressiveImage key={shownPhoto.id} className="photo-viewer-frame is-changing" loading="eager" style={{ transform: ownZoom ? `translate(${ownZoom.x}px, ${ownZoom.y}px) scale(2)` : undefined }} src={fullPhoto?.owner === userId && fullPhoto.eventId === eventId && fullPhoto.id === shownPhoto.id ? fullPhoto.url : shownPhoto.url} previewSrc={shownPhoto.url} referrerPolicy="no-referrer" alt={`Fotografía de ${selectedEvent?.title}`}/>
       </div>
       <p className="private-viewer-hint">{ownZoom ? 'Arrastra para recorrer la foto · Doble toque para ajustar.' : 'Desliza para pasar de foto · Doble toque para ampliar.'}</p>
       <div className="private-gallery-viewer-actions">
+        <button type="button" className="outline-btn photo-favorite-button" aria-pressed={favorites.ids.includes(shownPhoto.id)} aria-label={favorites.ids.includes(shownPhoto.id) ? 'Quitar de favoritas' : 'Guardar en favoritas'} onClick={() => favorites.toggle(shownPhoto.id)}>{favorites.ids.includes(shownPhoto.id) ? '♥ FAVORITA' : '♡ FAVORITA'}</button>
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Anterior foto privada" onClick={() => movePhoto(-1)}>←</button>}
         <button className="outline-btn" aria-label={ownZoom ? 'Restablecer tamaño de foto privada' : 'Ampliar foto privada'} aria-pressed={Boolean(ownZoom)} onClick={toggleZoom}>{ownZoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Siguiente foto privada" onClick={() => movePhoto(1)}>→</button>}
       </div>
+      {!favorites.persisted && <p role="status">Favorita solo para esta sesión: no se pudo guardar en este navegador.</p>}
       <OriginalFileActions key={`${userId}:${eventId}:${shownPhoto.id}`} client={client} owner={userId} eventId={eventId} photoId={shownPhoto.id} path={shownPhoto.path} name={shownPhoto.name} mime={shownPhoto.mime} bytes={shownPhoto.bytes} sha256={shownPhoto.sha256} />
     </div>}
   </div>

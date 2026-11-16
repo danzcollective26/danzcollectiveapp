@@ -136,3 +136,42 @@ test('main sections and photo viewer fit the current viewport', async ({ page })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Cerrar fotografía', exact: true }).click()
 })
+
+
+test('local favorites survive reload and album filters keep their own selection', async ({ page }) => {
+  await createAlbum(page, 'Favoritas QA'); await upload(page, 'Favoritas QA', ['one.png','two.png'])
+  await page.getByRole('button', { name: 'Abrir fotografía 1: one.png', exact: true }).click()
+  await page.getByRole('button', { name: 'Guardar en favoritas', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Quitar de favoritas', exact: true })).toHaveAttribute('aria-pressed','true')
+  await page.getByRole('button', { name: 'Cerrar fotografía', exact: true }).click()
+  await page.getByRole('button', { name: 'SOLO FAVORITAS ♡', exact: true }).click()
+  await expect(page.locator('.gallery-photo')).toHaveCount(1)
+  await page.reload(); await openGallery(page)
+  await expect(page.locator('.photo-favorite-mark')).toHaveCount(1)
+  await createAlbum(page, 'Otro álbum QA'); await upload(page, 'Otro álbum QA', ['other.png'])
+  await page.getByRole('button', { name: 'SOLO FAVORITAS ♡', exact: true }).click()
+  await expect(page.locator('.gallery-photo')).toHaveCount(0)
+  await expect(page.getByText('Abre una foto y pulsa el corazón para guardarla aquí.', { exact: true })).toBeVisible()
+})
+
+test('large local uploads generate smaller thumbnails while download preserves the original bytes', async ({ page }) => {
+  await createAlbum(page, 'Miniaturas QA')
+  const source = await page.evaluate(() => {
+    const canvas=document.createElement('canvas');canvas.width=2000;canvas.height=1400
+    const ctx=canvas.getContext('2d')!
+    const gradient=ctx.createLinearGradient(0,0,2000,1400);gradient.addColorStop(0,'#123a25');gradient.addColorStop(1,'#e2cb86')
+    ctx.fillStyle=gradient;ctx.fillRect(0,0,2000,1400)
+    for(let i=0;i<80;i++){ctx.fillStyle=i%2?'#101710':'#c8df76';ctx.fillRect(i*25,100+(i%8)*100,14,650)}
+    return canvas.toDataURL('image/png').split(',')[1]
+  })
+  const original=Buffer.from(source,'base64')
+  await page.getByLabel('Añadir fotografías a Miniaturas QA',{exact:true}).setInputFiles({name:'large-original.png',mimeType:'image/png',buffer:original})
+  await expect(page.locator('.gallery-photo')).toHaveCount(1)
+  const thumbnail=page.locator('.gallery-photo img')
+  await expect.poll(()=>thumbnail.evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBe(640)
+  await page.getByRole('button',{name:'Abrir fotografía 1: large-original.png',exact:true}).click()
+  await expect.poll(()=>page.getByRole('dialog').locator('img').first().evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBe(2000)
+  const bytes=await page.getByRole('link',{name:'DESCARGAR FOTO ↓',exact:true}).evaluate(async(link:HTMLAnchorElement)=>Array.from(new Uint8Array(await(await fetch(link.href)).arrayBuffer())))
+  expect(Buffer.from(bytes)).toEqual(original)
+  await test.info().attach('galeria-miniatura-y-original',{body:await page.screenshot({type:'jpeg',quality:75}),contentType:'image/jpeg'})
+})
