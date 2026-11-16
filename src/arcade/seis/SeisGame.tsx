@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { createDeck, canPlay, type Card, type Player, type GameState } from './engine'
+import { useState, useEffect } from 'react'
+import { createDeck, canPlay, drawCards, nextPlayerIndex, type Card, type Player, type GameState } from './engine'
 
 const AI_NAMES = ['Yeppo Bot', 'Jack', 'Vinilo', 'Luz']
 
@@ -40,17 +40,42 @@ export default function SeisGame() {
       message: '¡Empieza la partida!',
       yeppoMessage: 'A ver quién se queda sin cartas antes, figuras.',
       winner: null,
-      turn: 1
+      turn: 1,
+      pendingDraw: 0,
+      skipNext: false
     }
     setState(initial)
     setYeppoText(initial.yeppoMessage)
   }
 
-  const playCard = (cardId: string) => {
+  // Basic AI turn
+  useEffect(() => {
+    if (!state || state.winner) return
+    const current = state.players[state.currentPlayer]
+    if (!current.isAI) return
+
+    const timer = setTimeout(() => {
+      const top = state.discard[state.discard.length - 1]
+      const playable = current.hand.find(c => canPlay(c, top, state.currentColor, state.currentSymbol))
+      if (playable) {
+        playCard(playable.id, true)
+      } else {
+        // Draw
+        const drawn = drawCards(state, state.currentPlayer, 1)
+        setState(drawn)
+        setYeppoText(`${current.name} ha robado.`)
+        setTimeout(() => advanceTurn(drawn), 600)
+      }
+    }, 900)
+
+    return () => clearTimeout(timer)
+  }, [state?.currentPlayer, state?.turn])
+
+  const playCard = (cardId: string, fromAI = false) => {
     if (!state || state.winner) return
     const playerIdx = state.currentPlayer
     const player = state.players[playerIdx]
-    if (player.isAI) return
+    if (!fromAI && player.isAI) return
 
     const cardIndex = player.hand.findIndex(c => c.id === cardId)
     if (cardIndex === -1) return
@@ -58,31 +83,35 @@ export default function SeisGame() {
     const top = state.discard[state.discard.length - 1]
 
     if (!canPlay(card, top, state.currentColor, state.currentSymbol)) {
-      setYeppoText('Esa no vale, figura. Prueba con otra.')
+      if (!fromAI) setYeppoText('Esa no vale, figura. Prueba con otra.')
       return
     }
 
     const newHand = player.hand.filter((_, i) => i !== cardIndex)
     const newDiscard = [...state.discard, card]
 
-    const newPlayers = state.players.map((p, i) =>
-      i === playerIdx ? { ...p, hand: newHand, saidSeis: newHand.length === 1 } : p
-    )
-
-    const newState: GameState = {
+    let newState: GameState = {
       ...state,
       discard: newDiscard,
-      players: newPlayers,
+      players: state.players.map((p, i) =>
+        i === playerIdx ? { ...p, hand: newHand, saidSeis: newHand.length === 1 } : p
+      ),
       currentColor: card.color ?? state.currentColor,
       currentSymbol: card.symbol ?? state.currentSymbol,
-      message: `Has jugado ${card.type}`
+      message: `${player.name} ha jugado ${card.type}`
     }
+
+    // Simple effects
+    if (card.type === 'doble_jack') newState.pendingDraw += 2
+    if (card.type === 'jack_gordo') newState.pendingDraw += 4
+    if (card.type === 'drop') newState.skipNext = true
+    if (card.type === 'jack_cruzado') newState.direction = (newState.direction * -1) as 1 | -1
 
     if (newHand.length === 0) {
       newState.winner = player.name
-      newState.yeppoMessage = '¡SEIS! Te has quedado sin cartas. No está mal, figura.'
+      newState.yeppoMessage = `¡SEIS! ${player.name} se ha quedado sin cartas.`
       setYeppoText(newState.yeppoMessage)
-    } else if (newHand.length === 1) {
+    } else if (newHand.length === 1 && !fromAI) {
       setYeppoText('¡SEIS! Di SEIS o robas dos, figura.')
     }
 
@@ -93,21 +122,29 @@ export default function SeisGame() {
   }
 
   const advanceTurn = (gs: GameState) => {
-    const next = (gs.currentPlayer + gs.direction + gs.players.length) % gs.players.length
-    setState(prev => prev ? { ...prev, currentPlayer: next, turn: prev.turn + 1 } : null)
+    let next = nextPlayerIndex(gs)
+    if (gs.skipNext) {
+      next = (next + gs.direction + gs.players.length) % gs.players.length
+      gs.skipNext = false
+    }
+    if (gs.pendingDraw > 0) {
+      const drawn = drawCards(gs, next, gs.pendingDraw)
+      drawn.pendingDraw = 0
+      setState({ ...drawn, currentPlayer: next, turn: gs.turn + 1 })
+      setYeppoText(`${gs.players[next].name} roba ${gs.pendingDraw}.`)
+    } else {
+      setState(prev => prev ? { ...prev, currentPlayer: next, turn: prev.turn + 1, skipNext: false } : null)
+    }
   }
 
   const drawCard = () => {
     if (!state || state.deck.length === 0) return
     const playerIdx = state.currentPlayer
     if (state.players[playerIdx].isAI) return
-    const card = state.deck[state.deck.length - 1]
-    const newDeck = state.deck.slice(0, -1)
-    const newPlayers = state.players.map((p, i) =>
-      i === playerIdx ? { ...p, hand: [...p.hand, card] } : p
-    )
-    setState({ ...state, deck: newDeck, players: newPlayers })
+    const newState = drawCards(state, playerIdx, 1)
+    setState(newState)
     setYeppoText('Has robado. A ver si te sirve.')
+    setTimeout(() => advanceTurn(newState), 500)
   }
 
   if (!state) {
