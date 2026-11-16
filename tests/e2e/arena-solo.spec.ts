@@ -42,7 +42,7 @@ test('solo reuses P1 joystick upright and responds to movement in three sizes', 
     await expect(page.locator('.arena-board')).toHaveAttribute('data-ready', 'true', { timeout: 15000 })
     await page.getByRole('button',{name:'EMPEZAR TURNO',exact:true}).click()
     const stick = page.getByRole('button', { name: 'P1 Joystick', exact: true }), rect = (await stick.boundingBox())!
-    expect(rect.width).toBe(96); expect(rect.height).toBe(96)
+    expect(rect.width).toBe(size.width>size.height?108:96); expect(rect.height).toBe(size.width>size.height?108:96)
     expect(rect.x).toBeGreaterThanOrEqual(0); expect(rect.y + rect.height).toBeLessThanOrEqual(size.height)
     const matrix = await page.locator('.versus-face').evaluate(el => getComputedStyle(el).transform)
     expect(matrix).toMatch(/^matrix\(1, 0, 0, 1,/)
@@ -51,7 +51,6 @@ test('solo reuses P1 joystick upright and responds to movement in three sizes', 
       expect(canvas.height).toBeGreaterThan(280)
       expect(rect.x + rect.width).toBeLessThan(canvas.x)
     }
-    await page.getByRole('button', { name: 'EMPEZAR TURNO', exact: true }).click()
     await stick.focus(); await page.keyboard.down('ArrowRight')
     await expect.poll(() => page.locator('.arena-game').getAttribute('data-p1')).not.toBe('1,1')
     await page.keyboard.up('ArrowRight')

@@ -23,7 +23,7 @@ const pos=async(page:Page,id:number)=>(await page.locator('.chase-game').getAttr
 test('Collecta explains its two shifts and saves an independent controller for each player',async({page})=>{
   await choose(page,false)
   await menuTab(page,'CÓMO JUGAR')
-  await expect(page.locator('.menu-help')).toContainText('Cada captura pasa la factura')
+  await expect(page.locator('.menu-help')).toContainText('cada captura pasa la factura')
   await page.reload()
   await menuTab(page,'MANDOS')
   await expect(page.getByRole('group',{name:'Mando P1',exact:true})).toContainText('JOYSTICK')
