@@ -111,6 +111,7 @@ de esa versión, no pruebas nuevas de esta revisión.
 | G06 | Estilos de corte desbloqueables localmente | Trazo Club a los 20 cortes y preferencias persistentes implementados y comprobados. No modifica alcance, puntuación, vidas ni duración. Publicado y verificado, PR 30. |
 | G07 | Variación de cabina, armas y multicortes | Parcial. Cabina detallada, feedback, efectos suaves y cosméticos comprobados; música/BPM real y evaluación de diversión a lo largo de una sesión siguen pendientes. |
 | G08 | Ranking/competición online de Groove | Pendiente; no usar puntuación local como resultado verificado ni conceder DANZPOINTS desde el cliente. |
+| G09 | Intro de 5 s antes de Groove Ninja | Implementado en `feature/arcade-intros`, no publicado. Ver sección 24. Jack, Collecta y DANZPORTER siguen sin intro. |
 
 ### Catálogo y trabajo externo
 
@@ -672,3 +673,24 @@ vibración real, FPS ni audio oído.
 
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
 La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.
+
+## 24. Intro de Groove Ninja — 16/11
+
+Implementado en `feature/arcade-intros`. No está publicado. El propietario
+aprueba el merge.
+
+- Vídeo aprobado en `public/arcade/intros/intro-grooveninja.mp4` (H.264+AAC,
+  1280×720, 5 s, faststart) y póster WebP a 0,5 s, 640 px de ancho. El
+  base64 de trabajo no forma parte de la entrega.
+- `ArcadeIntro` se elige por id de juego. Hoy solo Groove tiene película.
+  Jack, Collecta y DANZPORTER entran directos hasta que haya archivo.
+- Se muestra una vez por pestaña (`sessionStorage`), antes del menú de
+  cabina. Saltar, el fin del vídeo o un archivo que no carga abren ese menú.
+  Volver a entrar en la misma sesión no la repite: el bucle de 60 s no debe
+  esperar cinco segundos en cada «Jugar».
+- Si el navegador bloquea el audio, arranca en silencio y muestra «Activar
+  sonido». `playsInline`. Movimiento reducido no reproduce la película.
+- El MP4 no entra en el bundle ni en el precache de la PWA. Se pide al abrir
+  Groove. Sin red, la cabina sigue abriendo.
+- Las suites de navegador marcan la intro como ya vista salvo la spec que
+  la fuerza, para no tapar el menú en el resto de pruebas.

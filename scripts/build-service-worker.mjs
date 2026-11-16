@@ -15,6 +15,8 @@ for (const path of artwork) {
     : bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP'
   if (!valid || bytes.length > 512 * 1024) throw new Error(`Invalid or oversized public collective image: ${path}`)
 }
+// Intro films live in public/arcade/intros and stay off this list: they are
+// optional, several megabytes, and fetched only when a game actually plays one.
 const paths = ['/index.html', '/manifest.webmanifest', '/icons/danz-flower-black-180.png', '/icons/danz-flower-black-192.png', '/icons/danz-flower-black-512.png', '/icons/danz-flower-black-maskable-512.png', '/brand/danz-flower.svg', '/brand/danz-collective-wordmark.png', '/brand/arcadanz-wordmark-v2.webp', '/arcade/idle-studio-industrial.webp', '/arcade/arena-danz.svg', '/arcade/kart-mini.svg', '/arcade/danzporter-cover-v1.webp', '/arcade/kart/asphalt.webp', '/arcade/kart/asphalt-normal.webp', '/arcade/chase/yeppo-face.svg', '/arcade/collecta-mobile-v1.webp', '/arcade/jack-approved-mobile.webp', '/arcade/groove-ninja-approved-mobile.webp', ...assets, ...artwork].sort()
 const digest = createHash('sha256').update(runtime)
 for (const path of paths) {
