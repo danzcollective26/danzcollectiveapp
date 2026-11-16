@@ -388,7 +388,7 @@ export default function App() {
           <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
         </section>}
         {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="content" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
-        {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="content" role="status">Preparando DANZ Kart Mini…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="content" role="status">Preparando DANZPORTER…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
         {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="content" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
         {page === 'arcade' && (arcadeGame === 'arena' || arcadeGame === 'arena-solo') && <Suspense fallback={<p className="content" role="status">Abriendo Arena…</p>}><ArenaDuel key={arcadeGame} opponent={arcadeGame === 'arena-solo' ? 'cpu' : 'human'} controls={collectaControls} onBack={openCollecta} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="content inner-page" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
