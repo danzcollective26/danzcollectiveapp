@@ -153,7 +153,30 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const focus=new THREE.Vector3(),target=new THREE.Vector3(),look=new THREE.Vector3();let initialized=false,viewWidth=1180
   // Camera motion is presentation-only; it never alters deterministic kart physics.
   let cockpitHeading=0,cockpitInitialized=false,cockpitImpact=0,lastCockpitImpacts=0
-  const resize=(repaint=true)=>{if(disposed)return;const r=parent.getBoundingClientRect();if(r.width<1||r.height<1)return;updateResolution(r.width,r.height);renderer.setSize(r.width,r.height,false);camera.left=-viewWidth/2;camera.right=viewWidth/2;camera.top=viewWidth/r.width*r.height/2;camera.bottom=-camera.top;camera.updateProjectionMatrix();cockpitCamera.aspect=r.width/r.height;cockpitCamera.fov=cockpitFov(cockpitCamera.aspect);cockpitCamera.updateProjectionMatrix();if(repaint)wake()}
+  let lastCanvasWidth=0,lastCanvasHeight=0,lastViewWidth=0
+  const resize=(repaint=true)=>{
+    if(disposed)return
+    const r=parent.getBoundingClientRect()
+    if(r.width<1||r.height<1)return
+    updateResolution(r.width,r.height)
+    // Camera zoom animates every frame, but resizing the WebGL drawing buffer
+    // and rebuilding the perspective projection should not.
+    const canvasChanged=r.width!==lastCanvasWidth||r.height!==lastCanvasHeight
+    if(canvasChanged){
+      lastCanvasWidth=r.width;lastCanvasHeight=r.height
+      renderer.setSize(r.width,r.height,false)
+      cockpitCamera.aspect=r.width/r.height
+      cockpitCamera.fov=cockpitFov(cockpitCamera.aspect)
+      cockpitCamera.updateProjectionMatrix()
+    }
+    if(canvasChanged||Math.abs(viewWidth-lastViewWidth)>.001){
+      lastViewWidth=viewWidth
+      camera.left=-viewWidth/2;camera.right=viewWidth/2
+      camera.top=viewWidth/r.width*r.height/2;camera.bottom=-camera.top
+      camera.updateProjectionMatrix()
+    }
+    if(repaint)wake()
+  }
   const observer=new ResizeObserver(()=>resize())
   function render(now:number){
     frame=0;if(disposed)return
