@@ -35,6 +35,11 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const curbMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.72,side:THREE.DoubleSide})
   scene.add(mesh(ribbon(track,-ROAD_WIDTH/2-7,-ROAD_WIDTH/2,4.5,true,venue.curb),curbMat),mesh(ribbon(track,ROAD_WIDTH/2,ROAD_WIDTH/2+7,4.5,true,venue.curb),curbMat))
   const road=mesh(ribbon(track,-ROAD_WIDTH/2,ROAD_WIDTH/2,5),roadMaterial);road.castShadow=false;scene.add(road)
+  // Thin continuous lane-edge markings improve readability at cockpit height.
+  // Lift slightly above the asphalt to avoid depth flicker; no extra physics.
+  const edgePaint=new THREE.MeshBasicMaterial({color:venue.id==='night'?'#e7e9ce':'#f3eee0',transparent:true,opacity:venue.id==='night'?.9:.78,side:THREE.DoubleSide,depthWrite:false})
+  const edgeOffset=ROAD_WIDTH/2-3
+  scene.add(mesh(ribbon(track,-edgeOffset,-edgeOffset+1.35,5.22),edgePaint),mesh(ribbon(track,edgeOffset-1.35,edgeOffset,5.22),edgePaint))
   const barrierGeometry=new THREE.BoxGeometry(24,8,6),total=Math.floor(track.length/32)*2,barriers=new THREE.InstancedMesh(barrierGeometry,dark,total),caps=new THREE.InstancedMesh(new THREE.BoxGeometry(20,1,6.5),lime,total)
   const transform=new THREE.Object3D();let count=0
   for(const side of [-1,1])for(let distance=0;distance<track.length-32;distance+=32){
