@@ -1,6 +1,7 @@
 # DANZ Collective — revisión general y registro de pendientes
 
-**Actualización:** 16 de noviembre de 2026, Europe/Madrid.
+**Actualización:** 16 de noviembre de 2026, Europe/Madrid. El 17/11 se añade
+AFTER DROP en rama (AD01, sección 24): implementado, no publicado.
 **Propósito:** mantener en un lugar las peticiones del propietario, las entregas
 comprobadas, lo pendiente y lo aplazado. Este es el registro general vigente;
 las especificaciones antiguas siguen siendo referencias históricas.
@@ -48,6 +49,7 @@ con CI 239 correcto, separado de esta rama.
 | J09 | Persecución, dentro de DANZ Collecta | Beta local implementada y validada en CI 180; publicado y verificado, PR 30 | Captura/cambio de roles, obstáculos, sprint y dos mandos enfrentados. Mantener el arte de personajes beta separado del acabado definitivo. |
 | J10 | DANZPORTER (antes DANZ Kart Mini) | Carrera local, conducción y cámaras publicadas, PR 35–41 | Tres modos, dos circuitos, piezas, daños, boxes, vista Rally y primera persona. CI 225: 246 internas, 552 de navegador y 16 offline correctas. GPU y móvil físico en T01; online y contenidos adicionales separados. |
 | PF01 | Sensación de app instalada, galería y Yeppo | Implementado en rama, no publicado | Ver sección 23. Falta prueba en teléfono físico. No cierra M02, M03, M08 ni M10. |
+| AD01 | AFTER DROP, corredor rítmico con extracción | Implementado en `feature/afterdrop`, no publicado | Ver sección 24. Juego propio. Sin DANZPOINTS, sin online y sin prueba en teléfono físico. |
 
 ## 4. Lo ya publicado que debe conservarse
 
@@ -672,3 +674,17 @@ vibración real, FPS ni audio oído.
 
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
 La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.
+
+## 24. AFTER DROP, 17/11
+
+Implementado en `feature/afterdrop`. No está en `main`. No existía código,
+ruta ni documento previo; MANAGER HEIST sigue aparte en su rama y no se ha
+mezclado. Decisión y reglas: `AFTERDROP_2026-11-17.md`.
+
+- Juego propio en la biblioteca, en `juego=afterdrop` y en `/test`.
+- Lógica pura con pruebas: carriles, ventanas PERFECTO/BIEN/FALLO, combo,
+  botín, extracción, curva de BPM y récord validado `danz-afterdrop-record-v1`.
+- Cabina Phaser en perspectiva, audio sintetizado al beat, pausa al salir o
+  al ocultar la pestaña, movimiento reducido y controles táctiles.
+- Sin DANZPOINTS y sin modo online. Portada procedural, sustituible.
+- Falta prueba de teléfono físico, FPS medidos y audio oído. No cierra T01.

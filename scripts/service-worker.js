@@ -9,7 +9,7 @@ function publicGameNavigation(url) {
   const params = url.searchParams
   if (new Set(params.keys()).size !== [...params].length) return false
   if (params.get('seccion') !== 'arcade') return false
-  return params.size === 1 || (params.size === 2 && ['groove-ninja', 'jack', 'snake', 'arena', 'pilla-pilla', 'collecta', 'arena-solo', 'kart', 'danzporter'].includes(params.get('juego')))
+  return params.size === 1 || (params.size === 2 && ['groove-ninja', 'jack', 'snake', 'arena', 'pilla-pilla', 'collecta', 'arena-solo', 'kart', 'danzporter', 'afterdrop'].includes(params.get('juego')))
 }
 
 async function staticResponse(path) {

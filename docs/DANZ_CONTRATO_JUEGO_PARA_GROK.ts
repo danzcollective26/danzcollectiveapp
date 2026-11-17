@@ -3,6 +3,7 @@ import type {ReactElement} from 'react'
 export type DanzProgressEvent =
  | {schemaVersion:1;gameId:'idle-studio';milestone:'first-upgrade'|'fashion-unlocked'}
  | {schemaVersion:1;gameId:'groove-ninja';milestone:'first-perfect-phrase'|'track-completed'}
+ | {schemaVersion:1;gameId:'afterdrop';milestone:'loot-extracted'|'perfect-streak'}
 export type DanzGameProps={
  onExit:()=>void
  storageKey?:string

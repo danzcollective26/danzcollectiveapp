@@ -263,3 +263,13 @@ valida sesión y emite enlaces de 120 s; Ensayo sigue sin cuenta y offline.
 Publicado PR 46: CI 235 pasa build, 267 internas, 582 navegador y 16 offline.
 Backend protegido y apertura pública comprobados; T01 conserva prueba física. Ver
 GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.
+
+## AFTER DROP — caída al ritmo, 17/11
+
+Juego propio, no un modo de Groove ni de Collecta. No había código previo en
+`main` ni en otras ramas. Implementado en `feature/afterdrop`, sin publicar:
+Phaser 4.2.1 en perspectiva, lógica pura, audio sintetizado al beat, tres
+carriles, PERFECTO/BIEN/FALLO, extracción con multiplicador y récord local
+`danz-afterdrop-record-v1`. Rutas `juego=afterdrop` y `/test`. Sin DANZPOINTS
+ni online. Decisión, límites y cómo probarlo en `AFTERDROP_2026-11-17.md`.
+MANAGER HEIST sigue en su rama y no forma parte de esta entrega.
