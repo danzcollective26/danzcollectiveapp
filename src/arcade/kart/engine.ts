@@ -166,10 +166,23 @@ function integrate(s: Race, inputs: readonly KartInput[], dt: number): Race {
     const projection=projectTrack(track,{x,y}),edge=ROAD_WIDTH/2-KART_RADIUS
     if(projection.distance>edge){
       const nx=(x-projection.x)/projection.distance,ny=(y-projection.y)/projection.distance
-      const outward=Math.max(0,Math.cos(angle+slip)*speed*nx+Math.sin(angle+slip)*speed*ny)
+      const vx=Math.cos(angle+slip)*speed,vy=Math.sin(angle+slip)*speed
+      const outward=Math.max(0,vx*nx+vy*ny)
       car=hit(car,outward)
+      // A side scrape preserves forward motion. Only the velocity into the barrier
+      // is cancelled; steer gently back along the road to avoid repeated sticking.
+      const tangentX=vx-outward*nx,tangentY=vy-outward*ny
+      const tangentSpeed=Math.hypot(tangentX,tangentY)
+      const road=trackPoint(track,projection.progress)
+      const roadHeading=angleDifference(road.angle,angle)
+      const guidedHeading=angle+Math.sign(roadHeading||1)*Math.min(Math.abs(roadHeading),Math.max(.06,dt*8))
+      const slideHeading=tangentSpeed>12?Math.atan2(tangentY,tangentX):guidedHeading
+      const correctedAngle=angle+angleDifference(slideHeading,angle)*Math.min(.85,dt*42)
       const scale=edge/projection.distance;x=projection.x+(x-projection.x)*scale;y=projection.y+(y-projection.y)*scale
-      nextSpeed=speed*(1-Math.min(.6,dt*16));charge=0
+      // Glancing hits cost little speed; head-on impacts still slow the kart.
+      nextSpeed=Math.max(16,Math.min(speed,tangentSpeed*.96+Math.min(speed*.22,16)))
+      charge=0
+      return updateCheckpoint({...car,x,y,angle:correctedAngle,steering,speed:nextSpeed,drifting:false,charge,boosting,tires:Math.max(.05,car.tires-(drifting?dt*.003/stats.tireDurability:0))},projectTrack(track,{x,y}).progress,elapsed)
     }
     return updateCheckpoint({...car,x,y,angle,steering,speed:nextSpeed,drifting,charge,boosting,tires:Math.max(.05,car.tires-(drifting?dt*.003/stats.tireDurability:0))},projectTrack(track,{x,y}).progress,elapsed)
   })
