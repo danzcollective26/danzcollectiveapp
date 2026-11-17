@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
 import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
+import { cabezonPose } from './bigHead'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
 import { batchMeshes } from './batch3d'
 import { cockpitFov, cockpitPose, effectiveCamera } from './camera'
@@ -168,6 +169,8 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       model.fragment.visible=burst<.65&&!reduced.matches
       if(model.fragment.visible){model.fragment.position.set(24+burst*28,5+burst*30-burst*burst*42,burst*20);model.fragment.rotation.set(burst*8,burst*5,burst*7)}
       model.flame.visible=car.boosting>0&&!reduced.matches;model.flame.scale.set(1+Math.sin(now*.035)*.12,1,1)
+      const pose=cabezonPose({time:now/1000,steer:car.steering,speed:car.speed,boosting:car.boosting,impactAge:(now-model.burstAt)/1000,bump:Math.min(1,Math.abs(turn)*6+(car.drifting?.35:0)),reduced:reduced.matches||!['playing','countdown'].includes(s.phase)})
+      model.head.position.y=model.headRestY+pose.offsetY;model.head.rotation.z=pose.lean;model.head.rotation.x=pose.pitch;model.head.scale.set(pose.squashX,pose.squashY,pose.squashZ)
       const pos=new THREE.Vector3(x-Math.cos(car.angle)*16,5.2,z-Math.sin(car.angle)*16)
       if(car.drifting&&!reduced.matches&&s.phase==='playing'){
         const previous=lastMarks[id]

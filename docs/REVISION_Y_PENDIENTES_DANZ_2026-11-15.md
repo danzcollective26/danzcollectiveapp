@@ -672,3 +672,30 @@ vibración real, FPS ni audio oído.
 
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
 La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.
+
+## 24. DANZPORTER — cabezones y «Crea tu cabezón», 17/11
+
+| ID | Petición | Estado / siguiente acción |
+| --- | --- | --- |
+| K08 | Cabezones en los karts, con la escala y el bamboleo de un piloto premium | Implementado en `feature/kart-bigheads`. Cabeza a 2,12× el torso, por encima del chasis y más ancha que el cockpit. Inclinación, squash y estiramiento solo con la matriz. Pilotos de serie incluidos. No publicado. |
+| K09 | Crea tu cabezón: 1–3 fotos, dibujo reconocible y piloto seleccionable | Implementado en la misma rama. Consentimiento en español, cámara o archivo, inflado y guardado local. El dibujo de dispositivo siempre funciona. La caricatura remota y la copia en cuenta siguen apagadas. No publicado. |
+
+La migración `supabase/migrations/20261117120000_kart_custom_heads.sql` está en el
+repositorio y **no se ha aplicado** al proyecto alojado. Hasta aplicarla, no hay
+fila ni bucket `kart-heads`.
+
+Secreto del estudio, solo en la Edge Function `generate-kart-head`, nunca en Vite:
+
+- `KART_HEAD_API_KEY`
+- `KART_HEAD_API_URL` (`https://`, contrato `{ prompt, images }` → `{ image }`)
+
+Sin los dos, la función responde `available: false` y no llama a ningún
+proveedor. No hay un servicio de pago elegido. El detalle está en
+`supabase/functions/generate-kart-head/README.md`.
+
+Rutas: `/?seccion=arcade&juego=kart` y
+`/?seccion=arcade&juego=kart&estudio=cabezon`. Desde el móvil,
+`/test?seccion=arcade&juego=kart&estudio=cabezon`.
+
+Lo deslizante de las barreras laterales de main se conserva. T01 sigue en
+teléfono físico, GPU y FPS medidos. QR sigue aplazado.

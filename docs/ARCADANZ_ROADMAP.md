@@ -263,3 +263,13 @@ valida sesión y emite enlaces de 120 s; Ensayo sigue sin cuenta y offline.
 Publicado PR 46: CI 235 pasa build, 267 internas, 582 navegador y 16 offline.
 Backend protegido y apertura pública comprobados; T01 conserva prueba física. Ver
 GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.
+
+## DANZPORTER — cabezones, 17/11
+
+K08 y K09 están implementados en la rama, no publicados. La cabeza sale del
+cuerpo y se mueve con el volante, los baches y los golpes. «Crea tu cabezón»
+dibuja en el dispositivo tras un consentimiento; las fotos no se guardan. La
+Edge Function y la migración de cuenta existen en el repo y no están activadas:
+hacen falta `KART_HEAD_API_KEY`, `KART_HEAD_API_URL` y aplicar
+`20261117120000_kart_custom_heads.sql`. El deslizamiento en barreras de main
+se mantiene. T01 sigue abierto.
