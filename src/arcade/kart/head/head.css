@@ -1,0 +1,26 @@
+.cabezon-studio{display:grid;gap:10px}
+.cabezon-studio h2{margin:0;font:900 22px/1.05 Impact,'Arial Narrow',sans-serif;letter-spacing:.02em;color:#f4f1da}
+.cabezon-studio p{margin:0;font:12px/1.45 system-ui;color:#d5e0cc}
+.cabezon-consent{display:flex;gap:8px;align-items:flex-start;font:12px/1.4 system-ui;color:#f0edc8}
+.cabezon-consent input{width:22px;height:22px;margin-top:2px;flex:none}
+.cabezon-actions{display:flex;flex-wrap:wrap;gap:6px}
+.cabezon-actions button,.cabezon-upload{flex:1;min-width:44px;min-height:44px}
+.cabezon-primary{background:#d9fa69!important;color:#14241d!important;border-color:#e8ffb3!important}
+.cabezon-frame{position:relative;aspect-ratio:3/4;max-height:42dvh;border-radius:18px;overflow:hidden;background:#0c1c22;border:1px solid #8ea57a}
+.cabezon-frame video,.cabezon-frame img{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.cabezon-guide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cabezon-frame>p{position:absolute;left:8px;right:8px;bottom:10px;margin:0;text-align:center;font:800 11px/1.3 system-ui;color:#f6f3df;text-shadow:0 2px 6px #041016}
+.cabezon-pips{display:flex;gap:6px}
+.cabezon-pips button{flex:1;min-height:44px;font-size:9px}
+.cabezon-pips button[aria-pressed=true]{background:#d9fa69;color:#14241d}
+.cabezon-thumbs{display:flex;gap:6px}
+.cabezon-thumbs img{width:54px;height:54px;object-fit:cover;border-radius:50%;border:2px solid #d9fa69;transform:scaleX(-1)}
+.cabezon-upload{position:relative;display:grid;place-items:center;overflow:hidden;box-sizing:border-box;border:1px solid #63796e;border-radius:5px;background:#172a2c;color:inherit;font:800 10px system-ui;cursor:pointer}
+.cabezon-upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.cabezon-balloon{width:min(68vw,220px);height:auto;margin:8px auto;display:block;border-radius:50%;background:#102830;transform-origin:50% 70%}
+.cabezon-inflate{animation:cabezon-inflate 1.15s cubic-bezier(.16,.84,.32,1) both}
+@keyframes cabezon-inflate{0%{transform:scale(.18);border-radius:50%}70%{transform:scale(1.06)}100%{transform:scale(1)}}
+.cabezon-name{display:grid;gap:6px;font:800 9px system-ui;letter-spacing:.08em}
+.cabezon-name input{min-height:44px;border:1px solid #8ea57a;border-radius:5px;background:#102830;color:#f4f1da;font:800 16px system-ui;padding:0 10px}
+.cabezon-studio [role=alert]{color:#f2b199}
+@media(prefers-reduced-motion:reduce){.cabezon-inflate{animation:none}}

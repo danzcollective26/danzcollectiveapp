@@ -11,6 +11,7 @@ import Cockpit from './Cockpit'
 import { cockpitSteering, effectiveCamera } from './camera'
 import { requestArcadeFullscreen } from '../arcadeFullscreen'
 import { buildKey, buildName, type KartBuild } from './garage'
+import { listHeads, rememberPortrait } from './head/store'
 import { readKartPreferences, saveKartPreferences, type KartPreferences } from './preferences'
 import { createRace, startRace, pauseRace, stepRace, raceOrder, TRACKS, RACE_LAPS, formatRaceTime, readKartBest, saveKartBest, NO_INPUT, type Race, type KartMode, type TrackId, type KartInput } from './engine'
 import '../versusControls.css'
@@ -25,11 +26,13 @@ export default function KartMini({onBack}:{onBack:()=>void}){
   const inputs=useRef(freshInputs()),keys=useRef(new Set<string>()),audio=useRef<KartAudio|null>(null)
   const [settingsOpen,setSettingsOpen]=useState(false),[newBest,setNewBest]=useState(false),[renderMode,setRenderMode]=useState('3d')
   const renderer=useRef<ReturnType<typeof createKartRenderer>|null>(null),host=useRef<HTMLDivElement>(null),panel=useRef<HTMLElement>(null)
-  const [ready,setReady]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0)
+  const [ready,setReady]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0),[headsReady,setHeadsReady]=useState(0)
+  const [studio,setStudioState]=useState(()=>new URLSearchParams(window.location.search).get('estudio')==='cabezon')
+  const setStudio=(open:boolean)=>{const url=new URL(window.location.href);if(open)url.searchParams.set('estudio','cabezon');else url.searchParams.delete('estudio');try{window.history.replaceState(window.history.state,'',url)}catch{/* The screen still opens. */}setStudioState(open)}
   const [best,setBest]=useState(()=>readKartBest('dock',preferences.builds[0]))
   const duel=hud.mode==='duel',active=hud.phase==='playing',moving=active||hud.phase==='countdown'
   const camera=effectiveCamera(preferences.camera,hud.mode),cockpit=camera==='cockpit'
-  const artKey=JSON.stringify(hud.cars.map(c=>c.build))+preferences.venue
+  const artKey=JSON.stringify(hud.cars.map(c=>c.build))+preferences.venue+headsReady
   const clear=()=>{inputs.current=freshInputs();keys.current.clear()}
   const sync=(next:Race)=>{const reset=next.phase!==state.current.phase;state.current=next;setHud(next);renderer.current?.wake(reset)}
   const pause=()=>{clear();audio.current?.pause();sync(pauseRace(state.current))}
@@ -49,6 +52,7 @@ export default function KartMini({onBack}:{onBack:()=>void}){
     clear();sync(grid(state.current.mode,state.current.track,next));setBest(readKartBest(state.current.track,builds[0]))
   }
   useEffect(()=>{saveKartPreferences(preferences);renderer.current?.wake()},[preferences])
+  useEffect(()=>{let live=true;listHeads().then(heads=>{if(!live)return;for(const head of heads)rememberPortrait(head.id,head.png);setHeadsReady(1)}).catch(()=>{if(live)setHeadsReady(1)});return()=>{live=false}},[])
   useEffect(()=>{
     const parent=host.current;if(!parent)return
     let alive=true,booted=false,publish=0,recorded=false;setReady(false);setError('')
@@ -100,6 +104,6 @@ export default function KartMini({onBack}:{onBack:()=>void}){
       {hud.phase==='countdown'&&<div className="kart-countdown" role="status">{Math.max(1,Math.ceil(hud.countdown/1000))}<small>AL VERDE, SALIMOS.</small></div>}
     </GameSurface>{controller(0)}</div>
     <footer className="kart-foot" aria-hidden={!moving}>{hud.mode==='time'?`CONTRARRELOJ · ${buildName(p1.build)}`:'CARRERA LOCAL · SIN DANZPOINTS'}<span>GAS acelera · FRENO detiene · DERRAPE también da gas · BOXES repara</span></footer>
-    {!moving&&<KartMenu race={hud} prefs={preferences} ready={ready} error={error} renderMode={renderMode} newBest={newBest} showSettings={settingsOpen} onPlay={play} onExit={exit} onRetry={()=>setRetry(n=>n+1)} onChoose={choose} onBuild={configure} onPreferences={change=>{clear();if(change.sound===false)audio.current?.pause();setPreferences(v=>({...v,...change}))}} onReset={()=>choose(hud.mode,hud.track)}/>}
+    {!moving&&<KartMenu race={hud} prefs={preferences} ready={ready} error={error} renderMode={renderMode} newBest={newBest} showSettings={settingsOpen} studio={studio} onPlay={play} onExit={exit} onRetry={()=>setRetry(n=>n+1)} onChoose={choose} onBuild={configure} onPreferences={change=>{clear();if(change.sound===false)audio.current?.pause();setPreferences(v=>({...v,...change}))}} onReset={()=>choose(hud.mode,hud.track)} onStudio={setStudio}/>}
   </section>
 }
