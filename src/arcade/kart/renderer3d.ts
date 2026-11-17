@@ -135,6 +135,8 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const skid=new THREE.LineSegments(markGeometry,new THREE.LineBasicMaterial({color:'#111b23',transparent:true,opacity:.55,depthWrite:false}));skid.frustumCulled=false;scene.add(skid)
   let markIndex=0,markCount=0;const lastMarks:(THREE.Vector3|null)[]=read().cars.map(()=>null)
   const focus=new THREE.Vector3(),target=new THREE.Vector3(),look=new THREE.Vector3();let initialized=false,viewWidth=1180
+  // Camera motion is presentation-only; it never alters deterministic kart physics.
+  let cockpitHeading=0,cockpitInitialized=false,cockpitImpact=0,lastCockpitImpacts=0
   const resize=(repaint=true)=>{if(disposed)return;const r=parent.getBoundingClientRect();if(r.width<1||r.height<1)return;renderer.setSize(r.width,r.height,false);camera.left=-viewWidth/2;camera.right=viewWidth/2;camera.top=viewWidth/r.width*r.height/2;camera.bottom=-camera.top;camera.updateProjectionMatrix();cockpitCamera.aspect=r.width/r.height;cockpitCamera.fov=cockpitFov(cockpitCamera.aspect);cockpitCamera.updateProjectionMatrix();if(repaint)wake()}
   const observer=new ResizeObserver(()=>resize())
   function render(now:number){
@@ -152,7 +154,22 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     target.set(follow?p.x-500+Math.cos(p.angle)*32:0,0,follow?p.y-360+Math.sin(p.angle)*32:0)
     if(!initialized||reduced.matches){focus.copy(target);initialized=true}else focus.lerp(target,1-Math.exp(-dt/100))
     camera.position.set(focus.x+(follow?160:0),follow?390:1050,focus.z+(follow?260:780));look.set(focus.x,0,focus.z);camera.lookAt(look)
-    if(firstPerson){const pose=cockpitPose(p);cockpitCamera.position.copy(point(pose.x,pose.z,pose.y));look.copy(cockpitCamera.position).add(new THREE.Vector3(Math.cos(pose.heading)*200,-Math.tan(pose.pitch)*200,Math.sin(pose.heading)*200));cockpitCamera.lookAt(look)}
+    if(firstPerson){
+      const pose=cockpitPose(p),motion=!reduced.matches&&s.phase==='playing'
+      const blend=1-Math.exp(-dt/85)
+      if(!cockpitInitialized){cockpitHeading=pose.heading;lastCockpitImpacts=p.impacts;cockpitInitialized=true}
+      const headingDelta=Math.atan2(Math.sin(pose.heading-cockpitHeading),Math.cos(pose.heading-cockpitHeading))
+      cockpitHeading+=headingDelta*(reduced.matches?1:blend)
+      if(p.impacts!==lastCockpitImpacts){lastCockpitImpacts=p.impacts;cockpitImpact=motion?1:0}
+      cockpitImpact=Math.max(0,cockpitImpact-dt/350)
+      const speed=Math.min(1,Math.abs(p.speed)/230)
+      const bob=motion?Math.sin(now*.022)*speed*.5:0
+      const shake=motion?cockpitImpact*Math.sin(now*.11)*1.6:0
+      cockpitCamera.position.copy(point(pose.x,pose.z,pose.y+bob+shake))
+      look.copy(cockpitCamera.position).add(new THREE.Vector3(Math.cos(cockpitHeading)*200,-Math.tan(pose.pitch)*200+shake*.7,Math.sin(cockpitHeading)*200))
+      cockpitCamera.lookAt(look)
+      cockpitCamera.rotateZ(motion?(p.drifting?Math.sin(now*.007)*.012:0)+cockpitImpact*Math.sin(now*.085)*.008:0)
+    }else cockpitInitialized=false
     parent.dataset.projection=firstPerson?'cockpit':follow?'isometric':'track'
     s.cars.forEach((car,id)=>{
       const model=cars[id],x=car.x-500,z=car.y-360,turn=Math.atan2(Math.sin(car.angle-model.previousAngle),Math.cos(car.angle-model.previousAngle));model.previousAngle=car.angle
