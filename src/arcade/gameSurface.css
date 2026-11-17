@@ -16,6 +16,11 @@
 .site-shell .gn-panel.gn-immersive{padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));border:0;grid-template-rows:44px 44px 44px minmax(0,1fr) 18px 20px 44px}
 .gn-panel.gn-immersive .gn-play-slot{width:100%;height:100%;min-width:0;min-height:0}
 .gn-panel.gn-immersive .gn-play-slot>.arcade-fit-surface{border:0;background:transparent}
+/* On portrait phones the active Groove stage uses the full available viewport
+   instead of being pillarboxed into the original 640/760 design ratio. */
+@media(orientation:portrait){
+ .gn-panel.gn-immersive .gn-play-slot>.arcade-fit-surface{width:100%;height:100%}
+}
 .gn-panel.gn-immersive .gn-play-slot .gn-play-area{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;aspect-ratio:auto;border:1px solid #ac8550;border-radius:3px;box-shadow:none}
 .gn-panel.gn-immersive .gn-challenge-bar{min-height:44px}
 .gn-panel.gn-immersive .gn-weapons button{min-height:44px}
