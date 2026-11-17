@@ -150,7 +150,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const marks=new Float32Array(256*6),markGeometry=new THREE.BufferGeometry();markGeometry.setAttribute('position',new THREE.BufferAttribute(marks,3));markGeometry.setDrawRange(0,0)
   const skid=new THREE.LineSegments(markGeometry,new THREE.LineBasicMaterial({color:'#111b23',transparent:true,opacity:.55,depthWrite:false}));skid.frustumCulled=false;scene.add(skid)
   let markIndex=0,markCount=0;const lastMarks:(THREE.Vector3|null)[]=read().cars.map(()=>null)
-  const focus=new THREE.Vector3(),target=new THREE.Vector3(),look=new THREE.Vector3();let initialized=false,viewWidth=1180
+  const focus=new THREE.Vector3(),target=new THREE.Vector3(),look=new THREE.Vector3(),skidPosition=new THREE.Vector3();let initialized=false,viewWidth=1180
   // Camera motion is presentation-only; it never alters deterministic kart physics.
   let cockpitHeading=0,cockpitInitialized=false,cockpitImpact=0,lastCockpitImpacts=0
   let lastCanvasWidth=0,lastCanvasHeight=0,lastViewWidth=0
@@ -216,7 +216,8 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       cockpitCamera.lookAt(look)
       cockpitCamera.rotateZ(motion?(p.drifting?Math.sin(now*.007)*.012:0)+cockpitImpact*Math.sin(now*.085)*.008:0)
     }else cockpitInitialized=false
-    parent.dataset.projection=firstPerson?'cockpit':follow?'isometric':'track'
+    const projection=firstPerson?'cockpit':follow?'isometric':'track'
+    if(parent.dataset.projection!==projection)parent.dataset.projection=projection
     s.cars.forEach((car,id)=>{
       const model=cars[id],x=car.x-500,z=car.y-360,turn=Math.atan2(Math.sin(car.angle-model.previousAngle),Math.cos(car.angle-model.previousAngle));model.previousAngle=car.angle
       model.root.position.set(x,5,z);model.root.rotation.y=-car.angle;model.root.rotation.x=car.drifting&&!reduced.matches?Math.sin(now*.02)*.025:0
@@ -225,17 +226,18 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       if(model.lastHealth!==car.health){model.lastHealth=car.health;model.paint.color.set(car.build.color).lerp(new THREE.Color('#5b4b3b'),(1-car.health)*.6)}
       model.bumper.rotation.z=(1-car.health)*.25;model.bumper.position.y=5-(1-car.health)*2;model.bumper.visible=car.health>.22
       model.smoke.visible=(car.health<.35||car.tow>0)&&!reduced.matches
-      model.smoke.children.forEach((puff,n)=>{puff.position.y=18+(n*5+now*.012)%27;puff.position.z=Math.sin(n*2+now*.001)*4})
+      if(model.smoke.visible)model.smoke.children.forEach((puff,n)=>{puff.position.y=18+(n*5+now*.012)%27;puff.position.z=Math.sin(n*2+now*.001)*4})
       if(car.impacts!==model.lastImpacts){model.lastImpacts=car.impacts;model.burstAt=now}
       const burst=(now-model.burstAt)/1000
       model.fragment.visible=burst<.65&&!reduced.matches
       if(model.fragment.visible){model.fragment.position.set(24+burst*28,5+burst*30-burst*burst*42,burst*20);model.fragment.rotation.set(burst*8,burst*5,burst*7)}
       model.flame.visible=car.boosting>0&&!reduced.matches;model.flame.scale.set(1+Math.sin(now*.035)*.12,1,1)
-      const pos=new THREE.Vector3(x-Math.cos(car.angle)*16,5.2,z-Math.sin(car.angle)*16)
       if(car.drifting&&!reduced.matches&&s.phase==='playing'){
+        skidPosition.set(x-Math.cos(car.angle)*16,5.2,z-Math.sin(car.angle)*16)
         const previous=lastMarks[id]
-        if(previous&&previous.distanceToSquared(pos)>1){const i=markIndex*6;marks.set([previous.x,previous.y,previous.z,pos.x,pos.y,pos.z],i);markIndex=(markIndex+1)%256;markCount=Math.min(256,markCount+1);markGeometry.attributes.position.needsUpdate=true;markGeometry.setDrawRange(0,markCount*2)}
-        lastMarks[id]=pos
+        if(previous&&previous.distanceToSquared(skidPosition)>1){const i=markIndex*6;marks.set([previous.x,previous.y,previous.z,skidPosition.x,skidPosition.y,skidPosition.z],i);markIndex=(markIndex+1)%256;markCount=Math.min(256,markCount+1);markGeometry.attributes.position.needsUpdate=true;markGeometry.setDrawRange(0,markCount*2)}
+        if(previous)previous.copy(skidPosition)
+        else lastMarks[id]=skidPosition.clone()
       }else lastMarks[id]=null
     })
     // The console covers the board. Avoid compiling shaders and environment
