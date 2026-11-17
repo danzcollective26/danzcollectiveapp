@@ -111,7 +111,18 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   let disposed=false,frame=0,last=performance.now(),lastReport=last,lastRaf=last,budget=0,slowFrames=0
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)'),prefs=options(),lite=prefs.quality==='lite',shadows=!lite,venue=VENUES.find(v=>v.id===prefs.venue)??VENUES[0]
   const renderer=new THREE.WebGLRenderer({antialias:!lite,powerPreference:'high-performance',alpha:false})
-  renderer.setPixelRatio(lite?1:Math.min(devicePixelRatio,prefs.quality==='high'?2:1.5));renderer.setClearColor(venue.sky)
+  // Cap the total pixel workload on large/high-DPR phones without forcing
+  // the cockpit down to a blurry 1x canvas on ordinary devices.
+  const maxDpr=lite?1:Math.min(window.devicePixelRatio||1,prefs.quality==='high'?2.25:1.75)
+  let activeDpr=maxDpr
+  const updateResolution=(width:number,height:number)=>{
+    const pixelBudget=lite?750_000:prefs.quality==='high'?3_200_000:2_100_000
+    const budgetDpr=Math.sqrt(pixelBudget/Math.max(1,width*height))
+    const next=Math.max(.75,Math.min(maxDpr,budgetDpr))
+    if(Math.abs(next-activeDpr)>.02){activeDpr=next;renderer.setPixelRatio(activeDpr)}
+    parent.dataset.pixelRatio=activeDpr.toFixed(2)
+  }
+  renderer.setPixelRatio(activeDpr);renderer.setClearColor(venue.sky)
   renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.14
   renderer.shadowMap.enabled=shadows;renderer.shadowMap.type=THREE.PCFSoftShadowMap
   renderer.domElement.style.cssText='display:block;width:100%;height:100%;touch-action:none';parent.appendChild(renderer.domElement);parent.dataset.renderMode='3d'
@@ -137,7 +148,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const focus=new THREE.Vector3(),target=new THREE.Vector3(),look=new THREE.Vector3();let initialized=false,viewWidth=1180
   // Camera motion is presentation-only; it never alters deterministic kart physics.
   let cockpitHeading=0,cockpitInitialized=false,cockpitImpact=0,lastCockpitImpacts=0
-  const resize=(repaint=true)=>{if(disposed)return;const r=parent.getBoundingClientRect();if(r.width<1||r.height<1)return;renderer.setSize(r.width,r.height,false);camera.left=-viewWidth/2;camera.right=viewWidth/2;camera.top=viewWidth/r.width*r.height/2;camera.bottom=-camera.top;camera.updateProjectionMatrix();cockpitCamera.aspect=r.width/r.height;cockpitCamera.fov=cockpitFov(cockpitCamera.aspect);cockpitCamera.updateProjectionMatrix();if(repaint)wake()}
+  const resize=(repaint=true)=>{if(disposed)return;const r=parent.getBoundingClientRect();if(r.width<1||r.height<1)return;updateResolution(r.width,r.height);renderer.setSize(r.width,r.height,false);camera.left=-viewWidth/2;camera.right=viewWidth/2;camera.top=viewWidth/r.width*r.height/2;camera.bottom=-camera.top;camera.updateProjectionMatrix();cockpitCamera.aspect=r.width/r.height;cockpitCamera.fov=cockpitFov(cockpitCamera.aspect);cockpitCamera.updateProjectionMatrix();if(repaint)wake()}
   const observer=new ResizeObserver(()=>resize())
   function render(now:number){
     frame=0;if(disposed)return
