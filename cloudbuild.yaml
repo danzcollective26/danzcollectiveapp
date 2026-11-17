@@ -1,0 +1,26 @@
+# DANZ Collective: continuous integration checks only.
+# Vercel remains responsible for publishing the PWA.
+steps:
+  - id: install
+    name: node:22
+    entrypoint: npm
+    args: ['ci', '--no-audit', '--no-fund']
+    volumes:
+      - name: node_modules
+        path: /workspace/node_modules
+  - id: unit-tests
+    name: node:22
+    entrypoint: npm
+    args: ['test']
+    volumes:
+      - name: node_modules
+        path: /workspace/node_modules
+  - id: production-build
+    name: node:22
+    entrypoint: npm
+    args: ['run', 'build']
+    volumes:
+      - name: node_modules
+        path: /workspace/node_modules
+options:
+  logging: CLOUD_LOGGING_ONLY
