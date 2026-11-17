@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#101011" />
+  <link rel="icon" href="/icons/danz-flower-black-192.png" />
+  <meta name="color-scheme" content="dark" />
+  <title>Prototipo · Salida en espiral — DANZ</title>
+  <!--
+    Prototipo aislado. No forma parte del arranque: no toca index.html,
+    App, el manifest ni el service worker. Se sirve en
+    /prototypes/splash-spiral.html
+    El icono es el PNG oficial del manifest (flor negra sobre blanco).
+  -->
+  <style>
+    :root { color-scheme: dark; --bg: #101011; --ink: #f3f0e8; --acid: #d9ff6b; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #070708; color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+    body { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px 16px 18px; }
+    .stage { position: relative; height: min(844px, calc(100dvh - 96px)); aspect-ratio: 390 / 844; width: auto; max-width: 100%; background: var(--bg); overflow: hidden; box-shadow: 0 24px 80px #000a; }
+    .home { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; z-index: 0; transform-origin: center center; }
+    .plate { position: absolute; inset: 0; z-index: 1; background: var(--bg); }
+    .mark { position: absolute; z-index: 2; left: 50%; top: 50%; width: 46%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 26%; background: #fff; }
+    canvas { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
+    .goo { position: absolute; z-index: 2; left: 50%; top: 50%; width: 78%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; opacity: 0;
+      background: conic-gradient(from 20deg, transparent 0 30deg, #f4f1ea 70deg, #e7f5b0 108deg, #f4f1ea 146deg, transparent 190deg 360deg);
+      -webkit-mask: radial-gradient(circle, transparent 28%, #000 40%, #000 54%, transparent 68%);
+      mask: radial-gradient(circle, transparent 28%, #000 40%, #000 54%, transparent 68%);
+      filter: blur(16px); }
+    .stage.is-playing .home { animation: home-in 1.9s cubic-bezier(.4, 0, .2, 1) forwards; }
+    .stage.is-playing .goo { animation: swirl 1.9s cubic-bezier(.45, .05, .2, 1) forwards; }
+    .stage.is-playing .plate { animation: fade-plate 1.9s cubic-bezier(.4, 0, .2, 1) forwards; }
+    .stage.is-playing .mark { animation: melt-mark 1.9s cubic-bezier(.4, 0, .2, 1) forwards; }
+    .stage[data-slow="true"].is-playing .home,
+    .stage[data-slow="true"].is-playing .goo,
+    .stage[data-slow="true"].is-playing .plate,
+    .stage[data-slow="true"].is-playing .mark { animation-duration: 5.7s; }
+    @keyframes home-in {
+      0%, 24% { filter: blur(14px); transform: scale(1.03); }
+      100% { filter: blur(0); transform: scale(1); }
+    }
+    @keyframes swirl {
+      0% { transform: translate(-50%, -50%) rotate(0deg) scale(.72); opacity: 0; }
+      22% { opacity: .8; }
+      58% { transform: translate(-50%, -50%) rotate(-180deg) scale(1.04); opacity: .85; }
+      100% { transform: translate(-50%, -50%) rotate(-380deg) scale(2.2); opacity: 0; }
+    }
+    @keyframes fade-plate {
+      0%, 24% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes melt-mark {
+      0% { transform: translate(-50%, -50%) scale(1); filter: none; opacity: 1; }
+      40% { transform: translate(-50%, -50%) scale(1.02) rotate(-6deg); filter: blur(1.5px); opacity: .88; }
+      74% { transform: translate(-50%, -50%) scale(.78) rotate(-14deg); filter: blur(8px); opacity: .28; }
+      100% { transform: translate(-50%, -50%) scale(.4) rotate(-22deg); filter: blur(16px); opacity: 0; }
+    }
+    .hud { width: min(390px, 100%); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+    .hud p { flex: 1 1 120px; margin: 0; color: #aaa9a3; font-size: 10px; font-weight: 750; letter-spacing: .08em; line-height: 1.4; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hud button { min-height: 44px; padding: 0 14px; border: 1px solid var(--acid); background: #101011; color: var(--ink); font: 800 11px/1 Arial, Helvetica, sans-serif; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; touch-action: manipulation; }
+    .hud button[aria-pressed="true"] { background: var(--acid); color: #101011; }
+    .hud button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 520px) {
+      body { padding: 0; gap: 0; }
+      .stage { width: 100vw; height: 100dvh; max-width: none; aspect-ratio: auto; box-shadow: none; }
+      .hud { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; width: auto; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: linear-gradient(#10101100, #101011e6 28%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .stage.is-playing .home, .stage.is-playing .goo, .stage.is-playing .plate, .stage.is-playing .mark { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <img class="home" id="home" src="home-inicio.webp" width="390" height="844" alt="Inicio de DANZ Collective" />
+    <div class="plate" id="plate" aria-hidden="true"></div>
+    <img class="mark" id="mark" src="/icons/danz-flower-black-512.png" alt="" width="512" height="512" />
+    <div class="goo" id="goo" hidden aria-hidden="true"></div>
+    <canvas id="fx" aria-hidden="true"></canvas>
+    <p class="sr" id="status" role="status">Icono de arranque</p>
+  </div>
+  <div class="hud">
+    <p>Prototipo aislado. No cambia el arranque.</p>
+    <div class="actions">
+      <button type="button" id="replay">Repetir</button>
+      <button type="button" id="slow" aria-pressed="false">Cámara lenta</button>
+    </div>
+  </div>
+  <noscript><style>.plate, .mark, canvas { display: none !important; }</style></noscript>
+  <script>
+    const stage = document.querySelector('#stage')
+    const home = document.querySelector('#home')
+    const plate = document.querySelector('#plate')
+    const mark = document.querySelector('#mark')
+    const goo = document.querySelector('#goo')
+    const canvas = document.querySelector('#fx')
+    const status = document.querySelector('#status')
+    const replay = document.querySelector('#replay')
+    const slowBtn = document.querySelector('#slow')
+    const reducedQuery = matchMedia('(prefers-reduced-motion: reduce)')
+    const params = new URLSearchParams(location.search)
+    const still = params.has('t') ? Number(params.get('t')) : NaN
+    const frozen = Number.isFinite(still) && still >= 0 && still <= 1 ? still : null
+    let slowMo = params.has('lento')
+    let raf = 0
+    let timer = 0
+    let elapsed = 0
+    let last = 0
+    let frames = 0
+    let frameMs = 0
+    const glx = setupGL()
+
+    if (slowMo) {
+      slowBtn.setAttribute('aria-pressed', 'true')
+      stage.setAttribute('data-slow', 'true')
+    }
+    if (!glx) goo.hidden = false
+
+    function duration() {
+      if (reducedQuery.matches) return slowMo ? 700 : 240
+      return slowMo ? 5700 : 1900
+    }
+
+    function setupGL() {
+      const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'high-performance' })
+      if (!gl) return null
+      const vs = 'attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}'
+      const fs = `
+        precision highp float;
+        uniform vec2 uRes; uniform vec2 uCenter; uniform float uHalf; uniform float uRad; uniform float uT; uniform sampler2D uIcon;
+        float hash(vec2 p){p=fract(p*vec2(123.34,345.45));p+=dot(p,p+34.345);return fract(p.x*p.y);}
+        float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);}
+        float rbox(vec2 p, vec2 b, float r){vec2 q=abs(p)-b+r;return length(max(q,0.0))+min(max(q.x,q.y),0.0)-r;}
+        void main(){
+          vec2 frag=gl_FragCoord.xy;
+          float minSide=min(uRes.x,uRes.y);
+          vec2 local=frag-uCenter;
+          vec2 p=local/minSide;
+          float t=clamp(uT,0.0,1.0);
+          float arm=smoothstep(0.06,0.78,t);
+          float bite=smoothstep(0.24,0.78,t);
+          float expand=smoothstep(0.55,1.0,t);
+          float scale=mix(1.0,2.8,expand*expand);
+          float inPx=uHalf*mix(0.7,0.26,bite);
+          float outPx=uHalf*mix(1.72,1.32,bite);
+          float innerR=inPx*scale/minSide;
+          float outerR=outPx*scale/minSide;
+          float turns=mix(1.35,1.9,arm);
+          float rot=-t*3.2;
+          float best=4.0;
+          float bestA=0.0;
+          float prevA=0.0;
+          float th0=rot;
+          vec2 prev=vec2(cos(th0),sin(th0))*innerR;
+          for(int i=0;i<32;i++){
+            float a=float(i+1)/32.0;
+            float th=rot+a*turns*6.2831853;
+            float sr=mix(innerR,outerR,a);
+            vec2 radial=vec2(cos(th),sin(th));
+            vec2 side=vec2(-radial.y,radial.x);
+            float wob=sin(a*9.0+t*2.4)*0.012*arm;
+            vec2 c=radial*sr+side*wob;
+            vec2 ba=c-prev;
+            vec2 pa=p-prev;
+            float h=clamp(dot(pa,ba)/max(dot(ba,ba),0.0001),0.0,1.0);
+            float alive=smoothstep(a-0.14,a+0.02,arm);
+            float d=length(pa-ba*h)+(1.0-alive)*2.4;
+            if(d<best){best=d;bestA=mix(prevA,a,h);}
+            prev=c;
+            prevA=a;
+          }
+          float width=(0.034+0.004*sin(bestA*8.0+t*2.0))*(0.84+0.16*smoothstep(0.0,0.2,bestA));
+          width*=mix(1.0,0.9,expand);
+          float edgeN=(noise(p*3.2+vec2(t*0.6,-t*0.4))-0.5)*0.004*arm;
+          float dist=best-width-edgeN;
+          float ribbon=1.0-smoothstep(-0.012,0.05,dist);
+          float core=1.0-smoothstep(-0.015,0.045,dist+width*0.25);
+          vec3 cream=vec3(0.953,0.945,0.90);
+          vec3 acid=vec3(0.86,0.97,0.58);
+          vec3 ink=vec3(0.05,0.05,0.055);
+          vec3 liq=mix(cream,acid,core*0.55);
+          vec2 uv=local/(uHalf*2.0)+0.5;
+          uv.y=1.0-uv.y;
+          vec3 iconRgb=texture2D(uIcon,clamp(uv,0.0,1.0)).rgb;
+          float sd=rbox(local,vec2(uHalf),uRad);
+          float inside=1.0-smoothstep(-0.8,2.8,sd);
+          float flower=smoothstep(0.62,0.12,iconRgb.r)*inside;
+          float nearIcon=1.0-smoothstep(uHalf*0.15,uHalf*1.7,length(local));
+          float bleed=ribbon*nearIcon*smoothstep(0.16,0.5,t)*(1.0-smoothstep(0.72,0.96,t));
+          liq=mix(liq,mix(cream,ink,flower),bleed*0.75);
+          float rim=smoothstep(-uHalf*0.85,uHalf*0.02,sd);
+          float dissolve=clamp(smoothstep(0.2,0.86,t)+rim*0.1*smoothstep(0.22,0.55,t),0.0,1.0);
+          float iconA=inside*(1.0-dissolve);
+          float liquidA=ribbon*smoothstep(0.04,0.2,t)*(1.0-smoothstep(0.58,1.0,t));
+          float fade=smoothstep(0.28,0.94,t);
+          float luma=smoothstep(0.0,1.15,length(p));
+          float veil=1.0-clamp(fade*(1.22-0.22*luma),0.0,1.0);
+          vec3 col=vec3(0.062745,0.062745,0.066667);
+          float a=veil;
+          col=mix(col,iconRgb,iconA);
+          a=a+iconA*(1.0-a);
+          col=mix(col,clamp(liq,0.0,1.0),liquidA);
+          a=a+liquidA*(1.0-a);
+          gl_FragColor=vec4(col*a,a);
+        }`
+      function shader(type, source) {
+        const item = gl.createShader(type)
+        gl.shaderSource(item, source)
+        gl.compileShader(item)
+        if (!gl.getShaderParameter(item, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(item) || 'shader')
+        return item
+      }
+      let program
+      try {
+        program = gl.createProgram()
+        gl.attachShader(program, shader(gl.VERTEX_SHADER, vs))
+        gl.attachShader(program, shader(gl.FRAGMENT_SHADER, fs))
+        gl.linkProgram(program)
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || 'link')
+      } catch (error) {
+        console.warn(error)
+        return null
+      }
+      gl.useProgram(program)
+      const buffer = gl.createBuffer()
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
+      const pos = gl.getAttribLocation(program, 'aPos')
+      gl.enableVertexAttribArray(pos)
+      gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0)
+      const tex = gl.createTexture()
+      gl.bindTexture(gl.TEXTURE_2D, tex)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      const uniforms = Object.fromEntries(['uRes', 'uCenter', 'uHalf', 'uRad', 'uT', 'uIcon'].map(name => [name, gl.getUniformLocation(program, name)]))
+      gl.uniform1i(uniforms.uIcon, 0)
+      let iconReady = false
+      function uploadIcon() {
+        if (!mark.complete || !mark.naturalWidth) return
+        gl.bindTexture(gl.TEXTURE_2D, tex)
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mark)
+        iconReady = true
+      }
+      if (mark.complete) uploadIcon()
+      else mark.addEventListener('load', uploadIcon, { once: true })
+      return { gl, uniforms, uploadIcon, get iconReady() { return iconReady } }
+    }
+
+    function resize() {
+      if (!glx) return
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+      const width = Math.max(1, Math.round(canvas.clientWidth * dpr))
+      const height = Math.max(1, Math.round(canvas.clientHeight * dpr))
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width
+        canvas.height = height
+      }
+      glx.gl.viewport(0, 0, canvas.width, canvas.height)
+    }
+
+    function draw(t) {
+      if (!glx) return
+      resize()
+      if (!glx.iconReady) glx.uploadIcon()
+      const gl = glx.gl
+      const canvasBox = canvas.getBoundingClientRect()
+      const iconBox = mark.getBoundingClientRect()
+      const scaleX = canvas.width / Math.max(1, canvasBox.width)
+      const scaleY = canvas.height / Math.max(1, canvasBox.height)
+      const centerX = (iconBox.left + iconBox.width / 2 - canvasBox.left) * scaleX
+      const centerY = canvas.height - (iconBox.top + iconBox.height / 2 - canvasBox.top) * scaleY
+      gl.uniform2f(glx.uniforms.uRes, canvas.width, canvas.height)
+      gl.uniform2f(glx.uniforms.uCenter, centerX, centerY)
+      gl.uniform1f(glx.uniforms.uHalf, iconBox.width / 2 * scaleX)
+      gl.uniform1f(glx.uniforms.uRad, iconBox.width * 0.26 * scaleX)
+      gl.uniform1f(glx.uniforms.uT, t)
+      gl.drawArrays(gl.TRIANGLES, 0, 3)
+    }
+
+    function stop() {
+      cancelAnimationFrame(raf)
+      clearTimeout(timer)
+      raf = 0
+      timer = 0
+    }
+
+    function smoothstep(edge0, edge1, value) {
+      const x = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)))
+      return x * x * (3 - 2 * x)
+    }
+
+    function styleHome(t) {
+      const fade = smoothstep(0.28, 0.94, t)
+      const blur = (1 - fade) * 14
+      const scale = 1.03 - fade * 0.03
+      home.style.filter = blur < 0.25 ? '' : `blur(${blur.toFixed(2)}px)`
+      home.style.transform = scale > 1.001 ? `scale(${scale.toFixed(4)})` : ''
+    }
+
+    function holdSplash() {
+      plate.hidden = false
+      plate.style.opacity = ''
+      plate.style.transition = 'none'
+      mark.style.visibility = 'visible'
+      mark.style.opacity = ''
+      mark.style.transition = 'none'
+      canvas.style.visibility = 'visible'
+      canvas.style.opacity = '1'
+      canvas.style.transition = 'none'
+      home.style.filter = ''
+      home.style.transform = ''
+      stage.classList.remove('is-playing')
+      status.textContent = 'Icono de arranque'
+    }
+
+    function finish() {
+      stop()
+      plate.hidden = true
+      mark.style.visibility = 'hidden'
+      canvas.style.visibility = 'hidden'
+      styleHome(1)
+      stage.classList.remove('is-playing')
+      status.textContent = 'Inicio'
+    }
+
+    function play() {
+      stop()
+      elapsed = 0
+      last = 0
+      frames = 0
+      frameMs = 0
+      holdSplash()
+      const ms = duration()
+      if (frozen != null && glx && !reducedQuery.matches) {
+        styleHome(frozen)
+        draw(frozen)
+        plate.hidden = true
+        mark.style.visibility = 'hidden'
+        status.textContent = 'Fotograma ' + frozen.toFixed(2)
+        return
+      }
+      if (reducedQuery.matches) {
+        if (glx) {
+          draw(0)
+          plate.hidden = true
+          mark.style.visibility = 'hidden'
+          canvas.style.transition = `opacity ${ms}ms linear`
+          requestAnimationFrame(() => { canvas.style.opacity = '0' })
+        } else {
+          plate.style.transition = `opacity ${ms}ms linear`
+          mark.style.transition = `opacity ${ms}ms linear`
+          requestAnimationFrame(() => { plate.style.opacity = '0'; mark.style.opacity = '0' })
+        }
+        timer = setTimeout(finish, ms + 40)
+        return
+      }
+      if (!glx) {
+        stage.classList.add('is-playing')
+        timer = setTimeout(finish, ms + 30)
+        return
+      }
+      const step = now => {
+        if (document.hidden) { last = 0; raf = requestAnimationFrame(step); return }
+        if (!last) last = now
+        const delta = now - last
+        last = now
+        elapsed += delta
+        frames += 1
+        frameMs += delta
+        const t = Math.min(1, elapsed / ms)
+        styleHome(t)
+        draw(t)
+        plate.hidden = true
+        mark.style.visibility = 'hidden'
+        if (t < 1) raf = requestAnimationFrame(step)
+        else finish()
+      }
+      raf = requestAnimationFrame(step)
+    }
+
+    replay.addEventListener('click', play)
+    slowBtn.addEventListener('click', () => {
+      slowMo = !slowMo
+      slowBtn.setAttribute('aria-pressed', String(slowMo))
+      stage.toggleAttribute('data-slow', slowMo)
+      play()
+    })
+    document.addEventListener('visibilitychange', () => { if (document.hidden) last = 0 })
+    window.__splash = {
+      play,
+      duration,
+      reduced: () => reducedQuery.matches,
+      renderer: glx ? 'webgl' : 'css',
+      fps: () => frames > 1 ? 1000 / (frameMs / frames) : 0,
+      frame(t) {
+        stop()
+        holdSplash()
+        styleHome(t)
+        draw(t)
+        if (glx) { plate.hidden = true; mark.style.visibility = 'hidden' }
+      },
+    }
+
+    const ready = Promise.all([
+      home.decode?.().catch(() => {}) ?? Promise.resolve(),
+      mark.decode?.().catch(() => {}) ?? Promise.resolve(),
+    ])
+    ready.then(() => play())
+  </script>
+</body>
+</html>
