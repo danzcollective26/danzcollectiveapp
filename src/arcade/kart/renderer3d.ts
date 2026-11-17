@@ -179,6 +179,13 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       if(p.impacts!==lastCockpitImpacts){lastCockpitImpacts=p.impacts;cockpitImpact=motion?1:0}
       cockpitImpact=Math.max(0,cockpitImpact-dt/350)
       const speed=Math.min(1,Math.abs(p.speed)/230)
+      // A restrained FOV increase conveys acceleration without warping the
+      // road or making reduced-motion users uncomfortable.
+      const baseFov=cockpitFov(cockpitCamera.aspect)
+      const desiredFov=baseFov+(motion?speed*4:0)
+      const fovBlend=1-Math.exp(-dt/180)
+      const nextFov=cockpitCamera.fov+(desiredFov-cockpitCamera.fov)*fovBlend
+      if(Math.abs(nextFov-cockpitCamera.fov)>.005){cockpitCamera.fov=nextFov;cockpitCamera.updateProjectionMatrix()}
       const bob=motion?Math.sin(now*.022)*speed*.5:0
       const shake=motion?cockpitImpact*Math.sin(now*.11)*1.6:0
       cockpitCamera.position.copy(point(pose.x,pose.z,pose.y+bob+shake))
