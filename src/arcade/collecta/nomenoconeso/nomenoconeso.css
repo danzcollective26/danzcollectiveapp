@@ -1,0 +1,59 @@
+.nnc-stub {
+  --nnc-accent: #efc267;
+  box-sizing: border-box;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 1.5rem;
+  color: #f4efe2;
+  background:
+    radial-gradient(circle at 20% 0%, #efc26733, transparent 16rem),
+    #10191e;
+  border: 1px solid #efc26755;
+  border-radius: 1.25rem;
+}
+
+.nnc-stub * { box-sizing: border-box; }
+
+.nnc-kicker {
+  margin: 0 0 0.35rem;
+  color: var(--nnc-accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nnc-stub h1 {
+  margin: 0 0 0.6rem;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.nnc-stub p { margin: 0 0 0.8rem; line-height: 1.4; }
+
+.nnc-stub ol {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+}
+
+.nnc-stub li { margin: 0.25rem 0; }
+
+.nnc-reserved { color: #c9c2b0; font-size: 0.9rem; }
+
+.nnc-stub button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.7rem 1rem;
+  color: #1a1408;
+  background: var(--nnc-accent);
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nnc-stub, .nnc-stub * {
+    animation: none;
+    transition: none;
+  }
+}
