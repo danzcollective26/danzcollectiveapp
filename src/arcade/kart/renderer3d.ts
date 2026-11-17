@@ -123,7 +123,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   let environment:THREE.WebGLRenderTarget|null=null
   scene.environmentIntensity=.45
   const loader=new THREE.TextureLoader(),textures:THREE.Texture[]=[]
-  const texture=(url:string,color=false)=>{const t=loader.load(url,loaded=>{if(disposed)loaded.dispose();else wake()},undefined,()=>{if(!disposed)parent.dataset.textureFallback='true'});t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=lite?1:4;if(color)t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t}
+  const texture=(url:string,color=false)=>{const t=loader.load(url,loaded=>{if(disposed)loaded.dispose();else wake()},undefined,()=>{if(!disposed)parent.dataset.textureFallback='true'});t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=lite?1:Math.min(renderer.capabilities.getMaxAnisotropy(),prefs.quality==='high'?8:4);if(color)t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t}
   const asphalt=new THREE.MeshStandardMaterial({map:texture('/arcade/kart/asphalt.webp',true),normalMap:lite?null:texture('/arcade/kart/asphalt-normal.webp'),normalScale:new THREE.Vector2(.3,.3),color:venue.road,roughness:venue.id==='night'?.4:.86,metalness:.03,side:THREE.DoubleSide})
   addVenue(scene,TRACKS[read().track],asphalt,shadows,venue)
   const cars=read().cars.map((car,id)=>{
