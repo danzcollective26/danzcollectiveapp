@@ -40,6 +40,7 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
   const [backup, setBackup] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
   const [celebrating, setCelebrating] = useState('')
+  const [bookOpen, setBookOpen] = useState(false)
   useEffect(() => {
     const celebration = redemption.celebration
     if (!celebration || celebration.owner !== userId || celebration.until <= Date.now()) { setCelebrating(''); return }
@@ -142,7 +143,7 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
     <p className="page-lead">Tu colección de noches. Cada sello guarda una fiesta y la llave para volver a sus fotos.</p>
     {redemption.message && <p className="passport-message passport-link-status" role="status">{redemption.message}</p>}
     <div className="passport-layout">
-      <div className="passport-book" aria-label="Pasaporte DANZ: portada y páginas de sellos">
+      <div className={`passport-book${bookOpen ? " is-open" : " is-closed"}`} aria-label="Pasaporte DANZ: portada y páginas de sellos">
         <aside className="passport-cover" aria-label="Portada del pasaporte">
           <img src="/brand/danz-collective-wordmark.png" alt="Danz Collective" width="225" height="32" />
           <span className="passport-cover-edition">MUSIC · PEOPLE · CULTURE</span>
@@ -150,9 +151,10 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
           <h2>PASAPORTE</h2>
           <p>NOCHES QUE<br />SE QUEDAN CONTIGO.</p>
           <div className="passport-cover-count">{stampsReady ? <><strong>{String(items.length).padStart(2, '0')}</strong><span>{items.length === 1 ? 'NOCHE GUARDADA' : 'NOCHES GUARDADAS'}</span></> : <span>TU HISTORIA EN DANZ</span>}</div>
+          <button type="button" className="passport-book-toggle" aria-expanded={bookOpen} aria-controls="danz-passport-pages" onClick={() => { haptic("selection"); setBookOpen(value => !value) }}>{bookOpen ? "CERRAR PASAPORTE" : "ABRIR MI PASAPORTE"} <span aria-hidden="true">↗</span></button>
         </aside>
-        <section className="passport-paper" aria-labelledby="passport-title">
-          <div className="passport-page-index"><span>REGISTRO DE NOCHES</span><DanzFlower /></div>
+        <section id="danz-passport-pages" className="passport-paper" aria-labelledby="passport-title" hidden={!bookOpen}>
+          <div className="passport-page-index"><span>REGISTRO DE NOCHES</span><button type="button" className="passport-pages-close" onClick={() => setBookOpen(false)}>CERRAR LIBRETA ×</button></div>
           <div className="passport-heading"><h2 id="passport-title">Mis sellos {stampsReady ? `(${items.length})` : ''}</h2>
             {userId && <button type="button" className="outline-btn" onClick={() => setRetry(value => value + 1)} disabled={authLoading || passport.loading}>ACTUALIZAR SELLOS</button>}
           </div>
