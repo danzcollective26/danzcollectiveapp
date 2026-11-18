@@ -1,7 +1,13 @@
-# Manual, read-only Gemini review. No automatic usage or publishing.
+# Manual, read-only Gemini review. Explicit per-run consent required for potential API charges.
 name: Gemini — revisión manual DANZ
 on:
   workflow_dispatch:
+    inputs:
+      authorize_possible_charges:
+        description: 'AUTORIZO esta ejecución: puede consumir cuota de Gemini y generar cargos según mi plan'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -12,6 +18,7 @@ concurrency:
 
 jobs:
   review:
+    if: ${{ inputs.authorize_possible_charges == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
