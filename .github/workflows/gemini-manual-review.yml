@@ -1,0 +1,61 @@
+# Manual, read-only Gemini review. No automatic usage or publishing.
+name: Gemini — revisión manual DANZ
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gemini-manual-review
+  cancel-in-progress: false
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check for configured API key
+        env:
+          GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_KEY" ]; then
+            echo 'Falta el secreto GEMINI_API_KEY. Configúralo en Settings > Secrets and variables > Actions.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+      - name: Checkout project (read only)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Review DANZPORTER and report findings
+        id: gemini
+        uses: google-github-actions/run-gemini-cli@v1
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          prompt: |
+            Lee GEMINI.md y AGENTS.md. Haz una revisión estática del código
+            src/arcade/kart y de sus pruebas. Señala hasta cinco fallos reales
+            con ruta, evidencia y propuesta de corrección. No modifiques
+            archivos, no ejecutes scripts, no accedas a servicios externos,
+            no publiques cambios ni afirmes haber probado el juego en móvil.
+            Responde en español. Prioriza problemas de rendimiento táctil,
+            cámara y modos 1vs1.
+          settings: |
+            {"tools":{"coreTools":["read_file","list_directory","glob","grep"]}}
+      - name: Publish review in Actions summary
+        if: always()
+        env:
+          GEMINI_SUMMARY: ${{ steps.gemini.outputs.summary }}
+          GEMINI_ERROR: ${{ steps.gemini.outputs.error }}
+        run: |
+          {
+            echo '## Gemini — revisión estática de DANZPORTER'
+            echo
+            if [ -n "$GEMINI_SUMMARY" ]; then
+              printf '%s\\n' "$GEMINI_SUMMARY"
+            elif [ -n "$GEMINI_ERROR" ]; then
+              echo 'Gemini devolvió un error. Consulta el registro de ejecución.'
+            else
+              echo 'No se ha recibido un resumen de Gemini.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
