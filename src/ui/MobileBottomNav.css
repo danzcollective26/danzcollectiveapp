@@ -1,0 +1,29 @@
+/* Navegación mobile DANZ — propuesta aislada para revisión del propietario. */
+.danz-bottom-nav,.danz-more-sheet,.danz-more-backdrop{display:none}
+@media(max-width:700px){
+  .site-shell:not(.quick-arrival) .desktop-nav{display:none}
+  .site-shell:not(.quick-arrival){padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+  .danz-bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));bottom:0;left:0;right:0;z-index:110;min-height:calc(68px + env(safe-area-inset-bottom,0px));padding:7px max(8px,env(safe-area-inset-left,0px)) calc(7px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px));border-top:1px solid #424044;background:#131314f5;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 -7px 28px #0008}
+  .danz-bottom-nav button{border:0;min-width:0;min-height:52px;padding:3px 1px;background:transparent;color:#dbd8d2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:manipulation}
+  .danz-bottom-nav button svg{width:24px;height:24px;flex:none}
+  .danz-bottom-nav button span{font:750 clamp(8px,2.25vw,10px)/1.2 Arial,sans-serif;letter-spacing:.015em;white-space:nowrap}
+  .danz-bottom-nav button.is-active{color:var(--acid)}
+  .danz-bottom-nav button.is-active:after{content:"";position:absolute;bottom:calc(5px + env(safe-area-inset-bottom,0px));width:23px;height:2px;border-radius:2px;background:var(--acid)}
+  .danz-more-flower{width:25px!important;height:25px!important}
+  .danz-more-backdrop{display:block;position:fixed;inset:0;z-index:111;background:#000a}
+  .danz-more-sheet{display:block;position:fixed;z-index:112;left:0;right:0;bottom:calc(68px + env(safe-area-inset-bottom,0px));border:1px solid #454249;border-radius:20px 20px 0 0;background:#1b1a1d;box-shadow:0 -20px 50px #000a;padding:22px 18px 12px;max-height:min(72dvh,580px);overflow:auto}
+  .danz-more-sheet-top{display:flex;justify-content:space-between;align-items:center;color:#d2cfca;font:800 11px Arial,sans-serif;letter-spacing:.15em;margin-bottom:12px}
+  .danz-more-sheet-top button{border:1px solid #5d5960;background:#28272b;color:#fff;border-radius:50%;width:40px;height:40px}
+  .danz-more-links button{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;background:transparent;color:#f2efe9;border:0;border-top:1px solid #3e3b40;padding:15px 5px;min-height:64px;cursor:pointer}
+  .danz-more-links button strong,.danz-more-links button small{display:block}
+  .danz-more-links button strong{font:850 15px Arial,sans-serif}
+  .danz-more-links button small{color:#aba6a6;margin-top:5px;font:400 12px Arial,sans-serif}
+  .danz-more-links button[aria-current=page] strong{color:var(--acid)}
+  .danz-more-links button>span:last-child{color:#ba9efa;font-size:20px}
+  .quick-arrival .danz-bottom-nav,.quick-arrival .danz-more-sheet,.quick-arrival .danz-more-backdrop{display:none}
+  html.arcade-session .danz-bottom-nav,html.arcade-session .danz-more-sheet,html.arcade-session .danz-more-backdrop{display:none}
+  html.arcade-session .site-shell{padding-bottom:0}
+  .site-shell:has(.danz-bottom-nav) .footer{padding-bottom:20px}
+}
+@media(max-width:360px){.danz-bottom-nav button svg{width:22px;height:22px}.danz-bottom-nav button span{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.danz-bottom-nav,.danz-more-sheet{scroll-behavior:auto}}
