@@ -367,23 +367,24 @@ export default function App() {
               </div>
             </section>
 
-            <section className="feature-grid content" aria-label="Secciones principales">
-              <button className="feature photo-feature" onClick={() => go('fotos')}>
-                <span className="feature-top"><span>01 / RECUERDOS</span><Arrow /></span>
+            <section className="danz-home-priority content" aria-label="Descubre DANZ">
+              <button className="feature photo-feature danz-home-photo" onClick={() => go('fotos')}>
+                <span className="feature-top"><span>01 / NUESTRAS NOCHES</span><Arrow /></span>
                 <div className="photo-art" aria-hidden="true"><span>★</span><i/><b>AFTER<br />THE<br />NIGHT</b></div>
-                <span className="feature-bottom"><strong>FOTOS</strong><small>Revive la noche.</small></span>
+                <span className="feature-bottom"><strong>FOTOS</strong><small>Revive cada fiesta.</small></span>
               </button>
-              <button className="feature arcade-feature" onClick={() => go('arcade')}>
-                <span className="feature-top"><span>02 / JUEGA</span><Arrow /></span>
-                <GameCover className="snake-art cable-cover" decorative />
-                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega a {GAME_TITLE}.</small></span>
-              </button>
-            </section>
 
-            <section className="content passport-home-section danz-wallet-home" aria-label="Tu pasaporte DANZ">
-              <button className="danz-wallet-link" type="button" onClick={() => go('pasaporte')} aria-label="Abrir mi Pasaporte DANZ y ver mis sellos">
-                <span className="danz-wallet-stack" aria-hidden="true"><span className="danz-wallet-back-card"/><span className="danz-wallet-front-card"><DanzFlower/><b>DANZ</b><small>PASAPORTE</small></span><span className="danz-wallet-strap"><DanzFlower/></span></span>
-                <span className="danz-wallet-home-copy"><small>TU CARTERA DE FIESTAS</small><strong>UN PASAPORTE.<br/>TODAS TUS NOCHES.</strong><span>Sellos, recuerdos y galerías desbloqueadas. Siempre contigo.</span><em>ABRIR MI PASAPORTE <span aria-hidden="true">↗</span></em></span>
+              <section className="passport-home-section danz-wallet-home" aria-label="Tu pasaporte DANZ">
+                <button className="danz-wallet-link" type="button" onClick={() => go('pasaporte')} aria-label="Abrir mi Pasaporte DANZ y ver mis sellos">
+                  <span className="danz-wallet-stack" aria-hidden="true"><span className="danz-wallet-back-card"/><span className="danz-wallet-front-card"><DanzFlower/><b>DANZ</b><small>PASAPORTE</small></span><span className="danz-wallet-strap"><DanzFlower/></span></span>
+                  <span className="danz-wallet-home-copy"><small>02 / TU CARTERA DE FIESTAS</small><strong>UN PASAPORTE.<br/>TODAS TUS NOCHES.</strong><span>Una fiesta, un sello, un recuerdo. Descubre tu colección DANZ.</span><em>DESCUBRIR MI PASAPORTE <span aria-hidden="true">↗</span></em></span>
+                </button>
+              </section>
+
+              <button className="feature arcade-feature danz-home-arcade" onClick={() => go('arcade')}>
+                <span className="feature-top"><span>03 / PLAY DANZ</span><Arrow /></span>
+                <GameCover className="snake-art cable-cover" decorative />
+                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Explora nuestros juegos.</small></span>
               </button>
             </section>
 
