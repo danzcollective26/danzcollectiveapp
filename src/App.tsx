@@ -7,6 +7,7 @@ import { cancelSectionTransition, transitionSection } from './ui/sectionTransiti
 import LoadingSkeleton from './ui/LoadingSkeleton'
 import MobileBottomNav from './ui/MobileBottomNav'
 import './App.css'
+import './homeVisualReview.css'
 import './arcade/gameSurface.css'
 import './arcade/gameScreen.css'
 import './arcade/arcadeLibrary.css'
@@ -360,10 +361,10 @@ export default function App() {
           <>
             <section className="intro content">
               <div className="eyebrow"><DanzFlower className="eyebrow-flower" /> MUSIC · PEOPLE · CULTURE</div>
-              <h1>WE ARE<br /><em>DANZ.</em></h1>
+              <h1>VIVE.<br /><em>RECUERDA.</em><br />JUEGA.</h1>
               <div className="intro-bottom">
                 <p>Tu noche no acaba cuando termina la música.</p>
-                <span>UNA EXPERIENCIA DEL COLECTIVO, EN UN SOLO LUGAR. ↓</span>
+                <span>FOTOS · PASAPORTE · ARCADANZ ↓</span>
               </div>
             </section>
 
@@ -371,7 +372,7 @@ export default function App() {
               <button className="feature photo-feature danz-home-photo" onClick={() => go('fotos')}>
                 <span className="feature-top"><span>01 / NUESTRAS NOCHES</span><Arrow /></span>
                 <div className="photo-art" aria-hidden="true"><span>★</span><i/><b>AFTER<br />THE<br />NIGHT</b></div>
-                <span className="feature-bottom"><strong>FOTOS</strong><small>Revive cada fiesta.</small></span>
+                <span className="feature-bottom"><strong>FOTOS</strong><small>Las noches pasan. Los recuerdos quedan. <span aria-hidden="true">↗</span></small></span>
               </button>
 
               <section className="passport-home-section danz-wallet-home" aria-label="Tu pasaporte DANZ">
@@ -384,7 +385,7 @@ export default function App() {
               <button className="feature arcade-feature danz-home-arcade" onClick={() => go('arcade')}>
                 <span className="feature-top"><span>03 / PLAY DANZ</span><Arrow /></span>
                 <GameCover className="snake-art cable-cover" decorative />
-                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Explora nuestros juegos.</small></span>
+                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega, compite y descubre. <span aria-hidden="true">↗</span></small></span>
               </button>
             </section>
 
