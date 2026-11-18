@@ -20,7 +20,7 @@ jobs:
   review:
     if: ${{ inputs.authorize_possible_charges == 'AUTORIZO_COSTE_GEMINI' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     steps:
       - name: Check for configured API key
         env:
@@ -39,6 +39,7 @@ jobs:
         uses: google-github-actions/run-gemini-cli@v0
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: gemini-2.5-flash
           prompt: |
             Lee GEMINI.md y AGENTS.md. Haz una revisión estática del código
             src/arcade/kart y de sus pruebas. Señala hasta cinco fallos reales
@@ -48,7 +49,7 @@ jobs:
             Responde en español. Prioriza problemas de rendimiento táctil,
             cámara y modos 1vs1.
           settings: |
-            {"tools":{"core":["read_file","list_directory","glob","search_file_content"]}}
+            {"model":{"maxSessionTurns":6},"tools":{"core":["read_file","list_directory","glob","search_file_content"]}}
       - name: Publish review in Actions summary
         if: always()
         env:
