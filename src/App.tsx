@@ -5,6 +5,7 @@ import { flushSync } from 'react-dom'
 import { haptic } from './ui/haptics'
 import { cancelSectionTransition, transitionSection } from './ui/sectionTransition'
 import LoadingSkeleton from './ui/LoadingSkeleton'
+import MobileBottomNav from './ui/MobileBottomNav'
 import './App.css'
 import './arcade/gameSurface.css'
 import './arcade/gameScreen.css'
@@ -379,11 +380,10 @@ export default function App() {
               </button>
             </section>
 
-            <section className="content passport-home-section" aria-label="Tu pasaporte DANZ">
-              <button className="passport-home-link" onClick={() => go('pasaporte')}>
-                <span className="passport-mini-book" aria-hidden="true"><DanzFlower /><span>PASAPORTE</span></span>
-                <span className="passport-home-copy"><small>TU COLECCIÓN DE NOCHES</small><strong>Un pasaporte.<br />Todas tus fiestas.</strong><span>Guarda tus sellos y vuelve a sus galerías.</span></span>
-                <Arrow />
+            <section className="content passport-home-section danz-wallet-home" aria-label="Tu pasaporte DANZ">
+              <button className="danz-wallet-link" type="button" onClick={() => go('pasaporte')} aria-label="Abrir mi Pasaporte DANZ y ver mis sellos">
+                <span className="danz-wallet-stack" aria-hidden="true"><span className="danz-wallet-back-card"/><span className="danz-wallet-front-card"><DanzFlower/><b>DANZ</b><small>PASAPORTE</small></span><span className="danz-wallet-strap"><DanzFlower/></span></span>
+                <span className="danz-wallet-home-copy"><small>TU CARTERA DE FIESTAS</small><strong>UN PASAPORTE.<br/>TODAS TUS NOCHES.</strong><span>Sellos, recuerdos y galerías desbloqueadas. Siempre contigo.</span><em>ABRIR MI PASAPORTE <span aria-hidden="true">↗</span></em></span>
               </button>
             </section>
 
@@ -507,6 +507,7 @@ export default function App() {
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
       <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
+      <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )
