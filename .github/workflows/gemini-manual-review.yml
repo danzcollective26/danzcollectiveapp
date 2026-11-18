@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       authorize_possible_charges:
-        description: 'AUTORIZO esta ejecución: puede consumir cuota de Gemini y generar cargos según mi plan'
+        description: 'Escribe AUTORIZO_COSTE_GEMINI para aceptar los posibles cargos de ESTA ejecución'
         required: true
-        type: boolean
-        default: false
+        type: string
+        default: 'NO_AUTORIZO'
 
 permissions:
   contents: read
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   review:
-    if: ${{ inputs.authorize_possible_charges == true }}
+    if: ${{ inputs.authorize_possible_charges == 'AUTORIZO_COSTE_GEMINI' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
