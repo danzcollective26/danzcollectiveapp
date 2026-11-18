@@ -116,27 +116,26 @@
 .pass-claim-now { width: 100%; margin-top: 12px; }
 @media(max-width:380px) { .pass-visual-guide { padding: 18px 14px; } .pass-visual-guide li { grid-template-columns: 46px minmax(0,1fr); gap: 13px; } .pass-guide-art,.pass-guide-art svg { width: 46px; } }
 
-/* DANZ passport visual review 02 — ink-black and aubergine leather, paper kept readable.
-   Pure presentation: attendance verification, account data and gallery access unchanged. */
-.passport-page .page-title.passport-title em {color:#bda3d3}
-.passport-book{background:#17121d;border-color:#584566;border-radius:18px;box-shadow:0 25px 65px #0008,0 0 0 1px #aa8ab21c}
-.passport-cover{color:#eee2f5;border-color:#725b7d77;border-radius:13px;background:radial-gradient(ellipse at 28% 15%,#493653 0%,transparent 58%),repeating-linear-gradient(105deg,transparent 0 3px,#ffffff03 3px 4px),linear-gradient(150deg,#2b2034,#100e15 88%);box-shadow:inset -13px 0 26px #0007,inset 2px 0 0 #fff1}
-.passport-cover:before{border-color:#bda3d34f;border-radius:9px}
-.passport-cover-edition,.passport-cover p{color:#cbb5d8}
-.passport-cover-flower{color:#d9c4e6;filter:drop-shadow(0 4px 13px #a380b980)}
-.passport-cover-count{border-color:#bda3d344}
-.passport-paper{color:#302735;background:linear-gradient(90deg,#d6ccd6,#f7f2eb 5%,#f7f2eb 96%,#dfd4e1);border-right-color:#c8b5cc}
-.passport-page-index{border-bottom-color:#b8a8ba}
-.passport-page-index svg{color:#7c628c}
-.passport-paper .outline-btn{color:#3b2b45;border-color:#a08aa8;border-radius:9px}
-.passport-paper .outline-btn:hover{background:#e8dfea;border-color:#5a3e69}
-.passport-next-stamp{border-color:#9a7fa685;color:#826b91}
-.passport-stamp{border-bottom-color:#d0c4d1;--stamp-ink:#674a78}
-.passport-stamp[data-ink='1']{--stamp-ink:#88577d}
-.passport-stamp[data-ink='2']{--stamp-ink:#765c8c}
-.passport-paper-foot{color:#826c86}
-.passport-redeem{background:linear-gradient(135deg,#29202f,#151217);border-color:#594964;border-radius:16px}
-.passport-redeem-number{color:#c7a8d5}
-.passport-redeem input{background:#100e14;border-color:#7c6987;border-radius:9px}
-.passport-redeem input:focus-visible{outline:2px solid #d2b1de;outline-offset:2px}
+/* DANZ passport review 03: black-and-gold edition. Visual-only; verified stamps and permissions intact. */
+.passport-page .page-title.passport-title em{color:#d5b777}
+.passport-book{background:#110f0d;border-color:#75603c;border-radius:17px;box-shadow:0 26px 64px #0009,0 0 0 1px #d6b57626}
+.passport-cover{color:#e3c78b;border-color:#8c7546;border-radius:12px;background:radial-gradient(ellipse at 22% 10%,#473721 0%,transparent 56%),repeating-linear-gradient(105deg,transparent 0 3px,#fff2 3px 4px),linear-gradient(145deg,#2a2117,#0c0c0c 80%);box-shadow:inset -15px 0 24px #0009,inset 2px 0 0 #fff1}
+.passport-cover:before{border-color:#c7a45b77;border-radius:8px}
+.passport-cover-edition,.passport-cover p{color:#d8c59e}
+.passport-cover-flower{color:#d8b46c;filter:drop-shadow(0 4px 12px #d9ae4940)}
+.passport-cover-count{border-color:#c7a45b75}
+.passport-paper{color:#28231d;background:linear-gradient(90deg,#d7ccb6,#faf6ec 5%,#faf6ec 96%,#e1d5c1);border-right-color:#c6b18b}
+.passport-page-index{border-bottom-color:#cbbd9d}
+.passport-page-index svg{color:#957341}
+.passport-paper .outline-btn{color:#3a2c18;border-color:#b9a176;border-radius:8px}
+.passport-paper .outline-btn:hover{background:#f1e7d0;border-color:#85672e}
+.passport-next-stamp{border-color:#b9a176;color:#91723d}
+.passport-stamp{border-bottom-color:#d7c9b0;--stamp-ink:#8c713e}
+.passport-stamp[data-ink='1']{--stamp-ink:#7e6133}
+.passport-stamp[data-ink='2']{--stamp-ink:#9a7745}
+.passport-paper-foot{color:#8a754c}
+.passport-redeem{background:linear-gradient(140deg,#241e16,#101010);border-color:#75603c;border-radius:15px}
+.passport-redeem-number{color:#d1af6a}
+.passport-redeem input{background:#11100e;border-color:#917b56;border-radius:8px}
+.passport-redeem input:focus-visible{outline:2px solid #d7bb7f;outline-offset:2px}
 @media(max-width:560px){.passport-book{border-radius:16px}.passport-cover{border-radius:12px}.passport-paper{border-radius:10px}}
