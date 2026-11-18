@@ -47,7 +47,7 @@ export default function MobileBottomNav({ page, navigate, adminAvailable }: Prop
   const choose = (id: DanzSection) => { setMoreOpen(false); navigate(id) }
   return <>
     {moreOpen && <div className="danz-more-backdrop" onClick={() => setMoreOpen(false)} aria-hidden="true"/>}
-    {moreOpen && <section className="danz-more-sheet" aria-label="Más secciones de DANZ">
+    {moreOpen && <section id="danz-more-panel" className="danz-more-sheet" aria-label="Más secciones de DANZ">
       <div className="danz-more-sheet-top"><span>EXPLORA DANZ</span><button type="button" onClick={() => setMoreOpen(false)} aria-label="Cerrar menú">✕</button></div>
       <div className="danz-more-links">
         {[...MORE_ITEMS, ...(adminAvailable ? [{id: 'admin' as const, title: 'ADMINISTRACIÓN', subtitle: 'Gestión del colectivo'}] : [])].map(item =>
