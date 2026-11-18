@@ -115,3 +115,28 @@
 .pass-reminder-options a { display: flex; justify-content: center; white-space: normal; text-align: center; margin-top: 12px; text-decoration: none; }
 .pass-claim-now { width: 100%; margin-top: 12px; }
 @media(max-width:380px) { .pass-visual-guide { padding: 18px 14px; } .pass-visual-guide li { grid-template-columns: 46px minmax(0,1fr); gap: 13px; } .pass-guide-art,.pass-guide-art svg { width: 46px; } }
+
+/* DANZ passport visual review 02 — ink-black and aubergine leather, paper kept readable.
+   Pure presentation: attendance verification, account data and gallery access unchanged. */
+.passport-page .page-title.passport-title em {color:#bda3d3}
+.passport-book{background:#17121d;border-color:#584566;border-radius:18px;box-shadow:0 25px 65px #0008,0 0 0 1px #aa8ab21c}
+.passport-cover{color:#eee2f5;border-color:#725b7d77;border-radius:13px;background:radial-gradient(ellipse at 28% 15%,#493653 0%,transparent 58%),repeating-linear-gradient(105deg,transparent 0 3px,#ffffff03 3px 4px),linear-gradient(150deg,#2b2034,#100e15 88%);box-shadow:inset -13px 0 26px #0007,inset 2px 0 0 #fff1}
+.passport-cover:before{border-color:#bda3d34f;border-radius:9px}
+.passport-cover-edition,.passport-cover p{color:#cbb5d8}
+.passport-cover-flower{color:#d9c4e6;filter:drop-shadow(0 4px 13px #a380b980)}
+.passport-cover-count{border-color:#bda3d344}
+.passport-paper{color:#302735;background:linear-gradient(90deg,#d6ccd6,#f7f2eb 5%,#f7f2eb 96%,#dfd4e1);border-right-color:#c8b5cc}
+.passport-page-index{border-bottom-color:#b8a8ba}
+.passport-page-index svg{color:#7c628c}
+.passport-paper .outline-btn{color:#3b2b45;border-color:#a08aa8;border-radius:9px}
+.passport-paper .outline-btn:hover{background:#e8dfea;border-color:#5a3e69}
+.passport-next-stamp{border-color:#9a7fa685;color:#826b91}
+.passport-stamp{border-bottom-color:#d0c4d1;--stamp-ink:#674a78}
+.passport-stamp[data-ink='1']{--stamp-ink:#88577d}
+.passport-stamp[data-ink='2']{--stamp-ink:#765c8c}
+.passport-paper-foot{color:#826c86}
+.passport-redeem{background:linear-gradient(135deg,#29202f,#151217);border-color:#594964;border-radius:16px}
+.passport-redeem-number{color:#c7a8d5}
+.passport-redeem input{background:#100e14;border-color:#7c6987;border-radius:9px}
+.passport-redeem input:focus-visible{outline:2px solid #d2b1de;outline-offset:2px}
+@media(max-width:560px){.passport-book{border-radius:16px}.passport-cover{border-radius:12px}.passport-paper{border-radius:10px}}
