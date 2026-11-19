@@ -38,6 +38,7 @@ export default function PassportBook({ client, userId, authLoading, stamps, read
   const [page, setPage] = useState(0)
   const [turn, setTurn] = useState<'next'|'previous'>('next')
   const [profile, setProfile] = useState<Profile>({ owner: '', name: null, registeredAt: null })
+  const [membership, setMembership] = useState<{ owner: string; number: number | null }>({ owner: '', number: null })
   const [coverChoice, setCoverChoice] = useState(() => userId ? readPassportCover(userId) : null)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [coverError, setCoverError] = useState(false)
@@ -57,6 +58,14 @@ export default function PassportBook({ client, userId, authLoading, stamps, read
     if (!client || !userId || authLoading) return
     const controller = new AbortController()
     setProfile({ owner: userId, name: null, registeredAt: null })
+    setMembership({ owner: userId, number: null })
+    void (async () => {
+      try {
+        const { data, error } = await readWithDeadline(signal => client.from('danz_membership_numbers')
+          .select('member_number').eq('user_id', userId).abortSignal(signal).maybeSingle(), controller.signal)
+        if (!error && !controller.signal.aborted) setMembership({ owner: userId, number: data?.member_number ?? null })
+      } catch { /* Membership display fails closed; never invent a number. */ }
+    })()
     void (async () => {
       try {
         const { data, error } = await readWithDeadline(signal => client.from('danz_profiles')
@@ -142,7 +151,7 @@ export default function PassportBook({ client, userId, authLoading, stamps, read
           <div className="danz-paper-rule"/><div className="danz-paper-kicker">01 / IDENTIDAD</div>
           <h2 className="danz-paper-title">TU VIAJE<br/>EMPIEZA AQUÍ.</h2>
           <div className="danz-member-photo" aria-hidden="true">{coverUrl ? <img src={coverUrl} referrerPolicy="no-referrer" alt="" /> : <DanzFlower/>}</div>
-          <dl className="danz-member-fields"><dt>NOMBRE</dt><dd>{name}</dd><dt>Nº DE SOCIO</dt><dd>{userId ? 'PENDIENTE DE ASIGNACIÓN' : 'AL REGISTRARTE'}</dd><dt>ALTA</dt><dd>{userId && profile.owner === userId ? friendlyDate(profile.registeredAt) : 'AL REGISTRARTE'}</dd><dt>VIAJES</dt><dd>{ready ? String(stamps.length).padStart(2, '0') : '—'}</dd></dl>
+          <dl className="danz-member-fields"><dt>NOMBRE</dt><dd>{name}</dd><dt>Nº DE SOCIO</dt><dd>{userId && membership.owner === userId && membership.number !== null ? String(membership.number).padStart(6, '0') : userId ? 'CONSULTANDO REGISTRO' : 'AL REGISTRARTE'}</dd><dt>ALTA</dt><dd>{userId && profile.owner === userId ? friendlyDate(profile.registeredAt) : 'AL REGISTRARTE'}</dd><dt>VIAJES</dt><dd>{ready ? String(stamps.length).padStart(2, '0') : '—'}</dd></dl>
           {!userId && <button type="button" className="danz-paper-action" onClick={onSignIn}>INICIAR SESIÓN ↗</button>}
           <div className="danz-paper-foot">DOCUMENTO PERSONAL · DANZ COLLECTIVE</div>
         </>}
