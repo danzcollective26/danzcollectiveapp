@@ -83,3 +83,15 @@
 }
 @media(max-height:720px){.danz-travel-window{height:72dvh;min-height:420px}.danz-paper-title{font-size:clamp(29px,7vw,42px)}.danz-member-photo{height:118px}.danz-member-fields{margin:9px 0}.danz-trip-photo{height:118px}}
 @media(prefers-reduced-motion:reduce){.danz-turn-next,.danz-turn-previous{animation:none}.danz-travel-leaf{will-change:auto}}
+
+
+/* Consistent non-AI editorial portrait: rendered locally on the person's device. */
+.danz-member-photo{isolation:isolate;filter:contrast(1.04)}
+.danz-member-photo img{filter:grayscale(1) contrast(1.23) brightness(.96);display:block}
+.danz-member-photo:after{content:'';pointer-events:none;position:absolute;inset:0;opacity:.22;mix-blend-mode:multiply;background-image:radial-gradient(#332c25 0.6px,transparent 0.8px);background-size:3px 3px}
+.danz-portrait-demo{margin:10px 0 15px;display:flex;align-items:start;flex-direction:column;gap:7px}
+.danz-portrait-demo label{font-weight:850;font-size:9px;letter-spacing:.1em;color:#3f3930}
+.danz-portrait-demo input{display:block;width:100%;max-width:340px;font-size:11px;color:#25201c}
+.danz-portrait-demo input::file-selector-button{border:1px solid #655e51;padding:8px 10px;margin-right:10px;background:#252420;color:#f8f4ed;cursor:pointer}
+.danz-portrait-demo p{margin:0;font-size:10px;line-height:1.4;color:#6c6255}
+.danz-portrait-demo button{border:1px solid #655e51;background:transparent;color:#25201c;font-size:10px;font-weight:850;min-height:36px;padding:7px 10px}
