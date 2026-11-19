@@ -12,6 +12,11 @@ export default function InstagramLink({ focusOnMount = false }: { focusOnMount?:
   catch(e){if(alive.current){const code=(e as {code?:string})?.code;setMessage(code==='54000'?'Puedes cambiar la solicitud cinco veces al día. Prueba mañana.':code==='22023'?'Revisa el usuario. Ese Instagram puede estar vinculado a otra cuenta.':'No se ha podido preparar el código. Comprueba que tu correo esté confirmado y reinténtalo.')}}
   finally{clearTimeout(timer);action.current=null;if(alive.current)setBusy(false)}
  }
+ const [copyMessage,setCopyMessage]=useState('')
+ const copyCode=async(code:string)=>{
+  try { await navigator.clipboard.writeText(code);setCopyMessage('Código copiado. Ahora envíalo desde tu Instagram al perfil de DANZ.') }
+  catch { setCopyMessage('Mantén pulsado el código para seleccionarlo y copiarlo.') }
+ }
  const sectionRef=useRef<HTMLElement|null>(null)
  useEffect(()=>{
   if(!focusOnMount || identity.loading)return
@@ -30,7 +35,7 @@ export default function InstagramLink({ focusOnMount = false }: { focusOnMount?:
    {d.status==='changed'&&<p>El Instagram del perfil ha cambiado. Verifica el nuevo usuario para disponer de tus puntos.</p>}
    {d.status==='rejected'&&<p>No hemos podido comprobar la solicitud anterior. Revisa el usuario y solicita otro código.</p>}
    <form className="account-form" onSubmit={request}><label htmlFor="verified-instagram">INSTAGRAM PARA VERIFICAR</label><input id="verified-instagram" value={handle} maxLength={31} required pattern="@?[A-Za-z0-9_.]{1,30}" disabled={busy||!d.emailVerified} placeholder="@tuusuario" onChange={e=>setHandle(e.target.value)}/><button className="primary-btn" disabled={busy||!d.emailVerified}>{busy?'PREPARANDO…':'PREPARAR MI CÓDIGO'}</button></form>
-   {d.status==='pending'&&d.code&&<div className="instagram-proof"><label htmlFor="instagram-code">TU CÓDIGO DE VINCULACIÓN</label><input id="instagram-code" readOnly value={d.code} onFocus={e=>e.target.select()}/><ol><li>Envía <strong>{d.code}</strong> desde <strong>@{d.handle}</strong> por mensaje directo a <strong>@danz.collective</strong> en Instagram. También puedes ponerlo temporalmente en la bio de ese perfil.</li><li>El equipo comprobará que el código llega desde ese usuario o aparece en su bio y validará la solicitud.</li><li>Al estar validado, pulsa ACTUALIZAR VINCULACIÓN. Puedes retirar el código de la bio después de la aprobación.</li></ol><a className="outline-btn external-btn" href="https://www.instagram.com/danz.collective/" target="_blank" rel="noopener noreferrer">ABRIR INSTAGRAM DE DANZ ↗</a><p className="account-note">La revisión es manual. El código caduca a los siete días; tus puntos quedan reservados mientras tanto. No te pedimos la contraseña de Instagram.</p></div>}
+   {d.status==='pending'&&d.code&&<div className="instagram-proof"><label htmlFor="instagram-code">TU CÓDIGO DE VINCULACIÓN</label><input id="instagram-code" readOnly value={d.code} onFocus={e=>e.target.select()}/><button className="primary-btn instagram-copy-code" type="button" onClick={() => { void copyCode(d.code!) }}>COPIAR CÓDIGO</button>{copyMessage&&<p role="status">{copyMessage}</p>}<ol><li>Envía <strong>{d.code}</strong> desde <strong>@{d.handle}</strong> por mensaje directo a <strong>@danz.collective</strong> en Instagram. También puedes ponerlo temporalmente en la bio de ese perfil.</li><li>El equipo comprobará que el código llega desde ese usuario o aparece en su bio y validará la solicitud.</li><li>Al estar validado, pulsa ACTUALIZAR VINCULACIÓN. Puedes retirar el código de la bio después de la aprobación.</li></ol><a className="outline-btn external-btn" href="https://www.instagram.com/danz.collective/" target="_blank" rel="noopener noreferrer">ABRIR INSTAGRAM DE DANZ ↗</a><p className="account-note">La revisión es manual. El código caduca a los siete días; tus puntos quedan reservados mientras tanto. No te pedimos la contraseña de Instagram.</p></div>}
   </>}
   <button className="outline-btn" onClick={identity.refresh}>ACTUALIZAR VINCULACIÓN ↻</button>
  </>}{message&&<p aria-live="polite">{message}</p>}</section>
