@@ -9,6 +9,7 @@ import ProgressiveImage from '../ui/ProgressiveImage'
 import { usePhotoFavorites } from '../ui/favorites'
 import { haptic } from '../ui/haptics'
 import { clampScale } from '../feel/viewerGestures'
+import { selectPassportCover } from '../events/passportCover'
 import './PrivateGallery.css'
 
 export type PrivateGalleryProps = {
@@ -58,6 +59,7 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
   const [choice, setChoice] = useState<{ owner: string | null; id: string }>({ owner: userId, id: initialEventId })
   const [photos, setPhotos] = useState<PhotoState>({ client: null, owner: null, eventId: '', items: [], loading: true, error: false, expiresAt: 0 })
   const [retry, setRetry] = useState(0)
+  const [passportPhotoMessage, setPassportPhotoMessage] = useState('')
   const [pageSize, setPageSize] = useState(60)
   const [fullPhoto, setFullPhoto] = useState<{ owner: string; eventId: string; id: string; url: string } | null>(null)
   const [visible, setVisible] = useState(() => document.visibilityState !== 'hidden')
@@ -354,11 +356,17 @@ export default function PrivateGallery({ client, userId, authLoading, onSignIn, 
       </div>
       <p className="private-viewer-hint">{ownZoom ? 'Arrastra para recorrer la foto · Doble toque para ajustar.' : 'Desliza para pasar de foto · Doble toque para ampliar.'}</p>
       <div className="private-gallery-viewer-actions">
+        <button type="button" className="outline-btn" onClick={() => {
+          const saved = selectPassportCover(userId, { eventId, photoId: shownPhoto.id })
+          setPassportPhotoMessage(saved ? 'Foto seleccionada para tu Pasaporte DANZ. Puedes cambiarla cuando quieras.' : 'Este navegador no permite guardar la selección.')
+          haptic('success')
+        }}>USAR EN MI PASAPORTE ↗</button>
         <button type="button" className="outline-btn photo-favorite-button" aria-pressed={favorites.ids.includes(shownPhoto.id)} aria-label={favorites.ids.includes(shownPhoto.id) ? 'Quitar de favoritas' : 'Guardar en favoritas'} onClick={() => favorites.toggle(shownPhoto.id)}>{favorites.ids.includes(shownPhoto.id) ? '♥ FAVORITA' : '♡ FAVORITA'}</button>
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Anterior foto privada" onClick={() => movePhoto(-1)}>←</button>}
         <button className="outline-btn" aria-label={ownZoom ? 'Restablecer tamaño de foto privada' : 'Ampliar foto privada'} aria-pressed={Boolean(ownZoom)} onClick={toggleZoom}>{ownZoom ? 'AJUSTAR −' : 'AMPLIAR +'}</button>
         {photoItems.length > 1 && <button className="outline-btn" aria-label="Siguiente foto privada" onClick={() => movePhoto(1)}>→</button>}
       </div>
+      {passportPhotoMessage && <p role="status">{passportPhotoMessage}</p>}
       {!favorites.persisted && <p role="status">Favorita solo para esta sesión: no se pudo guardar en este navegador.</p>}
       <OriginalFileActions key={`${userId}:${eventId}:${shownPhoto.id}`} client={client} owner={userId} eventId={eventId} photoId={shownPhoto.id} path={shownPhoto.path} name={shownPhoto.name} mime={shownPhoto.mime} bytes={shownPhoto.bytes} sha256={shownPhoto.sha256} />
     </div>}
