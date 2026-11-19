@@ -117,3 +117,15 @@
  .passport-immersive .danz-member-photo{height:105px}
  .passport-immersive .danz-trip-photo{height:125px}
 }
+
+
+/* Physical passport cover and gesture onboarding, respecting short mobile viewports. */
+.danz-swipe-tutorial{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px;color:#e6d4ab;font-size:10px;font-weight:850;letter-spacing:.12em;pointer-events:none;animation:danz-hint-fade 3s ease-in-out infinite}
+.danz-swipe-tutorial span{font-size:30px;line-height:1;animation:danz-hint-swipe 1.6s ease-in-out infinite}
+@keyframes danz-hint-swipe{0%,100%{transform:translateX(22px);opacity:.4}60%{transform:translateX(-18px);opacity:1}}
+@keyframes danz-hint-fade{0%,100%{opacity:.7}50%{opacity:1}}
+.danz-passport-instagram{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;font-weight:900;padding:10px;border:1px solid #a89b7e;color:#252119;text-decoration:none;overflow-wrap:anywhere}
+.danz-passport-instagram span{font-size:9px;letter-spacing:.06em;text-align:right}
+.passport-immersive .danz-travel-leaf{overscroll-behavior:contain}
+@media(max-height:740px){.passport-immersive .danz-portrait-demo{margin:5px 0;gap:2px}.passport-immersive .danz-portrait-demo p{font-size:9px}.passport-immersive .danz-member-fields{gap:1px}.passport-immersive .danz-travel-cover-bottom{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.danz-swipe-tutorial,.danz-swipe-tutorial span{animation:none}}
