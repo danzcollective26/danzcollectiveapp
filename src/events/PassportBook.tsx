@@ -191,7 +191,9 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
           {!userId && <button type="button" className="danz-paper-action" onClick={onSignIn}>INICIAR SESIÓN ↗</button>}
           <div className="danz-paper-foot">DOCUMENTO PERSONAL · DANZ COLLECTIVE</div>
         </>}
-        {page === pages - 1 && <><div className="danz-paper-kicker">PRÓXIMO VIAJE / DANZ</div><h2 className="danz-paper-title">LA PRÓXIMA<br/>NOCHE.</h2><div className="danz-paper-empty"><DanzFlower/><p>Esta página está esperando tu próxima fiesta. Cuando consigas un sello, su recuerdo ocupará una nueva hoja.</p></div><div className="danz-paper-foot">TO BE CONTINUED · DANZ COLLECTIVE</div></>}
+        {page === pages - 1 && <><div className="danz-paper-kicker">PRÓXIMO VIAJE / DANZ</div><h2 className="danz-paper-title">LA PRÓXIMA<br/>NOCHE.</h2><div className="danz-paper-empty"><DanzFlower/>
+          {loading || authLoading ? <p role="status">Comprobando las fiestas de tu pasaporte…</p> : failed ? <><p>No hemos podido cargar tus sellos.</p><button type="button" className="danz-paper-action" onClick={onRefresh}>REINTENTAR</button></> : <p>Esta página espera tu próxima fiesta. Cuando consigas un sello, se abrirá una nueva hoja y siempre quedará otra libre.</p>}
+        </div><div className="danz-paper-foot">TO BE CONTINUED · DANZ COLLECTIVE</div></>}
         {page >= 2 && page < pages - 1 && (() => {
           const stamp = stamps[page - 2]
           if (!stamp) return null
