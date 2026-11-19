@@ -3,11 +3,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import { clearPendingPass, normalizeEventCode, readPendingPass, savePendingPass } from './pass'
 import type { PassRedemption } from './usePendingPassRedemption'
-import DanzFlower from '../content/DanzFlower'
 import PassportBook from './PassportBook'
 import PassArrivalGuide from './PassArrivalGuide'
 import { readWithDeadline } from '../cloud/readWithDeadline'
-import LoadingSkeleton from '../ui/LoadingSkeleton'
 import { haptic } from '../ui/haptics'
 import FeedbackSettings from '../ui/FeedbackSettings'
 import './EventPassport.css'
@@ -26,12 +24,6 @@ type Props = {
   onSignIn: () => void
   onContinue: () => void
   onGallery: (eventId: string) => void
-}
-
-function date(value: string | null) {
-  if (!value) return ''
-  const parsed = new Date(value)
-  return Number.isNaN(parsed.valueOf()) ? '' : parsed.toLocaleDateString('es-ES', { dateStyle: 'medium' })
 }
 
 export default function EventPassport({ arrival, client, userId, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
