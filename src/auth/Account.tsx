@@ -8,6 +8,7 @@ import { accountBrowserUrl, danzAuthOrigin, type SocialProvider } from './oauth'
 import { readPendingPass } from '../events/pass'
 import './Account.css'
 import InstagramLink from './InstagramLink'
+import { useIdentity } from './useIdentity'
 import YeppoToggle from '../yeppo/YeppoToggle'
 import RadioUpload from '../music/RadioUpload'
 import {notifyIdentity} from './useIdentity'
@@ -16,6 +17,8 @@ type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_
 
 function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [editing, setEditing] = useState(false)
+  const identity = useIdentity()
   const [name, setName] = useState('')
   const [instagram, setInstagram] = useState('')
   const [loading, setLoading] = useState(true)
@@ -85,20 +88,31 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     }
   }
 
-  return <section className="account-card" aria-label="Tu perfil" aria-busy={loading || busy}>
-    <h2>Tu perfil</h2>
-    <p className="account-note">Tu perfil es privado en esta versión. El acceso a cada galería depende de tu asistencia al evento.</p>
-    {loading ? <p role="status">Cargando tu perfil…</p> : <>
+  const verifiedHandle = identity.data?.verified ? identity.data.handle : null
+  const safeHandle = verifiedHandle && /^[A-Za-z0-9_.]{1,30}$/.test(verifiedHandle) ? verifiedHandle : null
+  return <section className="account-card danz-profile-card" aria-label="Tu perfil" aria-busy={loading || busy}>
+    <div className="danz-profile-kicker">DANZ COLLECTIVE / MEMBER PROFILE</div>
+    <div className="danz-profile-header">
+      <div className="danz-profile-avatar" aria-hidden="true">{(name.trim() || user.email || 'D').slice(0, 1).toUpperCase()}</div>
+      <div><h2>{name.trim() || 'Mi identidad DANZ'}</h2><p className="account-note">{user.email ?? 'Miembro DANZ'}</p></div>
+    </div>
+    {loading ? <p role="status">Cargando identidad…</p> : <>
       {error && <p role="alert" className="account-error">{error}</p>}
       {loadFailed && <button className="outline-btn" onClick={() => setAttempt(value => value + 1)}>VOLVER A CARGAR PERFIL</button>}
-      <form onSubmit={event => { void save(event) }} className="account-form">
+      <div className="danz-profile-detail"><span>Nombre público</span><strong>{name.trim() || 'Pendiente de configurar'}</strong></div>
+      <div className="danz-profile-detail"><span>Instagram</span><strong>{identity.loading ? 'Comprobando vinculación…' : safeHandle ? 'Verificado' : identity.data?.status === 'pending' ? 'Pendiente de validar' : 'Sin verificar'}</strong></div>
+      {safeHandle ? <a className="danz-instagram-profile" href={`https://www.instagram.com/${safeHandle}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir perfil de Instagram de @${safeHandle}`}>
+        <span className="danz-instagram-mark" aria-hidden="true">◎</span><span><b>@{safeHandle}</b><small>PERFIL DE INSTAGRAM VERIFICADO</small></span><span aria-hidden="true">↗</span>
+      </a> : <p className="account-note">El @usuario escrito no demuestra una vinculación. Complétala en «Vincular Instagram» y aparecerá aquí el acceso directo.</p>}
+      <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'EDITAR MIS DATOS'}</button>
+      {editing && <form onSubmit={event => { void save(event) }} className="account-form">
         <label htmlFor="profile-name">Nombre visible</label>
         <input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={80} autoComplete="nickname" disabled={busy} />
         <label htmlFor="profile-instagram">Instagram (opcional)</label>
         <input id="profile-instagram" value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={31} autoComplete="off" placeholder="@tuusuario" disabled={busy} aria-describedby="instagram-help" />
-        <p id="instagram-help" className="account-note">Este campo no verifica la titularidad. Para puntos y competición, completa la vinculación de Instagram de abajo.</p>
-        <button className="primary-btn" type="submit" disabled={busy || loadFailed}>{busy ? 'GUARDANDO…' : 'GUARDAR PERFIL'}</button>
-      </form>
+        <p id="instagram-help" className="account-note">Cambiar este campo no vincula Instagram ni verifica su titularidad.</p>
+        <button className="primary-btn" type="submit" disabled={busy || loadFailed}>{busy ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}</button>
+      </form>}
       {message && <p role="status" className="account-success">{message}</p>}
     </>}
   </section>
@@ -249,8 +263,8 @@ export default function Account({ focusInstagram = false }: { focusInstagram?: b
           <button className="outline-btn" type="button" disabled={busy} onClick={() => { void leave() }}>{busy ? 'CERRANDO…' : 'CERRAR SESIÓN'}</button>
         </div>
         {error && <p role="alert" className="account-error">{error}</p>}
-        <InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} />
         <ProfileForm key={user.id} client={client} user={user} />
+        <InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} />
         <YeppoToggle />
         <RadioUpload />
       </> : <div className="account-card">
