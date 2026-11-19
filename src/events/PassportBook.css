@@ -95,3 +95,25 @@
 .danz-portrait-demo input::file-selector-button{border:1px solid #655e51;padding:8px 10px;margin-right:10px;background:#252420;color:#f8f4ed;cursor:pointer}
 .danz-portrait-demo p{margin:0;font-size:10px;line-height:1.4;color:#6c6255}
 .danz-portrait-demo button{border:1px solid #655e51;background:transparent;color:#25201c;font-size:10px;font-weight:850;min-height:36px;padding:7px 10px}
+
+/* Immersive, edge-to-edge passport. The home teaser remains a normal scrollable button. */
+.passport-immersive-mount{position:static!important;padding:0!important;margin:0!important}
+.passport-immersive{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom);background:#11100f;color:#f4eee4;overflow:hidden;overscroll-behavior:none}
+.passport-immersive .danz-travel{width:min(100%,650px);height:100%;margin:0;display:flex;flex-direction:column;justify-content:center;min-height:0;padding-top:42px}
+.passport-immersive .danz-travel-top{flex-shrink:0;padding:7px 3px}
+.passport-immersive .danz-travel-window{width:100%;min-height:0;height:auto;flex:1;max-height:820px;touch-action:pan-y;overscroll-behavior:contain}
+.passport-immersive .danz-travel-leaf{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.passport-immersive .danz-travel-leaf::-webkit-scrollbar{display:none}
+.passport-immersive .danz-travel-feedback{flex-shrink:0;padding:8px 0 2px}
+.passport-immersive .danz-photo-choice-status{flex-shrink:0;padding:3px 0;font-size:9px}
+.passport-immersive-close{position:absolute;z-index:10001;top:calc(env(safe-area-inset-top) + 9px);right:max(12px,env(safe-area-inset-right));display:flex;align-items:center;gap:8px;min-height:38px;border:1px solid #8c877d;border-radius:99px;background:#262320;color:#f4eee4;padding:5px 14px;font-size:12px;font-weight:850;letter-spacing:.1em;cursor:pointer}
+.passport-immersive .danz-travel-blank-reader{display:none}
+@media(max-height:740px){
+ .passport-immersive .danz-travel{padding-top:45px}
+ .passport-immersive .danz-travel-leaf{padding:16px}
+ .passport-immersive .danz-paper-rule{margin:9px 0}
+ .passport-immersive .danz-paper-kicker{margin:5px 0 9px}
+ .passport-immersive .danz-paper-title{font-size:clamp(26px,7vw,40px);margin-bottom:9px}
+ .passport-immersive .danz-member-photo{height:105px}
+ .passport-immersive .danz-trip-photo{height:125px}
+}
