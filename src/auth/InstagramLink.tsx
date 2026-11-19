@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react'
 import {useAuth} from './AuthProvider'
 import {notifyIdentity,useIdentity} from './useIdentity'
-export default function InstagramLink(){
+export default function InstagramLink({ focusOnMount = false }: { focusOnMount?: boolean }){
  const auth=useAuth(),identity=useIdentity(),[handle,setHandle]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),action=useRef<AbortController|null>(null),alive=useRef(true)
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;action.current?.abort()}},[])
  useEffect(()=>{if(identity.data)setHandle(identity.data.profileHandle??identity.data.handle??'')},[identity.data])
@@ -12,8 +12,18 @@ export default function InstagramLink(){
   catch(e){if(alive.current){const code=(e as {code?:string})?.code;setMessage(code==='54000'?'Puedes cambiar la solicitud cinco veces al día. Prueba mañana.':code==='22023'?'Revisa el usuario. Ese Instagram puede estar vinculado a otra cuenta.':'No se ha podido preparar el código. Comprueba que tu correo esté confirmado y reinténtalo.')}}
   finally{clearTimeout(timer);action.current=null;if(alive.current)setBusy(false)}
  }
+ const sectionRef=useRef<HTMLElement|null>(null)
+ useEffect(()=>{
+  if(!focusOnMount || identity.loading)return
+  const timer=window.setTimeout(()=>{
+   sectionRef.current?.scrollIntoView({behavior:'smooth',block:'start'})
+   const input=document.getElementById('verified-instagram')
+   if(input instanceof HTMLInputElement && !input.disabled)input.focus({preventScroll:true})
+  },170)
+  return()=>window.clearTimeout(timer)
+ },[focusOnMount,identity.loading,identity.data?.status])
  const d=identity.data
- return <section className="account-card instagram-link" aria-label="Vincular Instagram para puntos"><h2>INSTAGRAM + DANZPOINTS</h2><p className="account-note">Para competir y disponer de puntos necesitas correo confirmado e Instagram verificado. La vinculación une ese Instagram con tu cuenta DANZ.</p>
+ return <section ref={sectionRef} id="vincular-instagram" className={`account-card instagram-link${focusOnMount?' instagram-link-focused':''}`} aria-label="Vincular Instagram para puntos"><h2>VINCULA TU INSTAGRAM</h2>{focusOnMount&&<p className="instagram-start-note" role="status">ESTÁS EN EL LUGAR CORRECTO. Escribe tu @usuario y pulsa «Preparar mi código». Después sigue las instrucciones de verificación.</p>}<p className="account-note">Para competir y disponer de puntos necesitas correo confirmado e Instagram verificado. La vinculación une ese Instagram con tu cuenta DANZ.</p>
  {identity.loading?<p aria-live="polite">Comprobando la vinculación…</p>:identity.error?<><p>No se ha podido consultar tu vinculación.</p><button className="outline-btn" onClick={identity.refresh}>REINTENTAR VINCULACIÓN</button></>:d&&<>
   {d.verified?<><p className="account-success">INSTAGRAM VERIFICADO · @{d.handle}</p><p className="account-note">Tu cuenta puede competir y disponer de DANZPOINTS. Si cambias el Instagram del perfil tendrás que comprobar la nueva vinculación.</p></>:<>
    {!d.emailVerified&&<p className="account-note">Confirma tu correo accediendo desde el enlace o código enviado a tu email.</p>}
