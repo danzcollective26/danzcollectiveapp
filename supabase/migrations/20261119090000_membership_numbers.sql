@@ -38,6 +38,10 @@ begin
   if not exists (select 1 from public.danz_membership_numbers where user_id=founder and member_number=1)
     then raise exception 'Founding admin membership number is not 1'; end if;
 
+  -- Advance the sequence past the manually reserved #1 before importing other users.
+  perform setval(pg_get_serial_sequence('public.danz_membership_numbers','member_number'),
+      (select coalesce(max(member_number), 1) from public.danz_membership_numbers), true);
+
   insert into public.danz_membership_numbers(user_id)
   select id from auth.users where id <> founder
     and not exists(select 1 from public.danz_membership_numbers m where m.user_id=auth.users.id)
