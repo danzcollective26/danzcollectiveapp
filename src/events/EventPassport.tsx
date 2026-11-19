@@ -15,6 +15,7 @@ type Props = {
   arrival: boolean
   client: SupabaseClient<Database> | null
   userId: string | null
+  registeredAt: string | null
   authLoading: boolean
   pendingPass: string | null
   pendingCount: number
@@ -26,7 +27,7 @@ type Props = {
   onGallery: (eventId: string) => void
 }
 
-export default function EventPassport({ arrival, client, userId, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
+export default function EventPassport({ arrival, client, userId, registeredAt, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
   const [code, setCode] = useState(pendingPass ?? '')
   const [message, setMessage] = useState<string | null>(launchIssue)
   const busy = redemption.busy
@@ -135,7 +136,7 @@ export default function EventPassport({ arrival, client, userId, authLoading, pe
     <p className="page-lead">Cada noche es un viaje. Desliza las páginas para recorrer los sellos y recuerdos de tus fiestas.</p>
     {redemption.message && <p className="passport-message passport-link-status" role="status">{redemption.message}</p>}
     <div className="passport-layout">
-      <PassportBook client={client} userId={userId} authLoading={authLoading} stamps={items} ready={stampsReady} loading={passport.loading} failed={passport.error} celebrating={celebrating} onSignIn={requestSignIn} onGallery={onGallery} onRefresh={() => setRetry(value => value + 1)}/>
+      <PassportBook client={client} userId={userId} registeredAt={registeredAt} authLoading={authLoading} stamps={items} ready={stampsReady} loading={passport.loading} failed={passport.error} celebrating={celebrating} onSignIn={requestSignIn} onGallery={onGallery} onRefresh={() => setRetry(value => value + 1)}/>
       <section className="passport-redeem" aria-labelledby="redeem-title">
         <div className="passport-redeem-intro"><span className="passport-redeem-number" aria-hidden="true">+</span><div><h2 id="redeem-title">Guarda tu noche.</h2>
         <p>Escanea el QR del evento con la cámara de tu móvil o introduce su código. {userId ? 'El sello se añadirá a la cuenta con la que has iniciado sesión.' : 'Puedes guardar el pase ahora y añadirlo a tu cuenta después.'}</p></div></div>
