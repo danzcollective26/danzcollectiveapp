@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type TouchEvent, type KeyboardEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import DanzFlower from '../content/DanzFlower'
@@ -137,8 +137,24 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
     haptic('selection')
   }
   useEffect(() => { setPage(value => Math.min(value, pages - 1)) }, [pages])
+  // Mobile browsers may cancel pointerup when the page scroll recognizer takes over.
+  // Touch events are used for touch screens; Pointer events stay for mouse and pen.
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length !== 1) { touchStart.current = null; return }
+    if (event.target instanceof Element && event.target.closest('button,a,input')) return
+    touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+  }
+  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStart.current
+    touchStart.current = null
+    if (!start || event.changedTouches.length !== 1) return
+    const dx = event.changedTouches[0].clientX - start.x
+    const dy = event.changedTouches[0].clientY - start.y
+    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.25) go(page + (dx < 0 ? 1 : -1))
+  }
   const onDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return
+    if (event.pointerType === 'touch' || !event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return
     if (event.target instanceof Element && event.target.closest('button,a,input')) return
     gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY }
   }
@@ -147,7 +163,7 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
     if (!start || start.id !== event.pointerId) return
     gesture.current = null
     const dx = event.clientX - start.x, dy = event.clientY - start.y
-    if (Math.abs(dx) >= 55 && Math.abs(dx) > Math.abs(dy) * 1.3) go(page + (dx < 0 ? 1 : -1))
+    if (Math.abs(dx) >= 42 && Math.abs(dx) > Math.abs(dy) * 1.25) go(page + (dx < 0 ? 1 : -1))
   }
   const onKeys = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target instanceof HTMLElement && event.target.closest('button,a,input')) return
@@ -158,8 +174,8 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
   const clearPhoto = () => { if (userId) selectPassportCover(userId, null) }
   return <section className={`danz-travel${immersive ? ' danz-travel-immersive' : ''}`} aria-label="Pasaporte DANZ, un viaje por página">
     <div className="danz-travel-top"><span>DANZ / TRAVEL DOCUMENT</span><span>{page === 0 ? 'CUBIERTA' : String(page).padStart(2, '0') + ' / ' + String(pages - 1).padStart(2, '0')}</span></div>
-    <div className="danz-travel-window" onPointerDown={onDown} onPointerUp={onUp} onPointerCancel={() => { gesture.current = null }} onKeyDown={onKeys} tabIndex={0} aria-label="Desliza horizontalmente o usa las flechas para pasar las páginas">
-      <div key={page} className={`danz-travel-leaf ${page === 0 ? 'danz-travel-cover' : 'danz-travel-paper'} danz-turn-${turn}`}>
+    <div className="danz-travel-window" onPointerDown={onDown} onPointerUp={onUp} onPointerCancel={() => { gesture.current = null }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchCancel={() => { touchStart.current = null }} onKeyDown={onKeys} tabIndex={0} aria-label="Desliza horizontalmente o usa las flechas para pasar las páginas">
+      <div onClick={page === 0 ? () => go(1) : undefined} key={page} className={`danz-travel-leaf ${page === 0 ? 'danz-travel-cover' : 'danz-travel-paper'} danz-turn-${turn}`}>
         {page === 0 && <>
           {coverUrl && <img className="danz-travel-cover-photo" src={coverUrl} alt="Fotografía elegida de tu galería DANZ" referrerPolicy="no-referrer" onError={() => setCoverUrl(null)} />}
           <div className="danz-travel-cover-top"><span>DANZ<br/><small>COLLECTIVE</small></span><span>ED. 001</span></div>
