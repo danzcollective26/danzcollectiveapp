@@ -43,6 +43,21 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
   const [coverChoice, setCoverChoice] = useState(() => userId ? readPassportCover(userId) : null)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [coverError, setCoverError] = useState(false)
+  const [localPortrait, setLocalPortrait] = useState<string | null>(null)
+  const portraitObject = useRef<string | null>(null)
+  const [portraitError, setPortraitError] = useState('')
+  useEffect(() => () => { if (portraitObject.current) URL.revokeObjectURL(portraitObject.current) }, [])
+  const choosePortrait = (file: File | undefined) => {
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 8 * 1024 * 1024) {
+      setPortraitError('Elige un JPG, PNG o WebP de hasta 8 MB.')
+      return
+    }
+    if (portraitObject.current) URL.revokeObjectURL(portraitObject.current)
+    portraitObject.current = URL.createObjectURL(file)
+    setLocalPortrait(portraitObject.current)
+    setPortraitError('')
+  }
   const gesture = useRef<{ id: number; x: number; y: number } | null>(null)
 
   useEffect(() => {
@@ -151,7 +166,20 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
           <div className="danz-paper-head"><DanzFlower/><strong>DANZ <small>COLLECTIVE</small></strong><span>DOCUMENTO PERSONAL</span></div>
           <div className="danz-paper-rule"/><div className="danz-paper-kicker">01 / IDENTIDAD</div>
           <h2 className="danz-paper-title">TU VIAJE<br/>EMPIEZA AQUÍ.</h2>
-          <div className="danz-member-photo" aria-hidden="true">{coverUrl ? <img src={coverUrl} referrerPolicy="no-referrer" alt="" /> : <DanzFlower/>}</div>
+          <div className="danz-member-photo" aria-label="Retrato editorial en blanco y negro">
+            {localPortrait ? <img src={localPortrait} alt="Vista previa de tu selfie con tratamiento editorial DANZ" /> : coverUrl ? <img src={coverUrl} referrerPolicy="no-referrer" alt="Imagen de galería elegida para tu Pasaporte" /> : <DanzFlower/>}
+          </div>
+          <div className="danz-portrait-demo">
+            <label htmlFor="danz-passport-selfie">PROBAR MI RETRATO EDITORIAL</label>
+            <input id="danz-passport-selfie" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { choosePortrait(event.currentTarget.files?.[0]); event.currentTarget.value = '' }} />
+            <p>Filtro editorial sin IA. Tu foto se procesa únicamente en este dispositivo y no se sube ni se guarda.</p>
+            {portraitError && <p role="alert">{portraitError}</p>}
+            {localPortrait && <button type="button" onClick={() => {
+              if (portraitObject.current) URL.revokeObjectURL(portraitObject.current)
+              portraitObject.current = null
+              setLocalPortrait(null)
+            }}>QUITAR PRUEBA</button>}
+          </div>
           <dl className="danz-member-fields"><dt>NOMBRE</dt><dd>{name}</dd><dt>Nº DE SOCIO</dt><dd>{userId && membership.owner === userId && membership.number !== null ? String(membership.number).padStart(6, '0') : userId ? 'CONSULTANDO REGISTRO' : 'AL REGISTRARTE'}</dd><dt>ALTA</dt><dd>{userId && profile.owner === userId ? friendlyDate(registeredAt) : 'AL REGISTRARTE'}</dd><dt>VIAJES</dt><dd>{ready ? String(stamps.length).padStart(2, '0') : '—'}</dd></dl>
           {!userId && <button type="button" className="danz-paper-action" onClick={onSignIn}>INICIAR SESIÓN ↗</button>}
           <div className="danz-paper-foot">DOCUMENTO PERSONAL · DANZ COLLECTIVE</div>
