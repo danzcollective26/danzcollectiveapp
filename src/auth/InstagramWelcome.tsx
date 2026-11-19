@@ -25,7 +25,7 @@ export default function InstagramWelcome({ onConnect }: { onConnect: () => void 
       <p className="danz-instagram-welcome-note">La vinculación se comprueba con un código enviado desde tu Instagram. Nunca te pedimos su contraseña.</p>
     </div>
     <div className="danz-instagram-welcome-actions">
-      <button type="button" className="danz-instagram-welcome-connect" onClick={() => { dismiss(); onConnect() }}>VINCULAR INSTAGRAM ↗</button>
+      <button type="button" className="danz-instagram-welcome-connect" onClick={onConnect}>VINCULAR INSTAGRAM ↗</button>
       <button type="button" className="danz-instagram-welcome-later" onClick={dismiss}>AHORA NO</button>
     </div>
   </aside>
