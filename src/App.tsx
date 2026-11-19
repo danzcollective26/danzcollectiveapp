@@ -12,6 +12,7 @@ import './arcade/gameSurface.css'
 import './arcade/gameScreen.css'
 import './arcade/arcadeLibrary.css'
 import { useAuth } from './auth/AuthProvider'
+import InstagramWelcome from './auth/InstagramWelcome'
 import { emailCallbackPresent } from './auth/client'
 import EventPassport from './events/EventPassport'
 import PwaControls from './pwa/PwaControls'
@@ -353,6 +354,7 @@ export default function App() {
       </header>
 
       <PwaControls quiet={quickArrival || page === 'arcade'} />
+      {auth.user && !quickArrival && page !== 'arcade' && page !== 'cuenta' && <div className="content"><InstagramWelcome onConnect={() => go('cuenta')} /></div>}
 
       <main className="app-main">
         {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
