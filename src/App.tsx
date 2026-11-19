@@ -93,6 +93,7 @@ export default function App() {
   if (adminMfaSetup.current && (adminMfaSetup.current.client !== auth.client || (!auth.loading && adminMfaSetup.current.owner !== auth.user?.id))) adminMfaSetup.current = null
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
   const [instagramRequested, setInstagramRequested] = useState(() => new URLSearchParams(window.location.search).get('vincular') === 'instagram')
+  const passportReturnPage = useRef<Page>('inicio')
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
     const requested = locationPage()
@@ -238,6 +239,7 @@ export default function App() {
   }, [page, arcadeGame, game.running, game.seed, competition.run?.status, competition.busy, competition.alias])
 
   const go = (destination: Page) => {
+    if (destination === 'pasaporte' && page !== 'pasaporte') passportReturnPage.current = page
     if (page === 'arcade' && destination !== 'arcade') gameScreen.leave()
     if (page === 'arcade' && destination !== 'arcade') dispatch({ type: 'pause' })
     const url = new URL(window.location.href)
@@ -340,7 +342,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className={`site-shell${quickArrival ? ' quick-arrival' : ''}`}>
+    <div className={`site-shell${quickArrival ? ' quick-arrival' : ''}${page === 'pasaporte' ? ' passport-open' : ''}`}>
       <header className="topbar">
         <button className="wordmark" onClick={() => go('inicio')} aria-label="DANZ Collective, ir al inicio">
           <DanzFlower className="brand-flower" /><img className="brand-wordmark" src="/brand/danz-collective-wordmark.png" alt="" width="225" height="32" />
@@ -486,9 +488,9 @@ export default function App() {
         )}
 
         {(page === 'pasaporte' || page === 'danzers') && (
-          <section className="content inner-page passport-page">
-            <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} registeredAt={auth.user?.created_at ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
+          <section className={page === 'pasaporte' ? 'passport-immersive-mount' : 'content inner-page passport-page'}>
+            {page === 'danzers' && <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>}
+            <EventPassport key={auth.user?.id ?? 'guest'} immersive={page === 'pasaporte'} onClose={() => go(passportReturnPage.current === 'pasaporte' ? 'inicio' : passportReturnPage.current)} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} registeredAt={auth.user?.created_at ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
           </section>
         )}
 
