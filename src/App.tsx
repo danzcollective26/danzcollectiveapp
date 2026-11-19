@@ -92,6 +92,7 @@ export default function App() {
   const adminMfaSetup = useRef<AdminMfaEnrollment | null>(null)
   if (adminMfaSetup.current && (adminMfaSetup.current.client !== auth.client || (!auth.loading && adminMfaSetup.current.owner !== auth.user?.id))) adminMfaSetup.current = null
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
+  const [instagramRequested, setInstagramRequested] = useState(() => new URLSearchParams(window.location.search).get('vincular') === 'instagram')
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
     const requested = locationPage()
@@ -354,7 +355,10 @@ export default function App() {
       </header>
 
       <PwaControls quiet={quickArrival || page === 'arcade'} />
-      {auth.user && !quickArrival && page !== 'arcade' && page !== 'cuenta' && <div className="content"><InstagramWelcome onConnect={() => go('cuenta')} /></div>}
+      {auth.user && !quickArrival && page !== 'arcade' && page !== 'cuenta' && <div className="content"><InstagramWelcome onConnect={() => {
+        setInstagramRequested(true)
+        go('cuenta')
+      }} /></div>}
 
       <main className="app-main">
         {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
@@ -414,7 +418,7 @@ export default function App() {
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
-          <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} /></Suspense>
+          <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} focusInstagram={instagramRequested} /></Suspense>
         </section>}
         {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
