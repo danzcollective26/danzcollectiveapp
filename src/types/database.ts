@@ -210,6 +210,12 @@ export type Database = {
           },
         ]
       }
+      danz_membership_numbers: {
+        Row: { user_id: string; member_number: number; assigned_at: string }
+        Insert: { user_id: string; member_number?: number; assigned_at?: string }
+        Update: { user_id?: string; member_number?: number; assigned_at?: string }
+        Relationships: []
+      }
       danz_profiles: {
         Row: {
           created_at: string
