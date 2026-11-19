@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } fr
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import DanzFlower from '../content/DanzFlower'
-import { verifiedSignedUrl } from '../cloud/PrivateGallery'
+import { verifiedSignedPhotoUrl } from '../cloud/verifiedSignedPhotoUrl'
 import { readWithDeadline } from '../cloud/readWithDeadline'
 import { haptic } from '../ui/haptics'
 import { PASSPORT_COVER_CHANGED, readPassportCover, selectPassportCover } from './passportCover'
@@ -94,7 +94,7 @@ export default function PassportBook({ client, userId, authLoading, stamps, read
           if (error || !rows || signal.aborted) throw new Error('Photo is not available')
           const { data, error: signingError } = await client.storage.from(BUCKET).createSignedUrl(rows.preview_path || rows.storage_path, PHOTO_SECONDS)
           if (signingError || signal.aborted) throw new Error('Photo unavailable')
-          const verified = verifiedSignedUrl(client, data?.signedUrl ?? null)
+          const verified = verifiedSignedPhotoUrl(client, data?.signedUrl ?? null)
           if (!verified) throw new Error('Invalid signed URL')
           return verified
         }, controller.signal)
