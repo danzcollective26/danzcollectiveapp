@@ -9,10 +9,11 @@ import { PASSPORT_COVER_CHANGED, readPassportCover, selectPassportCover } from '
 import './PassportBook.css'
 
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
-type Profile = { owner: string; name: string | null; registeredAt: string | null }
+type Profile = { owner: string; name: string | null }
 type Props = {
   client: SupabaseClient<Database> | null
   userId: string | null
+  registeredAt: string | null
   authLoading: boolean
   stamps: Stamp[]
   ready: boolean
@@ -32,12 +33,12 @@ const friendlyDate = (date: string | null) => {
 }
 const inks = ['ink-black', 'ink-violet', 'ink-orange', 'ink-blue', 'ink-olive']
 
-export default function PassportBook({ client, userId, authLoading, stamps, ready, loading, failed, celebrating, onSignIn, onGallery, onRefresh }: Props) {
+export default function PassportBook({ client, userId, registeredAt, authLoading, stamps, ready, loading, failed, celebrating, onSignIn, onGallery, onRefresh }: Props) {
   // Cover, identity, index, then one authentic trip per redeemed stamp.
   const pages = 3 + stamps.length
   const [page, setPage] = useState(0)
   const [turn, setTurn] = useState<'next'|'previous'>('next')
-  const [profile, setProfile] = useState<Profile>({ owner: '', name: null, registeredAt: null })
+  const [profile, setProfile] = useState<Profile>({ owner: '', name: null })
   const [membership, setMembership] = useState<{ owner: string; number: number | null }>({ owner: '', number: null })
   const [coverChoice, setCoverChoice] = useState(() => userId ? readPassportCover(userId) : null)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
@@ -57,7 +58,7 @@ export default function PassportBook({ client, userId, authLoading, stamps, read
   useEffect(() => {
     if (!client || !userId || authLoading) return
     const controller = new AbortController()
-    setProfile({ owner: userId, name: null, registeredAt: null })
+    setProfile({ owner: userId, name: null })
     setMembership({ owner: userId, number: null })
     void (async () => {
       try {
@@ -69,8 +70,8 @@ export default function PassportBook({ client, userId, authLoading, stamps, read
     void (async () => {
       try {
         const { data, error } = await readWithDeadline(signal => client.from('danz_profiles')
-          .select('display_name,created_at').eq('user_id', userId).abortSignal(signal).maybeSingle(), controller.signal)
-        if (!error && !controller.signal.aborted) setProfile({ owner: userId, name: data?.display_name ?? null, registeredAt: data?.created_at ?? null })
+          .select('display_name').eq('user_id', userId).abortSignal(signal).maybeSingle(), controller.signal)
+        if (!error && !controller.signal.aborted) setProfile({ owner: userId, name: data?.display_name ?? null })
       } catch { /* Profile is optional; do not fabricate a name. */ }
     })()
     return () => controller.abort()
@@ -151,7 +152,7 @@ export default function PassportBook({ client, userId, authLoading, stamps, read
           <div className="danz-paper-rule"/><div className="danz-paper-kicker">01 / IDENTIDAD</div>
           <h2 className="danz-paper-title">TU VIAJE<br/>EMPIEZA AQUÍ.</h2>
           <div className="danz-member-photo" aria-hidden="true">{coverUrl ? <img src={coverUrl} referrerPolicy="no-referrer" alt="" /> : <DanzFlower/>}</div>
-          <dl className="danz-member-fields"><dt>NOMBRE</dt><dd>{name}</dd><dt>Nº DE SOCIO</dt><dd>{userId && membership.owner === userId && membership.number !== null ? String(membership.number).padStart(6, '0') : userId ? 'CONSULTANDO REGISTRO' : 'AL REGISTRARTE'}</dd><dt>ALTA</dt><dd>{userId && profile.owner === userId ? friendlyDate(profile.registeredAt) : 'AL REGISTRARTE'}</dd><dt>VIAJES</dt><dd>{ready ? String(stamps.length).padStart(2, '0') : '—'}</dd></dl>
+          <dl className="danz-member-fields"><dt>NOMBRE</dt><dd>{name}</dd><dt>Nº DE SOCIO</dt><dd>{userId && membership.owner === userId && membership.number !== null ? String(membership.number).padStart(6, '0') : userId ? 'CONSULTANDO REGISTRO' : 'AL REGISTRARTE'}</dd><dt>ALTA</dt><dd>{userId && profile.owner === userId ? friendlyDate(registeredAt) : 'AL REGISTRARTE'}</dd><dt>VIAJES</dt><dd>{ready ? String(stamps.length).padStart(2, '0') : '—'}</dd></dl>
           {!userId && <button type="button" className="danz-paper-action" onClick={onSignIn}>INICIAR SESIÓN ↗</button>}
           <div className="danz-paper-foot">DOCUMENTO PERSONAL · DANZ COLLECTIVE</div>
         </>}
