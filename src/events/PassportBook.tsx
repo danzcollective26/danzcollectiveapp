@@ -23,6 +23,7 @@ type Props = {
   onSignIn: () => void
   onGallery: (id: string) => void
   onRefresh: () => void
+  immersive?: boolean
 }
 const BUCKET = 'danz-event-photos'
 const PHOTO_SECONDS = 60
@@ -33,9 +34,9 @@ const friendlyDate = (date: string | null) => {
 }
 const inks = ['ink-black', 'ink-violet', 'ink-orange', 'ink-blue', 'ink-olive']
 
-export default function PassportBook({ client, userId, registeredAt, authLoading, stamps, ready, loading, failed, celebrating, onSignIn, onGallery, onRefresh }: Props) {
+export default function PassportBook({ client, userId, registeredAt, authLoading, stamps, ready, loading, failed, celebrating, onSignIn, onGallery, onRefresh, immersive = false }: Props) {
   // Cover, identity, index, then one authentic trip per redeemed stamp.
-  const pages = 3 + stamps.length
+  const pages = 4 + stamps.length // One final blank leaf reserved for the next event; never precreate future events.
   const [page, setPage] = useState(0)
   const [turn, setTurn] = useState<'next'|'previous'>('next')
   const [profile, setProfile] = useState<Profile>({ owner: '', name: null })
@@ -151,7 +152,7 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
   }
   const name = userId ? (profile.owner === userId && profile.name?.trim() ? profile.name : 'CONFIGURA TU NOMBRE EN MI CUENTA') : 'TU NOMBRE, TU HISTORIA'
   const clearPhoto = () => { if (userId) selectPassportCover(userId, null) }
-  return <section className="danz-travel" aria-label="Pasaporte DANZ, un viaje por página">
+  return <section className={`danz-travel${immersive ? ' danz-travel-immersive' : ''}`} aria-label="Pasaporte DANZ, un viaje por página">
     <div className="danz-travel-top"><span>DANZ / TRAVEL DOCUMENT</span><span>{page === 0 ? 'CUBIERTA' : String(page).padStart(2, '0') + ' / ' + String(pages - 1).padStart(2, '0')}</span></div>
     <div className="danz-travel-window" onPointerDown={onDown} onPointerUp={onUp} onPointerCancel={() => { gesture.current = null }} onKeyDown={onKeys} tabIndex={0} aria-label="Desliza horizontalmente o usa las flechas para pasar las páginas">
       <div key={page} className={`danz-travel-leaf ${page === 0 ? 'danz-travel-cover' : 'danz-travel-paper'} danz-turn-${turn}`}>
@@ -194,7 +195,8 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
           <div className="danz-stamp-grid">{stamps.map((stamp, index) => <button type="button" key={stamp.event_id} className={`danz-book-stamp ${inks[index % inks.length]}`} onClick={() => go(index + 3)} aria-label={`Abrir viaje ${stamp.title}`}><DanzFlower/><strong>{stamp.title}</strong><span>{friendlyDate(stamp.starts_at)}</span></button>)}</div>
           <div className="danz-paper-foot">VIAJES GUARDADOS · {ready ? stamps.length : '—'}</div>
         </>}
-        {page >= 3 && (() => {
+        {page === pages - 1 && <><div className="danz-paper-kicker">PRÓXIMO VIAJE / DANZ</div><h2 className="danz-paper-title">LA PRÓXIMA<br/>NOCHE.</h2><div className="danz-paper-empty"><DanzFlower/><p>Esta página está esperando tu próxima fiesta. Cuando consigas un sello, su recuerdo ocupará una nueva hoja.</p></div><div className="danz-paper-foot">TO BE CONTINUED · DANZ COLLECTIVE</div></>}
+        {page >= 3 && page < pages - 1 && (() => {
           const stamp = stamps[page - 3]
           if (!stamp) return null
           const galleryPublished = ['published','archived'].includes(stamp.event_status)
@@ -211,11 +213,12 @@ export default function PassportBook({ client, userId, registeredAt, authLoading
         })()}
       </div>
     </div>
-    <nav className="danz-travel-navigation" aria-label="Pasar páginas del pasaporte">
+    {page === 3 + stamps.length && <span className="danz-travel-blank-reader" aria-hidden="true" />}
+    {!immersive && <nav className="danz-travel-navigation" aria-label="Pasar páginas del pasaporte">
       <button type="button" onClick={() => go(page - 1)} disabled={page === 0} aria-label="Página anterior">←</button>
       <span>HOJA {page + 1} DE {pages}</span>
       <button type="button" onClick={() => go(page + 1)} disabled={page === pages - 1} aria-label="Página siguiente">→</button>
-    </nav>
+    </nav>}
     <div className="danz-travel-feedback">{page === 0 ? 'DESLIZA PARA ABRIR TU PASAPORTE' : page === 2 ? 'PULSA UN SELLO PARA ABRIR ESE VIAJE' : 'DESLIZA PARA CAMBIAR DE PÁGINA'}</div>
     {userId && coverChoice && <div className="danz-photo-choice-status"><span>{coverError ? 'Tu foto no está disponible ahora; conservamos tu selección.' : coverUrl ? 'Fotografía de tu galería aplicada al Pasaporte.' : 'Foto elegida. Se mostrará cuando esté disponible.'}</span><button type="button" onClick={clearPhoto}>QUITAR FOTO</button></div>}
   </section>
