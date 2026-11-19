@@ -104,7 +104,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
   </section>
 }
 
-export default function Account() {
+export default function Account({ focusInstagram = false }: { focusInstagram?: boolean }) {
   const { client, user, loading, error: authError, signOut, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [sentEmail, setSentEmail] = useState('')
@@ -249,7 +249,7 @@ export default function Account() {
           <button className="outline-btn" type="button" disabled={busy} onClick={() => { void leave() }}>{busy ? 'CERRANDO…' : 'CERRAR SESIÓN'}</button>
         </div>
         {error && <p role="alert" className="account-error">{error}</p>}
-        <InstagramLink key={`instagram-${user.id}`} />
+        <InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} />
         <ProfileForm key={user.id} client={client} user={user} />
         <YeppoToggle />
         <RadioUpload />
