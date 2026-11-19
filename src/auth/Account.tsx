@@ -15,6 +15,16 @@ import {notifyIdentity} from './useIdentity'
 
 type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_id' | 'display_name' | 'instagram_handle'>
 
+// Client-side first line of defence; server-side validation is still required for full enforcement.
+function validateDisplayName(value: string): string | null {
+  const name = value.normalize('NFKC').trim()
+  if (!name || name.length > 40) return 'Elige un nombre público de entre 1 y 40 caracteres.'
+  if (!/^[\\p{L}\\p{M}\\p{N} _.'-]+$/u.test(name)) return 'Usa letras, números normales, espacios y signos sencillos.'
+  const normalized = name.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
+  if (/(?:heilhitler|siegheil|whitepower|1488|hh88|nazi|nazismo|nsdap|swastika)/.test(normalized)) return 'Ese nombre no cumple las normas de la comunidad DANZ.'
+  return null
+}
+
 function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [editing, setEditing] = useState(false)
@@ -58,8 +68,10 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     if (saving.current || loading) return
     const displayName = name.trim()
     const handle = instagram.trim().replace(/^@/, '')
-    if (displayName.length > 80 || (handle && !/^[A-Za-z0-9_.]{1,30}$/.test(handle))) {
-      setError('Revisa el nombre y el usuario de Instagram: usa letras, números, puntos o guiones bajos.'); return
+    const nameError = validateDisplayName(displayName)
+    if (nameError) { setError(nameError); return }
+    if (handle && !/^[A-Za-z0-9_.]{1,30}$/.test(handle)) {
+      setError('El usuario de Instagram solo admite letras, números, puntos o guiones bajos.'); return
     }
     saving.current = true
     setBusy(true)
@@ -106,8 +118,9 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       </a> : <p className="account-note">El @usuario escrito no demuestra una vinculación. Complétala en «Vincular Instagram» y aparecerá aquí el acceso directo.</p>}
       <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'EDITAR MIS DATOS'}</button>
       {editing && <form onSubmit={event => { void save(event) }} className="account-form">
-        <label htmlFor="profile-name">Nombre visible</label>
-        <input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={80} autoComplete="nickname" disabled={busy} />
+        <label htmlFor="profile-name">Nombre público o alias (puede ser distinto al del correo)</label>
+        <input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={40} autoComplete="nickname" disabled={busy} />
+        <p className="account-note">Tu nombre puede ser tu alias de Instagram u otro apodo. Se revisan nombres ofensivos y símbolos no permitidos.</p>
         <label htmlFor="profile-instagram">Instagram (opcional)</label>
         <input id="profile-instagram" value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={31} autoComplete="off" placeholder="@tuusuario" disabled={busy} aria-describedby="instagram-help" />
         <p id="instagram-help" className="account-note">Cambiar este campo no vincula Instagram ni verifica su titularidad.</p>
