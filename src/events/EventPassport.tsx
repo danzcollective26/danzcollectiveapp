@@ -13,6 +13,8 @@ import './EventPassport.css'
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
 type Props = {
   arrival: boolean
+  immersive?: boolean
+  onClose?: () => void
   client: SupabaseClient<Database> | null
   userId: string | null
   registeredAt: string | null
@@ -27,7 +29,7 @@ type Props = {
   onGallery: (eventId: string) => void
 }
 
-export default function EventPassport({ arrival, client, userId, registeredAt, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
+export default function EventPassport({ arrival, immersive = false, onClose, client, userId, registeredAt, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
   const [code, setCode] = useState(pendingPass ?? '')
   const [message, setMessage] = useState<string | null>(launchIssue)
   const busy = redemption.busy
@@ -130,6 +132,10 @@ export default function EventPassport({ arrival, client, userId, registeredAt, a
 
   const items = !authLoading && passport.owner === userId ? passport.items : []
   const stampsReady = Boolean(userId && !authLoading && passport.owner === userId && !passport.loading && !passport.error)
+  if (immersive) return <section className="passport-immersive" role="dialog" aria-modal="true" aria-label="Mi Pasaporte DANZ">
+    <button type="button" className="passport-immersive-close" onClick={onClose} aria-label="Cerrar pasaporte y volver a la pantalla anterior">✕ <span>CERRAR</span></button>
+    <PassportBook client={client} userId={userId} registeredAt={registeredAt} authLoading={authLoading} stamps={items} ready={stampsReady} loading={passport.loading} failed={passport.error} celebrating={celebrating} onSignIn={requestSignIn} onGallery={onGallery} onRefresh={() => setRetry(value => value + 1)} immersive />
+  </section>
   return <>
     <div className="eyebrow">DANZ COLLECTIVE / TU PASAPORTE</div>
     <h1 className="page-title passport-title">TU PASAPORTE <em>DANZ.</em></h1>
