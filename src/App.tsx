@@ -5,11 +5,14 @@ import { flushSync } from 'react-dom'
 import { haptic } from './ui/haptics'
 import { cancelSectionTransition, transitionSection } from './ui/sectionTransition'
 import LoadingSkeleton from './ui/LoadingSkeleton'
+import MobileBottomNav from './ui/MobileBottomNav'
 import './App.css'
+import './homeVisualReview.css'
 import './arcade/gameSurface.css'
 import './arcade/gameScreen.css'
 import './arcade/arcadeLibrary.css'
 import { useAuth } from './auth/AuthProvider'
+import InstagramWelcome from './auth/InstagramWelcome'
 import { emailCallbackPresent } from './auth/client'
 import EventPassport from './events/EventPassport'
 import PwaControls from './pwa/PwaControls'
@@ -89,6 +92,7 @@ export default function App() {
   const adminMfaSetup = useRef<AdminMfaEnrollment | null>(null)
   if (adminMfaSetup.current && (adminMfaSetup.current.client !== auth.client || (!auth.loading && adminMfaSetup.current.owner !== auth.user?.id))) adminMfaSetup.current = null
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
+  const [instagramRequested, setInstagramRequested] = useState(() => new URLSearchParams(window.location.search).get('vincular') === 'instagram')
   const [page, setPage] = useState<Page>(() => {
     const params = new URLSearchParams(window.location.search)
     const requested = locationPage()
@@ -241,6 +245,8 @@ export default function App() {
     url.searchParams.delete('juego')
     if (destination !== 'danzflor') url.searchParams.delete('producto')
     if (destination !== 'admin' && destination !== 'fotos') url.searchParams.delete('album')
+    if (destination !== 'cuenta') url.searchParams.delete('vincular')
+    else if (instagramRequested) url.searchParams.set('vincular', 'instagram')
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
     if (window.location.href !== url.href) haptic('selection')
@@ -328,7 +334,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    const back = () => { cancelSectionTransition(); dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
+    const back = () => { cancelSectionTransition(); dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setInstagramRequested(new URLSearchParams(window.location.search).get('vincular') === 'instagram'); setPage(locationPage()); setArcadeGame(locationGame()) }
     window.addEventListener('popstate', back)
     return () => { cancelSectionTransition(); window.removeEventListener('popstate', back) }
   }, [])
@@ -351,6 +357,10 @@ export default function App() {
       </header>
 
       <PwaControls quiet={quickArrival || page === 'arcade'} />
+      {auth.user && !quickArrival && page !== 'arcade' && page !== 'cuenta' && <div className="content"><InstagramWelcome onConnect={() => {
+        setInstagramRequested(true)
+        go('cuenta')
+      }} /></div>}
 
       <main className="app-main">
         {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
@@ -359,31 +369,31 @@ export default function App() {
           <>
             <section className="intro content">
               <div className="eyebrow"><DanzFlower className="eyebrow-flower" /> MUSIC · PEOPLE · CULTURE</div>
-              <h1>WE ARE<br /><em>DANZ.</em></h1>
+              <h1>VIVE.<br /><em>RECUERDA.</em><br />JUEGA.</h1>
               <div className="intro-bottom">
                 <p>Tu noche no acaba cuando termina la música.</p>
-                <span>UNA EXPERIENCIA DEL COLECTIVO, EN UN SOLO LUGAR. ↓</span>
+                <span>FOTOS · PASAPORTE · ARCADANZ ↓</span>
               </div>
             </section>
 
-            <section className="feature-grid content" aria-label="Secciones principales">
-              <button className="feature photo-feature" onClick={() => go('fotos')}>
-                <span className="feature-top"><span>01 / RECUERDOS</span><Arrow /></span>
+            <section className="danz-home-priority content" aria-label="Descubre DANZ">
+              <button className="feature photo-feature danz-home-photo" onClick={() => go('fotos')}>
+                <span className="feature-top"><span>01 / NUESTRAS NOCHES</span><Arrow /></span>
                 <div className="photo-art" aria-hidden="true"><span>★</span><i/><b>AFTER<br />THE<br />NIGHT</b></div>
-                <span className="feature-bottom"><strong>FOTOS</strong><small>Revive la noche.</small></span>
+                <span className="feature-bottom"><strong>FOTOS</strong><small>Las noches pasan. Los recuerdos quedan. <span aria-hidden="true">↗</span></small></span>
               </button>
-              <button className="feature arcade-feature" onClick={() => go('arcade')}>
-                <span className="feature-top"><span>02 / JUEGA</span><Arrow /></span>
-                <GameCover className="snake-art cable-cover" decorative />
-                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega a {GAME_TITLE}.</small></span>
-              </button>
-            </section>
 
-            <section className="content passport-home-section" aria-label="Tu pasaporte DANZ">
-              <button className="passport-home-link" onClick={() => go('pasaporte')}>
-                <span className="passport-mini-book" aria-hidden="true"><DanzFlower /><span>PASAPORTE</span></span>
-                <span className="passport-home-copy"><small>TU COLECCIÓN DE NOCHES</small><strong>Un pasaporte.<br />Todas tus fiestas.</strong><span>Guarda tus sellos y vuelve a sus galerías.</span></span>
-                <Arrow />
+              <section className="passport-home-section danz-wallet-home" aria-label="Tu pasaporte DANZ">
+                <button className="danz-wallet-link" type="button" onClick={() => go('pasaporte')} aria-label="Abrir mi Pasaporte DANZ y ver mis sellos">
+                  <span className="danz-wallet-stack" aria-hidden="true"><span className="danz-wallet-back-card"/><span className="danz-wallet-front-card"><DanzFlower/><b>DANZ</b><small>PASAPORTE</small></span><span className="danz-wallet-strap"><DanzFlower/></span></span>
+                  <span className="danz-wallet-home-copy"><small>02 / TU CARTERA DE FIESTAS</small><strong>UN PASAPORTE.<br/>TODAS TUS NOCHES.</strong><span>Una fiesta, un sello, un recuerdo. Descubre tu colección DANZ.</span><em>DESCUBRIR MI PASAPORTE <span aria-hidden="true">↗</span></em></span>
+                </button>
+              </section>
+
+              <button className="feature arcade-feature danz-home-arcade" onClick={() => go('arcade')}>
+                <span className="feature-top"><span>03 / PLAY DANZ</span><Arrow /></span>
+                <GameCover className="snake-art cable-cover" decorative />
+                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega, compite y descubre. <span aria-hidden="true">↗</span></small></span>
               </button>
             </section>
 
@@ -410,7 +420,7 @@ export default function App() {
         {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
           {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
-          <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} /></Suspense>
+          <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} focusInstagram={instagramRequested} /></Suspense>
         </section>}
         {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
 
@@ -478,7 +488,7 @@ export default function App() {
         {(page === 'pasaporte' || page === 'danzers') && (
           <section className="content inner-page passport-page">
             <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-            <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
+            <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} registeredAt={auth.user?.created_at ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
           </section>
         )}
 
@@ -507,6 +517,7 @@ export default function App() {
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
       <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
+      <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )

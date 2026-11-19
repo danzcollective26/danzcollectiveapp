@@ -115,3 +115,71 @@
 .pass-reminder-options a { display: flex; justify-content: center; white-space: normal; text-align: center; margin-top: 12px; text-decoration: none; }
 .pass-claim-now { width: 100%; margin-top: 12px; }
 @media(max-width:380px) { .pass-visual-guide { padding: 18px 14px; } .pass-visual-guide li { grid-template-columns: 46px minmax(0,1fr); gap: 13px; } .pass-guide-art,.pass-guide-art svg { width: 46px; } }
+
+/* DANZ passport review 03: black-and-gold edition. Visual-only; verified stamps and permissions intact. */
+.passport-page .page-title.passport-title em{color:#d5b777}
+.passport-book{background:#110f0d;border-color:#75603c;border-radius:17px;box-shadow:0 26px 64px #0009,0 0 0 1px #d6b57626}
+.passport-cover{color:#e3c78b;border-color:#8c7546;border-radius:12px;background:radial-gradient(ellipse at 22% 10%,#473721 0%,transparent 56%),repeating-linear-gradient(105deg,transparent 0 3px,#fff2 3px 4px),linear-gradient(145deg,#2a2117,#0c0c0c 80%);box-shadow:inset -15px 0 24px #0009,inset 2px 0 0 #fff1}
+.passport-cover:before{border-color:#c7a45b77;border-radius:8px}
+.passport-cover-edition,.passport-cover p{color:#d8c59e}
+.passport-cover-flower{color:#d8b46c;filter:drop-shadow(0 4px 12px #d9ae4940)}
+.passport-cover-count{border-color:#c7a45b75}
+.passport-paper{color:#28231d;background:linear-gradient(90deg,#d7ccb6,#faf6ec 5%,#faf6ec 96%,#e1d5c1);border-right-color:#c6b18b}
+.passport-page-index{border-bottom-color:#cbbd9d}
+.passport-page-index svg{color:#957341}
+.passport-paper .outline-btn{color:#3a2c18;border-color:#b9a176;border-radius:8px}
+.passport-paper .outline-btn:hover{background:#f1e7d0;border-color:#85672e}
+.passport-next-stamp{border-color:#b9a176;color:#91723d}
+.passport-stamp{border-bottom-color:#d7c9b0;--stamp-ink:#8c713e}
+.passport-stamp[data-ink='1']{--stamp-ink:#7e6133}
+.passport-stamp[data-ink='2']{--stamp-ink:#9a7745}
+.passport-paper-foot{color:#8a754c}
+.passport-redeem{background:linear-gradient(140deg,#241e16,#101010);border-color:#75603c;border-radius:15px}
+.passport-redeem-number{color:#d1af6a}
+.passport-redeem input{background:#11100e;border-color:#917b56;border-radius:8px}
+.passport-redeem input:focus-visible{outline:2px solid #d7bb7f;outline-offset:2px}
+@media(max-width:560px){.passport-book{border-radius:16px}.passport-cover{border-radius:12px}.passport-paper{border-radius:10px}}
+
+
+/* Review 04: physically legible passport experience, using the existing DANZ mark. */
+.passport-book.is-closed{display:block;width:min(100%,500px);margin-inline:auto;padding:9px;background:#15120e;border:1px solid #8e7347;border-radius:19px}
+.passport-book.is-closed .passport-cover{min-height:510px;padding:38px 28px;border-radius:13px;background:radial-gradient(ellipse at 35% 8%,#4b3922 0%,transparent 59%),linear-gradient(145deg,#2b231a,#090909 78%);box-shadow:inset 10px 0 22px #0008, 0 12px 28px #0009}
+.passport-book.is-open{grid-template-columns:minmax(190px,.68fr) minmax(0,1.5fr);gap:5px}
+.passport-book.is-open .passport-cover{border-radius:12px 3px 3px 12px}
+.passport-book.is-open .passport-paper{border-radius:3px 12px 12px 3px}
+.passport-paper[hidden]{display:none!important}
+.passport-book-toggle{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:50px;width:100%;margin-top:26px;padding:13px 17px;border:1px solid #d3b372;border-radius:7px;background:linear-gradient(110deg,#dec48b,#c4a266);color:#1b140b;font:850 11px Arial,sans-serif;letter-spacing:.1em;cursor:pointer}
+.passport-book-toggle span{font-size:20px;line-height:1}
+.passport-book-toggle:focus-visible,.passport-pages-close:focus-visible{outline:3px solid #d9ff6b;outline-offset:3px}
+.passport-book-toggle:hover{filter:brightness(1.08)}
+.passport-book.is-open .passport-book-toggle{background:transparent;color:#e6c98e}
+.passport-pages-close{border:1px solid #c2ac85;background:transparent;color:#574322;padding:10px 12px;border-radius:6px;font:800 9px Arial,sans-serif;letter-spacing:.065em;cursor:pointer}
+.passport-book.is-open .passport-page-index{gap:16px}
+.passport-book.is-open .passport-cover-flower{color:#dbba77}
+.passport-book.is-open .passport-cover h2{color:#e6c98e}
+.passport-book.is-open .passport-stamps{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:760px){
+ .passport-book.is-open{display:grid;grid-template-columns:1fr;gap:6px}
+ .passport-book.is-open .passport-cover{min-height:210px;display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-content:center;align-items:center;justify-items:start;padding:24px 22px;border-radius:12px}
+ .passport-book.is-open .passport-cover>img{grid-column:1;width:min(100%,185px)}
+ .passport-book.is-open .passport-cover-edition{grid-column:1}
+ .passport-book.is-open .passport-cover-flower{grid-column:2;grid-row:1/span 3;width:62px;height:62px;margin:0}
+ .passport-book.is-open .passport-cover h2{grid-column:1;margin:0}
+ .passport-book.is-open .passport-cover p{display:none}
+ .passport-book.is-open .passport-cover-count{grid-column:1/-1;flex-direction:row;justify-content:flex-start;margin:0}
+ .passport-book.is-open .passport-book-toggle{grid-column:1/-1;margin-top:4px}
+ .passport-book.is-open .passport-paper{border-radius:10px;padding:25px 20px}
+}
+@media(max-width:560px){
+ .passport-book.is-closed .passport-cover{display:flex;min-height:min(65dvh,495px);padding:28px 24px;justify-content:center;align-items:center;text-align:center}
+ .passport-book.is-closed .passport-cover>img{width:min(90%,225px)}
+ .passport-book.is-closed .passport-cover-flower{width:94px;height:94px;margin:24px 0}
+ .passport-book.is-closed .passport-cover p{display:block;margin:12px 0}
+ .passport-book.is-closed .passport-cover-count{flex-direction:row;align-items:center;justify-content:center;margin-top:12px}
+ .passport-book.is-open .passport-stamps{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .passport-book.is-open .passport-cover{grid-template-columns:minmax(0,1fr) 60px}
+ .passport-book.is-open .passport-page-index{font-size:8px}
+ .passport-pages-close{font-size:8px}
+}
+@media(max-width:370px){.passport-book.is-open .passport-stamps{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.passport-book-toggle{transition:none}}

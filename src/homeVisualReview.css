@@ -1,0 +1,158 @@
+/* DANZ visual review 01: content-first mobile home, no changes to games or galleries. */
+@media (max-width: 700px) {
+  .site-shell:has(.danz-home-priority) .intro {
+    padding-top: 26px;
+    padding-bottom: 15px;
+    min-height: 0;
+  }
+  .site-shell:has(.danz-home-priority) .intro h1 {
+    font-size: clamp(36px, 9vw, 57px);
+    line-height: .94;
+    letter-spacing: -.045em;
+    margin: 13px 0 12px;
+  }
+  .site-shell:has(.danz-home-priority) .intro-bottom {
+    margin-top: 0;
+    gap: 8px;
+  }
+  .site-shell:has(.danz-home-priority) .intro-bottom p {
+    font-size: 12px;
+    line-height: 1.45;
+    margin: 0;
+  }
+  .site-shell:has(.danz-home-priority) .intro-bottom>span {
+    font-size: 9px;
+    letter-spacing: .09em;
+    color: #bdaac9;
+  }
+  .danz-home-priority {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 14px;
+    padding-top: 12px;
+  }
+  .danz-home-priority .danz-home-photo,
+  .danz-home-priority .danz-home-arcade {
+    width: 100%;
+    min-width: 0;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid #544859;
+    position: relative;
+    text-align: left;
+    box-shadow: 0 12px 28px #0005;
+  }
+  .danz-home-priority .danz-home-photo {
+    background: linear-gradient(150deg,#382735,#1a181b 75%);
+  }
+  .danz-home-priority .danz-home-arcade {
+    background: linear-gradient(150deg,#292334,#161519 75%);
+  }
+  .danz-home-priority .feature-top {
+    color: #f0eae9;
+    letter-spacing: .12em;
+  }
+  .danz-home-priority .feature-bottom {
+    gap: 6px;
+  }
+  .danz-home-priority .feature-bottom strong {
+    font-size: clamp(35px, 10vw, 56px);
+    line-height: 1;
+    letter-spacing: -.045em;
+  }
+  .danz-home-priority .feature-bottom small {
+    color: #eee6eb;
+    line-height: 1.4;
+    font-size: 12px;
+    max-width: 28ch;
+  }
+  .danz-home-priority .danz-wallet-home {
+    padding-top: 0;
+    position: relative;
+  }
+  .danz-home-priority .danz-wallet-link {
+    border-radius: 15px;
+    min-height: 146px;
+    padding: 18px 16px;
+    gap: 15px;
+    border: 1px solid #806c8d;
+    background: linear-gradient(115deg,#33283d,#1e1b23 78%);
+    box-shadow: 0 10px 27px #0004;
+  }
+  .danz-home-priority .danz-wallet-stack {
+    width: 93px;
+    height: 110px;
+    transform: rotate(-7deg);
+  }
+  .danz-home-priority .danz-wallet-front-card {
+    padding: 10px 12px;
+  }
+  .danz-home-priority .danz-wallet-front-card b {
+    font-size: 24px;
+  }
+  .danz-home-priority .danz-wallet-home-copy {
+    min-width: 0;
+    gap: 7px;
+  }
+  .danz-home-priority .danz-wallet-home-copy small {
+    color: #c5add5;
+    letter-spacing: .08em;
+    font-size: 8px;
+  }
+  .danz-home-priority .danz-wallet-home-copy strong {
+    color: #f5f0ef;
+    font-size: clamp(17px,5vw,24px);
+    line-height: 1.05;
+  }
+  .danz-home-priority .danz-wallet-home-copy>span {
+    color: #cfc3d3;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .danz-home-priority .danz-wallet-home-copy em {
+    color: #e1d5ea;
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+  .danz-home-priority .danz-wallet-link:focus-visible,
+  .danz-home-priority .feature:focus-visible {
+    outline: 2px solid #dde69a;
+    outline-offset: 3px;
+  }
+  .site-shell:has(.danz-home-priority) .lower-section {
+    padding-top: 34px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .danz-home-priority * { scroll-behavior: auto; }
+}
+
+/* DANZ home review 03: selected editorial card direction, quieter corporate palette. */
+.site-shell:has(.danz-home-priority) .intro h1 em{color:#eee9e2}
+.danz-home-priority .feature{border-radius:18px;box-shadow:0 15px 36px #0007;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.danz-home-priority .feature:hover{transform:translateY(-2px);box-shadow:0 19px 42px #0009}
+.danz-home-priority .danz-home-photo{background:linear-gradient(155deg,#393035,#111013);border-color:#6f6065}
+.danz-home-priority .danz-home-arcade{background:linear-gradient(160deg,#272331,#0d0d11);border-color:#5b5163;color:#f4f0ea}
+.danz-home-priority .feature-top{color:#e6ddd6}
+.danz-home-priority .feature-bottom strong{color:#fff9f1;text-shadow:0 2px 14px #0008}
+.danz-home-priority .feature-bottom small{color:#e5ddd8;white-space:normal;text-align:right}
+.danz-home-priority .danz-wallet-link{border-radius:18px;border:1px solid #9f844f;background:radial-gradient(ellipse at 12% 12%,#45351f 0%,transparent 52%),linear-gradient(116deg,#231c15,#0e0e0f 80%);box-shadow:0 15px 34px #0009,inset 0 1px 0 #ffffff18;color:#f7f0e5}
+.danz-home-priority .danz-wallet-link:after{content:"";pointer-events:none;position:absolute;inset:7px;border:1px solid #d4b87935;border-radius:12px}
+.danz-wallet-back-card{background:linear-gradient(120deg,#c5a15c,#67502b)}
+.danz-wallet-front-card,.danz-home-priority .danz-wallet-front-card{background:linear-gradient(145deg,#3c3020,#131313 75%);border-color:#a78d58;color:#f7edd6}
+.danz-wallet-front-card svg{color:#d4b774}
+.danz-wallet-front-card small{color:#dec99c}
+.danz-wallet-strap{background:#241d14;border-color:#c3a367;color:#dbbb77}
+.danz-home-priority .danz-wallet-home-copy small{color:#d3b67e}
+.danz-home-priority .danz-wallet-home-copy strong{color:#fff6e8}
+.danz-home-priority .danz-wallet-home-copy>span{color:#dbd2c4}
+.danz-home-priority .danz-wallet-home-copy em{color:#e6c78a}
+@media(max-width:700px){
+ .danz-home-priority .feature{border-radius:16px}
+ .danz-home-priority .danz-home-photo{border-color:#6f6065;background:linear-gradient(155deg,#393035,#111013)}
+ .danz-home-priority .danz-home-arcade{border-color:#5b5163;background:linear-gradient(160deg,#272331,#0d0d11)}
+ .danz-home-priority .danz-wallet-link{min-height:156px;border-color:#9f844f;background:radial-gradient(ellipse at 12% 12%,#45351f 0%,transparent 52%),linear-gradient(116deg,#231c15,#0e0e0f 80%)}
+ .danz-home-priority .danz-wallet-front-card{background:linear-gradient(145deg,#3c3020,#131313 75%);border-color:#a78d58}
+}

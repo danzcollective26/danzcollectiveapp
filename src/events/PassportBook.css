@@ -1,0 +1,97 @@
+
+/* Editorial travel document — one leaf per viewport, never a double-page spread. */
+.danz-travel{--paper:#eae4d8;--ink:#181817;--line:#c6bfb2;position:relative;width:min(100%,600px);margin:0 auto 36px;color:#eae4d8}
+.danz-travel *{box-sizing:border-box}
+.danz-travel-top{display:flex;justify-content:space-between;gap:12px;padding:12px 2px 10px;font-size:9px;font-weight:800;letter-spacing:.19em;color:#bdb9af}
+.danz-travel-window{position:relative;isolation:isolate;overflow:hidden;min-height:min(76dvh,720px);height:min(76dvh,720px);border-radius:14px;touch-action:pan-y;box-shadow:0 22px 45px #0009,0 0 0 1px #5b5549;perspective:1500px;outline-offset:5px}
+.danz-travel-window:focus-visible{outline:3px solid #d2fc70}
+.danz-travel-leaf{position:absolute;inset:0;display:flex;flex-direction:column;min-width:0;padding:clamp(19px,5vw,35px);overflow-y:auto;overscroll-behavior:contain;backface-visibility:hidden;transform-origin:0 50%;will-change:transform,opacity}
+.danz-turn-next{animation:danz-leaf-next .42s cubic-bezier(.16,.8,.22,1) both}
+.danz-turn-previous{animation:danz-leaf-previous .42s cubic-bezier(.16,.8,.22,1) both}
+@keyframes danz-leaf-next{from{opacity:.65;transform:rotateY(-26deg) translateX(13px);filter:brightness(.88)}to{opacity:1;transform:rotateY(0) translateX(0);filter:brightness(1)}}
+@keyframes danz-leaf-previous{from{opacity:.65;transform:rotateY(23deg) translateX(-13px);filter:brightness(.88)}to{opacity:1;transform:rotateY(0) translateX(0);filter:brightness(1)}}
+.danz-travel-cover{color:#f1eee7;background:repeating-linear-gradient(112deg,transparent 0 2px,#ffffff06 3px 4px),radial-gradient(ellipse at 45% 14%,#33312d,#0a0a0a 69%);border:10px solid #1e1d1b;box-shadow:inset 0 0 0 1px #aaa08b, inset 16px 0 23px #000a;align-items:center;justify-content:space-between;text-align:center}
+.danz-travel-cover:before{content:'';position:absolute;inset:12px;border:1px solid #afa79a66;border-radius:5px;pointer-events:none}
+.danz-travel-cover-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.12) brightness(.36);opacity:.74;pointer-events:none}
+.danz-travel-cover-top,.danz-travel-cover-bottom{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:start;gap:10px;width:100%;text-align:left;font-size:10px;font-weight:900;letter-spacing:.11em}
+.danz-travel-cover-top{font-size:25px;line-height:.83;letter-spacing:-.06em}
+.danz-travel-cover-top small{font-size:9px;letter-spacing:.32em}
+.danz-travel-cover-top>span:last-child{font-size:9px;letter-spacing:.12em}
+.danz-travel-cover-bottom{padding-bottom:4px;font-size:8px;letter-spacing:.13em;line-height:1.8;border-top:1px solid #ffffff55;padding-top:14px}
+.danz-travel-logo{width:clamp(95px,35%,170px);height:auto;position:relative;z-index:1;margin:auto 0 22px;color:#e9e4dc}
+.danz-travel-cover h2{position:relative;z-index:1;font-size:clamp(27px,8vw,48px);font-weight:850;letter-spacing:.19em;margin:0;text-indent:.19em}
+.danz-travel-cover-caption{position:relative;z-index:1;font-size:9px;font-weight:700;letter-spacing:.2em;margin:12px 0 auto}
+.danz-travel-paper{color:#232220;background:linear-gradient(90deg,#c7bfb3 0,#eae4d8 4%,#f1eadc 51%,#e8e0d2 96%,#c7bfb3);border:1px solid #c7bfb3}
+.danz-travel-paper:before{content:'';position:absolute;inset:12px;border:1px solid #a9a19955;pointer-events:none}
+.danz-travel-paper:after{content:'';position:absolute;right:-60px;top:8%;width:200px;height:200px;border:2px solid #be7b8833;border-radius:50%;pointer-events:none}
+.danz-paper-head{display:flex;gap:12px;align-items:center;font-weight:950;font-size:21px;line-height:.9;letter-spacing:-.06em}
+.danz-paper-head svg{width:39px;height:39px;flex:none}
+.danz-paper-head strong small{display:block;font-size:9px;letter-spacing:.19em;line-height:1.4}
+.danz-paper-head>span{margin-left:auto;font-size:8px;letter-spacing:.07em;line-height:1.4;text-align:right}
+.danz-paper-rule{height:1px;background:#514d4590;margin:21px 0}
+.danz-paper-kicker{font-size:9px;letter-spacing:.23em;font-weight:900;margin:10px 0 19px}
+.danz-paper-title{font-size:clamp(32px,8vw,54px);font-weight:920;letter-spacing:-.055em;line-height:.97;overflow-wrap:anywhere;margin:0 0 24px;text-transform:uppercase}
+.danz-paper-intro{font-size:13px;line-height:1.6;max-width:35ch;margin:0 0 20px}
+.danz-member-photo{position:relative;width:46%;height:clamp(120px,25dvh,230px);background:repeating-linear-gradient(50deg,#9e988b 0 1px,#d6ccbe 1px 3px);border:1px solid #5e584c;overflow:hidden;display:grid;place-items:center}
+.danz-member-photo svg{width:85px;height:85px;color:#817a6d}
+.danz-member-photo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1)}
+.danz-member-fields,.danz-trip-fields{display:grid;grid-template-columns:1fr;gap:3px;margin:20px 0}
+.danz-member-fields dt,.danz-trip-fields dt{font-size:8px;font-weight:900;letter-spacing:.15em;color:#6b635a;margin:10px 0 0}
+.danz-member-fields dd,.danz-trip-fields dd{margin:0;padding:0 0 6px;border-bottom:1px solid #bcb4a9;font-size:clamp(13px,3vw,18px);font-weight:850;line-height:1.25;overflow-wrap:anywhere}
+.danz-paper-foot{margin-top:auto;padding:20px 0 0;border-top:1px solid #aaa295;font-size:8px;letter-spacing:.16em;font-weight:850}
+.danz-stamp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:start;margin:5px 0 24px}
+.danz-book-stamp{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:118px;padding:11px 6px;border:2px dashed currentColor;outline:1px solid currentColor;outline-offset:-7px;background:transparent;text-align:center;cursor:pointer;transform:rotate(-3deg)}
+.danz-book-stamp:nth-child(even){transform:rotate(3deg)}
+.danz-book-stamp:focus-visible,.danz-paper-action:focus-visible{outline:3px solid #4d6ca2;outline-offset:3px}
+.danz-book-stamp svg{height:28px;width:28px;margin-bottom:6px}
+.danz-book-stamp strong{font-size:clamp(11px,3vw,16px);font-weight:950;text-transform:uppercase;line-height:1.1;max-width:100%;overflow-wrap:anywhere}
+.danz-book-stamp span{font-size:9px;letter-spacing:.04em;margin-top:8px}
+.ink-black{color:#222}.ink-violet{color:#6d4f9b}.ink-orange{color:#a9563e}.ink-blue{color:#3e628c}.ink-olive{color:#596c48}
+.danz-paper-empty{display:flex;flex-direction:column;gap:17px;align-items:start;padding:30px 4px;line-height:1.7;font-size:14px}
+.danz-paper-empty>svg{width:65px;height:65px;opacity:.34}
+.danz-paper-action{display:block;width:100%;min-height:48px;background:#171717;color:#f5f0e6;border:0;padding:14px 16px;text-align:left;font-size:11px;letter-spacing:.12em;font-weight:850;margin:12px 0;cursor:pointer}
+.danz-trip-title{font-size:clamp(33px,8vw,52px);margin-bottom:18px}
+.danz-trip-photo{position:relative;flex:0 0 auto;min-height:135px;height:min(29dvh,235px);margin:0 9% 0 0;overflow:hidden;transform:rotate(-2deg);border:7px solid #faf9f2;box-shadow:0 4px 12px #0003;background:#aaa294}
+.danz-trip-photo>img{width:100%;height:100%;object-fit:cover;filter:grayscale(1)}
+.danz-trip-photo-placeholder{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;height:100%;font-size:10px;font-weight:900;letter-spacing:.08em;text-align:center;color:#514c43;background:repeating-linear-gradient(15deg,#b7b0a3,#d0c6b7 2px,#b7b0a3 4px)}
+.danz-trip-photo-placeholder svg{width:55px;height:55px}
+.danz-trip-ink{width:120px;min-height:100px;transform:rotate(13deg);align-self:flex-end;margin:-40px 0 5px;padding:9px;border:4px double currentColor;border-radius:55%;display:flex;align-items:center;justify-content:center;gap:3px;flex-direction:column;position:relative;z-index:2;text-align:center;background:#f3ece0c9;box-shadow:0 0 0 3px #f3ece0c9}
+.danz-trip-ink svg{width:33px;height:33px}
+.danz-trip-ink span{font-size:9px;line-height:1.2;font-weight:950;letter-spacing:.08em}
+.danz-trip-fields{margin:5px 0 15px;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 12px}
+.danz-trip-fields dt{margin-top:6px}.danz-trip-fields dd{font-size:12px}
+.danz-new-stamp{color:#52683c;font-size:12px;font-weight:900}
+.danz-travel-navigation{display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:12px}
+.danz-travel-navigation button{width:54px;height:46px;display:grid;place-items:center;color:#faf8ef;background:#292724;border:1px solid #918b7d;border-radius:8px;cursor:pointer;font-size:26px}
+.danz-travel-navigation button:disabled{opacity:.3;cursor:default}
+.danz-travel-navigation>span{font-size:10px;letter-spacing:.17em;font-weight:850}
+.danz-travel-feedback{font-size:8px;color:#a7a399;text-align:center;letter-spacing:.14em;padding:2px 0 10px}
+.danz-photo-choice-status{display:flex;gap:12px;justify-content:space-between;align-items:center;font-size:10px;line-height:1.5;color:#b5b3ac;padding:12px 0}
+.danz-photo-choice-status button{border:1px solid #9c988d;background:transparent;color:#fff;min-height:40px;padding:8px 12px;flex-shrink:0}
+@media(max-width:560px){
+ .passport-page>.back{margin-bottom:12px}
+ .passport-page .passport-layout{display:block}
+ .danz-travel{width:100%;margin-bottom:20px}
+ .danz-travel-window{height:min(73dvh,680px);min-height:490px}
+ .danz-travel-leaf{padding:21px}
+ .danz-travel-cover{border-width:8px}
+ .danz-paper-title{font-size:clamp(32px,9vw,49px)}
+ .danz-member-photo{height:clamp(110px,22dvh,205px)}
+ .danz-trip-photo{height:min(25dvh,180px)}
+ .danz-trip-ink{width:90px;min-height:80px;margin-top:-28px}
+ .danz-trip-ink svg{width:25px;height:25px}
+}
+@media(max-height:720px){.danz-travel-window{height:72dvh;min-height:420px}.danz-paper-title{font-size:clamp(29px,7vw,42px)}.danz-member-photo{height:118px}.danz-member-fields{margin:9px 0}.danz-trip-photo{height:118px}}
+@media(prefers-reduced-motion:reduce){.danz-turn-next,.danz-turn-previous{animation:none}.danz-travel-leaf{will-change:auto}}
+
+
+/* Consistent non-AI editorial portrait: rendered locally on the person's device. */
+.danz-member-photo{isolation:isolate;filter:contrast(1.04)}
+.danz-member-photo img{filter:grayscale(1) contrast(1.23) brightness(.96);display:block}
+.danz-member-photo:after{content:'';pointer-events:none;position:absolute;inset:0;opacity:.22;mix-blend-mode:multiply;background-image:radial-gradient(#332c25 0.6px,transparent 0.8px);background-size:3px 3px}
+.danz-portrait-demo{margin:10px 0 15px;display:flex;align-items:start;flex-direction:column;gap:7px}
+.danz-portrait-demo label{font-weight:850;font-size:9px;letter-spacing:.1em;color:#3f3930}
+.danz-portrait-demo input{display:block;width:100%;max-width:340px;font-size:11px;color:#25201c}
+.danz-portrait-demo input::file-selector-button{border:1px solid #655e51;padding:8px 10px;margin-right:10px;background:#252420;color:#f8f4ed;cursor:pointer}
+.danz-portrait-demo p{margin:0;font-size:10px;line-height:1.4;color:#6c6255}
+.danz-portrait-demo button{border:1px solid #655e51;background:transparent;color:#25201c;font-size:10px;font-weight:850;min-height:36px;padding:7px 10px}
