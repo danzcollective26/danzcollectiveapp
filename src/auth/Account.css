@@ -7,3 +7,8 @@
 .account-browser-login{border-left:3px solid var(--acid);padding:0 0 4px 18px;margin:24px 0}
 .account-browser-login .primary-btn{font-size:11px;white-space:normal}
 .instagram-proof{margin:22px 0;padding:20px 0;border-top:1px solid var(--line);line-height:1.8}.instagram-proof label{display:block;font-size:11px;font-weight:800;margin-bottom:10px}.instagram-proof input{width:100%;box-sizing:border-box;background:#151518;color:var(--white);border:1px solid #555;padding:14px;font-size:18px;letter-spacing:.08em}.instagram-proof ol{padding-left:20px;font-size:13px;overflow-wrap:anywhere}.instagram-proof li{margin-bottom:12px}.instagram-link>.outline-btn{margin-top:14px}
+
+/* Post-login Instagram step is immediately visible and keyboard-accessible. */
+.instagram-link{scroll-margin-top:24px}
+.instagram-link-focused{border-color:#cbeb91;box-shadow:0 0 0 1px #cbeb9140,inset 0 0 0 1px #cbeb911c}
+.instagram-start-note{background:#283122;color:#e9f2d6!important;border-left:4px solid #d5ed94;padding:14px 16px;margin:6px 0 16px!important;font-weight:650}
