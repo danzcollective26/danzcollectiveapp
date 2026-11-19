@@ -245,6 +245,8 @@ export default function App() {
     url.searchParams.delete('juego')
     if (destination !== 'danzflor') url.searchParams.delete('producto')
     if (destination !== 'admin' && destination !== 'fotos') url.searchParams.delete('album')
+    if (destination !== 'cuenta') url.searchParams.delete('vincular')
+    else if (instagramRequested) url.searchParams.set('vincular', 'instagram')
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
     if (window.location.href !== url.href) haptic('selection')
@@ -332,7 +334,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    const back = () => { cancelSectionTransition(); dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setPage(locationPage()); setArcadeGame(locationGame()) }
+    const back = () => { cancelSectionTransition(); dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setInstagramRequested(new URLSearchParams(window.location.search).get('vincular') === 'instagram'); setPage(locationPage()); setArcadeGame(locationGame()) }
     window.addEventListener('popstate', back)
     return () => { cancelSectionTransition(); window.removeEventListener('popstate', back) }
   }, [])
