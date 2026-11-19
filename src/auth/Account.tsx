@@ -241,8 +241,6 @@ export default function Account() {
     <div className="eyebrow">DANZ COLLECTIVE / TU CUENTA</div>
     <h1 className="page-title">TU<br /><em>CUENTA.</em></h1>
     {authError && <p role="alert" className="account-error">{authError}</p>}
-    <YeppoToggle />
-        <RadioUpload />
     {!client ? <div className="account-card"><h2>Seguimos preparando las cuentas</h2><p>{configIssue}</p><p>Puedes explorar la app y jugar sin registrarte.</p></div>
       : loading ? <p role="status">Comprobando tu sesión…</p>
       : user ? <>
@@ -251,8 +249,10 @@ export default function Account() {
           <button className="outline-btn" type="button" disabled={busy} onClick={() => { void leave() }}>{busy ? 'CERRANDO…' : 'CERRAR SESIÓN'}</button>
         </div>
         {error && <p role="alert" className="account-error">{error}</p>}
-        <ProfileForm key={user.id} client={client} user={user} />
         <InstagramLink key={`instagram-${user.id}`} />
+        <ProfileForm key={user.id} client={client} user={user} />
+        <YeppoToggle />
+        <RadioUpload />
       </> : <div className="account-card">
         <h2>{providers.length || providersLoading ? 'Entra en DANZ' : 'Entra con tu correo'}</h2>
         {providersLoading && <p className="account-note" role="status">Comprobando las formas de acceso…</p>}
