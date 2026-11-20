@@ -4,6 +4,17 @@ Este repositorio contiene la app DANZ Collective. Mantener las decisiones y el
 trabajo pendiente en `docs/ARCADANZ_ROADMAP.md` y distinguir siempre lo probado,
 lo publicado y lo propuesto.
 
+## Regla permanente: proteger el trabajo existente (todas las IA y colaboradores)
+
+Antes de cualquier cambio, leer este archivo y la [issue #62](https://github.com/danzcollective26/danzcollectiveapp/issues/62) para prevenir regresiones. Aplicar estas reglas también cuando trabaje Grok, Codex, ChatGPT, un complemento o un desarrollador externo:
+
+1. Leer el código, las decisiones aprobadas y los módulos afectados antes de editar. Conservar funcionalidades, datos, diseños, portadas, rutas y controles ya aprobados; no sustituir archivos íntegros sin revisar las diferencias.
+2. Modificar en una rama con commits pequeños, sin alterar `main` ni producción antes de que el propietario pruebe y apruebe el bloque en el móvil.
+3. Ejecutar `npm run build` y `npm test` (y Playwright/PWA cuando proceda). Dejar evidencia de qué se verificó y qué quedó sin probar; una compilación correcta no demuestra funcionamiento táctil.
+4. Revisar RLS, migraciones y controles de consentimiento antes de tocar perfiles, Instagram, fotos privadas, puntos, sellos o cuentas. Nunca abrir información personal por conveniencia técnica.
+5. En el PR: anotar comportamiento anterior, cambio, riesgos, pruebas, despliegue de prueba y reversión. No corregir un fallo destruyendo otra función.
+6. Trabajar en bloques de tres o cuatro mejoras; comunicar avances reales y distinguir claramente código, compilación, despliegue, pruebas y aprobación. No afirmar actividad de fondo tras finalizar la respuesta.
+
 ## Instrucciones actuales para todo agente de IA
 
 - Leer **`docs/DECISIONES_VIGENTES.md`** y las tareas [#62](https://github.com/danzcollective26/danzcollectiveapp/issues/62) y [#63](https://github.com/danzcollective26/danzcollectiveapp/issues/63) antes de modificar funcionalidades. Conservar decisiones, visuales y mecánicas aprobados, crear rama/PR, comprobar y no fusionar sin autorización.
