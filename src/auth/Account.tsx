@@ -129,6 +129,27 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     return () => { active = false }
   }, [client, user.id, instagramPublic, profile?.instagram_public, identity.data?.verified, identity.data?.handle])
 
+  const [memberStats, setMemberStats] = useState<{ code: string | null; stamps: number | null; available: number | null; pending: number | null }>({ code: null, stamps: null, available: null, pending: null })
+  useEffect(() => {
+    const controller = new AbortController()
+    const points = client.rpc('danz_points_summary').abortSignal(controller.signal).then(({ data, error }) => {
+      if (error || !data || typeof data !== 'object' || Array.isArray(data)) return
+      const item = data as Record<string, unknown>
+      if (controller.signal.aborted) return
+      setMemberStats(prev => ({
+        ...prev,
+        code: typeof item.code === 'string' && /^DNZ-[A-F0-9]{12}$/.test(item.code) ? item.code : null,
+        available: Number.isSafeInteger(item.available) && Number(item.available) >= 0 ? Number(item.available) : null,
+        pending: Number.isSafeInteger(item.pending) && Number(item.pending) >= 0 ? Number(item.pending) : null,
+      }))
+    }).then(undefined, () => {})
+    const stamps = client.rpc('danz_my_passport').abortSignal(controller.signal).then(({ data, error }) => {
+      if (!controller.signal.aborted && !error && Array.isArray(data)) setMemberStats(prev => ({ ...prev, stamps: data.length }))
+    }).then(undefined, () => {})
+    void Promise.all([points, stamps])
+    return () => controller.abort()
+  }, [client, user.id])
+
   const verifiedHandle = identity.data?.verified ? identity.data.handle : null
   const safeHandle = verifiedHandle && /^[A-Za-z0-9_.]{1,30}$/.test(verifiedHandle) ? verifiedHandle : null
   return <section className="account-card danz-profile-card" aria-label="Tu perfil" aria-busy={loading || busy}>
@@ -140,6 +161,13 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     {loading ? <p role="status">Cargando identidad…</p> : <>
       {error && <p role="alert" className="account-error">{error}</p>}
       {loadFailed && <button className="outline-btn" onClick={() => setAttempt(value => value + 1)}>VOLVER A CARGAR PERFIL</button>}
+      <div className="danz-member-details" aria-label="Mi tarjeta de socio DANZ">
+        <div className="danz-profile-detail"><span>Número de socio / Código DANZ</span><strong>{memberStats.code ?? 'Consultando o todavía no disponible'}</strong></div>
+        <div className="danz-profile-detail"><span>Miembro desde</span><strong>{user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha no disponible'}</strong></div>
+        <div className="danz-profile-detail"><span>Sellos del pasaporte</span><strong>{memberStats.stamps === null ? 'Por consultar' : memberStats.stamps}</strong></div>
+        <div className="danz-profile-detail"><span>DANZPOINTS disponibles</span><strong>{memberStats.available === null ? 'Por consultar' : memberStats.available.toLocaleString('es-ES')}</strong></div>
+        {memberStats.pending !== null && memberStats.pending > 0 && <div className="danz-profile-detail"><span>Puntos pendientes</span><strong>{memberStats.pending.toLocaleString('es-ES')}</strong></div>}
+      </div>
       <div className="danz-profile-detail"><span>Nombre público</span><strong>{name.trim() || 'Pendiente de configurar'}</strong></div>
       <div className="danz-profile-detail"><span>Instagram</span><strong>{identity.loading ? 'Comprobando vinculación…' : safeHandle ? 'Verificado' : identity.data?.status === 'pending' ? 'Pendiente de validar' : 'Sin verificar'}</strong></div>
       {safeHandle ? <a className="danz-instagram-profile" href={`https://www.instagram.com/${safeHandle}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir perfil de Instagram de @${safeHandle}`}>
