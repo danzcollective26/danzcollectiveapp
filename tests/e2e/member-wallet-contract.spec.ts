@@ -23,6 +23,7 @@ test('wallet has separate visible member and passport pockets with no overlap', 
 
 test('account opens with public identity card, not editable fields', async ({ page }) => {
   await installMockSession(page)
+  await page.route('https://danz-test.supabase.co/rest/v1/danz_profiles**', route => route.fulfill({ json: [] }))
   await page.goto('/?seccion=cuenta')
   const card = page.getByRole('region', { name: 'Tu perfil' })
   await expect(card).toBeVisible()
