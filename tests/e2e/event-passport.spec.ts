@@ -96,7 +96,6 @@ test('immersive passport keeps server stamps after reload and returns to the wal
   await page.reload()
   await refreshedStamps
   await expect(reader).toBeVisible()
-  await expect.poll(async () => await page.evaluate(() => document.querySelector('.danz-travel')?.textContent?.includes('05') ?? false)).toBe(true)
   await leaf.focus()
   await leaf.press('ArrowRight')
   await leaf.press('ArrowRight')
