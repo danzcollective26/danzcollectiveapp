@@ -129,6 +129,20 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     return () => { active = false }
   }, [client, user.id, instagramPublic, profile?.instagram_public, identity.data?.verified, identity.data?.handle])
 
+  const [membershipNumber, setMembershipNumber] = useState<number | null>(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    setMembershipNumber(null)
+    void client.from('danz_membership_numbers').select('member_number')
+      .eq('user_id', user.id).abortSignal(controller.signal).maybeSingle()
+      .then(({ data, error }) => {
+        if (!controller.signal.aborted && !error && Number.isSafeInteger(data?.member_number) && Number(data?.member_number) > 0) {
+          setMembershipNumber(Number(data?.member_number))
+        }
+      }).then(undefined, () => {})
+    return () => controller.abort()
+  }, [client, user.id])
+
   const [memberStats, setMemberStats] = useState<{ code: string | null; stamps: number | null; available: number | null; pending: number | null }>({ code: null, stamps: null, available: null, pending: null })
   useEffect(() => {
     const controller = new AbortController()
@@ -162,7 +176,8 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       {error && <p role="alert" className="account-error">{error}</p>}
       {loadFailed && <button className="outline-btn" onClick={() => setAttempt(value => value + 1)}>VOLVER A CARGAR PERFIL</button>}
       <div className="danz-member-details" aria-label="Mi tarjeta de socio DANZ">
-        <div className="danz-profile-detail"><span>Número de socio / Código DANZ</span><strong>{memberStats.code ?? 'Consultando o todavía no disponible'}</strong></div>
+        <div className="danz-profile-detail"><span>Número de socio</span><strong>{membershipNumber === null ? 'Por consultar' : String(membershipNumber).padStart(5, '0')}</strong></div>
+        <div className="danz-profile-detail"><span>Código DANZPOINTS</span><strong>{memberStats.code ?? 'No disponible'}</strong></div>
         <div className="danz-profile-detail"><span>Miembro desde</span><strong>{user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha no disponible'}</strong></div>
         <div className="danz-profile-detail"><span>Sellos del pasaporte</span><strong>{memberStats.stamps === null ? 'Por consultar' : memberStats.stamps}</strong></div>
         <div className="danz-profile-detail"><span>DANZPOINTS disponibles</span><strong>{memberStats.available === null ? 'Por consultar' : memberStats.available.toLocaleString('es-ES')}</strong></div>
