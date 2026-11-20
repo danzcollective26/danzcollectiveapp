@@ -26,9 +26,8 @@ function validateDisplayName(value: string): string | null {
   return null
 }
 
-function ProfileForm({ client, user, onOpenPassport }: { client: SupabaseClient<Database>; user: User; onOpenPassport: () => void }) {
+function ProfileForm({ client, user, onOpenPassport, editing }: { client: SupabaseClient<Database>; user: User; onOpenPassport: () => void; editing: boolean }) {
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [editing, setEditing] = useState(false)
   const [expandedDetails, setExpandedDetails] = useState(false)
   const identity = useIdentity()
   const [name, setName] = useState('')
@@ -214,8 +213,9 @@ function ProfileForm({ client, user, onOpenPassport }: { client: SupabaseClient<
         <a className="outline-btn external-btn" href={`/?seccion=cuenta&miembro=${encodeURIComponent(user.id)}`}>VER MI TARJETA COMO OTRO MIEMBRO ↗</a>
       </div>}
       <div className="danz-member-actions"><button className="outline-btn" type="button" onClick={onOpenPassport}>ABRIR MI PASAPORTE ↗</button></div>
-      <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'ADMINISTRAR MI PERFIL'}</button>
-      {editing && <form onSubmit={event => { void save(event) }} className="account-form">
+      {editing && <form onSubmit={event => { void save(event) }} className="account-form danz-profile-management-form">
+        <h3>ADMINISTRAR MI PERFIL</h3>
+        <p className="account-note">Los cambios son privados hasta que pulses guardar. La visibilidad de Instagram se controla por separado.</p>
         <label htmlFor="profile-name">Nombre público o alias (puede ser distinto al del correo)</label>
         <input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={40} autoComplete="nickname" disabled={busy} />
         <p className="account-note">Tu nombre puede ser tu alias de Instagram u otro apodo. Se revisan nombres ofensivos y símbolos no permitidos.</p>
@@ -248,6 +248,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
   const [providersUnavailable, setProvidersUnavailable] = useState(false)
   const [providerAttempt, setProviderAttempt] = useState(0)
   const [openingProvider, setOpeningProvider] = useState<SocialProvider | null>(null)
+  const [showManagement, setShowManagement] = useState(focusInstagram)
   const [showInstagramSettings, setShowInstagramSettings] = useState(focusInstagram)
   const requestedMember = new URLSearchParams(window.location.search).get('miembro')
   const publicMemberId = requestedMember && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedMember) ? requestedMember : null
@@ -369,24 +370,29 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
 
   return <section className="account-page">
     <div className="eyebrow">DANZ COLLECTIVE / TU CUENTA</div>
-    <h1 className="page-title">{publicMemberId ? <>TARJETA<br /><em>DANZ.</em></> : <>TU<br /><em>CUENTA.</em></>}</h1>
+    <h1 className="page-title">{publicMemberId ? <>TARJETA<br /><em>DANZ.</em></> : <>MI<br /><em>TARJETA.</em></>}</h1>
     {authError && <p role="alert" className="account-error">{authError}</p>}
     {!client ? <div className="account-card"><h2>Seguimos preparando las cuentas</h2><p>{configIssue}</p><p>Puedes explorar la app y jugar sin registrarte.</p></div>
       : loading ? <p role="status">Comprobando tu sesión…</p>
       : user && publicMemberId ? <MemberPublicCard client={client} memberId={publicMemberId} />
       : user ? <>
         {error && <p role="alert" className="account-error">{error}</p>}
-        <ProfileForm key={user.id} client={client} user={user} onOpenPassport={onOpenPassport} />
-        <div className="account-connected-actions">
-          <button className="outline-btn" type="button" aria-expanded={showInstagramSettings} aria-controls="account-instagram-settings" onClick={() => setShowInstagramSettings(value => !value)}>{showInstagramSettings ? 'CERRAR VINCULACIÓN DE INSTAGRAM' : 'VINCULAR O REVISAR INSTAGRAM'}</button>
-          {showInstagramSettings && <div id="account-instagram-settings"><InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} /></div>}
-        </div>
-        <div className="account-session">
-          <p>Sesión iniciada como <strong>{user.email ?? 'miembro de DANZ'}</strong></p>
-          <button className="outline-btn" type="button" disabled={busy} onClick={() => { void leave() }}>{busy ? 'CERRANDO…' : 'CERRAR SESIÓN'}</button>
-        </div>
-        <YeppoToggle />
-        <RadioUpload />
+        <ProfileForm key={user.id} client={client} user={user} onOpenPassport={onOpenPassport} editing={showManagement} />
+        <button className="outline-btn danz-account-manage-trigger" type="button" aria-expanded={showManagement} aria-controls="danz-account-management" onClick={() => setShowManagement(value => !value)}>
+          {showManagement ? 'VOLVER A MI TARJETA' : 'ADMINISTRAR MI PERFIL Y AJUSTES'} <span aria-hidden="true">{showManagement ? '−' : '+'}</span>
+        </button>
+        {showManagement && <section id="danz-account-management" className="danz-account-management" aria-label="Administrar cuenta y ajustes">
+          <div className="account-connected-actions">
+            <button className="outline-btn" type="button" aria-expanded={showInstagramSettings} aria-controls="account-instagram-settings" onClick={() => setShowInstagramSettings(value => !value)}>{showInstagramSettings ? 'CERRAR VINCULACIÓN DE INSTAGRAM' : 'VINCULAR O REVISAR INSTAGRAM'}</button>
+            {showInstagramSettings && <div id="account-instagram-settings"><InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} /></div>}
+          </div>
+          <YeppoToggle />
+          <RadioUpload />
+          <div className="account-session">
+            <p>Sesión iniciada como <strong>{user.email ?? 'miembro de DANZ'}</strong></p>
+            <button className="outline-btn" type="button" disabled={busy} onClick={() => { void leave() }}>{busy ? 'CERRANDO…' : 'CERRAR SESIÓN'}</button>
+          </div>
+        </section>}
       </> : <div className="account-card">
         <h2>{providers.length || providersLoading ? 'Entra en DANZ' : 'Entra con tu correo'}</h2>
         {providersLoading && <p className="account-note" role="status">Comprobando las formas de acceso…</p>}
