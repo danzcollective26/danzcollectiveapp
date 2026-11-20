@@ -4,7 +4,7 @@ import type { Database } from '../types/database'
 import { useAuth } from './AuthProvider'
 import { configIssue, fetchSocialProviders } from './client'
 import { authErrorMessage } from './config'
-import { accountBrowserUrl, danzAuthOrigin, type SocialProvider } from './oauth'
+import { accountBrowserUrl, danzAuthOrigin, danzEmailRedirectOrigin, danzPreviewOAuthEnabled, DANZ_PREVIEW_AUTH_ORIGIN, type SocialProvider } from './oauth'
 import { readPendingPass } from '../events/pass'
 import './Account.css'
 import InstagramLink from './InstagramLink'
@@ -259,7 +259,8 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
   const [showInstagramSettings, setShowInstagramSettings] = useState(focusInstagram)
   const requestedMember = new URLSearchParams(window.location.search).get('miembro')
   const publicMemberId = requestedMember && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedMember) ? requestedMember : null
-  const isPreviewOrigin = window.location.origin !== danzAuthOrigin(window.location.origin)
+  const isPreviewOrigin = window.location.origin === DANZ_PREVIEW_AUTH_ORIGIN
+  const previewOAuthBlocked = isPreviewOrigin && !danzPreviewOAuthEnabled(window.location.origin)
   const embedded = window.self !== window.top
   const action = useRef(false)
   const mounted = useRef(true)
@@ -305,7 +306,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
     try {
       const result = await client.auth.signInWithOtp({
         email: address,
-        options: { shouldCreateUser: true, emailRedirectTo: new URL('/', danzAuthOrigin(window.location.origin)).href },
+        options: { shouldCreateUser: true, emailRedirectTo: new URL('/?seccion=cuenta', danzEmailRedirectOrigin(window.location.origin)).href },
       })
       if (!mounted.current) return
       if (result.error) { setError(authErrorMessage(result.error)); return }
@@ -314,7 +315,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
       setCode('')
       setNextSendAt(Date.now() + 60000)
       setCooldown(60)
-      setMessage('Solicitud enviada. Revisa tu correo. Si incluye un código, puedes escribirlo abajo. Los enlaces nuevos deben llevar a danzcollectiveapp.vercel.app; abre el correo en el mismo navegador.')
+      setMessage(isPreviewOrigin ? 'Solicitud enviada. Revisa tu correo. Si incluye un código, introdúcelo aquí sin salir de la versión de pruebas. El enlace debería regresar a esta misma dirección; si no lo hace, utiliza el código.' : 'Solicitud enviada. Revisa tu correo. Si incluye un código, puedes escribirlo abajo. Abre el enlace en el mismo navegador.')
     } catch (reason) {
       if (mounted.current) setError(authErrorMessage(reason))
     } finally {
@@ -342,7 +343,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
   }
 
   const enterWithProvider = async (provider: SocialProvider) => {
-    if (!client || action.current || embedded || !providers.includes(provider)) return
+    if (!client || action.current || embedded || previewOAuthBlocked || !providers.includes(provider)) return
     // A PKCE verifier cannot cross origins. First move from an old QR demo or
     // preview to production, *then* create the OAuth verifier in that browser.
     const canonical = danzAuthOrigin(window.location.origin)
@@ -402,7 +403,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
         <h2>{providers.length || providersLoading ? 'Entra en DANZ' : 'Entra con tu correo'}</h2>
         {providersLoading && <p className="account-note" role="status">Comprobando las formas de acceso…</p>}
         {providersUnavailable && <div className="account-browser-login" role="alert"><p>No hemos podido cargar las opciones de acceso. Vuelve a intentarlo o utiliza tu correo.</p><button className="outline-btn" type="button" disabled={busy} onClick={() => setProviderAttempt(value => value + 1)}>RECARGAR ACCESOS</button></div>}
-        {providers.length > 0 && (embedded ? <div className="account-browser-login">
+        {providers.length > 0 && !previewOAuthBlocked && (embedded ? <div className="account-browser-login">
           <p>Para usar este acceso, abre DANZ en tu navegador.</p>
           <a className="primary-btn external-btn" href={accountBrowserUrl(danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR DANZ PARA ENTRAR</a>
         </div> : <div className="account-social" role="group" aria-label="Acceso con tu cuenta">
@@ -413,8 +414,8 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
         </div>)}
         {isPreviewOrigin && <div className="danz-preview-auth-help" role="note">
           <strong>PROBAR MI CUENTA EN ESTA VERSIÓN</strong>
-          <p>Google lleva al dominio principal y puede abrir la app instalada, que no incluye aún estos cambios. Para probar aquí tu tarjeta, tus sellos y el estado de Instagram, solicita un correo en esta pantalla. Si el mensaje incluye un código, pulsa «MI CORREO INCLUYE UN CÓDIGO» e introdúcelo aquí, sin salir de esta versión.</p>
-          <p>El acceso por correo utiliza tu misma cuenta de DANZ cuando el correo coincide. No acredita por sí solo la vinculación de Instagram.</p>
+          <p>Estás en la versión de pruebas. El acceso con Google y Apple está temporalmente desactivado aquí hasta autorizar su retorno seguro, para evitar que se abra tu app antigua. Solicita el correo desde esta pantalla. Si recibes un código, introdúcelo aquí sin abandonar la preview.</p>
+          <p>El enlace del correo está configurado para regresar a esta versión, pero Supabase también debe tener este dominio autorizado. Si no regresa aquí, utiliza el código de correo. Instagram se verifica después mediante solicitud y aprobación manual.</p>
           <button type="button" className="outline-btn" onClick={() => { setCodeEmail(codeEmail || email.trim()); setShowCode(true) }}>INTRODUCIR CÓDIGO AQUÍ</button>
         </div>}
         <p>También puedes entrar con cualquier correo: iCloud, Gmail, Outlook u otro. Sin crear contraseña.</p>
@@ -438,7 +439,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
             <button className="primary-btn" type="submit" disabled={busy}>COMPROBAR CÓDIGO</button>
           </form>}
         </>
-        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>Abre danzcollectiveapp.vercel.app directamente en Chrome o Safari, solicita allí un correo nuevo y ábrelo desde el mismo navegador. No uses la antigua demo chatgpt.site. Si tu correo incluye un código numérico, también puedes introducirlo arriba.</p><a className="outline-btn external-btn" href={accountBrowserUrl(danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR CUENTA EN EL NAVEGADOR</a></div>
+        <div className="account-link-help"><h3>¿El enlace del correo no te deja entrar?</h3><p>{isPreviewOrigin ? 'Si el enlace abre tu aplicación anterior, vuelve a esta versión de pruebas e introduce el código del correo. No necesitas desinstalar DANZ.' : 'Abre DANZ directamente en Chrome o Safari y solicita allí un correo nuevo. Si tu correo incluye un código numérico, también puedes introducirlo arriba.'}</p><a className="outline-btn external-btn" href={accountBrowserUrl(isPreviewOrigin ? window.location.origin : danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR CUENTA EN EL NAVEGADOR</a></div>
       </div>}
   </section>
 }
