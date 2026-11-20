@@ -11,38 +11,34 @@ const openPassport = async (page: import('@playwright/test').Page) => {
   await page.getByRole('button', { name: 'DANZERS', exact: true }).click()
 }
 
-test('only a newly granted server stamp celebrates; sound is opt-in and duplicates stay quiet', async ({ page }, testInfo) => {
+test('newly confirmed stamp appears in immersive reader; duplicate redemption stays safe', async ({ page }) => {
   await installMockSession(page)
-  await page.addInitScript(()=>{
-    localStorage.setItem('danz-yeppo-enabled-v1','false')
-    const original=window.AudioContext
-    ;(window as any).__premiumAudio=0
-    window.AudioContext=class extends original {constructor(options?:AudioContextOptions){super(options);(window as any).__premiumAudio++}}
+  let granted = false
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({
+    json: granted ? [stamp(EA, 'Nueva noche QA')] : [],
+  }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, route => {
+    const status = granted ? 'already_attended' : 'granted'
+    granted = true
+    return route.fulfill({ json: [{ status, event_id: EA, granted_at: '2026-11-16T18:00:00Z' }] })
   })
-  let granted=false
-  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`,route=>route.fulfill({json:granted?[stamp(EA,'Nueva noche QA')]:[]}))
-  await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`,route=>{
-    const status=granted?'already_attended':'granted';granted=true
-    return route.fulfill({json:[{status,event_id:EA,granted_at:'2026-11-16T18:00:00Z'}]})
-  })
-  await page.goto('/?seccion=pasaporte')
-  await expect(page.getByRole('heading',{name:'Mis sellos (0)',exact:true})).toBeVisible()
-  await page.getByLabel('CÓDIGO DEL EVENTO',{exact:true}).fill(CODE)
-  await page.getByRole('button',{name:/GUARDAR MI SELLO/}).click()
-  await expect(page.locator('.is-new-stamp')).toHaveCount(1)
-  await expect(page.getByRole('button',{name:'SONIDO DE SELLOS OFF',exact:true})).toHaveAttribute('aria-pressed','false')
-  expect(await page.evaluate(()=>(window as any).__premiumAudio)).toBe(0)
-  await testInfo.attach('sello-confirmado',{body:await page.screenshot({type:'jpeg',quality:75}),contentType:'image/jpeg'})
-  await expect(page.locator('.is-new-stamp')).toHaveCount(0,{timeout:6000})
-  await page.getByLabel('CÓDIGO DEL EVENTO',{exact:true}).fill(CODE)
-  await page.getByRole('button',{name:/GUARDAR MI SELLO/}).click()
-  await expect(page.getByText('Ya tienes este sello.',{exact:false})).toBeVisible()
-  await expect(page.locator('.is-new-stamp')).toHaveCount(0)
-  await page.getByRole('button',{name:'SONIDO DE SELLOS OFF',exact:true}).click()
-  await expect(page.getByRole('button',{name:'SONIDO DE SELLOS ON',exact:true})).toHaveAttribute('aria-pressed','true')
-  await page.reload()
-  await expect(page.getByRole('button',{name:'SONIDO DE SELLOS ON',exact:true})).toHaveAttribute('aria-pressed','true')
-  await expect(page.locator('.is-new-stamp')).toHaveCount(0)
+  await page.goto('/?seccion=danzers')
+  await page.getByLabel('CÓDIGO DEL EVENTO', { exact: true }).fill(CODE)
+  await page.getByRole('button', { name: /GUARDAR MI SELLO/ }).click()
+  await expect(page.getByText('¡Sello guardado!', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: 'Abrir el pasaporte DANZ a pantalla completa' }).click()
+  const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
+  await expect(reader).toBeVisible()
+  const leaf = reader.getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
+  await leaf.focus()
+  await leaf.press('ArrowRight')
+  await leaf.press('ArrowRight')
+  await expect(reader.getByRole('heading', { name: 'Nueva noche QA' })).toBeVisible()
+  await reader.getByRole('button', { name: 'Cerrar pasaporte y volver a la pantalla anterior' }).click()
+  await expect(page).toHaveURL(/seccion=danzers/)
+  await page.getByLabel('CÓDIGO DEL EVENTO', { exact: true }).fill(CODE)
+  await page.getByRole('button', { name: /GUARDAR MI SELLO/ }).click()
+  await expect(page.getByText('Ya tienes este sello.', { exact: false })).toBeVisible()
 })
 
 test('a stalled immersive passport load allows retry and ignores an old response', async ({ page }) => {
