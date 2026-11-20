@@ -36,10 +36,22 @@ export function isDanzPreviewAuthAllowed(origin: string, enabled: boolean): bool
 }
 /** The email handoff must remain on the exact preview host when configured in Supabase.
  * It is deliberately independent of Google OAuth's opt-in PKCE flag. */
+/** Both the stable preview alias and Vercel deployments belong to the same DANZ test project.
+ * Never treat an arbitrary vercel.app website as our preview. */
+export function isDanzPreviewAppOrigin(origin: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(origin)
+    return protocol === 'https:' && (
+      hostname === 'danzcollectiveapp-preview.vercel.app' ||
+      /^danzcollectiveapp-[a-z0-9-]+-danzcollectiveapp-5608\.vercel\.app$/.test(hostname)
+    )
+  } catch { return false }
+}
+
 export function danzEmailRedirectOrigin(origin: string): string {
   const url = new URL(origin)
   if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
-  return url.origin === DANZ_PREVIEW_AUTH_ORIGIN ? DANZ_PREVIEW_AUTH_ORIGIN : DANZ_CANONICAL_ORIGIN
+  return isDanzPreviewAppOrigin(url.origin) ? DANZ_PREVIEW_AUTH_ORIGIN : DANZ_CANONICAL_ORIGIN
 }
 
 /** Social OAuth is allowed on preview only after the explicit Supabase allowlist and env toggle. */
