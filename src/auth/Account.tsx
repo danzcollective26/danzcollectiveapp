@@ -382,7 +382,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
   return <section className="account-page">
     <div className="eyebrow">DANZ COLLECTIVE / TU CUENTA</div>
     <h1 className="page-title">{publicMemberId ? <>TARJETA<br /><em>DANZ.</em></> : <>MI<br /><em>TARJETA.</em></>}</h1>
-    {isPreviewOrigin && <p className="account-note" role="status" aria-label="Versión de pruebas DANZ">VERSIÓN DE PRUEBAS · {__DANZ_PREVIEW_BUILD__}</p>
+    {isPreviewOrigin && <p className="account-note" role="status" aria-label="Versión de pruebas DANZ">VERSIÓN DE PRUEBAS · {__DANZ_PREVIEW_BUILD__}</p>}
     {authError && <p role="alert" className="account-error">{authError}</p>}
     {!client ? <div className="account-card"><h2>Seguimos preparando las cuentas</h2><p>{configIssue}</p><p>Puedes explorar la app y jugar sin registrarte.</p></div>
       : loading ? <p role="status">Comprobando tu sesión…</p>
