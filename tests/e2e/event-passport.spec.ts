@@ -7,8 +7,9 @@ const EA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const EB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const stamp = (id: string, title: string, event_status = 'published') => ({ event_id: id, title, starts_at: '2026-11-08T22:00:00Z', event_status, granted_at: '2026-11-09T01:00:00Z' })
 const openPassport = async (page: import('@playwright/test').Page) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'DANZERS', exact: true }).click()
+  // DANZERS has a stable direct route on mobile, tablet and desktop.
+  await page.goto('/?seccion=danzers')
+  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toBeVisible()
 }
 const showImmersiveStamp = async (page: import('@playwright/test').Page, title: string) => {
   await page.goto('/?seccion=pasaporte')
