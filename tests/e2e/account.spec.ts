@@ -21,7 +21,7 @@ test('correo explícito, código, perfil por columnas y cierre de sesión', asyn
   await page.route(`${supabaseHost}/auth/v1/otp**`, async route => {
     sends.push(route.request().postDataJSON())
     const redirect = new URL(route.request().url()).searchParams.get('redirect_to')
-    expect(redirect).toBe('http://127.0.0.1:4173/')
+    expect(redirect).toBe('http://127.0.0.1:4173/?seccion=cuenta')
     await route.fulfill({ json: {} })
   })
   await page.route(`${supabaseHost}/auth/v1/verify`, async route => {
@@ -43,7 +43,7 @@ test('correo explícito, código, perfil por columnas y cierre de sesión', asyn
   await page.getByLabel('Código de acceso', { exact: true }).fill('123456')
   await page.getByRole('button', { name: 'COMPROBAR CÓDIGO', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
-  await page.getByRole('button', { name: 'ADMINISTRAR MI PERFIL' }).click()
+  await page.getByRole('button', { name: 'ADMINISTRAR MI PERFIL Y AJUSTES' }).click()
   await page.getByLabel('Nombre público o alias (puede ser distinto al del correo)', { exact: true }).fill('Miembro QA')
   await page.getByLabel('Instagram (opcional)', { exact: true }).fill('invalid handle')
   await page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true }).click()
