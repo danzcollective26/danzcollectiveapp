@@ -1,0 +1,36 @@
+import { expect, test } from '@playwright/test'
+import { installMockSession, mockSupabase } from './helpers/supabase'
+
+test('wallet has separate visible member and passport pockets with no overlap', async ({ page }) => {
+  await mockSupabase(page)
+  await page.goto('/')
+  const card = page.getByRole('button', { name: 'Abrir mi tarjeta de socio DANZ' })
+  const book = page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' })
+  await expect(card).toBeVisible()
+  await expect(book).toBeVisible()
+  const rects = await Promise.all([card.boundingBox(), book.boundingBox()])
+  expect(rects[0]).not.toBeNull()
+  expect(rects[1]).not.toBeNull()
+  expect(rects[1]!.y).toBeGreaterThanOrEqual(rects[0]!.y + rects[0]!.height)
+  expect(rects[0]!.width).toBeGreaterThan(0)
+  expect(rects[1]!.width).toBeGreaterThan(0)
+  await card.click()
+  await expect(page).toHaveURL(/seccion=cuenta/)
+  await page.goto('/')
+  await book.click()
+  await expect(page.getByRole('dialog',{name:'Mi Pasaporte DANZ'})).toBeVisible()
+})
+
+test('account opens with public identity card, not editable fields', async ({ page }) => {
+  await installMockSession(page)
+  await page.goto('/?seccion=cuenta')
+  const card = page.getByRole('region', { name: 'Tu perfil' })
+  await expect(card).toBeVisible()
+  await expect(card.getByText('DANZPOINTS', {exact:true})).toBeVisible()
+  await expect(card.getByText('INSTAGRAM', {exact:true})).toBeVisible()
+  await expect(card.getByText('SELLOS', {exact:true})).toBeVisible()
+  await expect(card.getByRole('button', { name: 'ADMINISTRAR MI PERFIL' })).toBeVisible()
+  await expect(page.getByLabel('Nombre público o alias (puede ser distinto al del correo)')).toHaveCount(0)
+  await card.getByRole('button',{name:'ADMINISTRAR MI PERFIL'}).click()
+  await expect(page.getByLabel('Nombre público o alias (puede ser distinto al del correo)')).toBeVisible()
+})
