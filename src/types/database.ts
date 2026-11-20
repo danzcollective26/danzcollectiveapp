@@ -230,7 +230,6 @@ export type Database = {
           display_name?: string | null
           instagram_handle?: string | null
           instagram_public?: boolean
-          instagram_public?: boolean
           yeppo_enabled?: boolean
           user_id: string
         }
@@ -238,7 +237,6 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           instagram_handle?: string | null
-          instagram_public?: boolean
           instagram_public?: boolean
           yeppo_enabled?: boolean
           user_id?: string
