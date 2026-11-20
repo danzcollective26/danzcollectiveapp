@@ -385,12 +385,21 @@ export default function App() {
                 <span className="feature-bottom"><strong>FOTOS</strong><small>Las noches pasan. Los recuerdos quedan. <span aria-hidden="true">↗</span></small></span>
               </button>
 
-              <section className="passport-home-section danz-wallet-home" aria-label="Tu pasaporte DANZ">
-                <button className="danz-wallet-link" type="button" onClick={() => go('pasaporte')} aria-label="Abrir mi Pasaporte DANZ y ver mis sellos">
-                  <span className="danz-wallet-stack" aria-hidden="true"><span className="danz-wallet-back-card"/><span className="danz-wallet-front-card"><DanzFlower/><b>DANZ</b><small>PASAPORTE</small></span><span className="danz-wallet-strap"><DanzFlower/></span></span>
-                  <span className="danz-wallet-home-copy"><small>02 / TU CARTERA DE FIESTAS</small><strong>UN PASAPORTE.<br/>TODAS TUS NOCHES.</strong><span>Una fiesta, un sello, un recuerdo. Descubre tu colección DANZ.</span><em>DESCUBRIR MI PASAPORTE <span aria-hidden="true">↗</span></em></span>
+              <section className="passport-home-section danz-wallet-home" aria-label="Tu cartera DANZ: cuenta y pasaporte">
+                <div className="danz-wallet-leather" aria-hidden="true"><DanzFlower /></div>
+                <button className="danz-wallet-account-link" type="button" onClick={() => go('cuenta')} aria-label="Abrir mi tarjeta de socio DANZ">
+                  <span className="danz-wallet-account-icon" aria-hidden="true">◉</span>
+                  <span className="danz-wallet-account-copy">
+                    <small>01 / TU IDENTIDAD DANZ</small>
+                    <strong>MI CUENTA</strong>
+                    <span className="danz-wallet-icons" aria-hidden="true"><span>◎ IG</span><span>✦ POINTS</span><span>✳ SELLOS</span></span>
+                    <em>ABRIR TARJETA DE SOCIO ↗</em>
+                  </span>
                 </button>
-                <button className="danz-wallet-account-link" type="button" onClick={() => go('cuenta')} aria-label="Abrir mi tarjeta de socio DANZ"><span className="danz-wallet-account-icon" aria-hidden="true">◉</span><span><strong>MI CUENTA</strong><small>Tu tarjeta de socio, Instagram y datos personales</small></span><span aria-hidden="true">↗</span></button>
+                <button className="danz-wallet-link" type="button" onClick={() => go('pasaporte')} aria-label="Abrir mi Pasaporte DANZ y ver mis sellos">
+                  <span className="danz-wallet-passport-thumb" aria-hidden="true"><DanzFlower/><strong>DANZ</strong><small>PASAPORTE</small></span>
+                  <span className="danz-wallet-home-copy"><small>02 / TUS VIAJES</small><strong>MI PASAPORTE</strong><span>Una noche, un sello, un recuerdo.</span><em>ABRIR PASAPORTE ↗</em></span>
+                </button>
               </section>
 
               <button className="feature arcade-feature danz-home-arcade" onClick={() => go('arcade')}>
