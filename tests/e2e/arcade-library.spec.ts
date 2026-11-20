@@ -69,6 +69,9 @@ test('browser history restores the library and selected game', async ({ page }) 
 
 test('Yeppo hand reaches a real card, reacts in sync and cancels when the page scrolls', async ({ page }) => {
   await page.goto('/')
+  // The approved Home intro is taller than one mobile viewport. Bring an
+  // interactive card into view before asking Yeppo to visit it.
+  await page.locator('.danz-home-photo').scrollIntoViewIfNeeded()
   await page.getByRole('button', { name: 'Hablar con Yeppo', exact: true }).click()
   await page.getByRole('button', { name: /VER A YEPPO PASEARSE/ }).click()
   const stage = page.locator('.yeppo-visiting-card')
