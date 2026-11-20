@@ -46,3 +46,9 @@
 - Prioridad P2: Storybook, herramientas adicionales de capturas, análisis avanzados, nuevas plataformas, solo si hay necesidad demostrada.
 - Figma, GitHub, Vercel, Supabase y Hugging Face están ya integrados en el entorno de trabajo. No pedir reinstalarlos.
 - Las issues [#62](https://github.com/danzcollective26/danzcollectiveapp/issues/62) y [#63](https://github.com/danzcollective26/danzcollectiveapp/issues/63) son el seguimiento técnico.
+
+## Aprobación visual expresa del propietario — 20/11/2026
+- **APROBADO PARA CONSERVAR**: diseño actual de la primera pestaña Inicio, incluidas la tarjeta/pestaña flotante junto al Pasaporte, la composición de cartera y el Pasaporte inmersivo. No rediseñar ni sustituir estos elementos sin nueva instrucción explícita.
+- La aprobación es **visual y de comportamiento observado por el propietario**; NO implica aprobación de los flujos de correo, vinculación de Instagram, cuenta ni de todas las pruebas automáticas. Preservar esta interfaz al arreglar esas funciones.
+- **Integración solicitada en la app definitiva**, pero solo tras validar los cambios y sin fusionar a producción la PR #64 completa con CI fallida. Si hace falta, preparar una PR de promoción selectiva del Inicio/Pasaporte aprobado, con tests y revisión de dependencias.
+- **Incidencia P0 Android**: al abrir la URL preview desde ChatGPT/Android, el enlace se deriva a la PWA previamente instalada, con interfaz antigua. Bloquea verificar correo/Instagram. Separar origin/URL de preview de producción, revisar enlaces asociados y service worker/caché; proporcionar enlace que abra realmente el build preview en navegador y verificación de versión visible. No pedir desinstalación de la app principal como paso normal.
