@@ -19,8 +19,8 @@ type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_
 function validateDisplayName(value: string): string | null {
   const name = value.normalize('NFKC').trim()
   if (!name || name.length > 40) return 'Elige un nombre público de entre 1 y 40 caracteres.'
-  if (!/^[\\p{L}\\p{M}\\p{N} _.'-]+$/u.test(name)) return 'Usa letras, números normales, espacios y signos sencillos.'
-  const normalized = name.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
+  if (!/^[\p{L}\p{M}\p{N} _.'-]+$/u.test(name)) return 'Usa letras, números normales, espacios y signos sencillos.'
+  const normalized = name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
   if (/(?:heilhitler|siegheil|whitepower|1488|hh88|nazi|nazismo|nsdap|swastika)/.test(normalized)) return 'Ese nombre no cumple las normas de la comunidad DANZ.'
   return null
 }
