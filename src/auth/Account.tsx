@@ -168,10 +168,10 @@ function ProfileForm({ client, user, onOpenPassport, editing, onToggleEditing }:
   const verifiedHandle = identity.data?.verified ? identity.data.handle : null
   const safeHandle = verifiedHandle && /^[A-Za-z0-9_.]{1,30}$/.test(verifiedHandle) ? verifiedHandle : null
   return <><section className="account-card danz-profile-card" aria-label="Tu perfil" aria-busy={loading || busy}>
-    <div className="danz-profile-kicker">DANZ COLLECTIVE / MEMBER PROFILE</div>
+    <div className="danz-profile-kicker">DANZ COLLECTIVE / TARJETA DE SOCIO</div>
     <div className="danz-profile-header">
       <div className="danz-profile-avatar" aria-hidden="true">{(name.trim() || user.email || 'D').slice(0, 1).toUpperCase()}</div>
-      <div><h2>{name.trim() || 'Mi identidad DANZ'}</h2><p className="account-note">{user.email ?? 'Miembro DANZ'}</p></div>
+      <div><h2>{name.trim() || 'MIEMBRO DANZ'}</h2><p className="account-note">IDENTIDAD DE SOCIO · {user.email ?? 'CUENTA DANZ'}</p></div>
     </div>
     {loading ? <p role="status">Cargando identidad…</p> : <>
       {error && <p role="alert" className="account-error">{error}</p>}
@@ -182,9 +182,10 @@ function ProfileForm({ client, user, onOpenPassport, editing, onToggleEditing }:
         <div className="danz-member-stat"><span aria-hidden="true">✳</span><strong>{memberStats.stamps === null ? '—' : memberStats.stamps}</strong><small>SELLOS</small></div>
       </div>
       <div className="danz-member-number">Nº SOCIO <strong>{membershipNumber === null ? 'PENDIENTE' : String(membershipNumber).padStart(6, '0')}</strong></div>
+      <div className="danz-member-since">MIEMBRO DESDE <strong>{user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES',{month:'long',year:'numeric'}).toUpperCase() : 'FECHA NO DISPONIBLE'}</strong></div>
       {safeHandle ? <a className="danz-instagram-profile" href={`https://www.instagram.com/${safeHandle}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir perfil de Instagram de @${safeHandle}`}>
         <span className="danz-instagram-mark" aria-hidden="true">◎</span><span><b>@{safeHandle}</b><small>PERFIL DE INSTAGRAM VERIFICADO</small></span><span aria-hidden="true">↗</span>
-      </a> : <p className="account-note">El @usuario escrito no demuestra una vinculación. Complétala en «Vincular Instagram» y aparecerá aquí el acceso directo.</p>}
+      </a> : <p className="account-note">Instagram no verificado todavía. Puedes gestionar tu vinculación en «Administrar mi perfil y ajustes».</p>}
       <button className="danz-profile-disclosure" type="button" aria-expanded={expandedDetails} aria-controls="danz-member-full-details" onClick={() => setExpandedDetails(value => !value)}>
         {expandedDetails ? 'OCULTAR DATOS DE MI TARJETA' : 'VER TODOS MIS DATOS'} <span aria-hidden="true">{expandedDetails ? '−' : '+'}</span>
       </button>
