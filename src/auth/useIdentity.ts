@@ -12,7 +12,19 @@ export const IDENTITY_CHANGE='danz-identity-change'
 export const notifyIdentity=()=>window.dispatchEvent(new Event(IDENTITY_CHANGE))
 export function useIdentity(){
  const auth=useAuth(),[data,setData]=useState<Identity|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false),[attempt,setAttempt]=useState(0)
- useEffect(()=>{const refresh=()=>setAttempt(n=>n+1);window.addEventListener(IDENTITY_CHANGE,refresh);return()=>window.removeEventListener(IDENTITY_CHANGE,refresh)},[])
+ useEffect(()=>{
+  const refresh=()=>setAttempt(n=>n+1)
+  // Approval happens outside the app; refresh when members return from Instagram.
+  const whenVisible=()=>{if(document.visibilityState==='visible')refresh()}
+  window.addEventListener(IDENTITY_CHANGE,refresh)
+  window.addEventListener('focus',refresh)
+  document.addEventListener('visibilitychange',whenVisible)
+  return()=>{
+   window.removeEventListener(IDENTITY_CHANGE,refresh)
+   window.removeEventListener('focus',refresh)
+   document.removeEventListener('visibilitychange',whenVisible)
+  }
+ },[])
  useEffect(()=>{
   setData(null);setError(false);if(!auth.client||!auth.user){setLoading(false);return}
   const client=auth.client,abort=new AbortController(),timer=setTimeout(()=>abort.abort(),10000);let current=true;setLoading(true)
