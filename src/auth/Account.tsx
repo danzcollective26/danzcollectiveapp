@@ -4,7 +4,7 @@ import type { Database } from '../types/database'
 import { useAuth } from './AuthProvider'
 import { configIssue, fetchSocialProviders } from './client'
 import { authErrorMessage } from './config'
-import { accountBrowserUrl, danzAuthOrigin, danzEmailRedirectOrigin, danzPreviewOAuthEnabled, DANZ_PREVIEW_AUTH_ORIGIN, type SocialProvider } from './oauth'
+import { accountBrowserUrl, danzAuthOrigin, danzEmailRedirectOrigin, danzPreviewOAuthEnabled, isDanzPreviewAppOrigin, type SocialProvider } from './oauth'
 import { readPendingPass } from '../events/pass'
 import './Account.css'
 import InstagramLink from './InstagramLink'
@@ -259,7 +259,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
   const [showInstagramSettings, setShowInstagramSettings] = useState(focusInstagram)
   const requestedMember = new URLSearchParams(window.location.search).get('miembro')
   const publicMemberId = requestedMember && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedMember) ? requestedMember : null
-  const isPreviewOrigin = window.location.origin === DANZ_PREVIEW_AUTH_ORIGIN
+  const isPreviewOrigin = isDanzPreviewAppOrigin(window.location.origin)
   const previewOAuthBlocked = isPreviewOrigin && !danzPreviewOAuthEnabled(window.location.origin)
   const embedded = window.self !== window.top
   const action = useRef(false)
