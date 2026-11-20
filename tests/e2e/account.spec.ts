@@ -152,7 +152,7 @@ test('enlace PKCE canjea el código, valida usuario y limpia la URL', async ({ p
   })
   await page.goto('/?code=synthetic-code')
   await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
-  await expect(page.getByText(/first@example\\.invalid/).first()).toBeVisible()
+  await expect(page.getByText(/first@example.invalid/).first()).toBeVisible()
   await expect(page.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
   expect(exchanges).toBe(1)
   expect(new URL(page.url()).searchParams.has('code')).toBe(false)
