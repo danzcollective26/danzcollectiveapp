@@ -11,6 +11,7 @@ import InstagramLink from './InstagramLink'
 import { useIdentity } from './useIdentity'
 import YeppoToggle from '../yeppo/YeppoToggle'
 import RadioUpload from '../music/RadioUpload'
+import MemberPublicCard from './MemberPublicCard'
 import {notifyIdentity} from './useIdentity'
 
 type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_id' | 'display_name' | 'instagram_handle' | 'instagram_public'>
@@ -210,6 +211,7 @@ function ProfileForm({ client, user, onOpenPassport }: { client: SupabaseClient<
           <span><b>@{publicCard.handle}</b><small>{publicCard.name || 'Miembro DANZ'} · INSTAGRAM VERIFICADO</small></span>
           <span aria-hidden="true">↗</span>
         </a>
+        <a className="outline-btn external-btn" href={`/?seccion=cuenta&miembro=${encodeURIComponent(user.id)}`}>VER MI TARJETA COMO OTRO MIEMBRO ↗</a>
       </div>}
       <div className="danz-member-actions"><button className="outline-btn" type="button" onClick={onOpenPassport}>ABRIR MI PASAPORTE ↗</button></div>
       <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'ADMINISTRAR MI PERFIL'}</button>
@@ -247,6 +249,8 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
   const [providerAttempt, setProviderAttempt] = useState(0)
   const [openingProvider, setOpeningProvider] = useState<SocialProvider | null>(null)
   const [showInstagramSettings, setShowInstagramSettings] = useState(focusInstagram)
+  const requestedMember = new URLSearchParams(window.location.search).get('miembro')
+  const publicMemberId = requestedMember && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedMember) ? requestedMember : null
   const embedded = window.self !== window.top
   const action = useRef(false)
   const mounted = useRef(true)
@@ -365,10 +369,11 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
 
   return <section className="account-page">
     <div className="eyebrow">DANZ COLLECTIVE / TU CUENTA</div>
-    <h1 className="page-title">TU<br /><em>CUENTA.</em></h1>
+    <h1 className="page-title">{publicMemberId ? <>TARJETA<br /><em>DANZ.</em></> : <>TU<br /><em>CUENTA.</em></>}</h1>
     {authError && <p role="alert" className="account-error">{authError}</p>}
     {!client ? <div className="account-card"><h2>Seguimos preparando las cuentas</h2><p>{configIssue}</p><p>Puedes explorar la app y jugar sin registrarte.</p></div>
       : loading ? <p role="status">Comprobando tu sesión…</p>
+      : user && publicMemberId ? <MemberPublicCard client={client} memberId={publicMemberId} />
       : user ? <>
         {error && <p role="alert" className="account-error">{error}</p>}
         <ProfileForm key={user.id} client={client} user={user} onOpenPassport={onOpenPassport} />
