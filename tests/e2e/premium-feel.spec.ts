@@ -51,31 +51,46 @@ test('unsupported transitions and haptics remain fully navigable with reduced mo
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 
-test('gallery and passport show bounded skeletons while their authorized reads are pending', async ({ page }, testInfo) => {
+test('gallery and passport show bounded loading states while authorized reads are pending', async ({ page }, testInfo) => {
   await installMockSession(page)
-  let release!:()=>void;const pending=new Promise<void>(resolve=>{release=resolve})
-  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`,async route=>{await pending;await route.fulfill({json:[]}).catch(()=>{})})
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, async route => {
+    await pending
+    await route.fulfill({ json: [] }).catch(() => {})
+  })
   await page.goto('/?seccion=pasaporte')
-  await expect(page.locator('.skeleton-passport')).toBeVisible()
-  await expect(page.locator('.skeleton-passport')).toHaveAttribute('aria-busy','true')
-  expect(await page.locator('.skeleton-passport .skeleton-card').count()).toBe(2)
-  await testInfo.attach('pasaporte-skeleton',{body:await page.screenshot({type:'jpeg',quality:75}),contentType:'image/jpeg'})
-  release();await expect(page.locator('.skeleton-passport')).toHaveCount(0)
-  let releaseEvents!:()=>void;const events=new Promise<void>(resolve=>{releaseEvents=resolve})
-  await page.route(`${supabaseHost}/rest/v1/danz_events**`,async route=>{await events;await route.fulfill({json:[]}).catch(()=>{})})
-  await page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true}).click()
-  await expect(page.getByText('Cargando tus galerías…',{exact:true})).toBeVisible()
+  const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
+  await expect(reader).toBeVisible()
+  const leaf = reader.getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
+  await leaf.focus()
+  await leaf.press('ArrowRight')
+  await leaf.press('ArrowRight')
+  await expect(reader.getByText('Comprobando las fiestas de tu pasaporte…')).toBeVisible()
+  await testInfo.attach('pasaporte-carga', { body: await page.screenshot({ type: 'jpeg', quality: 75 }), contentType: 'image/jpeg' })
+  release()
+  await expect(reader.getByText('Esta página espera tu próxima fiesta.', { exact: false })).toBeVisible()
+  await reader.getByRole('button', { name: 'Cerrar pasaporte y volver a la pantalla anterior' }).click()
+  let releaseEvents!: () => void
+  const events = new Promise<void>(resolve => { releaseEvents = resolve })
+  await page.route(`${supabaseHost}/rest/v1/danz_events**`, async route => {
+    await events
+    await route.fulfill({ json: [] }).catch(() => {})
+  })
+  await page.getByRole('navigation').getByRole('button', { name: 'FOTOS', exact: true }).click()
+  await expect(page.getByText('Cargando tus galerías…', { exact: true })).toBeVisible()
   await expect(page.locator('.skeleton-gallery')).toBeVisible()
-  releaseEvents();await expect(page.getByText('Todavía no hay galerías disponibles para tu cuenta',{exact:true})).toBeVisible()
+  releaseEvents()
+  await expect(page.getByText('Todavía no hay galerías disponibles para tu cuenta', { exact: true })).toBeVisible()
 })
 
 test('Yeppo yields to typing and hidden tabs, while intentional reactions respect reduced motion', async ({ page }, testInfo) => {
-  await mockSupabase(page); await page.goto('/?seccion=pasaporte')
+  await mockSupabase(page); await page.goto('/?seccion=danzers')
   const launcher=page.getByRole('button',{name:'Hablar con Yeppo',exact:true})
   await expect(launcher).toBeVisible()
   await page.getByLabel('CÓDIGO DEL EVENTO',{exact:true}).fill('DANZTEST123456')
   await expect(launcher).toHaveCount(0)
-  await page.getByRole('heading',{name:/CADA NOCHE/}).click()
+  await page.getByRole('heading',{name:/TU PASAPORTE/}).click()
   await expect(launcher).toBeVisible()
   await launcher.click()
   const chat=page.getByRole('dialog',{name:'Hablar con Yeppo',exact:true})
