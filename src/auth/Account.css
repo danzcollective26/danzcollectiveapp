@@ -73,3 +73,9 @@
 
 .danz-member-since{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 4px 16px;color:#bfb19b;font-size:10px;font-weight:800;letter-spacing:.09em}
 .danz-member-since strong{font-size:12px;color:#e3d5b9;text-align:right;letter-spacing:.05em}
+
+/* Preview login help: avoids silently moving the user into the older installed production PWA. */
+.danz-preview-auth-help{max-width:520px;padding:16px 18px;margin:20px 0 8px;border:1px solid #a58e63;border-left:4px solid #d4b982;background:linear-gradient(135deg,#29241d,#161615);color:#f5ead8}
+.danz-preview-auth-help>strong{font-size:12px;letter-spacing:.1em}
+.danz-preview-auth-help p{font-size:13px;line-height:1.5}
+.danz-preview-auth-help button{min-height:44px;white-space:normal}
