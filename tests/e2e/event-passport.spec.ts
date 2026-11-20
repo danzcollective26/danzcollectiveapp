@@ -243,20 +243,29 @@ test('unavailable, throttled and failed canjes retain the pass for a safe retry'
   }
 })
 
-test('archived stamps retain their gallery access; retry recovers fetch errors', async ({ page }) => {
+test('archived immersive stamp keeps gallery access after a failed load and retry', async ({ page }) => {
   await installMockSession(page)
   let fail = true
-  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => fail ? route.fulfill({ status: 503, json: { message: 'Synthetic failure' } }) : route.fulfill({ json: [stamp(EA, 'Recuerdo permanente', 'archived')] }))
-  await openPassport(page)
-  await expect(page.getByText('No hemos podido cargar tus sellos.', { exact: false })).toBeVisible()
-  fail = false
-  await page.getByRole('button', { name: 'ACTUALIZAR SELLOS', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Recuerdo permanente', exact: true })).toBeVisible()
-  await page.route(`${supabaseHost}/rest/v1/danz_events**`, route => route.fulfill({ json: [{ id: EA, title: 'Recuerdo permanente', starts_at: null }] }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => fail
+    ? route.fulfill({ status: 503, json: { message: 'Synthetic failure' } })
+    : route.fulfill({ json: [stamp(EA, 'Recuerdo permanente', 'archived')] }))
+  await page.route(`${supabaseHost}/rest/v1/danz_events**`, route => route.fulfill({
+    json: [{ id: EA, title: 'Recuerdo permanente', starts_at: null }],
+  }))
   await page.route(`${supabaseHost}/rest/v1/danz_photos**`, route => route.fulfill({ json: [] }))
-  await page.getByRole('button', { name: 'ABRIR GALERÍA ↗', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Recuerdo permanente', exact: true })).toBeVisible()
-  await expect(page.getByText('Todavía no hay fotografías publicadas para este evento.', { exact: true })).toBeVisible()
+  await page.goto('/?seccion=pasaporte')
+  const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
+  const leaf = reader.getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
+  await leaf.focus()
+  await leaf.press('ArrowRight')
+  await leaf.press('ArrowRight')
+  await expect(reader.getByText('No hemos podido cargar tus sellos.')).toBeVisible()
+  fail = false
+  await reader.getByRole('button', { name: 'REINTENTAR' }).click()
+  await expect(reader.getByRole('heading', { name: 'Recuerdo permanente' })).toBeVisible()
+  await reader.getByRole('button', { name: 'ABRIR GALERÍA DEL VIAJE' }).click()
+  await expect(page.getByRole('heading', { name: 'Recuerdo permanente' })).toBeVisible()
+  await expect(page.getByText('Todavía no hay fotografías publicadas para este evento.')).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 
