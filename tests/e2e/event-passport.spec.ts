@@ -81,20 +81,24 @@ test('immersive passport keeps server stamps after reload and returns to the wal
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({
     json: [stamp(EA, 'Fiesta de prueba'), stamp(EB, 'Recuerdo archivado', 'archived')],
   }))
+  const initialStamps = page.waitForResponse(response => response.url().includes('/rpc/danz_my_passport'))
   await page.goto('/?seccion=pasaporte')
   const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
   await expect(reader).toBeVisible()
+  await initialStamps
   await expect(page.locator('header.topbar')).toHaveCount(0)
   await expect(page.getByRole('navigation', { name: 'Pasar páginas del pasaporte' })).toHaveCount(0)
   const leaf = reader.getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
-  await expect.poll(async () => await page.evaluate(() => document.querySelector('.danz-travel')?.textContent?.includes('05') ?? false)).toBe(true)
+
   await leaf.focus()
   await leaf.press('ArrowRight')
   await leaf.press('ArrowRight')
   await expect(reader.getByRole('heading', { name: 'Fiesta de prueba' })).toBeVisible()
   await leaf.press('ArrowRight')
   await expect(reader.getByRole('heading', { name: 'Recuerdo archivado' })).toBeVisible()
+  const refreshedStamps = page.waitForResponse(response => response.url().includes('/rpc/danz_my_passport'))
   await page.reload()
+  await refreshedStamps
   await expect(reader).toBeVisible()
   await expect.poll(async () => await page.evaluate(() => document.querySelector('.danz-travel')?.textContent?.includes('05') ?? false)).toBe(true)
   await leaf.focus()
