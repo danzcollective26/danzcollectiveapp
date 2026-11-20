@@ -216,9 +216,8 @@ test('server redemption adds a real immersive stamp and opens its matching galle
   await page.getByRole('button', { name: 'GUARDAR MI SELLO', exact: true }).click()
   await expect(page.getByText('¡Sello guardado!', { exact: false })).toBeVisible()
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
-  const stampsLoaded = page.waitForResponse(response => response.url().includes('/rpc/danz_my_passport'))
+  // DANZERS and the reader share the same EventPassport instance; opening it need not refetch.
   await page.getByRole('button', { name: 'Abrir el pasaporte DANZ a pantalla completa' }).click()
-  await stampsLoaded
   const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
   const leaf = reader.getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
   await leaf.focus()
