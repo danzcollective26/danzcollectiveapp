@@ -70,3 +70,6 @@
 .danz-editor-card h3{margin:0;font-size:18px;letter-spacing:.03em}
 .danz-editor-card .account-form{margin-top:0}
 .danz-profile-card .danz-member-actions{margin-top:20px}
+
+.danz-member-since{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 4px 16px;color:#bfb19b;font-size:10px;font-weight:800;letter-spacing:.09em}
+.danz-member-since strong{font-size:12px;color:#e3d5b9;text-align:right;letter-spacing:.05em}
