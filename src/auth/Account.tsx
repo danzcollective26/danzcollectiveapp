@@ -167,7 +167,7 @@ function ProfileForm({ client, user, onOpenPassport, editing }: { client: Supaba
 
   const verifiedHandle = identity.data?.verified ? identity.data.handle : null
   const safeHandle = verifiedHandle && /^[A-Za-z0-9_.]{1,30}$/.test(verifiedHandle) ? verifiedHandle : null
-  return <section className="account-card danz-profile-card" aria-label="Tu perfil" aria-busy={loading || busy}>
+  return <><section className="account-card danz-profile-card" aria-label="Tu perfil" aria-busy={loading || busy}>
     <div className="danz-profile-kicker">DANZ COLLECTIVE / MEMBER PROFILE</div>
     <div className="danz-profile-header">
       <div className="danz-profile-avatar" aria-hidden="true">{(name.trim() || user.email || 'D').slice(0, 1).toUpperCase()}</div>
@@ -213,22 +213,13 @@ function ProfileForm({ client, user, onOpenPassport, editing }: { client: Supaba
         <a className="outline-btn external-btn" href={`/?seccion=cuenta&miembro=${encodeURIComponent(user.id)}`}>VER MI TARJETA COMO OTRO MIEMBRO ↗</a>
       </div>}
       <div className="danz-member-actions"><button className="outline-btn" type="button" onClick={onOpenPassport}>ABRIR MI PASAPORTE ↗</button></div>
-      {editing && <form onSubmit={event => { void save(event) }} className="account-form danz-profile-management-form">
-        <h3>ADMINISTRAR MI PERFIL</h3>
-        <p className="account-note">Los cambios son privados hasta que pulses guardar. La visibilidad de Instagram se controla por separado.</p>
-        <label htmlFor="profile-name">Nombre público o alias (puede ser distinto al del correo)</label>
-        <input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={40} autoComplete="nickname" disabled={busy} />
-        <p className="account-note">Tu nombre puede ser tu alias de Instagram u otro apodo. Se revisan nombres ofensivos y símbolos no permitidos.</p>
-        <label htmlFor="profile-instagram">Instagram (opcional)</label>
-        <input id="profile-instagram" value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={31} autoComplete="off" placeholder="@tuusuario" disabled={busy} aria-describedby="instagram-help" />
-        <p id="instagram-help" className="account-note">Cambiar este campo no vincula Instagram ni verifica su titularidad.</p>
-        <label className="danz-privacy-toggle" htmlFor="profile-instagram-public"><input id="profile-instagram-public" type="checkbox" checked={instagramPublic} onChange={event => setInstagramPublic(event.target.checked)} disabled={busy}/><span>Mostrar mi tarjeta de Instagram a otros miembros</span></label>
-        <p className="account-note">Desactivado por defecto. Esta preferencia no afecta a tu vinculación ni a DANZPOINTS. La tarjeta pública solo debe mostrarse cuando Instagram esté verificado; tú siempre podrás consultar tu perfil.</p>
-        <button className="primary-btn" type="submit" disabled={busy || loadFailed}>{busy ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}</button>
-      </form>}
       {message && <p role="status" className="account-success">{message}</p>}
     </>}
   </section>
+  {editing && !loading && !loadFailed && <section className="account-card danz-editor-card" aria-label="Administrar mi perfil">
+    ${form.replace(/^s*{editing && /, '').replace(/</form>}s*$/, '</form>')}
+  </section>}
+</>
 }
 
 export default function Account({ focusInstagram = false, onOpenPassport }: { focusInstagram?: boolean; onOpenPassport: () => void }) {
