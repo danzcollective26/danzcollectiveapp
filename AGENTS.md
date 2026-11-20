@@ -4,6 +4,13 @@ Este repositorio contiene la app DANZ Collective. Mantener las decisiones y el
 trabajo pendiente en `docs/ARCADANZ_ROADMAP.md` y distinguir siempre lo probado,
 lo publicado y lo propuesto.
 
+## Instrucciones actuales para todo agente de IA
+
+- Leer **`docs/DECISIONES_VIGENTES.md`** y las tareas [#62](https://github.com/danzcollective26/danzcollectiveapp/issues/62) y [#63](https://github.com/danzcollective26/danzcollectiveapp/issues/63) antes de modificar funcionalidades. Conservar decisiones, visuales y mecánicas aprobados, crear rama/PR, comprobar y no fusionar sin autorización.
+- Para desarrollar o diseñar juegos ARCADANZ seguir **`docs/ARCADANZ_FLUJO_IA_MODELOS.md`** y la tarea [#66](https://github.com/danzcollective26/danzcollectiveapp/issues/66): escoger esfuerzo/modelo proporcional a complejidad, generación visual/Figma para arte y Codex para integración, pruebas móviles y revisión.
+- **No afirmar que una issue puede cambiar automáticamente el selector del modelo ChatGPT.** Para GPT-6 Extra High o Pro/Astra se requiere selección por el propietario si está disponible. API externa, costes y claves deben autorizarse antes.
+- Si se modifica autenticación OAuth, preservar flujo PKCE y no habilitar en preview dominios que Supabase no tenga en allowlist; mantener el flag de preview desactivado hasta verificación.
+
 ## Seguimiento para no perder peticiones
 
 - El registro general vigente es `docs/REVISION_Y_PENDIENTES_DANZ_2026-11-15.md`.
