@@ -10,6 +10,18 @@ const openPassport = async (page: import('@playwright/test').Page) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'DANZERS', exact: true }).click()
 }
+const showImmersiveStamp = async (page: import('@playwright/test').Page, title: string) => {
+  await page.goto('/?seccion=pasaporte')
+  const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
+  await expect(reader).toBeVisible()
+  const book = reader.getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
+  await book.focus()
+  await book.press('ArrowRight')
+  await book.press('ArrowRight')
+  await expect(reader.getByRole('heading', { name: title, exact: true })).toBeVisible()
+  return { reader, book }
+}
+
 
 test('newly confirmed stamp appears in immersive reader; duplicate redemption stays safe', async ({ page }) => {
   await installMockSession(page)
@@ -285,19 +297,20 @@ test('switching accounts and signing out clears stamps; a late redemption cannot
     await pending
     await route.fulfill({ json: [{ status: 'granted', event_id: EA, granted_at: '2026-11-09T01:00:00Z' }] }).catch(() => {})
   })
-  await openPassport(page)
-  await expect(page.getByRole('heading', { name: 'Solo cuenta A', exact: true })).toBeVisible()
+  await showImmersiveStamp(page, 'Solo cuenta A')
+  await page.goto('/?seccion=danzers')
   await page.getByLabel('CÓDIGO DEL EVENTO', { exact: true }).fill(CODE)
   await page.getByRole('button', { name: 'GUARDAR MI SELLO', exact: true }).click()
   await expect.poll(() => requested).toBe(true)
   await switchMockSession(page, USER_B)
-  await expect(page.getByRole('heading', { name: 'Solo cuenta B', exact: true })).toBeVisible()
+  await showImmersiveStamp(page, 'Solo cuenta B')
   release()
   await expect(page.getByRole('heading', { name: 'Solo cuenta A', exact: true })).toHaveCount(0)
   await expect(page.getByText('¡Sello guardado!', { exact: false })).toHaveCount(0)
   await switchMockSession(page, null)
-  await expect(page.getByRole('button', { name: 'CANJEAR MI PASE', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Solo cuenta B', exact: true })).toHaveCount(0)
+  await expect(page.locator('.danz-trip-ink')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'INICIAR SESIÓN' }).first()).toBeVisible()
 })
 
 test('two saved nights are linked automatically after sign-in without another code or confirmation', async ({ page }) => {
@@ -351,7 +364,8 @@ test('a connection failure retains the QR and reconnecting retries once automati
   await context.setOffline(true)
   await expect(page.getByText('Sin conexión.', { exact: false })).toBeVisible()
   await context.setOffline(false)
-  await expect(page.getByRole('heading', { name: 'Pase recuperado', exact: true })).toBeVisible()
+  await expect.poll(() => requests).toBe(2)
+  await showImmersiveStamp(page, 'Pase recuperado')
   expect(requests).toBe(2)
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
 })
@@ -367,7 +381,7 @@ test('a signed-in visitor scans once and receives the stamp without submitting a
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: redemptions ? [stamp(EA, 'Sello automático')] : [] }))
   await page.goto(`/#pase=${CODE}`)
   await expect(page.getByText('¡Sello guardado!', { exact: false })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Sello automático', exact: true })).toBeVisible()
+  await showImmersiveStamp(page, 'Sello automático')
   expect(redemptions).toBe(1)
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
   await page.reload()
@@ -394,7 +408,8 @@ test('a failed automatic link keeps the pass and waits for an explicit retry', a
   expect(redemptions).toBe(1)
   available = true
   await page.getByRole('button', { name: 'GUARDAR MI SELLO', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Recuperado tras reintento', exact: true })).toBeVisible()
+  await expect.poll(() => redemptions).toBe(2)
+  await showImmersiveStamp(page, 'Recuperado tras reintento')
   expect(redemptions).toBe(2)
 })
 
@@ -419,8 +434,10 @@ test('a late link keeps a newer QR and links both events in order', async ({ pag
   await page.goto(`/#pase=${next}`)
   await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(next)
   release()
-  await expect(page.getByRole('heading', { name: 'Segundo QR confirmado', exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Primer QR confirmado', exact: true })).toBeVisible()
+  await expect.poll(() => redeemed).toEqual([CODE, next])
+  const { reader, book } = await showImmersiveStamp(page, 'Segundo QR confirmado')
+  await book.press('ArrowRight')
+  await expect(reader.getByRole('heading', { name: 'Primer QR confirmado', exact: true })).toBeVisible()
   expect(redeemed).toEqual([CODE, next])
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
 })
