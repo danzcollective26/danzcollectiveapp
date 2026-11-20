@@ -8,7 +8,7 @@ export default function InstagramLink({ focusOnMount = false }: { focusOnMount?:
  async function request(e:FormEvent){
   e.preventDefault();if(!auth.client||action.current)return
   const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),10000);action.current=abort;setBusy(true);setMessage('')
-  try{const r=await auth.client.rpc('danz_instagram_request',{p_handle:handle}).abortSignal(abort.signal);if(r.error)throw r.error;if(alive.current){setMessage('Código preparado. Compruébalo abajo y envíalo desde tu Instagram.');notifyIdentity()}}
+  try{const r=await auth.client.rpc('danz_instagram_request',{p_handle:handle}).abortSignal(abort.signal);if(r.error)throw r.error;if(alive.current){setMessage('Solicitud creada, pero Instagram todavía NO está vinculado. Copia el código y envíalo desde tu cuenta; el equipo debe aprobarlo.');notifyIdentity()}}
   catch(e){if(alive.current){const code=(e as {code?:string})?.code;setMessage(code==='54000'?'Puedes cambiar la solicitud cinco veces al día. Prueba mañana.':code==='22023'?'Revisa el usuario. Ese Instagram puede estar vinculado a otra cuenta.':'No se ha podido preparar el código. Comprueba que tu correo esté confirmado y reinténtalo.')}}
   finally{clearTimeout(timer);action.current=null;if(alive.current)setBusy(false)}
  }
@@ -30,8 +30,9 @@ export default function InstagramLink({ focusOnMount = false }: { focusOnMount?:
  const d=identity.data
  return <section ref={sectionRef} id="vincular-instagram" className={`account-card instagram-link${focusOnMount?' instagram-link-focused':''}`} aria-label="Vincular Instagram para puntos"><h2>VINCULA TU INSTAGRAM</h2>{focusOnMount&&<p className="instagram-start-note" role="status">ESTÁS EN EL LUGAR CORRECTO. Escribe tu @usuario y pulsa «Preparar mi código». Después sigue las instrucciones de verificación.</p>}<p className="account-note">Para competir y disponer de puntos necesitas correo confirmado e Instagram verificado. La vinculación une ese Instagram con tu cuenta DANZ.</p>
  {identity.loading?<p aria-live="polite">Comprobando la vinculación…</p>:identity.error?<><p>No se ha podido consultar tu vinculación.</p><button className="outline-btn" onClick={identity.refresh}>REINTENTAR VINCULACIÓN</button></>:d&&<>
-  {d.verified?<><p className="account-success">INSTAGRAM VERIFICADO · @{d.handle}</p><p className="account-note">Tu cuenta puede competir y disponer de DANZPOINTS. Si cambias el Instagram del perfil tendrás que comprobar la nueva vinculación.</p></>:<>
+  {d.verified?<><p className="account-success">INSTAGRAM VERIFICADO · @{d.handle}</p><a className="danz-instagram-profile" href={`https://www.instagram.com/${d.handle}/`} target="_blank" rel="noopener noreferrer">Abrir mi Instagram verificado ↗</a><p className="account-note">Tu cuenta puede competir y disponer de DANZPOINTS. Si cambias el Instagram del perfil tendrás que comprobar la nueva vinculación.</p></>:<>
    {!d.emailVerified&&<p className="account-note">Confirma tu correo accediendo desde el enlace o código enviado a tu email.</p>}
+   {d.status==='pending'&&<p role="status" className="account-note">SOLICITUD PENDIENTE · Tu cuenta aún no está vinculada. Tras enviar el código, el equipo debe validarlo.</p>}
    {d.status==='changed'&&<p>El Instagram del perfil ha cambiado. Verifica el nuevo usuario para disponer de tus puntos.</p>}
    {d.status==='rejected'&&<p>No hemos podido comprobar la solicitud anterior. Revisa el usuario y solicita otro código.</p>}
    <form className="account-form" onSubmit={request}><label htmlFor="verified-instagram">INSTAGRAM PARA VERIFICAR</label><input id="verified-instagram" value={handle} maxLength={31} required pattern="@?[A-Za-z0-9_.]{1,30}" disabled={busy||!d.emailVerified} placeholder="@tuusuario" onChange={e=>setHandle(e.target.value)}/><button className="primary-btn" disabled={busy||!d.emailVerified}>{busy?'PREPARANDO…':'PREPARAR MI CÓDIGO'}</button></form>
