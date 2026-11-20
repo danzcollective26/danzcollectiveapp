@@ -26,3 +26,7 @@
 .danz-instagram-profile>span:nth-child(2){flex:1;min-width:0;overflow-wrap:anywhere}
 .danz-instagram-profile small{display:block;font-size:9px;margin-top:4px;letter-spacing:.08em}
 .danz-instagram-mark{font-size:30px}.danz-profile-edit{margin-top:13px}
+
+/* Opt-in public social identity: large accessible hit area. */
+.danz-privacy-toggle{display:flex;align-items:center;gap:12px;min-height:44px;font-size:14px!important;letter-spacing:0!important;line-height:1.45}
+.danz-privacy-toggle input{width:20px!important;height:20px;flex:0 0 20px;accent-color:#d3bc89}
