@@ -170,7 +170,7 @@ test('the unpublished gallery explains the wait, refreshes published photos and 
   await expect(waiting).toBeVisible()
   await waiting.getByRole('link', { name: 'VER MI PASAPORTE', exact: true }).click()
   await expect(page).toHaveURL(/seccion=pasaporte/)
-  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte', exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })).toBeVisible()
 })
 
 test('authorized events use short-lived private URLs; viewer and blob download work', async ({ page }) => {
