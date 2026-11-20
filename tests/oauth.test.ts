@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { availableSocialProviders, accountBrowserUrl, danzAuthOrigin, DANZ_CANONICAL_ORIGIN, DANZ_PREVIEW_AUTH_ORIGIN, isDanzPreviewAuthAllowed } from '../src/auth/oauth.ts'
+import { availableSocialProviders, accountBrowserUrl, danzAuthOrigin, DANZ_CANONICAL_ORIGIN, DANZ_PREVIEW_AUTH_ORIGIN, isDanzPreviewAuthAllowed, danzEmailRedirectOrigin } from '../src/auth/oauth.ts'
 
 test('social login only uses explicit enabled Google and Apple flags from public Auth settings', () => {
   assert.deepEqual(availableSocialProviders({ external: { google: true, apple: true, github: true } }), ['google', 'apple'])
@@ -34,4 +34,12 @@ test('only the exact approved preview origin may enable OAuth after Supabase all
  assert.equal(isDanzPreviewAuthAllowed('https://evil.example', true), false)
  assert.equal(isDanzPreviewAuthAllowed('https://danzcollectiveapp-preview.vercel.app.evil.example', true), false)
  assert.equal(isDanzPreviewAuthAllowed('http://danzcollectiveapp-preview.vercel.app', true), false)
+})
+
+
+test('passwordless email keeps the dedicated preview origin instead of jumping to the installed production app', () => {
+ assert.equal(danzEmailRedirectOrigin(DANZ_PREVIEW_AUTH_ORIGIN), DANZ_PREVIEW_AUTH_ORIGIN)
+ assert.equal(danzEmailRedirectOrigin('https://danzcollectiveapp-preview-123.vercel.app'), DANZ_CANONICAL_ORIGIN)
+ assert.equal(danzEmailRedirectOrigin('https://danz-evil.example'), DANZ_CANONICAL_ORIGIN)
+ assert.equal(danzEmailRedirectOrigin('http://localhost:4173'), 'http://localhost:4173')
 })
