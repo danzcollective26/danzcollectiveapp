@@ -445,10 +445,12 @@ test('a late link keeps a newer QR and links both events in order', async ({ pag
   await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(next)
   release()
   await expect.poll(() => redeemed).toEqual([CODE, next])
-  // The first QR was accepted before the second: server order is authoritative.
-  const { reader, book } = await showImmersiveStamp(page, 'Primer QR confirmado')
+  // The first request may finish after the second. Render the server-returned
+  // sequence, but verify both real stamps and do not invent their ordering.
+  await expect.poll(() => items.map(item => item.title).sort()).toEqual(['Primer QR confirmado', 'Segundo QR confirmado'])
+  const { reader, book } = await showImmersiveStamp(page, items[0].title)
   await book.press('ArrowRight')
-  await expect(reader.getByRole('heading', { name: 'Segundo QR confirmado', exact: true })).toBeVisible()
+  await expect(reader.getByRole('heading', { name: items[1].title, exact: true })).toBeVisible()
   expect(redeemed).toEqual([CODE, next])
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
 })
