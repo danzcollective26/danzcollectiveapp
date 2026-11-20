@@ -343,7 +343,7 @@ export default function App() {
 
   return (
     <div className={`site-shell${quickArrival ? ' quick-arrival' : ''}${page === 'pasaporte' ? ' passport-open' : ''}`}>
-      <header className="topbar">
+      {page !== 'pasaporte' && <header className="topbar">
         <button className="wordmark" onClick={() => go('inicio')} aria-label="DANZ Collective, ir al inicio">
           <DanzFlower className="brand-flower" /><img className="brand-wordmark" src="/brand/danz-collective-wordmark.png" alt="" width="225" height="32" />
         </button>
@@ -356,10 +356,10 @@ export default function App() {
           {admin.member && !admin.loading && <button onClick={() => go('admin')} className={page === 'admin' ? 'active' : ''}>ADMINISTRAR</button>}
         </nav>
         <span className="build-tag"><span className="status-dot"/> {auth.user ? 'CONECTADO' : 'EN DESARROLLO'}</span>
-      </header>
+      </header>}
 
-      <PwaControls quiet={quickArrival || page === 'arcade'} />
-      {auth.user && !quickArrival && page !== 'arcade' && page !== 'cuenta' && <div className="content"><InstagramWelcome onConnect={() => {
+      <PwaControls quiet={quickArrival || page === 'arcade' || page === 'pasaporte'} />
+      {auth.user && !quickArrival && page !== 'arcade' && page !== 'cuenta' && page !== 'pasaporte' && <div className="content"><InstagramWelcome onConnect={() => {
         setInstagramRequested(true)
         go('cuenta')
       }} /></div>}
@@ -390,6 +390,7 @@ export default function App() {
                   <span className="danz-wallet-stack" aria-hidden="true"><span className="danz-wallet-back-card"/><span className="danz-wallet-front-card"><DanzFlower/><b>DANZ</b><small>PASAPORTE</small></span><span className="danz-wallet-strap"><DanzFlower/></span></span>
                   <span className="danz-wallet-home-copy"><small>02 / TU CARTERA DE FIESTAS</small><strong>UN PASAPORTE.<br/>TODAS TUS NOCHES.</strong><span>Una fiesta, un sello, un recuerdo. Descubre tu colección DANZ.</span><em>DESCUBRIR MI PASAPORTE <span aria-hidden="true">↗</span></em></span>
                 </button>
+                <button className="danz-wallet-account-link" type="button" onClick={() => go('cuenta')} aria-label="Abrir mi tarjeta de socio DANZ"><span className="danz-wallet-account-icon" aria-hidden="true">◉</span><span><strong>MI CUENTA</strong><small>Tu tarjeta de socio, Instagram y datos personales</small></span><span aria-hidden="true">↗</span></button>
               </section>
 
               <button className="feature arcade-feature danz-home-arcade" onClick={() => go('arcade')}>
@@ -490,6 +491,7 @@ export default function App() {
         {(page === 'pasaporte' || page === 'danzers') && (
           <section className={page === 'pasaporte' ? 'passport-immersive-mount' : 'content inner-page passport-page'}>
             {page === 'danzers' && <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>}
+            {page === 'pasaporte' && <button type="button" className="passport-account-access" onClick={() => go('cuenta')}>◉ MI TARJETA DE SOCIO ↗</button>}
             <EventPassport key={auth.user?.id ?? 'guest'} immersive={page === 'pasaporte'} onClose={() => go(passportReturnPage.current === 'pasaporte' ? 'inicio' : passportReturnPage.current)} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} registeredAt={auth.user?.created_at ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
           </section>
         )}
@@ -519,8 +521,8 @@ export default function App() {
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
       <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
-      <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />
-      <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
+      {page !== 'pasaporte' && <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />}
+      {page !== 'pasaporte' && <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>}
     </div>
   )
 }
