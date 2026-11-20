@@ -13,7 +13,7 @@ import YeppoToggle from '../yeppo/YeppoToggle'
 import RadioUpload from '../music/RadioUpload'
 import {notifyIdentity} from './useIdentity'
 
-type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_id' | 'display_name' | 'instagram_handle'>
+type Profile = Pick<Database['public']['Tables']['danz_profiles']['Row'], 'user_id' | 'display_name' | 'instagram_handle' | 'instagram_public'>
 
 // Client-side first line of defence; server-side validation is still required for full enforcement.
 function validateDisplayName(value: string): string | null {
@@ -31,6 +31,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
   const identity = useIdentity()
   const [name, setName] = useState('')
   const [instagram, setInstagram] = useState('')
+  const [instagramPublic, setInstagramPublic] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -48,12 +49,13 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     setError('')
     void (async () => {
       try {
-        const result = await client.from('danz_profiles').select('user_id,display_name,instagram_handle').eq('user_id', user.id).abortSignal(abort.signal).maybeSingle()
+        const result = await client.from('danz_profiles').select('user_id,display_name,instagram_handle,instagram_public').eq('user_id', user.id).abortSignal(abort.signal).maybeSingle()
         if (abort.signal.aborted) return
         if (result.error) { setLoadFailed(true); setError('No se pudo cargar tu perfil. Inténtalo de nuevo.'); return }
         setProfile(result.data)
         setName(result.data?.display_name ?? '')
         setInstagram(result.data?.instagram_handle ?? '')
+        setInstagramPublic(result.data?.instagram_public ?? false)
       } catch {
         if (!abort.signal.aborted) { setLoadFailed(true); setError('No se pudo cargar tu perfil. Comprueba la conexión.') }
       } finally {
@@ -77,13 +79,13 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     setBusy(true)
     setError('')
     setMessage('')
-    const fields = { display_name: displayName || null, instagram_handle: handle || null }
+    const fields = { display_name: displayName || null, instagram_handle: handle || null, instagram_public: instagramPublic }
     try {
       // Column privileges deliberately exclude ownership and timestamps from UPDATE.
       const query = profile
         ? client.from('danz_profiles').update(fields).eq('user_id', user.id)
         : client.from('danz_profiles').insert({ user_id: user.id, ...fields })
-      const result = await query.select('user_id,display_name,instagram_handle').maybeSingle()
+      const result = await query.select('user_id,display_name,instagram_handle,instagram_public').maybeSingle()
       if (!mounted.current) return
       if (result.error || !result.data) {
         setError('No se pudo guardar tu perfil. Inténtalo de nuevo.'); return
@@ -91,6 +93,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       setProfile(result.data)
       setName(result.data.display_name ?? '')
       setInstagram(result.data.instagram_handle ?? '')
+      setInstagramPublic(result.data.instagram_public ?? false)
       setMessage('Perfil guardado.');notifyIdentity()
     } catch {
       if (mounted.current) setError('No se pudo guardar tu perfil. Comprueba la conexión.')
@@ -124,6 +127,8 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
         <label htmlFor="profile-instagram">Instagram (opcional)</label>
         <input id="profile-instagram" value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={31} autoComplete="off" placeholder="@tuusuario" disabled={busy} aria-describedby="instagram-help" />
         <p id="instagram-help" className="account-note">Cambiar este campo no vincula Instagram ni verifica su titularidad.</p>
+        <label className="danz-privacy-toggle" htmlFor="profile-instagram-public"><input id="profile-instagram-public" type="checkbox" checked={instagramPublic} onChange={event => setInstagramPublic(event.target.checked)} disabled={busy}/><span>Mostrar mi tarjeta de Instagram a otros miembros</span></label>
+        <p className="account-note">Desactivado por defecto. Esta preferencia no afecta a tu vinculación ni a DANZPOINTS. La tarjeta pública solo debe mostrarse cuando Instagram esté verificado; tú siempre podrás consultar tu perfil.</p>
         <button className="primary-btn" type="submit" disabled={busy || loadFailed}>{busy ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}</button>
       </form>}
       {message && <p role="status" className="account-success">{message}</p>}
