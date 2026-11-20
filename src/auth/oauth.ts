@@ -34,9 +34,21 @@ export function isDanzPreviewAuthAllowed(origin: string, enabled: boolean): bool
     return url.origin === DANZ_PREVIEW_AUTH_ORIGIN
   } catch { return false }
 }
+/** The email handoff must remain on the exact preview host when configured in Supabase.
+ * It is deliberately independent of Google OAuth's opt-in PKCE flag. */
+export function danzEmailRedirectOrigin(origin: string): string {
+  const url = new URL(origin)
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
+  return url.origin === DANZ_PREVIEW_AUTH_ORIGIN ? DANZ_PREVIEW_AUTH_ORIGIN : DANZ_CANONICAL_ORIGIN
+}
+
+/** Social OAuth is allowed on preview only after the explicit Supabase allowlist and env toggle. */
+export function danzPreviewOAuthEnabled(origin: string): boolean {
+  return isDanzPreviewAuthAllowed(origin, (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_PREVIEW_OAUTH_ENABLED === 'true')
+}
 export function danzAuthOrigin(origin: string): string {
   const url = new URL(origin)
   if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
-  if (isDanzPreviewAuthAllowed(url.origin, (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_PREVIEW_OAUTH_ENABLED === 'true')) return DANZ_PREVIEW_AUTH_ORIGIN
+  if (danzPreviewOAuthEnabled(url.origin)) return DANZ_PREVIEW_AUTH_ORIGIN
   return DANZ_CANONICAL_ORIGIN
 }
