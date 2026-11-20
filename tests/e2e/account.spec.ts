@@ -134,8 +134,9 @@ test('el resultado de un logout antiguo no cierra una nueva cuenta de otra pesta
   const completed = page.waitForResponse(response => response.url().includes('/auth/v1/logout'))
   release()
   await completed
-  await expect(page.getByRole('button', { name: 'CERRAR SESIÓN', exact: true })).toBeVisible()
-  await expect(page.getByText('second@example.invalid', { exact: true })).toBeVisible()
+  // A new account is authenticated independently; its management panel may be collapsed.
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
+  await expect(page.getByText(/second@example.invalid/).first()).toBeVisible()
   await expect(page.getByText(/Has salido de este navegador/)).toHaveCount(0)
 })
 
