@@ -151,7 +151,7 @@ test('a guest QR is saved without a form, survives reload and can be linked late
   await page.reload()
   await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
   await page.getByRole('button', { name: 'SEGUIR CON MI NOCHE', exact: true }).click()
-  await expect(page.getByRole('heading', { name: /WE ARE/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' })).toBeVisible()
   await page.getByRole('button', { name: 'ABRIR MI PASE ↗', exact: true }).click()
   await page.getByRole('button', { name: 'CANJEAR MI PASE', exact: true }).click()
   await expect(page.getByLabel('Correo electrónico', { exact: true })).toBeVisible()
@@ -192,7 +192,7 @@ test('restricted browser history cannot prevent saving or leaving the arrival sc
   await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
   await page.getByRole('button', { name: 'SEGUIR CON MI NOCHE', exact: true }).click()
-  await expect(page.getByRole('heading', { name: /WE ARE/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' })).toBeVisible()
 })
 
 test('server redemption adds a real immersive stamp and opens its matching gallery', async ({ page }) => {
@@ -361,7 +361,7 @@ test('a signed-in visitor scans once and receives the stamp without submitting a
   expect(redemptions).toBe(1)
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
   await page.reload()
-  await expect(page.getByRole('heading', { name: /WE ARE/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' })).toBeVisible()
   expect(redemptions).toBe(1)
 })
 
