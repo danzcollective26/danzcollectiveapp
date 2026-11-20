@@ -313,7 +313,7 @@ test('switching accounts and signing out clears stamps; a late redemption cannot
   await expect(page.locator('.danz-trip-ink')).toHaveCount(0)
   const signedOutBook = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' }).getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
   await signedOutBook.focus()
-  await signedOutBook.press('ArrowLeft')
+  await signedOutBook.press('ArrowRight')
   await expect(page.getByRole('button', { name: 'INICIAR SESIÓN' }).first()).toBeVisible()
 })
 
