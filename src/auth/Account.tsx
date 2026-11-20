@@ -25,7 +25,7 @@ function validateDisplayName(value: string): string | null {
   return null
 }
 
-function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user: User }) {
+function ProfileForm({ client, user, onOpenPassport }: { client: SupabaseClient<Database>; user: User; onOpenPassport: () => void }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [editing, setEditing] = useState(false)
   const [expandedDetails, setExpandedDetails] = useState(false)
@@ -182,6 +182,9 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
         <div className="danz-member-stat"><span aria-hidden="true">✳</span><strong>{memberStats.stamps === null ? '—' : memberStats.stamps}</strong><small>SELLOS</small></div>
       </div>
       <div className="danz-member-number">Nº SOCIO <strong>{membershipNumber === null ? 'PENDIENTE' : String(membershipNumber).padStart(6, '0')}</strong></div>
+      {safeHandle ? <a className="danz-instagram-profile" href={`https://www.instagram.com/${safeHandle}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir perfil de Instagram de @${safeHandle}`}>
+        <span className="danz-instagram-mark" aria-hidden="true">◎</span><span><b>@{safeHandle}</b><small>PERFIL DE INSTAGRAM VERIFICADO</small></span><span aria-hidden="true">↗</span>
+      </a> : <p className="account-note">El @usuario escrito no demuestra una vinculación. Complétala en «Vincular Instagram» y aparecerá aquí el acceso directo.</p>}
       <button className="danz-profile-disclosure" type="button" aria-expanded={expandedDetails} aria-controls="danz-member-full-details" onClick={() => setExpandedDetails(value => !value)}>
         {expandedDetails ? 'OCULTAR DATOS DE MI TARJETA' : 'VER TODOS MIS DATOS'} <span aria-hidden="true">{expandedDetails ? '−' : '+'}</span>
       </button>
@@ -196,9 +199,11 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       </div>
       <div className="danz-profile-detail"><span>Nombre público</span><strong>{name.trim() || 'Pendiente de configurar'}</strong></div>
       <div className="danz-profile-detail"><span>Instagram</span><strong>{identity.loading ? 'Comprobando vinculación…' : safeHandle ? 'Verificado' : identity.data?.status === 'pending' ? 'Pendiente de validar' : 'Sin verificar'}</strong></div>
-      {safeHandle ? <a className="danz-instagram-profile" href={`https://www.instagram.com/${safeHandle}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir perfil de Instagram de @${safeHandle}`}>
-        <span className="danz-instagram-mark" aria-hidden="true">◎</span><span><b>@{safeHandle}</b><small>PERFIL DE INSTAGRAM VERIFICADO</small></span><span aria-hidden="true">↗</span>
-      </a> : <p className="account-note">El @usuario escrito no demuestra una vinculación. Complétala en «Vincular Instagram» y aparecerá aquí el acceso directo.</p>}
+      </div>}
+      {instagramPublic && profile?.instagram_public && previewStatus === 'loading' && <p role="status" className="account-note">Comprobando si tu tarjeta pública ya está disponible…</p>}
+      {instagramPublic && profile?.instagram_public && previewStatus === 'hidden' && <p role="status" className="account-note">Todavía no se muestra públicamente: debe estar aprobada tu vinculación de Instagram.</p>}
+      {instagramPublic && profile?.instagram_public && previewStatus === 'error' && <p role="alert" className="account-note">No se ha podido comprobar la tarjeta pública. Tu preferencia se ha guardado; inténtalo más tarde.</p>}
+      </div>}
       {publicCard && <div className="danz-public-card-preview" aria-label="Vista previa de tu tarjeta pública de Instagram">
         <span className="danz-profile-kicker">ASÍ VERÁN TU INSTAGRAM LOS DEMÁS MIEMBROS</span>
         <a className="danz-instagram-profile" href={`https://www.instagram.com/${publicCard.handle}/`} target="_blank" rel="noopener noreferrer">
@@ -206,12 +211,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
           <span><b>@{publicCard.handle}</b><small>{publicCard.name || 'Miembro DANZ'} · INSTAGRAM VERIFICADO</small></span>
           <span aria-hidden="true">↗</span>
         </a>
-      </div>}
-      {instagramPublic && profile?.instagram_public && previewStatus === 'loading' && <p role="status" className="account-note">Comprobando si tu tarjeta pública ya está disponible…</p>}
-      {instagramPublic && profile?.instagram_public && previewStatus === 'hidden' && <p role="status" className="account-note">Todavía no se muestra públicamente: debe estar aprobada tu vinculación de Instagram.</p>}
-      {instagramPublic && profile?.instagram_public && previewStatus === 'error' && <p role="alert" className="account-note">No se ha podido comprobar la tarjeta pública. Tu preferencia se ha guardado; inténtalo más tarde.</p>}
-      </div>}
-      <div className="danz-member-actions"><a className="outline-btn" href="/?seccion=pasaporte">ABRIR MI PASAPORTE ↗</a></div>
+      <div className="danz-member-actions"><button className="outline-btn" type="button" onClick={onOpenPassport}>ABRIR MI PASAPORTE ↗</button></div>
       <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'ADMINISTRAR MI PERFIL'}</button>
       {editing && <form onSubmit={event => { void save(event) }} className="account-form">
         <label htmlFor="profile-name">Nombre público o alias (puede ser distinto al del correo)</label>
@@ -229,7 +229,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
   </section>
 }
 
-export default function Account({ focusInstagram = false }: { focusInstagram?: boolean }) {
+export default function Account({ focusInstagram = false, onOpenPassport }: { focusInstagram?: boolean; onOpenPassport: () => void }) {
   const { client, user, loading, error: authError, signOut, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [sentEmail, setSentEmail] = useState('')
@@ -371,7 +371,7 @@ export default function Account({ focusInstagram = false }: { focusInstagram?: b
       : loading ? <p role="status">Comprobando tu sesión…</p>
       : user ? <>
         {error && <p role="alert" className="account-error">{error}</p>}
-        <ProfileForm key={user.id} client={client} user={user} />
+        <ProfileForm key={user.id} client={client} user={user} onOpenPassport={onOpenPassport} />
         <div className="account-connected-actions">
           <button className="outline-btn" type="button" aria-expanded={showInstagramSettings} aria-controls="account-instagram-settings" onClick={() => setShowInstagramSettings(value => !value)}>{showInstagramSettings ? 'CERRAR VINCULACIÓN DE INSTAGRAM' : 'VINCULAR O REVISAR INSTAGRAM'}</button>
           {showInstagramSettings && <div id="account-instagram-settings"><InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} /></div>}
