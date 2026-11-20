@@ -103,6 +103,32 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     }
   }
 
+  const [publicCard, setPublicCard] = useState<{ name: string | null; handle: string } | null>(null)
+  const [previewStatus, setPreviewStatus] = useState<'idle' | 'loading' | 'hidden' | 'error'>('idle')
+  useEffect(() => {
+    if (!instagramPublic || !profile?.instagram_public || !identity.data?.verified || !client) {
+      setPublicCard(null)
+      setPreviewStatus('idle')
+      return
+    }
+    let active = true
+    setPreviewStatus('loading')
+    void client.rpc('danz_public_instagram_card', { p_user: user.id }).then(({ data, error }) => {
+      if (!active) return
+      if (error) { setPublicCard(null); setPreviewStatus('error'); return }
+      if (data && typeof data === 'object' && !Array.isArray(data) &&
+          typeof data.handle === 'string' && /^[A-Za-z0-9_.]{1,30}$/.test(data.handle) &&
+          (data.name === null || typeof data.name === 'string')) {
+        setPublicCard({ name: data.name, handle: data.handle })
+        setPreviewStatus('idle')
+      } else {
+        setPublicCard(null)
+        setPreviewStatus('hidden')
+      }
+    }).catch(() => { if (active) { setPublicCard(null); setPreviewStatus('error') } })
+    return () => { active = false }
+  }, [client, user.id, instagramPublic, profile?.instagram_public, identity.data?.verified, identity.data?.handle])
+
   const verifiedHandle = identity.data?.verified ? identity.data.handle : null
   const safeHandle = verifiedHandle && /^[A-Za-z0-9_.]{1,30}$/.test(verifiedHandle) ? verifiedHandle : null
   return <section className="account-card danz-profile-card" aria-label="Tu perfil" aria-busy={loading || busy}>
@@ -119,6 +145,17 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       {safeHandle ? <a className="danz-instagram-profile" href={`https://www.instagram.com/${safeHandle}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir perfil de Instagram de @${safeHandle}`}>
         <span className="danz-instagram-mark" aria-hidden="true">◎</span><span><b>@{safeHandle}</b><small>PERFIL DE INSTAGRAM VERIFICADO</small></span><span aria-hidden="true">↗</span>
       </a> : <p className="account-note">El @usuario escrito no demuestra una vinculación. Complétala en «Vincular Instagram» y aparecerá aquí el acceso directo.</p>}
+      {publicCard && <div className="danz-public-card-preview" aria-label="Vista previa de tu tarjeta pública de Instagram">
+        <span className="danz-profile-kicker">ASÍ VERÁN TU INSTAGRAM LOS DEMÁS MIEMBROS</span>
+        <a className="danz-instagram-profile" href={`https://www.instagram.com/${publicCard.handle}/`} target="_blank" rel="noopener noreferrer">
+          <span className="danz-instagram-mark" aria-hidden="true">◎</span>
+          <span><b>@{publicCard.handle}</b><small>{publicCard.name || 'Miembro DANZ'} · INSTAGRAM VERIFICADO</small></span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>}
+      {instagramPublic && profile?.instagram_public && previewStatus === 'loading' && <p role="status" className="account-note">Comprobando si tu tarjeta pública ya está disponible…</p>}
+      {instagramPublic && profile?.instagram_public && previewStatus === 'hidden' && <p role="status" className="account-note">Todavía no se muestra públicamente: debe estar aprobada tu vinculación de Instagram.</p>}
+      {instagramPublic && profile?.instagram_public && previewStatus === 'error' && <p role="alert" className="account-note">No se ha podido comprobar la tarjeta pública. Tu preferencia se ha guardado; inténtalo más tarde.</p>}
       <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'ADMINISTRAR MI PERFIL'}</button>
       {editing && <form onSubmit={event => { void save(event) }} className="account-form">
         <label htmlFor="profile-name">Nombre público o alias (puede ser distinto al del correo)</label>
