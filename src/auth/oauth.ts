@@ -37,6 +37,6 @@ export function isDanzPreviewAuthAllowed(origin: string, enabled: boolean): bool
 export function danzAuthOrigin(origin: string): string {
   const url = new URL(origin)
   if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
-  if (isDanzPreviewAuthAllowed(url.origin, import.meta.env?.VITE_PREVIEW_OAUTH_ENABLED === 'true')) return DANZ_PREVIEW_AUTH_ORIGIN
+  if (isDanzPreviewAuthAllowed(url.origin, (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_PREVIEW_OAUTH_ENABLED === 'true')) return DANZ_PREVIEW_AUTH_ORIGIN
   return DANZ_CANONICAL_ORIGIN
 }
