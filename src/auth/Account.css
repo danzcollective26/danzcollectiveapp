@@ -30,3 +30,29 @@
 /* Opt-in public social identity: large accessible hit area. */
 .danz-privacy-toggle{display:flex;align-items:center;gap:12px;min-height:44px;font-size:14px!important;letter-spacing:0!important;line-height:1.45}
 .danz-privacy-toggle input{width:20px!important;height:20px;flex:0 0 20px;accent-color:#d3bc89}
+
+/* 20 Nov — account landing is a membership card, never an editing screen. */
+.danz-profile-card{max-width:740px;border-radius:18px;padding:clamp(18px,4vw,34px);
+ background:radial-gradient(ellipse at 85% 0%,#6a564038,transparent 55%),linear-gradient(130deg,#2a241e,#121313 84%);
+ border-color:#a28d6e;box-shadow:inset 0 1px 0 #fff2,0 18px 38px #0006}
+.danz-profile-header{padding-bottom:18px;margin-bottom:15px;border-bottom:1px solid #b8a58e55}
+.danz-profile-header h2{overflow-wrap:anywhere}
+.danz-member-quickstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 18px}
+.danz-member-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;gap:5px;
+ min-height:105px;border-radius:10px;padding:11px 5px;border:1px solid #a28f713e;background:#ffffff09;text-align:center}
+.danz-member-stat>span{font-size:24px;line-height:1;color:#dfc28c}
+.danz-member-stat>strong{max-width:100%;font-size:clamp(12px,3vw,20px);overflow-wrap:anywhere;line-height:1.2}
+.danz-member-stat>small{color:#bcb3a4;font-size:9px;letter-spacing:.08em;font-weight:850}
+.danz-member-number{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 4px;
+ color:#c9bda9;font-size:10px;font-weight:800;letter-spacing:.12em;border-top:1px solid #ffffff2c}
+.danz-member-number strong{font-size:clamp(18px,4vw,27px);letter-spacing:.1em;color:#e9d2a3}
+.danz-profile-disclosure{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;border:0;
+ border-top:1px solid #ffffff25;padding:14px 5px;background:transparent;color:#e8dcc7;cursor:pointer;font-size:11px;letter-spacing:.09em;font-weight:850;text-align:left}
+.danz-profile-disclosure>span{font-size:20px}
+.danz-profile-disclosure:focus-visible{outline:2px solid var(--acid);outline-offset:3px}
+.danz-member-actions{margin:12px 0;display:flex;flex-wrap:wrap}
+.danz-member-actions button{min-height:44px}
+.danz-profile-edit{margin-top:10px}
+.danz-public-card-preview{padding:14px;margin-top:16px;border-radius:10px;border:1px dashed #ab9778}
+.danz-public-card-preview .danz-profile-kicker{margin-bottom:5px}
+@media(max-width:430px){.danz-member-stat{min-height:96px}.danz-profile-header{gap:12px}.danz-profile-avatar{flex-basis:64px;width:64px;height:64px}}
