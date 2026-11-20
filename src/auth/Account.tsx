@@ -203,7 +203,6 @@ function ProfileForm({ client, user, onOpenPassport }: { client: SupabaseClient<
       {instagramPublic && profile?.instagram_public && previewStatus === 'loading' && <p role="status" className="account-note">Comprobando si tu tarjeta pública ya está disponible…</p>}
       {instagramPublic && profile?.instagram_public && previewStatus === 'hidden' && <p role="status" className="account-note">Todavía no se muestra públicamente: debe estar aprobada tu vinculación de Instagram.</p>}
       {instagramPublic && profile?.instagram_public && previewStatus === 'error' && <p role="alert" className="account-note">No se ha podido comprobar la tarjeta pública. Tu preferencia se ha guardado; inténtalo más tarde.</p>}
-      </div>}
       {publicCard && <div className="danz-public-card-preview" aria-label="Vista previa de tu tarjeta pública de Instagram">
         <span className="danz-profile-kicker">ASÍ VERÁN TU INSTAGRAM LOS DEMÁS MIEMBROS</span>
         <a className="danz-instagram-profile" href={`https://www.instagram.com/${publicCard.handle}/`} target="_blank" rel="noopener noreferrer">
@@ -211,6 +210,7 @@ function ProfileForm({ client, user, onOpenPassport }: { client: SupabaseClient<
           <span><b>@{publicCard.handle}</b><small>{publicCard.name || 'Miembro DANZ'} · INSTAGRAM VERIFICADO</small></span>
           <span aria-hidden="true">↗</span>
         </a>
+      </div>}
       <div className="danz-member-actions"><button className="outline-btn" type="button" onClick={onOpenPassport}>ABRIR MI PASAPORTE ↗</button></div>
       <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'ADMINISTRAR MI PERFIL'}</button>
       {editing && <form onSubmit={event => { void save(event) }} className="account-form">
