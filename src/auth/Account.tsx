@@ -26,7 +26,7 @@ function validateDisplayName(value: string): string | null {
   return null
 }
 
-function ProfileForm({ client, user, onOpenPassport, editing }: { client: SupabaseClient<Database>; user: User; onOpenPassport: () => void; editing: boolean }) {
+function ProfileForm({ client, user, onOpenPassport, editing, onToggleEditing }: { client: SupabaseClient<Database>; user: User; onOpenPassport: () => void; editing: boolean; onToggleEditing: () => void }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [expandedDetails, setExpandedDetails] = useState(false)
   const identity = useIdentity()
@@ -216,6 +216,9 @@ function ProfileForm({ client, user, onOpenPassport, editing }: { client: Supaba
       {message && <p role="status" className="account-success">{message}</p>}
     </>}
   </section>
+  <button className="outline-btn danz-account-manage-trigger" type="button" aria-expanded={editing} aria-controls="danz-account-management" onClick={onToggleEditing}>
+    {editing ? 'VOLVER A MI TARJETA' : 'ADMINISTRAR MI PERFIL Y AJUSTES'} <span aria-hidden="true">{editing ? '−' : '+'}</span>
+  </button>
   {editing && !loading && !loadFailed && <section className="account-card danz-editor-card" aria-label="Administrar mi perfil">
     <form onSubmit={event => { void save(event) }} className="account-form danz-profile-management-form">
         <h3>ADMINISTRAR MI PERFIL</h3>
@@ -380,10 +383,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
       : user && publicMemberId ? <MemberPublicCard client={client} memberId={publicMemberId} />
       : user ? <>
         {error && <p role="alert" className="account-error">{error}</p>}
-        <ProfileForm key={user.id} client={client} user={user} onOpenPassport={onOpenPassport} editing={showManagement} />
-        <button className="outline-btn danz-account-manage-trigger" type="button" aria-expanded={showManagement} aria-controls="danz-account-management" onClick={() => setShowManagement(value => !value)}>
-          {showManagement ? 'VOLVER A MI TARJETA' : 'ADMINISTRAR MI PERFIL Y AJUSTES'} <span aria-hidden="true">{showManagement ? '−' : '+'}</span>
-        </button>
+        <ProfileForm key={user.id} client={client} user={user} onOpenPassport={onOpenPassport} editing={showManagement} onToggleEditing={() => setShowManagement(value => !value)} />
         {showManagement && <section id="danz-account-management" className="danz-account-management" aria-label="Administrar cuenta y ajustes">
           <div className="account-connected-actions">
             <button className="outline-btn" type="button" aria-expanded={showInstagramSettings} aria-controls="account-instagram-settings" onClick={() => setShowInstagramSettings(value => !value)}>{showInstagramSettings ? 'CERRAR VINCULACIÓN DE INSTAGRAM' : 'VINCULAR O REVISAR INSTAGRAM'}</button>
