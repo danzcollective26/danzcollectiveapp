@@ -28,6 +28,7 @@ function validateDisplayName(value: string): string | null {
 function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [editing, setEditing] = useState(false)
+  const [expandedDetails, setExpandedDetails] = useState(false)
   const identity = useIdentity()
   const [name, setName] = useState('')
   const [instagram, setInstagram] = useState('')
@@ -175,7 +176,17 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
     {loading ? <p role="status">Cargando identidad…</p> : <>
       {error && <p role="alert" className="account-error">{error}</p>}
       {loadFailed && <button className="outline-btn" onClick={() => setAttempt(value => value + 1)}>VOLVER A CARGAR PERFIL</button>}
-      <div className="danz-member-details" aria-label="Mi tarjeta de socio DANZ">
+      <div className="danz-member-quickstats" aria-label="Resumen de tu membresía DANZ">
+        <div className="danz-member-stat"><span aria-hidden="true">◎</span><strong>{identity.loading ? '…' : safeHandle ? '@' + safeHandle : '—'}</strong><small>INSTAGRAM</small></div>
+        <div className="danz-member-stat"><span aria-hidden="true">✦</span><strong>{memberStats.available === null ? '—' : memberStats.available.toLocaleString('es-ES')}</strong><small>DANZPOINTS</small></div>
+        <div className="danz-member-stat"><span aria-hidden="true">✳</span><strong>{memberStats.stamps === null ? '—' : memberStats.stamps}</strong><small>SELLOS</small></div>
+      </div>
+      <div className="danz-member-number">Nº SOCIO <strong>{membershipNumber === null ? 'PENDIENTE' : String(membershipNumber).padStart(6, '0')}</strong></div>
+      <button className="danz-profile-disclosure" type="button" aria-expanded={expandedDetails} aria-controls="danz-member-full-details" onClick={() => setExpandedDetails(value => !value)}>
+        {expandedDetails ? 'OCULTAR DATOS DE MI TARJETA' : 'VER TODOS MIS DATOS'} <span aria-hidden="true">{expandedDetails ? '−' : '+'}</span>
+      </button>
+      {expandedDetails && <div id="danz-member-full-details">
+      <div className="danz-member-details" aria-label="Datos de tu tarjeta de socio DANZ">
         <div className="danz-profile-detail"><span>Número de socio</span><strong>{membershipNumber === null ? 'Por consultar' : String(membershipNumber).padStart(5, '0')}</strong></div>
         <div className="danz-profile-detail"><span>Código DANZPOINTS</span><strong>{memberStats.code ?? 'No disponible'}</strong></div>
         <div className="danz-profile-detail"><span>Miembro desde</span><strong>{user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha no disponible'}</strong></div>
@@ -199,6 +210,8 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       {instagramPublic && profile?.instagram_public && previewStatus === 'loading' && <p role="status" className="account-note">Comprobando si tu tarjeta pública ya está disponible…</p>}
       {instagramPublic && profile?.instagram_public && previewStatus === 'hidden' && <p role="status" className="account-note">Todavía no se muestra públicamente: debe estar aprobada tu vinculación de Instagram.</p>}
       {instagramPublic && profile?.instagram_public && previewStatus === 'error' && <p role="alert" className="account-note">No se ha podido comprobar la tarjeta pública. Tu preferencia se ha guardado; inténtalo más tarde.</p>}
+      </div>}
+      <div className="danz-member-actions"><a className="outline-btn" href="/?seccion=pasaporte">ABRIR MI PASAPORTE ↗</a></div>
       <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'ADMINISTRAR MI PERFIL'}</button>
       {editing && <form onSubmit={event => { void save(event) }} className="account-form">
         <label htmlFor="profile-name">Nombre público o alias (puede ser distinto al del correo)</label>
