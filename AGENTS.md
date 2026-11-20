@@ -108,3 +108,12 @@ Para nuevos juegos 2D evaluar primero Phaser y, si conviene por peso o alcance,
 Kaplay. Para un futuro Yeppo 3D evaluar Three.js o React Three Fiber; conservar el
 personaje y las animaciones actuales hasta verificar que la mejora justifica la
 migración. No sustituir motores que ya funcionan únicamente por cambiar de librería.
+
+## Protocolo transversal anti-regresiones (para toda IA y herramienta)
+
+- Antes de modificar, leer este archivo, el registro de pendientes vigente, la documentación de la función y el código relacionado. Preservar las decisiones del propietario y los diseños aprobados. No eliminar ni reemplazar funciones ajenas al alcance.
+- Trabajar en ramas aisladas y revisar los cambios de otras IAs antes de sobrescribir archivos. No fusionar a `main` ni cambiar datos de producción sin autorización. Evitar subir secretos y datos privados.
+- Ejecutar comprobaciones proporcionadas al riesgo: tipos, compilación, lint y pruebas pertinentes por cambio; pruebas de regresión en los flujos afectados; revisión más amplia por bloque de 3–4 mejoras. Evitar repetir pruebas costosas sin cambios que las justifiquen.
+- Revisar el diff y las rutas existentes antes de publicar. Verificar navegación inmersiva, gestos móviles, Pasaporte, Cuenta/Instagram, galerías, permisos y juegos cuando puedan verse afectados. En cambios de base de datos, comprobar políticas RLS, valor inicial seguro, compatibilidad y recuperación.
+- Ante errores, corregir la causa y volver a pasar las comprobaciones afectadas. No confundir compilación publicada con prueba funcional real. Informar por escrito lo implementado, lo verificado, lo pendiente, riesgos y cómo revertir.
+- Documentar los cambios en su issue/PR y usar el protocolo detallado del [issue #61](https://github.com/danzcollective26/danzcollectiveapp/issues/61). Este documento es orientación compartida: para protección efectiva añadir CI, revisiones y protección de rama.
