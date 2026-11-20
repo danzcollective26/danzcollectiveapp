@@ -125,7 +125,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
         setPublicCard(null)
         setPreviewStatus('hidden')
       }
-    }).catch(() => { if (active) { setPublicCard(null); setPreviewStatus('error') } })
+    }).then(undefined, () => { if (active) { setPublicCard(null); setPreviewStatus('error') } })
     return () => { active = false }
   }, [client, user.id, instagramPublic, profile?.instagram_public, identity.data?.verified, identity.data?.handle])
 
