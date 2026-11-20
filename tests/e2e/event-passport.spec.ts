@@ -124,18 +124,21 @@ test('an empty or signed-out immersive passport never invents attendance and off
   await expect(page.getByLabel('Correo electrónico', { exact: true })).toBeVisible()
 })
 
-test('opening the booklet keeps an unlinked guest QR and survives reload', async ({ page }) => {
+test('guest QR remains stored when opening and reloading the immersive passport', async ({ page }) => {
   await mockSupabase(page)
   await page.goto(`/#pase=${CODE}`)
   await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
   await page.getByRole('button', { name: 'SEGUIR CON MI NOCHE', exact: true }).click()
-  await page.getByRole('button', { name: 'PASAPORTE', exact: true }).click()
-  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte' })).toBeVisible()
-  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(CODE)
+  await page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' }).click()
+  const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
+  await expect(reader).toBeVisible()
+  await expect(page.locator('.danz-trip-ink')).toHaveCount(0)
   await page.reload()
-  await expect(page.getByRole('complementary', { name: 'Portada del pasaporte' })).toBeVisible()
+  await expect(reader).toBeVisible()
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBe(CODE)
-  await expect(page.locator('.passport-stamp')).toHaveCount(0)
+  await reader.getByRole('button', { name: 'Cerrar pasaporte y volver a la pantalla anterior' }).click()
+  await page.goto('/?seccion=danzers')
+  await expect(page.getByLabel('CÓDIGO DEL EVENTO', { exact: true })).toHaveValue(CODE)
 })
 
 test('a guest QR is saved without a form, survives reload and can be linked later', async ({ page }) => {
@@ -193,26 +196,37 @@ test('restricted browser history cannot prevent saving or leaving the arrival sc
   await expect(page.getByRole('heading', { name: /WE ARE/ })).toBeVisible()
 })
 
-test('server redemption refreshes the passport and opens the matching gallery', async ({ page }) => {
+test('server redemption adds a real immersive stamp and opens its matching gallery', async ({ page }) => {
   await installMockSession(page)
   let granted = false
-  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({ json: granted ? [stamp(EA, 'Noche del sello'), stamp(EB, 'Otra noche')] : [stamp(EB, 'Otra noche')] }))
+  await page.route(`${supabaseHost}/rest/v1/rpc/danz_my_passport`, route => route.fulfill({
+    json: granted ? [stamp(EA, 'Noche del sello'), stamp(EB, 'Otra noche')] : [stamp(EB, 'Otra noche')],
+  }))
   await page.route(`${supabaseHost}/rest/v1/rpc/danz_redeem_event_code`, async route => {
     expect(route.request().postDataJSON()).toEqual({ p_code: CODE })
     granted = true
     await route.fulfill({ json: [{ status: 'granted', event_id: EA, granted_at: '2026-11-09T01:00:00Z' }] })
   })
-  await page.route(`${supabaseHost}/rest/v1/danz_events**`, route => route.fulfill({ json: [{ id: EB, title: 'Otra noche', starts_at: null }, { id: EA, title: 'Noche del sello', starts_at: null }] }))
+  await page.route(`${supabaseHost}/rest/v1/danz_events**`, route => route.fulfill({
+    json: [{ id: EB, title: 'Otra noche', starts_at: null }, { id: EA, title: 'Noche del sello', starts_at: null }],
+  }))
   await page.route(`${supabaseHost}/rest/v1/danz_photos**`, route => route.fulfill({ json: [] }))
   await openPassport(page)
-  await expect(page.getByRole('heading', { name: 'Mis sellos (1)', exact: true })).toBeVisible()
   await page.getByLabel('CÓDIGO DEL EVENTO', { exact: true }).fill('danz-access-a123456')
   await page.getByRole('button', { name: 'GUARDAR MI SELLO', exact: true }).click()
   await expect(page.getByText('¡Sello guardado!', { exact: false })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Mis sellos (2)', exact: true })).toBeVisible()
   expect(await page.evaluate(key => localStorage.getItem(key), PENDING)).toBeNull()
-  await page.getByRole('listitem').filter({ hasText: 'Noche del sello' }).getByRole('button', { name: 'ABRIR GALERÍA ↗', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Noche del sello', exact: true })).toBeVisible()
+  const stampsLoaded = page.waitForResponse(response => response.url().includes('/rpc/danz_my_passport'))
+  await page.getByRole('button', { name: 'Abrir el pasaporte DANZ a pantalla completa' }).click()
+  await stampsLoaded
+  const reader = page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })
+  const leaf = reader.getByLabel('Desliza horizontalmente o usa las flechas para pasar las páginas')
+  await leaf.focus()
+  await leaf.press('ArrowRight')
+  await leaf.press('ArrowRight')
+  await expect(reader.getByRole('heading', { name: 'Noche del sello' })).toBeVisible()
+  await reader.getByRole('button', { name: 'ABRIR GALERÍA DEL VIAJE' }).click()
+  await expect(page.getByRole('heading', { name: 'Noche del sello' })).toBeVisible()
 })
 
 test('unavailable, throttled and failed canjes retain the pass for a safe retry', async ({ page }) => {
