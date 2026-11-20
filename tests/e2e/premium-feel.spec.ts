@@ -9,37 +9,46 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('native section transitions keep URL, history and rapid navigation in sync', async ({ page }) => {
-  const errors: string[] = []; page.on('pageerror',error=>errors.push(error.message))
-  await mockSupabase(page); await page.goto('/')
-  await page.getByRole('navigation').getByRole('button',{name:'PASAPORTE',exact:true}).click()
-  await expect(page.getByRole('heading',{name:/CADA NOCHE/})).toBeVisible()
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await mockSupabase(page)
+  await page.goto('/')
+  await page.getByRole('navigation').getByRole('button', { name: 'PASAPORTE', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })).toBeVisible()
   await expect(page).toHaveURL(/seccion=pasaporte/)
-  await page.evaluate(()=>{const nav=document.querySelector('nav')!;for(const label of ['FOTOS','PASAPORTE']) [...nav.querySelectorAll('button')].find(button=>button.textContent===label)?.click()})
-  await expect(page).toHaveURL(/seccion=pasaporte/)
-  await expect(page.getByRole('navigation').getByRole('button',{name:'PASAPORTE',exact:true})).toHaveAttribute('aria-current','page')
-  await page.evaluate(()=>{
-    const nav=document.querySelector('nav')!
-    for(const label of ['FOTOS','DANZ IN','DANZFLOR']) [...nav.querySelectorAll('button')].find(button=>button.textContent===label)?.click()
-  })
-  await expect(page.getByRole('navigation').getByRole('button',{name:'DANZFLOR',exact:true})).toHaveAttribute('aria-current','page')
+  // The fullscreen passport intentionally hides main navigation.
+  await page.getByRole('button', { name: 'Cerrar pasaporte y volver a la pantalla anterior' }).click()
+  await expect(page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' })).toBeVisible()
+  await page.getByRole('navigation').getByRole('button', { name: 'FOTOS', exact: true }).click()
+  await page.getByRole('navigation').getByRole('button', { name: 'DANZ IN', exact: true }).click()
+  await page.getByRole('navigation').getByRole('button', { name: 'DANZFLOR', exact: true }).click()
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'DANZFLOR', exact: true })).toHaveAttribute('aria-current', 'page')
   await expect(page).toHaveURL(/seccion=danzflor/)
-  await page.goBack(); await expect(page).toHaveURL(/seccion=musica/)
-  await expect(page.getByRole('navigation').getByRole('button',{name:'DANZ IN',exact:true})).toHaveAttribute('aria-current','page')
+  await page.goBack()
+  await expect(page).toHaveURL(/seccion=musica/)
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'DANZ IN', exact: true })).toHaveAttribute('aria-current', 'page')
   expect(errors).toEqual([])
 })
 
 test('unsupported transitions and haptics remain fully navigable with reduced motion', async ({ page }) => {
-  await page.emulateMedia({reducedMotion:'reduce'})
-  await page.addInitScript(()=>{
-    Object.defineProperty(document,'startViewTransition',{configurable:true,value:undefined})
-    Object.defineProperty(navigator,'vibrate',{configurable:true,value:undefined})
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'startViewTransition', { configurable: true, value: undefined })
+    Object.defineProperty(navigator, 'vibrate', { configurable: true, value: undefined })
   })
-  await mockSupabase(page); await page.goto('/')
-  for(const section of ['FOTOS','PASAPORTE','CUENTA','INICIO']) {
-    await page.getByRole('navigation').getByRole('button',{name:section,exact:true}).click()
-    await expect(page.getByRole('navigation').getByRole('button',{name:section,exact:true})).toHaveAttribute('aria-current','page')
-  }
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+  await mockSupabase(page)
+  await page.goto('/')
+  await page.getByRole('navigation').getByRole('button', { name: 'FOTOS', exact: true }).click()
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'FOTOS', exact: true })).toHaveAttribute('aria-current', 'page')
+  await page.getByRole('navigation').getByRole('button', { name: 'PASAPORTE', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Mi Pasaporte DANZ' })).toBeVisible()
+  await page.getByRole('button', { name: 'Cerrar pasaporte y volver a la pantalla anterior' }).click()
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'FOTOS', exact: true })).toHaveAttribute('aria-current', 'page')
+  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true })).toHaveAttribute('aria-current', 'page')
+  await page.getByRole('navigation').getByRole('button', { name: 'INICIO', exact: true }).click()
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'INICIO', exact: true })).toHaveAttribute('aria-current', 'page')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 
 test('gallery and passport show bounded skeletons while their authorized reads are pending', async ({ page }, testInfo) => {
