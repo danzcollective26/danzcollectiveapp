@@ -116,7 +116,7 @@ function ProfileForm({ client, user }: { client: SupabaseClient<Database>; user:
       {safeHandle ? <a className="danz-instagram-profile" href={`https://www.instagram.com/${safeHandle}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir perfil de Instagram de @${safeHandle}`}>
         <span className="danz-instagram-mark" aria-hidden="true">◎</span><span><b>@{safeHandle}</b><small>PERFIL DE INSTAGRAM VERIFICADO</small></span><span aria-hidden="true">↗</span>
       </a> : <p className="account-note">El @usuario escrito no demuestra una vinculación. Complétala en «Vincular Instagram» y aparecerá aquí el acceso directo.</p>}
-      <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'EDITAR MIS DATOS'}</button>
+      <button className="outline-btn danz-profile-edit" type="button" onClick={() => setEditing(value => !value)} aria-expanded={editing}>{editing ? 'CERRAR EDICIÓN' : 'ADMINISTRAR MI PERFIL'}</button>
       {editing && <form onSubmit={event => { void save(event) }} className="account-form">
         <label htmlFor="profile-name">Nombre público o alias (puede ser distinto al del correo)</label>
         <input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={40} autoComplete="nickname" disabled={busy} />
@@ -148,6 +148,7 @@ export default function Account({ focusInstagram = false }: { focusInstagram?: b
   const [providersUnavailable, setProvidersUnavailable] = useState(false)
   const [providerAttempt, setProviderAttempt] = useState(0)
   const [openingProvider, setOpeningProvider] = useState<SocialProvider | null>(null)
+  const [showInstagramSettings, setShowInstagramSettings] = useState(focusInstagram)
   const embedded = window.self !== window.top
   const action = useRef(false)
   const mounted = useRef(true)
@@ -271,13 +272,16 @@ export default function Account({ focusInstagram = false }: { focusInstagram?: b
     {!client ? <div className="account-card"><h2>Seguimos preparando las cuentas</h2><p>{configIssue}</p><p>Puedes explorar la app y jugar sin registrarte.</p></div>
       : loading ? <p role="status">Comprobando tu sesión…</p>
       : user ? <>
+        {error && <p role="alert" className="account-error">{error}</p>}
+        <ProfileForm key={user.id} client={client} user={user} />
+        <div className="account-connected-actions">
+          <button className="outline-btn" type="button" aria-expanded={showInstagramSettings} aria-controls="account-instagram-settings" onClick={() => setShowInstagramSettings(value => !value)}>{showInstagramSettings ? 'CERRAR VINCULACIÓN DE INSTAGRAM' : 'VINCULAR O REVISAR INSTAGRAM'}</button>
+          {showInstagramSettings && <div id="account-instagram-settings"><InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} /></div>}
+        </div>
         <div className="account-session">
           <p>Sesión iniciada como <strong>{user.email ?? 'miembro de DANZ'}</strong></p>
           <button className="outline-btn" type="button" disabled={busy} onClick={() => { void leave() }}>{busy ? 'CERRANDO…' : 'CERRAR SESIÓN'}</button>
         </div>
-        {error && <p role="alert" className="account-error">{error}</p>}
-        <ProfileForm key={user.id} client={client} user={user} />
-        <InstagramLink key={`instagram-${user.id}`} focusOnMount={focusInstagram} />
         <YeppoToggle />
         <RadioUpload />
       </> : <div className="account-card">
