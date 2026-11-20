@@ -259,6 +259,7 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
   const [showInstagramSettings, setShowInstagramSettings] = useState(focusInstagram)
   const requestedMember = new URLSearchParams(window.location.search).get('miembro')
   const publicMemberId = requestedMember && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedMember) ? requestedMember : null
+  const isPreviewOrigin = window.location.origin !== danzAuthOrigin(window.location.origin)
   const embedded = window.self !== window.top
   const action = useRef(false)
   const mounted = useRef(true)
@@ -410,6 +411,12 @@ export default function Account({ focusInstagram = false, onOpenPassport }: { fo
           <a className="account-browser-direct" href={accountBrowserUrl(danzAuthOrigin(window.location.origin), readPendingPass())} target="_blank" rel="noopener noreferrer">ABRIR DANZ EN EL NAVEGADOR ↗</a>
           <p className="account-note">O utiliza tu correo electrónico.</p>
         </div>)}
+        {isPreviewOrigin && <div className="danz-preview-auth-help" role="note">
+          <strong>PROBAR MI CUENTA EN ESTA VERSIÓN</strong>
+          <p>Google lleva al dominio principal y puede abrir la app instalada, que no incluye aún estos cambios. Para probar aquí tu tarjeta, tus sellos y el estado de Instagram, solicita un correo en esta pantalla. Si el mensaje incluye un código, pulsa «MI CORREO INCLUYE UN CÓDIGO» e introdúcelo aquí, sin salir de esta versión.</p>
+          <p>El acceso por correo utiliza tu misma cuenta de DANZ cuando el correo coincide. No acredita por sí solo la vinculación de Instagram.</p>
+          <button type="button" className="outline-btn" onClick={() => { setCodeEmail(codeEmail || email.trim()); setShowCode(true) }}>INTRODUCIR CÓDIGO AQUÍ</button>
+        </div>}
         <p>También puedes entrar con cualquier correo: iCloud, Gmail, Outlook u otro. Sin crear contraseña.</p>
         {readPendingPass() && <p className="account-note">Tu pase ya está guardado. Al entrar, lo añadiremos a tu pasaporte automáticamente si el código sigue vigente.</p>}
         <form className="account-form" onSubmit={event => { void requestLink(event) }}>
