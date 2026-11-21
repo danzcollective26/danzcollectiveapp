@@ -29,6 +29,8 @@ test('Kart local duel exposes opposed, independent sticks and clears on rotation
   await selectReel(page,'Modo de DANZPORTER','DUELO LOCAL')
   await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
   await expect(page.locator('.kart-game')).toHaveAttribute('data-phase','playing',{timeout:8000})
+  await expect(page.locator('.kart-hud')).toContainText('VUELTAS · P1 / P2')
+  await expect(page.locator('.kart-hud')).toContainText('1 / 1 DE 3')
   for(const p of [1,2]){
     const stick=page.getByRole('button',{name:`P${p} Joystick`,exact:true}),box=await stick.boundingBox()
     expect(box?.width).toBeGreaterThanOrEqual(111);expect(box?.height).toBeGreaterThanOrEqual(111)
