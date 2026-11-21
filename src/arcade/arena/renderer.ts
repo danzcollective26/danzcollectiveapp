@@ -65,6 +65,14 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
             bg.lineStyle(2,0xa87148).strokeRect(x+28,y+41,15,5)
           }
         })
+        // Static illuminated player entry pads; never redraw per animation frame.
+        for (const [id, gx, gy] of [[0,1,1],[1,9,7]] as const) {
+          const x=(gx+.5)*S,y=(gy+.5)*S
+          bg.fillStyle(COLORS[id],.075).fillCircle(x,y,30)
+          bg.lineStyle(2,COLORS[id],.55).strokeCircle(x,y,27)
+          bg.lineStyle(1,0xf1f3dc,.27).strokeCircle(x,y,34)
+          bg.fillStyle(COLORS[id],.42).fillRoundedRect(x-13,y+29,26,3,1)
+        }
         bg.lineStyle(3, 0x83aaa5, .6).strokeRoundedRect(3, 3, ARENA_COLS * S - 6, ARENA_ROWS * S - 6, 10)
       }
       g.clear()
