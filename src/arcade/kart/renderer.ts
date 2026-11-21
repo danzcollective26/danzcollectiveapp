@@ -41,6 +41,20 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
     else {c.fillStyle=venue.curb;c.textAlign='center';c.font='900 11px Arial';c.fillText('DANZ',0,4)}
     c.restore()
   }
+  // Mirror the four course identity panels in the compatible 2D view.
+  for(const progress of [.12,.37,.62,.87]){
+    const p=trackPoint(track,progress),offset=ROAD_WIDTH/2+48
+    c.save()
+    c.translate(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset)
+    c.rotate(p.angle)
+    rounded(c,-32,-13,64,26,4,'#10252b')
+    c.lineWidth=2;c.strokeStyle=venue.curb;c.strokeRect(-30,-11,60,22)
+    c.fillStyle='#f3f2db';c.textAlign='center';c.font='900 12px Arial'
+    c.fillText('DANZ',0,-1)
+    c.fillStyle=venue.curb;c.font='bold 6px Arial'
+    c.fillText(track.name.slice(0,19),0,8)
+    c.restore()
+  }
   for(const [x,y] of [[70,65],[930,65],[70,650],[930,650]]){
     rounded(c,x-16,y-29,32,58,3,'#101b21')
     for(const [offset,r] of [[-13,10],[13,7]] as const){
