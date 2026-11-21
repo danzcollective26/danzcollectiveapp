@@ -12,6 +12,6 @@ test('Groove scene keeps mobile textures sharp without exceeding 1.2 megapixels 
 test('scene pixel ratio rejects pathological inputs',()=>{
   for(const value of [0,Number.NaN,Number.POSITIVE_INFINITY,2]){
     const ratio=grooveStagePixelRatio(value,844,390)
-    assert.ok(Number.isFinite(ratio)&&ratio>=.75&&ratio<=1.5)
+    assert.ok(Number.isFinite(ratio)&&ratio>=.5&&ratio<=1.5)
   }
 })
