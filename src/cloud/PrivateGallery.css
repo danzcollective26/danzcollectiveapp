@@ -21,3 +21,11 @@
   .private-gallery-viewer{overflow-y:auto;overscroll-behavior:contain}
   .private-gallery-viewer-stage{flex:1 0 min(32dvh,200px)}
 }
+
+/* One scroll container on mobile: nested overflow prevented reaching the
+   Instagram help button after verified Save As, even though the file was saved. */
+@media(max-width:600px){
+  .private-gallery-viewer{padding-bottom:max(16px,env(safe-area-inset-bottom));}
+  .private-gallery-viewer .original-file-actions{max-height:none;overflow:visible;flex-shrink:0;}
+  .private-gallery-viewer .private-gallery-viewer-stage{flex:0 0 min(32dvh,200px);}
+}
