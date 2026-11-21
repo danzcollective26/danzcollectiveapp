@@ -72,6 +72,21 @@ test('Garage changes real parts and persists them across reloads',async({page})=
   await menuTab(page,'GARAJE')
   await page.getByRole('navigation',{name:'Piezas del garaje'}).getByRole('button',{name:'PILOTO',exact:true}).click();await expect(page.getByRole('group',{name:'PILOTO',exact:true})).toContainText('NIGHT COURIER')
 })
+test('garage shows distinct racing decals when switching between chassis',async({page})=>{
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await menuTab(page,'GARAJE')
+  const preview=page.locator('.kart-console-preview svg')
+  await expect(preview.locator('g[aria-hidden="true"]')).toHaveCount(1)
+  const first=await preview.locator('g[aria-hidden="true"]').innerHTML()
+  await selectReel(page,'CHASIS','SPRINT')
+  const sprint=await preview.locator('g[aria-hidden="true"]').innerHTML()
+  expect(sprint).not.toBe(first)
+  await selectReel(page,'CHASIS','TRANSPORT')
+  const transport=await preview.locator('g[aria-hidden="true"]').innerHTML()
+  expect(transport).not.toBe(sprint)
+  await expect(page.locator('.kart-console-stats')).toBeVisible()
+})
+
 test('DANZPORTER paint studio offers twelve accessible paints and five circuit moods',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')
   await menuTab(page,'GARAJE')
