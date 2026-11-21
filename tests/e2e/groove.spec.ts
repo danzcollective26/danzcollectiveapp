@@ -53,6 +53,18 @@ test('game selection opens Groove directly in full viewport, ready to play', asy
   await expect(page.locator('.gn-panel')).toHaveCount(0)
 })
 
+test('club booth uses layered perspective and preserves the interactive vinyl surface', async ({ page }) => {
+  await openGroove(page)
+  await start(page)
+  const board = page.locator('.gn-board')
+  await expect(board).toBeVisible()
+  await expect(board.locator('.gn-club-depth')).toHaveCount(1)
+  await expect(board.locator('#gn-depth-haze')).toHaveCount(1)
+  await expect(board.locator('#gn-vinyl-depth-shadow')).toHaveCount(1)
+  await expect(board.locator('.gn-target.gn-vinyl').first()).toBeVisible()
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-stage', '1')
+})
+
 test('a fast swipe cuts immediately, splits a vinyl and advances its streak exactly once', async ({ page }) => {
   await openGroove(page); await start(page); await slice(page)
   await expect(page.getByTestId('groove-score')).toHaveText('00100')
