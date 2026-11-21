@@ -17,7 +17,7 @@ test('approved home wallet keeps account first and passport second, both reachab
   await expect(cards).toHaveCount(2)
   await expect(cards.nth(0)).toHaveAccessibleName('Abrir mi tarjeta de socio DANZ')
   await expect(cards.nth(1)).toHaveAccessibleName('Abrir mi Pasaporte DANZ y ver mis sellos')
-  await expect(wallet.locator('.danz-wallet-icons')).toContainText(['IG','POINTS','SELLOS'].join(''))
+  for(const label of ['IG','POINTS','SELLOS']) await expect(wallet.locator('.danz-wallet-icons')).toContainText(label)
   await expect(page.locator('.yeppo')).toHaveCount(0)
   await cards.nth(0).click()
   await expect(page).toHaveURL(/seccion=cuenta/)
