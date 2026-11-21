@@ -94,6 +94,15 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
         g.fillStyle(COLORS[b.owner]).fillCircle(x, y, 9)
         g.fillStyle(0x0b1720).fillCircle(x, y, 3)
         g.lineStyle(3, fuse < .3 ? 0xffad7b : COLORS[b.owner]).beginPath().arc(x, y, 28, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fuse).strokePath()
+        // Final fuse warning is geometric as well as coloured, so it stays
+        // readable to both players without sound or a colour distinction.
+        if(fuse < .3){
+          g.lineStyle(3,0xfff4d9,.85)
+          for(const sign of [-1,1]){
+            g.lineBetween(x+sign*32,y-11,x+sign*39,y-19)
+            g.lineBetween(x+sign*32,y+11,x+sign*39,y+19)
+          }
+        }
       }
       for (const blast of state.blasts) {
         const x = (blast.cell % ARENA_COLS + .5) * S, y = (Math.floor(blast.cell / ARENA_COLS) + .5) * S
