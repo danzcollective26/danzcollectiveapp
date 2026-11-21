@@ -14,8 +14,16 @@ const test = base.extend<{ pageErrors: void }>({
 })
 
 async function navigate(page: Page, section: string) {
-  await page.getByRole('navigation', { name: 'Navegación principal' })
-    .getByRole('button', { name: section, exact: true }).click()
+  const navButton = page.getByRole('navigation', { name: 'Navegación principal' })
+    .getByRole('button', { name: section, exact: true })
+  if (await navButton.count()) await navButton.click()
+  else {
+    // Mobile keeps secondary sections outside the primary navigation.
+    const routes: Record<string, string> = { 'DANZ IN': 'musica', DANZFLOR: 'danzflor', CUENTA: 'cuenta', DANZPOINTS: 'danzpoints' }
+    const slug = routes[section]
+    if (!slug) throw new Error(`Missing navigation entry for ${section}`)
+    await page.goto(`/?seccion=${slug}`)
+  }
 }
 
 async function openGallery(page: Page) {
