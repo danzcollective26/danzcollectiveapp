@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
+import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, trackElevation, type Race, type Track } from './engine'
 import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
@@ -14,7 +14,7 @@ function ribbon(track:Track,inner:number,outer:number,height:number,colored=fals
     const i=n%track.points.length,p=track.points[i],next=track.points[(i+1)%track.points.length],previous=track.points[(i-1+track.points.length)%track.points.length]
     const a=Math.atan2(next.y-previous.y,next.x-previous.x),distance=n===track.points.length?track.length:track.lengths[i]
     const color=new THREE.Color(Math.floor(distance/19)%2?'#dce4c9':accent)
-    for(const side of [inner,outer]){positions.push(p.x-500-Math.sin(a)*side,height,p.y-360+Math.cos(a)*side);uv.push(distance/110,side/40);colors.push(color.r,color.g,color.b)}
+    for(const side of [inner,outer]){positions.push(p.x-500-Math.sin(a)*side,height+trackElevation(track,distance/track.length),p.y-360+Math.cos(a)*side);uv.push(distance/110,side/40);colors.push(color.r,color.g,color.b)}
     if(n<track.points.length){const base=n*2;indices.push(base,base+2,base+1,base+2,base+3,base+1)}
   }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));if(colored)g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g
@@ -44,7 +44,7 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const transform=new THREE.Object3D();let count=0
   for(const side of [-1,1])for(let distance=0;distance<track.length-32;distance+=32){
     if(side===-1&&distance/track.length>PIT_ENTRY-.01&&distance/track.length<PIT_EXIT+.01)continue
-    const p=trackPoint(track,distance/track.length),offset=side*(ROAD_WIDTH/2+13);transform.position.copy(point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,7));transform.rotation.y=-p.angle;transform.updateMatrix();barriers.setMatrixAt(count,transform.matrix);transform.position.y=11.1;transform.updateMatrix();caps.setMatrixAt(count,transform.matrix);count++
+    const p=trackPoint(track,distance/track.length),offset=side*(ROAD_WIDTH/2+13);transform.position.copy(point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,7+trackElevation(track,distance/track.length)));transform.rotation.y=-p.angle;transform.updateMatrix();barriers.setMatrixAt(count,transform.matrix);transform.position.y=11.1+trackElevation(track,distance/track.length);transform.updateMatrix();caps.setMatrixAt(count,transform.matrix);count++
   }
   barriers.count=caps.count=count;barriers.castShadow=shadows;barriers.receiveShadow=true;scene.add(barriers,caps)
   // Crew garage between the upper straight and the interior hairpin.
@@ -246,7 +246,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       if(Math.abs(nextFov-cockpitCamera.fov)>.005){cockpitCamera.fov=nextFov;cockpitCamera.updateProjectionMatrix()}
       const bob=motion?Math.sin(now*.022)*speed*.5:0
       const shake=motion?cockpitImpact*Math.sin(now*.11)*1.6:0
-      cockpitCamera.position.copy(point(pose.x,pose.z,pose.y+bob+shake))
+      cockpitCamera.position.copy(point(pose.x,pose.z,pose.y+bob+shake+trackElevation(TRACKS[s.track],p.progress)))
       look.copy(cockpitCamera.position).add(new THREE.Vector3(Math.cos(cockpitHeading)*200,-Math.tan(pose.pitch)*200+shake*.7,Math.sin(cockpitHeading)*200))
       cockpitCamera.lookAt(look)
       cockpitCamera.rotateZ(motion?(p.drifting?Math.sin(now*.007)*.012:0)+cockpitImpact*Math.sin(now*.085)*.008:0)
@@ -255,7 +255,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     if(parent.dataset.projection!==projection)parent.dataset.projection=projection
     s.cars.forEach((car,id)=>{
       const model=cars[id],x=car.x-500,z=car.y-360,turn=Math.atan2(Math.sin(car.angle-model.previousAngle),Math.cos(car.angle-model.previousAngle));model.previousAngle=car.angle
-      model.root.position.set(x,5,z);model.root.rotation.y=-car.angle;model.root.rotation.x=car.drifting&&!reduced.matches?Math.sin(now*.02)*.025:0
+      model.root.position.set(x,5+trackElevation(TRACKS[s.track],car.progress),z);model.root.rotation.y=-car.angle;model.root.rotation.x=car.drifting&&!reduced.matches?Math.sin(now*.02)*.025:0
       model.root.visible=!(firstPerson&&id===0)&&(car.finishedAt===null||s.phase==='finished');model.label.visible=model.root.visible;model.label.position.set(x,53,z)
       model.wheels.forEach(w=>{w.rotation.z-=car.speed*dt/1000/6.7});model.front.forEach(w=>{w.rotation.y=-Math.max(-.38,Math.min(.38,turn*12))})
       if(model.lastHealth!==car.health){model.lastHealth=car.health;model.paint.color.set(car.build.color).lerp(new THREE.Color('#5b4b3b'),(1-car.health)*.6)}
@@ -268,7 +268,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       if(model.fragment.visible){model.fragment.position.set(24+burst*28,5+burst*30-burst*burst*42,burst*20);model.fragment.rotation.set(burst*8,burst*5,burst*7)}
       model.flame.visible=car.boosting>0&&!reduced.matches;model.flame.scale.set(1+Math.sin(now*.035)*.12,1,1)
       if(car.drifting&&!reduced.matches&&s.phase==='playing'){
-        skidPosition.set(x-Math.cos(car.angle)*16,5.2,z-Math.sin(car.angle)*16)
+        skidPosition.set(x-Math.cos(car.angle)*16,5.2+trackElevation(TRACKS[s.track],car.progress),z-Math.sin(car.angle)*16)
         const previous=lastMarks[id]
         if(previous&&previous.distanceToSquared(skidPosition)>1){const i=markIndex*6;marks.set([previous.x,previous.y,previous.z,skidPosition.x,skidPosition.y,skidPosition.z],i);markIndex=(markIndex+1)%256;markCount=Math.min(256,markCount+1);markGeometry.attributes.position.needsUpdate=true;markGeometry.setDrawRange(0,markCount*2)}
         if(previous)previous.copy(skidPosition)
