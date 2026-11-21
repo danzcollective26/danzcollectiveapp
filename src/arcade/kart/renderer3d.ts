@@ -216,9 +216,16 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     const view=effectiveCamera(options().camera,s.mode),firstPerson=view==='cockpit'
     const follow=view==='follow'&&['playing','countdown'].includes(s.phase)
     const ratio=Math.max(.3,parent.clientWidth/Math.max(1,parent.clientHeight))
-    const desired=follow?Math.max(310,Math.min(480,ratio*450)):Math.max(1180,ratio*850)
+    // The same close chase camera now frames both local-duel karts, rather than
+    // forcing an unreadably small track overview. Widen only when they separate.
+    const duel=s.mode==='duel'&&s.cars.length>1,other=duel?s.cars[1]:p
+    const separation=duel?Math.hypot(p.x-other.x,p.y-other.y):0
+    const desired=follow?(duel
+      ?Math.max(420,Math.min(1100,Math.max(ratio*430,420+separation*1.3)))
+      :Math.max(310,Math.min(480,ratio*450))):Math.max(1180,ratio*850)
     if(Math.abs(viewWidth-desired)>.1){viewWidth=reduced.matches?desired:viewWidth+(desired-viewWidth)*Math.min(1,dt/180);resize(false)}
-    target.set(follow?p.x-500+Math.cos(p.angle)*32:0,0,follow?p.y-360+Math.sin(p.angle)*32:0)
+    const centerX=duel?(p.x+other.x)/2:p.x,centerY=duel?(p.y+other.y)/2:p.y
+    target.set(follow?centerX-500+(duel?0:Math.cos(p.angle)*32):0,0,follow?centerY-360+(duel?0:Math.sin(p.angle)*32):0)
     if(!initialized||reduced.matches){focus.copy(target);initialized=true}else focus.lerp(target,1-Math.exp(-dt/100))
     camera.position.set(focus.x+(follow?160:0),follow?390:1050,focus.z+(follow?260:780));look.set(focus.x,0,focus.z);camera.lookAt(look)
     if(firstPerson){
