@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {cameraPoint,clipNear,cockpitFov,cockpitPose,cockpitSteering,effectiveCamera} from '../src/arcade/kart/camera.ts'
+import {cameraPoint,clipNear,cockpitFov,cockpitPose,cockpitSteering,duelChaseDistance,effectiveCamera} from '../src/arcade/kart/camera.ts'
 import {TRACKS,trackPoint} from '../src/arcade/kart/engine.ts'
 
 test('cockpit follows every circuit heading with a stable up vector and a visible road ahead',()=>{
@@ -22,4 +22,15 @@ test('near-plane clipping keeps crossing asphalt finite and rejects faces behind
 test('first person steers relative to the driver and the local duel keeps a shared chase view',()=>{
   assert.equal(cockpitSteering({x:-.7,y:0},0),-.7);assert.equal(cockpitSteering({x:1,y:-1},1),1);assert.equal(cockpitSteering(undefined,0),0)
   assert.equal(effectiveCamera('cockpit','duel'),'follow');assert.equal(effectiveCamera('follow','duel'),'follow');assert.equal(effectiveCamera('cockpit','race'),'cockpit');assert.equal(effectiveCamera('cockpit','time'),'cockpit')
+})
+
+test('shared duel perspective keeps nearby karts large and widens smoothly for distant opponents',()=>{
+  for(const aspect of [.5,1,1.8]){
+    const close=duelChaseDistance(0,aspect)
+    const apart=duelChaseDistance(170,aspect)
+    const far=duelChaseDistance(900,aspect)
+    assert.equal(close,235)
+    assert.ok(apart>close&&apart<far)
+    assert.ok(far<=1100)
+  }
 })

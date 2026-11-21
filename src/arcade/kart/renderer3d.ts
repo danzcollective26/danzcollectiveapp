@@ -5,7 +5,7 @@ import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture, flowerTexture } from './models3d'
 import { batchMeshes } from './batch3d'
-import { cockpitFov, cockpitPose, effectiveCamera } from './camera'
+import { cockpitFov, cockpitPose, duelChaseDistance, effectiveCamera } from './camera'
 
 const point=(x:number,z:number,y=0)=>new THREE.Vector3(x-500,y,z-360)
 function ribbon(track:Track,inner:number,outer:number,height:number,colored=false,accent='#b6d374'){
@@ -186,6 +186,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const scene=new THREE.Scene();scene.fog=new THREE.Fog(venue.sky,1400,3500)
   const camera=new THREE.OrthographicCamera(-600,600,432,-432,.5,4000)
   const cockpitCamera=new THREE.PerspectiveCamera(78,1,2,4000)
+  const duelCamera=new THREE.PerspectiveCamera(68,1,2,4000)
   const ambient=new THREE.HemisphereLight('#e9ecdb','#6d7252',venue.id==='night'?1.9:1.8);scene.add(ambient)
   const sun=new THREE.DirectionalLight(venue.sun,venue.id==='night'?2.4:3);sun.position.set(-350,800,-300);sun.castShadow=shadows;sun.shadow.mapSize.set(lite?512:innerWidth<650?512:1024,lite?512:innerWidth<650?512:1024);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;sun.shadow.camera.top=650;sun.shadow.camera.bottom=-650;sun.shadow.camera.far=1800;sun.shadow.normalBias=.6;sun.shadow.bias=-.0002;scene.add(sun)
   let environment:THREE.WebGLRenderTarget|null=null
@@ -217,6 +218,8 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     if(canvasChanged){
       lastCanvasWidth=r.width;lastCanvasHeight=r.height
       renderer.setSize(r.width,r.height,false)
+      duelCamera.aspect=r.width/r.height
+      duelCamera.updateProjectionMatrix()
       cockpitCamera.aspect=r.width/r.height
       cockpitCamera.fov=cockpitFov(cockpitCamera.aspect)
       cockpitCamera.updateProjectionMatrix()
@@ -252,6 +255,15 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     target.set(follow?centerX-500+(duel?0:Math.cos(p.angle)*32):0,0,follow?centerY-360+(duel?0:Math.sin(p.angle)*32):0)
     if(!initialized||reduced.matches){focus.copy(target);initialized=true}else focus.lerp(target,1-Math.exp(-dt/100))
     camera.position.set(focus.x+(follow?160:0),follow?390:1050,focus.z+(follow?260:780));look.set(focus.x,0,focus.z);camera.lookAt(look)
+    if(duel&&follow){
+      // Shared behind-the-karts perspective, not a miniature bird's-eye map.
+      // Distance grows smoothly when the two players diverge; no physics changes.
+      const distance=duelChaseDistance(separation,ratio)
+      const elevation=trackElevation(TRACKS[s.track],p.progress)
+      duelCamera.position.set(focus.x-Math.cos(p.angle)*distance, elevation+80+distance*.37, focus.z-Math.sin(p.angle)*distance)
+      look.set(focus.x,elevation+15,focus.z)
+      duelCamera.lookAt(look)
+    }
     if(firstPerson){
       const pose=cockpitPose(p),motion=!reduced.matches&&s.phase==='playing'
       const blend=1-Math.exp(-dt/85)
@@ -275,7 +287,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       cockpitCamera.lookAt(look)
       cockpitCamera.rotateZ(motion?(p.drifting?Math.sin(now*.007)*.012:0)+cockpitImpact*Math.sin(now*.085)*.008:0)
     }else cockpitInitialized=false
-    const projection=firstPerson?'cockpit':follow?'isometric':'track'
+    const projection=firstPerson?'cockpit':duel&&follow?'chase-perspective':follow?'isometric':'track'
     if(parent.dataset.projection!==projection)parent.dataset.projection=projection
     s.cars.forEach((car,id)=>{
       const model=cars[id],x=car.x-500,z=car.y-360,turn=Math.atan2(Math.sin(car.angle-model.previousAngle),Math.cos(car.angle-model.previousAngle));model.previousAngle=car.angle
@@ -305,7 +317,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     const paintAt=performance.now()
     try{
       if(!environment){const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();try{environment=pmrem.fromScene(room,.04);scene.environment=environment.texture}finally{room.dispose();pmrem.dispose()}}
-      renderer.render(scene,firstPerson?cockpitCamera:camera)
+      renderer.render(scene,firstPerson?cockpitCamera:duel&&follow?duelCamera:camera)
     }catch{onFailure();return}
     slowFrames=performance.now()-paintAt>95?slowFrames+1:0
     if(prefs.quality==='auto'&&slowFrames>=3&&['playing','countdown'].includes(s.phase)){parent.dataset.compatibleReason='slow-render';onFailure();return}
