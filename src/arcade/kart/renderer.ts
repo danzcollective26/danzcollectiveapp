@@ -43,6 +43,24 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   c.fillStyle='#b9c7b8';c.font='bold 8px Arial';c.fillText(venue.name,340,219)
   for(const [x,y] of [[660,250],[690,254],[720,258]]){rounded(c,x+5,y+6,24,45,3,'#060e15');rounded(c,x,y,24,45,3,'#53646a');for(let k=0;k<5;k++){c.fillStyle='#aebcb551';c.fillRect(x+3,y+4+k*8,18,2)}}
   for(const [x,y] of [[75,90],[910,595],[300,650],[500,65]]){for(let j=0;j<6;j++){c.save();c.translate(x,y);c.rotate(j*Math.PI/3);c.fillStyle=j%2?'#526c48':'#3a563e';c.beginPath();c.ellipse(0,12,5,23,.2,0,Math.PI*2);c.fill();c.restore()}c.fillStyle='#8b9871';c.beginPath();c.arc(x,y,4,0,Math.PI*2);c.fill()}
+  // Venue-specific colour accents remain visible in the compatible 2D renderer.
+  // Keep this baked into the static track canvas: no per-frame draw overhead.
+  const lightColours=venue.id==='neon'?['#ff78c7','#7ce8ff','#b18cff']
+    :venue.id==='sunset'?['#ffb568','#ff8378','#74dbc7']
+    :venue.id==='night'?['#f9ca6f','#7cb8e8','#eda280']
+    :[venue.curb,'#b4dcdb','#efbd83']
+  for(const [index,[x,y]] of ([[99,96],[905,100],[99,609],[900,605]] as const).entries()){
+    for(let n=0;n<3;n++){
+      const xx=x+(n-1)*14,yy=y-12-n*4
+      const colour=lightColours[(index+n)%lightColours.length]
+      const pool=c.createRadialGradient(xx,yy,0,xx,yy,38)
+      pool.addColorStop(0,colour+'66')
+      pool.addColorStop(1,colour+'00')
+      c.fillStyle=pool;c.fillRect(xx-38,yy-38,76,76)
+      rounded(c,xx-3,yy-12,6,24+n*5,2,'#10121b')
+      rounded(c,xx-2,yy-11,4,21+n*5,2,colour)
+    }
+  }
   // Warm floodlights with translucent pools, no realtime blur or shaders.
   for(const [x,y] of [[190,68],[760,76],[80,585],[915,480]]){const glow=c.createRadialGradient(x,y,0,x,y,86);glow.addColorStop(0,'#fae8ae18');glow.addColorStop(1,'#fae8ae00');c.fillStyle=glow;c.fillRect(x-86,y-86,172,172);rounded(c,x-14,y-3,28,6,2,'#09171b');rounded(c,x-11,y-4,22,3,1,'#ffe1a5')}
   const pit=pitPoint(track,.5);rounded(c,pit.x-62,pit.y-35,124,15,3,'#16292d');c.fillStyle='#efc76c';c.font='900 13px Arial';c.textAlign='center';c.fillText('BOXES / CREW',pit.x,pit.y-23)
