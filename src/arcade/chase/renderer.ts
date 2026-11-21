@@ -77,10 +77,10 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         // The pursuer has a shape marker as well as a coloured ring and label.
         // It stays readable when both players overlap during a capture.
         if(id === s.hunter){
-          const markerY=p.y-48
-          g.fillStyle(0x0e2029,.88).fillCircle(p.x,markerY,13)
-          g.lineStyle(2,0xffe2a5,1).strokeCircle(p.x,markerY,11)
-          g.fillStyle(0xffe2a5,1).fillTriangle(p.x-5,markerY-4,p.x+5,markerY-4,p.x,markerY+6)
+          const markerX=Math.min(W-15,Math.max(15,p.x+37)),markerY=Math.max(16,p.y-15)
+          g.fillStyle(0x0e2029,.88).fillCircle(markerX,markerY,13)
+          g.lineStyle(2,0xffe2a5,1).strokeCircle(markerX,markerY,11)
+          g.fillStyle(0xffe2a5,1).fillTriangle(markerX-5,markerY-4,markerX+5,markerY-4,markerX,markerY+6)
         }
         if (s.elapsed < s.protectedUntil && id !== s.hunter) g.lineStyle(2, 0xffffff, .65).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 12)
         const frame = !media.matches && running ? Math.floor(time/110)%2 : 0
