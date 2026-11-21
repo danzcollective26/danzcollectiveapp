@@ -53,6 +53,19 @@ test('game selection opens Groove directly in full viewport, ready to play', asy
   await expect(page.locator('.gn-panel')).toHaveCount(0)
 })
 
+test('Groove preserves the native 640:760 geometry with the new optional 3D booth', async ({ page }) => {
+  await openGroove(page)
+  await start(page)
+  const board = page.locator('.gn-board')
+  await expect(board).toHaveAttribute('preserveAspectRatio', 'xMidYMid meet')
+  await expect(page.locator('.gn-perspective-3d')).toHaveCount(1)
+  await expect(board.locator('.gn-club-depth')).toHaveCount(1)
+  const dimensions = await board.boundingBox()
+  expect(dimensions).not.toBeNull()
+  expect(Math.abs(dimensions!.width / dimensions!.height - 640 / 760)).toBeLessThan(.02)
+  await expect(page.locator('.gn-panel')).toHaveAttribute('data-status','playing')
+})
+
 test('club booth uses layered perspective and preserves the interactive vinyl surface', async ({ page }) => {
   await openGroove(page)
   await start(page)
