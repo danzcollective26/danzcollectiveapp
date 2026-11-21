@@ -74,6 +74,14 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         const bob = !media.matches && running ? Math.abs(step) * .3 : 0
         g.fillStyle(0x000000, .4).fillEllipse(p.x, p.y + 25, 56, 20)
         g.lineStyle(id === s.hunter ? 4 : 2, COLORS[id], id === s.hunter ? 1 : .5).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 7)
+        // The pursuer has a shape marker as well as a coloured ring and label.
+        // It stays readable when both players overlap during a capture.
+        if(id === s.hunter){
+          const markerY=p.y-48
+          g.fillStyle(0x0e2029,.88).fillCircle(p.x,markerY,13)
+          g.lineStyle(2,0xffe2a5,1).strokeCircle(p.x,markerY,11)
+          g.fillStyle(0xffe2a5,1).fillTriangle(p.x-5,markerY-4,p.x+5,markerY-4,p.x,markerY+6)
+        }
         if (s.elapsed < s.protectedUntil && id !== s.hunter) g.lineStyle(2, 0xffffff, .65).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 12)
         const frame = !media.matches && running ? Math.floor(time/110)%2 : 0
         this.heads[id].setPosition(p.x,p.y-10-bob).setTexture(`club-${id===0?'security':'yeppo'}-${frame}`)
