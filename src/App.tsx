@@ -529,7 +529,7 @@ export default function App() {
       </main>
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
-      {page === 'cuenta' && <Yeppo page={page} onNavigate={go} />}
+      {(page === 'cuenta' || testLab) && <Yeppo page={page} onNavigate={go} demoRequest={testLab ? yeppoDemo : undefined} />}
       {page !== 'pasaporte' && <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />}
       {page !== 'pasaporte' && <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>}
     </div>
