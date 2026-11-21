@@ -66,6 +66,34 @@ export default function GrooveStage3D({ stage, onReady }: { stage: number; onRea
         }
       }
     }
+    // Receding luminous frames give the booth visible perspective and scale.
+    // Static geometry only: zero extra animation frames during play.
+    const neon = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: .78 })
+    materials.push(neon)
+    for (const z of [-10, -22, -34, -43]) {
+      addBox(.22, 13.5, .24, neon, -13.4, 3, z)
+      addBox(.22, 13.5, .24, neon, 13.4, 3, z)
+      addBox(27, .22, .24, neon, 0, 9.7, z)
+      addBox(27, .12, .24, trim, 0, -4.15, z)
+    }
+    // The collective's six-petal emblem anchors the far wall without using
+    // copyrighted imagery or loading a new texture on every stage transition.
+    const emblem = new THREE.Group()
+    const petalMaterial = new THREE.MeshBasicMaterial({ color: accent, side: THREE.DoubleSide })
+    materials.push(petalMaterial)
+    const petalGeometry = new THREE.CircleGeometry(1.65, 24)
+    for (let n = 0; n < 6; n++) {
+      const angle = n * Math.PI / 3
+      const petal = new THREE.Mesh(petalGeometry, petalMaterial)
+      petal.position.set(Math.cos(angle) * 2.7, Math.sin(angle) * 2.7, 0)
+      petal.scale.set(.82, 1.17, 1)
+      petal.rotation.z = angle - Math.PI / 2
+      emblem.add(petal)
+    }
+    const center = new THREE.Mesh(new THREE.CircleGeometry(.9, 24), make('#f3e7d5'))
+    emblem.add(center)
+    emblem.position.set(0, 3.1, -44.6)
+    scene.add(emblem)
     for (const z of [-8, -23, -37]) {
       addBox(28, .6, .8, trim, 0, 11.6, z)
       for (const x of [-9, -3, 3, 9]) {
