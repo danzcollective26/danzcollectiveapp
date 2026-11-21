@@ -86,6 +86,34 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const routePoints=[];for(let d=0;d<track.length;d+=16){const p=trackPoint(track,d/track.length);routePoints.push(point(p.x,p.y,5.12))}routePoints.push(routePoints[0].clone())
   const route=new THREE.Line(new THREE.BufferGeometry().setFromPoints(routePoints),new THREE.LineDashedMaterial({color:'#cedca5',transparent:true,opacity:.19,dashSize:7,gapSize:13}));route.computeLineDistances();scene.add(route)
   addPitLane(scene,track,lime,silver,dark)
+  // Scenography only: venue-themed luminous beacons sit outside the driving
+  // collision model. A single instanced draw avoids extra mobile GPU overhead.
+  const beaconColors=venue.id==='neon'?['#ff7dc7','#78f4ff','#ad94ff']
+    :venue.id==='sunset'?['#ffb66c','#ff7975','#86e2d5']
+    :venue.id==='night'?['#ffc45c','#8fb7ee','#fc986b']
+    :['#a5e4a0','#f2c77b','#80b5cc']
+  const beacons=new THREE.InstancedMesh(
+    new THREE.BoxGeometry(4,18,4),
+    new THREE.MeshBasicMaterial({color:'#ffffff',toneMapped:false}),12)
+  const beaconObject=new THREE.Object3D()
+  let beaconIndex=0
+  for(const [x,z] of [[105,100],[895,100],[105,610],[895,610]]){
+    for(let n=0;n<3;n++){
+      const p=point(x+n*13,z)
+      beaconObject.position.set(p.x,13+n*8,p.z)
+      beaconObject.rotation.set(0,.25*n,0)
+      beaconObject.scale.set(1,1+n*.28,1)
+      beaconObject.updateMatrix()
+      beacons.setMatrixAt(beaconIndex,beaconObject.matrix)
+      beacons.setColorAt(beaconIndex,new THREE.Color(beaconColors[n]))
+      beaconIndex++
+    }
+  }
+  beacons.instanceMatrix.needsUpdate=true
+  if(beacons.instanceColor)beacons.instanceColor.needsUpdate=true
+  beacons.castShadow=false
+  beacons.receiveShadow=false
+  scene.add(beacons)
   batchMeshes(scene)
 }
 
