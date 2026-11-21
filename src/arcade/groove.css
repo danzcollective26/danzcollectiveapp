@@ -110,3 +110,7 @@
 .gn-3d-active .gn-club-depth{opacity:0}
 .gn-3d-active:after{z-index:3}
 @media(prefers-reduced-motion:reduce){.gn-perspective-3d{animation:none}}
+
+/* Impact rings add visual feedback only; no touch target or physics. */
+.gn-cut-impact{pointer-events:none}
+@media(prefers-reduced-motion:reduce){.gn-cut-impact{display:none}}
