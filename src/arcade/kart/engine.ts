@@ -43,12 +43,20 @@ function makeTrack(id: TrackId, name: string, subtitle: string, accent: string, 
   }
   return { id, name, subtitle, accent, points, lengths, length: lengths.at(-1)!, ascent }
 }
+/** Distinct closed challenge ribbons with generous road clearance for two players. */
+function challengeNodes(lobes:number, amplitude:number, phase=0):number[][] {
+  return Array.from({length:26},(_,i)=>{
+    const angle=Math.PI/2+Math.PI*2*i/26
+    const ripple=amplitude*Math.sin(lobes*angle+phase)
+    return [500+(335+ripple)*Math.cos(angle),360+(226+ripple)*Math.sin(angle)]
+  })
+}
 export const TRACKS: Record<TrackId, Track> = {
   dock: makeTrack('dock', 'AFTERHOURS DOCK', 'El último ferry sale contigo.', '#c9f56d', [[740,625],[500,625],[220,580],[120,420],[155,235],[310,125],[570,120],[760,135],[825,175],[850,235],[825,295],[760,320],[620,275],[430,280],[365,310],[340,360],[360,415],[420,450],[500,465],[700,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
   backstage: makeTrack('backstage', 'BACKSTAGE RING', 'Flightcases fuera. Cero excusas.', '#82dadd', [[740,625],[500,625],[215,580],[120,420],[160,230],[310,120],[440,125],[560,165],[680,140],[770,130],[835,165],[865,220],[850,280],[805,320],[735,330],[620,300],[520,300],[450,295],[390,320],[365,380],[390,440],[450,465],[530,475],[740,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
-  switchback: makeTrack('switchback', 'CREW SWITCHBACK', 'Eses cerradas y dos fuertes desniveles.', '#f4ae75', [[760,626],[530,618],[255,596],[137,517],[135,381],[200,280],[130,180],[220,106],[400,116],[505,194],[582,142],[760,120],[854,210],[838,320],[734,360],[620,315],[555,386],[625,454],[809,466],[884,538],[852,615]], 24),
-  flower: makeTrack('flower', 'FLOWER CHICANE', 'Curvas enlazadas que premian la trazada.', '#e6a0de', [[730,620],[510,614],[270,590],[120,500],[134,350],[220,288],[150,213],[180,130],[305,105],[420,165],[550,112],[730,112],[846,192],[850,307],[752,357],[646,295],[534,295],[463,360],[525,447],[710,481],[848,485],[893,557],[845,620]], 18),
-  skyline: makeTrack('skyline', 'SKYLINE EXPRESS', 'Subida larga, horquilla y descenso rápido.', '#8fe8f6', [[745,626],[532,622],[304,604],[140,520],[120,390],[142,250],[232,120],[417,105],[585,113],[756,118],[865,204],[844,318],[734,360],[626,333],[524,289],[441,314],[389,402],[477,472],[686,491],[848,486],[895,544],[856,617]], 32),
+  switchback: makeTrack('switchback', 'CREW SWITCHBACK', 'Eses cerradas y dos fuertes desniveles.', '#f4ae75', challengeNodes(4,36), 24),
+  flower: makeTrack('flower', 'FLOWER CHICANE', 'Cinco curvas enlazadas que premian la trazada.', '#e6a0de', challengeNodes(5,33), 18),
+  skyline: makeTrack('skyline', 'SKYLINE EXPRESS', 'Subida larga, horquilla y descenso rápido.', '#8fe8f6', challengeNodes(3,40,.45), 32),
 }
 
 /** Smooth periodic terrain: only new courses have hills; race physics stay in XY. */
