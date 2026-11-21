@@ -104,6 +104,8 @@
    640×760 with identical pointer coordinates; low-power devices use SVG only. */
 .gn-perspective-3d{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:0}
 .gn-3d-active>.gn-board{position:relative;z-index:2}
+.gn-3d-active>.gn-overlay{z-index:4}
+.gn-3d-active>.gn-overlay .gn-music-error{position:relative;z-index:5;pointer-events:auto}
 .gn-3d-active>.gn-board>rect:first-of-type{opacity:0}
 .gn-3d-active .gn-club-depth{opacity:0}
 .gn-3d-active:after{z-index:3}
