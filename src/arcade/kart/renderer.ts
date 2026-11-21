@@ -31,6 +31,23 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   c.save();path();c.lineWidth=ROAD_WIDTH;c.strokeStyle='#58625d18';c.setLineDash([1,7]);c.stroke();c.setLineDash([]);c.restore()
   path();c.lineWidth=1;c.strokeStyle='#bfc9b529';c.setLineDash([7,18]);c.stroke();c.setLineDash([])
   for(const side of [-1,1])for(let n=0;n<track.length;n+=83){if(side===-1&&n/track.length>PIT_ENTRY-.01&&n/track.length<PIT_EXIT+.01)continue;const p=trackPoint(track,n/track.length),x=p.x-Math.sin(p.angle)*side*(ROAD_WIDTH/2+12),y=p.y+Math.cos(p.angle)*side*(ROAD_WIDTH/2+12);c.save();c.translate(x,y);c.rotate(p.angle);rounded(c,-11,-4,24,10,4,'#0b151a');rounded(c,-10,-6,20,7,3,side<0?venue.curb:'#a3b6ac');c.restore()}
+  // Branded barrier panels also appear in the no-WebGL compatible renderer.
+  // All details are baked into the track texture once, not each frame.
+  for(let distance=110,index=0;distance<track.length-80;distance+=175,index++){
+    const p=trackPoint(track,distance/track.length),offset=ROAD_WIDTH/2+18
+    c.save();c.translate(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset);c.rotate(p.angle)
+    rounded(c,-22,-10,44,20,3,'#122329')
+    if(index%3===0)flower(c,0,0,7,venue.curb)
+    else {c.fillStyle=venue.curb;c.textAlign='center';c.font='900 11px Arial';c.fillText('DANZ',0,4)}
+    c.restore()
+  }
+  for(const [x,y] of [[70,65],[930,65],[70,650],[930,650]]){
+    rounded(c,x-16,y-29,32,58,3,'#101b21')
+    for(const [offset,r] of [[-13,10],[13,7]] as const){
+      c.fillStyle='#829b92';c.beginPath();c.arc(x,y+offset,r,0,Math.PI*2);c.fill()
+      c.fillStyle='#0e1216';c.beginPath();c.arc(x,y+offset,r*.63,0,Math.PI*2);c.fill()
+    }
+  }
   c.beginPath();for(let n=0;n<=40;n++){const p=pitPoint(track,n/40);n?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)}c.strokeStyle='#87917a';c.lineWidth=44;c.stroke();c.strokeStyle='#424d49';c.lineWidth=40;c.stroke();c.strokeStyle=venue.curb;c.lineWidth=2;c.setLineDash([9,7]);c.stroke();c.setLineDash([])
   // Marked grid and checkerboard finish line, perpendicular to the route.
   const start=trackPoint(track,0);c.save();c.translate(start.x,start.y);c.rotate(start.angle)
