@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test'
 
 test('the mobile test route exposes three Yeppo walks and the four available games', async ({ page }) => {
-  await page.goto('/test')
+  await page.goto('/test?yeppo=1')
   const lab = page.getByRole('region', { name: 'Zona de pruebas DANZ' })
   await expect(lab).toBeVisible()
+  await lab.locator('details.test-lab-yeppo summary').click()
   for (const [name, move] of [['PASEO TRANQUILO','stroll'],['DE PUNTILLAS','sneak'],['A LA CARRERA','dash']]) {
     await lab.getByRole('button', { name, exact: true }).click()
     await expect(page.locator('.yeppo-roam-stage')).toHaveClass(new RegExp(`yeppo-roam-${move}`))
