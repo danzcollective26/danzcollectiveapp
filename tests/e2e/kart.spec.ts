@@ -48,6 +48,16 @@ test('Both circuits can be selected without changing the chosen mode',async({pag
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true',{timeout:15000})
 })
 
+test('three new challenging circuits can be selected and each loads the same race controls',async({page})=>{
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await menuTab(page,'CIRCUITO')
+  for(const [name,id] of [['CREW SWITCHBACK','switchback'],['FLOWER CHICANE','flower'],['SKYLINE EXPRESS','skyline']] as const){
+    await selectReel(page,'Circuito de DANZPORTER',name)
+    await expect(page.locator('.kart-game')).toHaveAttribute('data-track',id)
+    await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true',{timeout:15000})
+  }
+})
+
 test('Graphics can switch to compatible 2D and back without losing the mode',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true',{timeout:15000})
