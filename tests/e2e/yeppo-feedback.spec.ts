@@ -13,7 +13,7 @@ test('Yeppo saves an authenticated suggestion and confirms its arrival',async({p
   submitted=route.request().postDataJSON()
   await route.fulfill({status:201,json:{id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'}})
  })
- await page.goto('/test')
+ await page.goto('/test?yeppo=1')
  await page.getByRole('button',{name:'Hablar con Yeppo'}).click()
  await page.getByRole('button',{name:/UN PROBLEMA O UNA IDEA/}).click()
  const feedback=page.getByRole('region',{name:'Enviar problema o sugerencia a DANZ'})
