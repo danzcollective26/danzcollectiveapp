@@ -19,7 +19,7 @@ test('near-plane clipping keeps crossing asphalt finite and rejects faces behind
   for(const p of clipped){assert.ok(p.z>=2);assert.ok(Number.isFinite(p.x/p.z)&&Number.isFinite(p.y/p.z))}
   assert.equal(clipNear(face.map(p=>({...p,z:-5}))).length,0)
 })
-test('first person steers relative to the driver and the local duel keeps a shared track view',()=>{
+test('first person steers relative to the driver and the local duel keeps a shared chase view',()=>{
   assert.equal(cockpitSteering({x:-.7,y:0},0),-.7);assert.equal(cockpitSteering({x:1,y:-1},1),1);assert.equal(cockpitSteering(undefined,0),0)
-  assert.equal(effectiveCamera('cockpit','duel'),'track');assert.equal(effectiveCamera('follow','duel'),'track');assert.equal(effectiveCamera('cockpit','race'),'cockpit');assert.equal(effectiveCamera('cockpit','time'),'cockpit')
+  assert.equal(effectiveCamera('cockpit','duel'),'follow');assert.equal(effectiveCamera('follow','duel'),'follow');assert.equal(effectiveCamera('cockpit','race'),'cockpit');assert.equal(effectiveCamera('cockpit','time'),'cockpit')
 })
