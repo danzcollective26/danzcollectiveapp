@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { test as base, expect, type Page } from '@playwright/test'
 
 // A generated one-pixel PNG: these tests never need a person's photograph.
@@ -63,7 +64,10 @@ test('preserves albums and images after reload; viewer, download and visitor pre
   await expect(viewer).toHaveAccessibleName('Fotografía 1 de 2 del álbum DANZ QA')
   const downloaded = page.waitForEvent('download')
   await viewer.getByRole('link', { name: 'DESCARGAR FOTO ↓', exact: true }).click()
-  expect((await downloaded).suggestedFilename()).toBe('synthetic-one.png')
+  const savedDownload = await downloaded
+  expect(savedDownload.suggestedFilename()).toBe('synthetic-one.png')
+  expect(await savedDownload.failure()).toBeNull()
+  expect(await readFile(await savedDownload.path())).toEqual(png)
   await page.keyboard.press('Escape')
   await expect(viewer).not.toBeVisible()
 
