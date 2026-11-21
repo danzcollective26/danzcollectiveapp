@@ -87,20 +87,3 @@
   aspect-ratio:640/760;
   box-sizing:border-box;
 }
-
-/* Size the SVG by its width, not by stretching both axes in a narrow grid cell.
-   The fullscreen row and device width jointly cap the available board area. */
-.gn-panel.gn-immersive .gn-play-area{
-  width:min(100%,calc((100dvh - 268px) * 640 / 760),calc(100vw - 32px));
-  height:auto;
-  aspect-ratio:640/760;
-  min-height:0;
-  max-height:100%;
-  flex-shrink:0;
-}
-@media(orientation:landscape) and (max-height:540px) and (min-width:640px){
-  .gn-panel.gn-immersive .gn-play-area{
-    width:min(100%,calc((100dvh - 24px) * 640 / 760));
-    max-height:100%;
-  }
-}
