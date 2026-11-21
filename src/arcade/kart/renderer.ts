@@ -75,6 +75,16 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
   const body=c.createLinearGradient(-23,-12,23,12);body.addColorStop(0,'#1b292b');body.addColorStop(.35,color);body.addColorStop(.68,color);body.addColorStop(1,'#37474a')
   rounded(c,-24,-10,48,20,7,'#0b161a');rounded(c,-21,-12,build.chassis==='sprint'?46:41,build.chassis==='hauler'?25:22,7,body);rounded(c,12,-14,build.chassis==='sprint'?14:10,28,4,color)
   c.strokeStyle='#fff8';c.lineWidth=1;c.beginPath();c.moveTo(-15,-10);c.lineTo(13,-10);c.stroke()
+  // Match the three factory livery styles on devices using the offline 2D view.
+  c.fillStyle=build.chassis==='hauler'?'#263a43':'#f5e9cf'
+  if(build.chassis==='sprint'){
+    rounded(c,-11,-7,35,2,1,c.fillStyle);rounded(c,-11,6,35,2,1,c.fillStyle)
+  }else if(build.chassis==='hauler'){
+    rounded(c,-13,-9,30,3,1,c.fillStyle);rounded(c,-13,8,30,3,1,c.fillStyle)
+    rounded(c,15,-5,6,10,2,'#edc46a')
+  }else{
+    rounded(c,-12,-9,33,1.2,.6,c.fillStyle);rounded(c,-12,8,33,1.2,.6,c.fillStyle)
+  }
   rounded(c,-20,-17,6,34,2,'#ced8c4');rounded(c,-19,-15,3,30,1,color);rounded(c,-12,-9,17,18,5,driver.color)
   c.fillStyle='#111b20';c.beginPath();c.arc(-2,-1,10,0,Math.PI*2);c.fill();const helmet=c.createLinearGradient(-10,-8,8,8);helmet.addColorStop(0,'#ffefd2');helmet.addColorStop(.45,'#e0c9a3');helmet.addColorStop(1,'#82756b');c.fillStyle=helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill()
   c.fillStyle=driver.helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill();rounded(c,1,-8,6,11,3,'#182e37');c.fillStyle='#c6f7ed';c.fillRect(4,-7,1,7);flower(c,-3,-4,3,color)
