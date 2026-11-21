@@ -67,46 +67,17 @@ test('browser history restores the library and selected game', async ({ page }) 
   await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
 })
 
-test('Yeppo hand reaches a real card, reacts in sync and cancels when the page scrolls', async ({ page }) => {
-  await page.goto('/test')
-  // The approved Home intro is taller than one mobile viewport. Bring an
-  // interactive card into view before asking Yeppo to visit it.
-  await page.locator('.test-lab').first().scrollIntoViewIfNeeded()
-  await page.getByRole('button', { name: 'Hablar con Yeppo', exact: true }).click()
-  await page.getByRole('button', { name: /VER A YEPPO PASEARSE/ }).click()
-  const stage = page.locator('.yeppo-visiting-card')
-  await expect(stage).toBeAttached()
-  await page.evaluate(() => {
-    for (const el of document.querySelectorAll('.yeppo-roam-stage,.yeppo-playful-tap,.yeppo-roam-stage *')) {
-      for (const animation of el.getAnimations()) {
-        animation.pause()
-        animation.currentTime = 4100
-      }
-    }
-  })
-  const contact = await page.evaluate(() => {
-    const hand = document.querySelector('.yeppo-contact-point')!.getBoundingClientRect()
-    const card = document.querySelector('.yeppo-playful-tap')!.getBoundingClientRect()
-    const arm = document.querySelector('.yeppo-contact-arm')!
-    return { x: hand.x + hand.width / 2, y: hand.y + hand.height / 2, left: card.left, right: card.right, top: card.top, bottom: card.bottom, opacity: getComputedStyle(arm).opacity }
-  })
-  expect(contact.x).toBeGreaterThan(contact.left)
-  expect(contact.x).toBeLessThan(contact.right)
-  expect(contact.y).toBeGreaterThan(contact.top)
-  expect(contact.y).toBeLessThan(contact.bottom)
-  expect(Math.abs(contact.x - (contact.right - 18))).toBeLessThan(2)
-  expect(contact.opacity).toBe('1')
-  await expect(page).toHaveURL(/\/$/)
-  await page.evaluate(() => window.scrollBy(0, 80))
-  await expect(page.getByTestId('yeppo-walkabout')).toHaveCount(0)
-  await expect(page.locator('.yeppo-playful-tap')).toHaveCount(0)
+test('Home keeps the approved passport wallet clear of mascot overlays', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.danz-wallet-home')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mi tarjeta de socio DANZ' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' })).toBeVisible()
+  await expect(page.locator('.yeppo')).toHaveCount(0)
 })
 
-test('reduced motion keeps Yeppo stationary without highlighting cards', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' })
+test('Yeppo remains available only in explicit test lab and member account', async ({ page }) => {
+  await page.goto('/?seccion=arcade')
+  await expect(page.locator('.yeppo')).toHaveCount(0)
   await page.goto('/test')
-  await page.getByRole('button', { name: 'Hablar con Yeppo', exact: true }).click()
-  await page.getByRole('button', { name: /VER A YEPPO PASEARSE/ }).click()
-  await expect(page.locator('.yeppo-roam-stage')).toHaveCSS('animation-name', 'none')
-  await expect(page.locator('.yeppo-playful-tap')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Hablar con Yeppo', exact: true })).toBeVisible()
 })
