@@ -8,6 +8,24 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
+test('approved home wallet keeps account first and passport second, both reachable', async ({ page }) => {
+  await mockSupabase(page)
+  await page.goto('/')
+  const wallet=page.getByRole('region',{name:'Tu cartera DANZ: cuenta y pasaporte'})
+  await expect(wallet).toBeVisible()
+  const cards=wallet.locator('button')
+  await expect(cards).toHaveCount(2)
+  await expect(cards.nth(0)).toHaveAccessibleName('Abrir mi tarjeta de socio DANZ')
+  await expect(cards.nth(1)).toHaveAccessibleName('Abrir mi Pasaporte DANZ y ver mis sellos')
+  await expect(wallet.locator('.danz-wallet-icons')).toContainText(['IG','POINTS','SELLOS'].join(''))
+  await expect(page.locator('.yeppo')).toHaveCount(0)
+  await cards.nth(0).click()
+  await expect(page).toHaveURL(/seccion=cuenta/)
+  await page.goto('/')
+  await wallet.getByRole('button',{name:'Abrir mi Pasaporte DANZ y ver mis sellos'}).click()
+  await expect(page.getByRole('dialog',{name:'Mi Pasaporte DANZ'})).toBeVisible()
+})
+
 test('native section transitions keep URL, history and rapid navigation in sync', async ({ page }, testInfo) => {
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
