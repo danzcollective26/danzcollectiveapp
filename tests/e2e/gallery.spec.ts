@@ -19,7 +19,7 @@ async function navigate(page: Page, section: string) {
   if (await navButton.count()) await navButton.click()
   else {
     // Mobile keeps secondary sections outside the primary navigation.
-    const routes: Record<string, string> = { 'DANZ IN': 'musica', DANZFLOR: 'danzflor', CUENTA: 'cuenta', DANZPOINTS: 'danzpoints' }
+    const routes: Record<string, string> = { 'DANZ IN': 'musica', DANZFLOR: 'danzflor', CUENTA: 'cuenta', DANZPOINTS: 'danzpoints', DANZERS: 'danzers' }
     const slug = routes[section]
     if (!slug) throw new Error(`Missing navigation entry for ${section}`)
     await page.goto(`/?seccion=${slug}`)
