@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, RACE_LAPS, raceOrder, type Race, type TrackId, type KartInput } from '../src/arcade/kart/engine.ts'
+import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, trackElevation, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, RACE_LAPS, raceOrder, type Race, type TrackId, type KartInput } from '../src/arcade/kart/engine.ts'
 
 const GAS:KartInput={...NO_INPUT,throttle:1}
 function advance(s:Race,time:number,frame:number,input:KartInput=GAS){let remaining=time;while(remaining>0){const dt=Math.min(remaining,frame);s=stepRace(s,[input,input],dt);remaining-=dt}return s}
@@ -18,6 +18,22 @@ test('Full-width roads leave clearance through bends and between separate sectio
     }
   }
 })
+test('three new DANZPORTER courses have playable loops and real 3D hill profiles',()=>{
+  assert.equal(Object.keys(TRACKS).length,5)
+  for(const id of ['switchback','flower','skyline'] as TrackId[]){
+    const track=TRACKS[id]
+    assert.ok(track.points.length>=200)
+    assert.ok(track.length>1000)
+    assert.equal(trackElevation(track,0),0)
+    assert.ok(trackElevation(track,.25)>12)
+    assert.ok(trackElevation(track,.75)>12)
+    assert.ok(trackElevation(track,.5)<1e-9)
+    assert.ok(trackElevation(track,.125)<trackElevation(track,.25))
+  }
+  assert.equal(trackElevation(TRACKS.dock,.25),0)
+  assert.equal(trackElevation(TRACKS.backstage,.75),0)
+})
+
 test('Kart countdown and pause never move the grid or consume race time',()=>{
   const s=startRace(createRace('duel')),counting=stepRace(s,[NO_INPUT],1500)
   // Catch-up is capped to 250 ms so a suspended tab cannot skip the start.
