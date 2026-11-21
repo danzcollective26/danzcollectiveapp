@@ -58,6 +58,19 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
     plate.position.copy(signPos);plate.rotation.y=-p.angle
     scene.add(plate)
   }
+  // Four trackside identity panels make each circuit recognisably DANZ.
+  // They sit beyond the barrier and are scenery-only (no collision or physics).
+  const coursePanelMaterial=new THREE.MeshBasicMaterial({
+    map:signTexture('DANZ',track.name,venue.curb),side:THREE.DoubleSide
+  })
+  for(const progress of [.12,.37,.62,.87]){
+    const p=trackPoint(track,progress)
+    const offset=ROAD_WIDTH/2+48
+    const board=mesh(new THREE.PlaneGeometry(63,25),coursePanelMaterial)
+    board.position.copy(point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,24+trackElevation(track,progress)))
+    board.rotation.y=-p.angle
+    scene.add(board)
+  }
   // Speaker stacks echo the collective's sound system; they are set well
   // outside the track, with no gameplay collisions or animated workloads.
   const woofer=new THREE.MeshStandardMaterial({color:'#12161a',roughness:.88})
