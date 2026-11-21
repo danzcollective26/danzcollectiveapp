@@ -30,6 +30,30 @@ export function buildKart(build:KartBuild,id:number):KartModel{
     root.add(rod(new THREE.Vector3(-18,5,side*15),new THREE.Vector3(22,5,side*15),1.1,chrome))
   }
   root.add(box(build.chassis==='sprint'?13:9,6,build.chassis==='hauler'?28:26,paint,18,8,0,1.6),box(3,4,29,graphite,-23,7,0,.7))
+  // Three distinct factory graphics: Sprint twin stripes, Club racing pinstripes,
+  // Hauler utility panels. Purely cosmetic meshes, no collider or physics change.
+  const liveryInk=new THREE.MeshStandardMaterial({
+    color:build.chassis==='sprint'?'#f5e9cf':build.chassis==='hauler'?'#263a43':'#e9f0d9',
+    metalness:.23,roughness:.42,
+  })
+  const bodyTop=build.chassis==='hauler'?11.25:10.25
+  if(build.chassis==='sprint'){
+    for(const side of [-1,1]){
+      root.add(box(23,.35,2.2,liveryInk,0,bodyTop,side*6,.2))
+      root.add(box(9,.35,2.2,liveryInk,19,11.22,side*6,.2))
+    }
+  }else if(build.chassis==='hauler'){
+    for(const side of [-1,1]){
+      root.add(box(20,.35,3.7,liveryInk,-1,bodyTop,side*8,.3))
+      root.add(box(7,.38,4.2,liveryInk,19,11.22,side*8,.3))
+    }
+    root.add(box(8,.45,5,liveryInk,-10,bodyTop,0,.4))
+  }else{
+    for(const side of [-1,1]){
+      root.add(box(22,.35,1.15,liveryInk,-1,bodyTop,side*9,.15))
+      root.add(box(9,.35,1.15,liveryInk,19,11.22,side*8,.15))
+    }
+  }
   const bumper=new THREE.Group();bumper.position.set(24,5,0);bumper.add(box(3,3,32,chrome));root.add(bumper)
   if(build.chassis==='hauler')for(const side of [-1,1])root.add(rod(new THREE.Vector3(-20,8,side*12),new THREE.Vector3(-15,22,side*12),1.4,chrome))
   root.add(box(10,12,17,rubber,-9,15,0,2),box(18,3,17,rubber,-3,9,0,1.5))

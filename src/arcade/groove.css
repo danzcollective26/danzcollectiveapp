@@ -73,3 +73,40 @@
 
 .gn-music-access{padding:10px;border:1px solid #8a7551;background:#211d17;color:#e9d8b7;border-radius:5px;max-width:100%;box-sizing:border-box}.gn-music-access p{font-size:11px;line-height:1.5;margin:0 0 8px}.gn-music-access button,.gn-music-access a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;box-sizing:border-box;border:1px solid #c6aa77;background:#3f3324;color:#fff0d4;font-size:10px;font-weight:850;text-decoration:none;padding:8px;margin:2px 6px 2px 0;cursor:pointer}.gn-music-access :focus-visible{outline:3px solid white;outline-offset:2px}.gn-actions .primary-btn:disabled{opacity:.5;cursor:default}
 .gn-overlay .gn-music-access{pointer-events:auto;margin-top:10px;max-width:280px}
+
+/* Keep the vinyl playfield's 640×760 geometry on compact Android portrait and
+   short landscape. Restrict height BEFORE width can be clamped by the grid,
+   otherwise a 100%-height SVG gets stretched horizontally in narrow cells. */
+.gn-immersive .gn-play-area{
+  height:min(100%,calc((100vw - 32px) * 1.1875));
+  width:auto;
+  min-height:0;
+  min-width:0;
+  justify-self:center;
+  align-self:center;
+  aspect-ratio:640/760;
+  box-sizing:border-box;
+}
+
+/* Layered venue light: stage mood changes stay out of the touch/score pipeline.
+   Box shadows preserve the 640×760 board geometry on small landscape screens. */
+.gn-panel{--gn-venue-rim:#e2aa6e;--gn-venue-bloom:#e2aa6e24}
+.gn-panel[data-stage="2"]{--gn-venue-rim:#77cde8;--gn-venue-bloom:#4daae52b}
+.gn-panel[data-stage="3"]{--gn-venue-rim:#df8fcf;--gn-venue-bloom:#dc65be2f}
+.gn-play-area{box-shadow:0 0 0 3px #130f0b,0 8px 22px #0008,inset 0 0 50px #0008,0 0 24px var(--gn-venue-bloom)}
+.gn-panel[data-status=playing] .gn-play-area{border-color:var(--gn-venue-rim)}
+.gn-panel .gn-club-depth{pointer-events:none}
+.gn-panel[data-stage="2"] .gn-hud-vinyl{border-color:#8fc7da}
+.gn-panel[data-stage="3"] .gn-hud-vinyl{border-color:#e7add9}
+@media(prefers-reduced-motion:reduce){.gn-play-area{transition:none}.gn-panel .gn-club-depth{animation:none}}
+
+/* Optional, genuinely perspective-rendered booth. SVG cuts and score stay at
+   640×760 with identical pointer coordinates; low-power devices use SVG only. */
+.gn-perspective-3d{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:0}
+.gn-3d-active>.gn-board{position:relative;z-index:2}
+.gn-3d-active>.gn-overlay{z-index:4}
+.gn-3d-active>.gn-overlay .gn-music-error{position:relative;z-index:5;pointer-events:auto}
+.gn-3d-active>.gn-board>rect:first-of-type{opacity:0}
+.gn-3d-active .gn-club-depth{opacity:0}
+.gn-3d-active:after{z-index:3}
+@media(prefers-reduced-motion:reduce){.gn-perspective-3d{animation:none}}

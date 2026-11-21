@@ -1,9 +1,9 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
+import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, trackElevation, type Race, type Track } from './engine'
 import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
-import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
+import { mesh, box, buildKart, palm, canvasTexture, signTexture, flowerTexture } from './models3d'
 import { batchMeshes } from './batch3d'
 import { cockpitFov, cockpitPose, effectiveCamera } from './camera'
 
@@ -14,7 +14,7 @@ function ribbon(track:Track,inner:number,outer:number,height:number,colored=fals
     const i=n%track.points.length,p=track.points[i],next=track.points[(i+1)%track.points.length],previous=track.points[(i-1+track.points.length)%track.points.length]
     const a=Math.atan2(next.y-previous.y,next.x-previous.x),distance=n===track.points.length?track.length:track.lengths[i]
     const color=new THREE.Color(Math.floor(distance/19)%2?'#dce4c9':accent)
-    for(const side of [inner,outer]){positions.push(p.x-500-Math.sin(a)*side,height,p.y-360+Math.cos(a)*side);uv.push(distance/110,side/40);colors.push(color.r,color.g,color.b)}
+    for(const side of [inner,outer]){positions.push(p.x-500-Math.sin(a)*side,height+trackElevation(track,distance/track.length),p.y-360+Math.cos(a)*side);uv.push(distance/110,side/40);colors.push(color.r,color.g,color.b)}
     if(n<track.points.length){const base=n*2;indices.push(base,base+2,base+1,base+2,base+3,base+1)}
   }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));if(colored)g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g
@@ -44,9 +44,33 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const transform=new THREE.Object3D();let count=0
   for(const side of [-1,1])for(let distance=0;distance<track.length-32;distance+=32){
     if(side===-1&&distance/track.length>PIT_ENTRY-.01&&distance/track.length<PIT_EXIT+.01)continue
-    const p=trackPoint(track,distance/track.length),offset=side*(ROAD_WIDTH/2+13);transform.position.copy(point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,7));transform.rotation.y=-p.angle;transform.updateMatrix();barriers.setMatrixAt(count,transform.matrix);transform.position.y=11.1;transform.updateMatrix();caps.setMatrixAt(count,transform.matrix);count++
+    const p=trackPoint(track,distance/track.length),offset=side*(ROAD_WIDTH/2+13);transform.position.copy(point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,7+trackElevation(track,distance/track.length)));transform.rotation.y=-p.angle;transform.updateMatrix();barriers.setMatrixAt(count,transform.matrix);transform.position.y=11.1+trackElevation(track,distance/track.length);transform.updateMatrix();caps.setMatrixAt(count,transform.matrix);count++
   }
   barriers.count=caps.count=count;barriers.castShadow=shadows;barriers.receiveShadow=true;scene.add(barriers,caps)
+  // Real DANZ decals on the outside barrier, not just on the garage board.
+  // Share two textures; panels are decoration only and never join collision.
+  const flowerDecal=new THREE.MeshBasicMaterial({map:flowerTexture(venue.curb),transparent:true,side:THREE.DoubleSide,depthWrite:false})
+  const sponsorDecal=new THREE.MeshBasicMaterial({map:signTexture('DANZ','COLLECTIVE',venue.curb),side:THREE.DoubleSide,depthWrite:false})
+  for(let distance=110,number=0;distance<track.length-80;distance+=175,number++){
+    const progress=distance/track.length,p=trackPoint(track,progress)
+    const offset=ROAD_WIDTH/2+17,signPos=point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,15+trackElevation(track,progress))
+    const plate=mesh(new THREE.PlaneGeometry(number%3===0?26:34,number%3===0?26:13),number%3===0?flowerDecal:sponsorDecal)
+    plate.position.copy(signPos);plate.rotation.y=-p.angle
+    scene.add(plate)
+  }
+  // Speaker stacks echo the collective's sound system; they are set well
+  // outside the track, with no gameplay collisions or animated workloads.
+  const woofer=new THREE.MeshStandardMaterial({color:'#12161a',roughness:.88})
+  const cone=new THREE.MeshStandardMaterial({color:'#657f7c',metalness:.36,roughness:.56})
+  for(const [x,z] of [[70,70],[930,70],[70,655],[930,655]]){
+    const stack=new THREE.Group();stack.position.copy(point(x,z))
+    stack.add(box(30,54,20,dark,0,27,0,1))
+    for(const [y,radius] of [[18,10],[39,6]] as const){
+      stack.add(mesh(new THREE.CircleGeometry(radius,24),cone,0,y,10.3))
+      stack.add(mesh(new THREE.CircleGeometry(radius*.66,24),woofer,0,y,10.6))
+    }
+    scene.add(stack)
+  }
   // Crew garage between the upper straight and the interior hairpin.
   const garage=new THREE.Group();garage.position.copy(point(450,200))
   garage.add(box(255,42,35,dark,0,22,0,2),box(267,5,44,silver,0,46,0,1))
@@ -83,23 +107,51 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const banner=mesh(new THREE.PlaneGeometry(105,20),new THREE.MeshBasicMaterial({map:signTexture('DANZ','START / FINISH')}),5,58,0);banner.rotation.y=Math.PI/2;gantry.add(banner);scene.add(gantry)
   const gridTexture=canvasTexture(128,128,c=>{for(let y=0;y<8;y++)for(let x=0;x<8;x++){c.fillStyle=(x+y)%2?'#12252c':'#e8edd4';c.fillRect(x*16,y*16,16,16)}})
   const grid=mesh(new THREE.PlaneGeometry(15,ROAD_WIDTH-4),new THREE.MeshStandardMaterial({map:gridTexture,roughness:.9}),0,5.15,0);grid.rotation.x=-Math.PI/2;gantry.add(grid)
-  const routePoints=[];for(let d=0;d<track.length;d+=16){const p=trackPoint(track,d/track.length);routePoints.push(point(p.x,p.y,5.12))}routePoints.push(routePoints[0].clone())
+  const routePoints=[];for(let d=0;d<track.length;d+=16){const p=trackPoint(track,d/track.length);routePoints.push(point(p.x,p.y,5.12+trackElevation(track,d/track.length)))}routePoints.push(routePoints[0].clone())
   const route=new THREE.Line(new THREE.BufferGeometry().setFromPoints(routePoints),new THREE.LineDashedMaterial({color:'#cedca5',transparent:true,opacity:.19,dashSize:7,gapSize:13}));route.computeLineDistances();scene.add(route)
   addPitLane(scene,track,lime,silver,dark)
+  // Scenography only: venue-themed luminous beacons sit outside the driving
+  // collision model. A single instanced draw avoids extra mobile GPU overhead.
+  const beaconColors=venue.id==='neon'?['#ff7dc7','#78f4ff','#ad94ff']
+    :venue.id==='sunset'?['#ffb66c','#ff7975','#86e2d5']
+    :venue.id==='night'?['#ffc45c','#8fb7ee','#fc986b']
+    :['#a5e4a0','#f2c77b','#80b5cc']
+  const beacons=new THREE.InstancedMesh(
+    new THREE.BoxGeometry(4,18,4),
+    new THREE.MeshBasicMaterial({color:'#ffffff',toneMapped:false}),12)
+  const beaconObject=new THREE.Object3D()
+  let beaconIndex=0
+  for(const [x,z] of [[105,100],[895,100],[105,610],[895,610]]){
+    for(let n=0;n<3;n++){
+      const p=point(x+n*13,z)
+      beaconObject.position.set(p.x,13+n*8,p.z)
+      beaconObject.rotation.set(0,.25*n,0)
+      beaconObject.scale.set(1,1+n*.28,1)
+      beaconObject.updateMatrix()
+      beacons.setMatrixAt(beaconIndex,beaconObject.matrix)
+      beacons.setColorAt(beaconIndex,new THREE.Color(beaconColors[n]))
+      beaconIndex++
+    }
+  }
+  beacons.instanceMatrix.needsUpdate=true
+  if(beacons.instanceColor)beacons.instanceColor.needsUpdate=true
+  beacons.castShadow=false
+  beacons.receiveShadow=false
+  scene.add(beacons)
   batchMeshes(scene)
 }
 
 function addPitLane(scene:THREE.Scene,track:Track,accent:THREE.Material,metal:THREE.Material,dark:THREE.Material){
   const positions:number[]=[],indices:number[]=[],line:THREE.Vector3[]=[]
   for(let n=0;n<=40;n++){
-    const p=pitPoint(track,n/40);line.push(point(p.x,p.y,5.8))
-    for(const side of [-20,20])positions.push(p.x-500-Math.sin(p.angle)*side,5.4,p.y-360+Math.cos(p.angle)*side)
+    const p=pitPoint(track,n/40),height=trackElevation(track,PIT_ENTRY+(PIT_EXIT-PIT_ENTRY)*n/40);line.push(point(p.x,p.y,5.8+height))
+    for(const side of [-20,20])positions.push(p.x-500-Math.sin(p.angle)*side,5.4+height,p.y-360+Math.cos(p.angle)*side)
     if(n<40){const b=n*2;indices.push(b,b+2,b+1,b+2,b+3,b+1)}
   }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals()
   scene.add(mesh(g,new THREE.MeshStandardMaterial({color:'#5e685d',roughness:.9,side:THREE.DoubleSide})))
   const route=new THREE.Line(new THREE.BufferGeometry().setFromPoints(line),new THREE.LineDashedMaterial({color:'#edbd60',dashSize:9,gapSize:8}));route.computeLineDistances();scene.add(route)
-  const p=pitPoint(track,.5),station=new THREE.Group();station.position.copy(point(p.x,p.y))
+  const p=pitPoint(track,.5),station=new THREE.Group();station.position.copy(point(p.x,p.y,trackElevation(track,(PIT_ENTRY+PIT_EXIT)/2)))
   for(const x of [-44,44])for(const z of [-24,24])station.add(box(2,55,2,metal,x,30,z,.5))
   station.add(box(104,4,56,accent,0,59,0,1),box(106,6,2,dark,0,55,28,.5))
   station.add(mesh(new THREE.PlaneGeometry(90,20),new THREE.MeshBasicMaterial({map:signTexture('BOXES','DANZPORTER / CREW SERVICE','#edb644')}),0,47,29))
@@ -188,9 +240,16 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     const view=effectiveCamera(options().camera,s.mode),firstPerson=view==='cockpit'
     const follow=view==='follow'&&['playing','countdown'].includes(s.phase)
     const ratio=Math.max(.3,parent.clientWidth/Math.max(1,parent.clientHeight))
-    const desired=follow?Math.max(310,Math.min(480,ratio*450)):Math.max(1180,ratio*850)
+    // The same close chase camera now frames both local-duel karts, rather than
+    // forcing an unreadably small track overview. Widen only when they separate.
+    const duel=s.mode==='duel'&&s.cars.length>1,other=duel?s.cars[1]:p
+    const separation=duel?Math.hypot(p.x-other.x,p.y-other.y):0
+    const desired=follow?(duel
+      ?Math.max(420,Math.min(1100,Math.max(ratio*430,420+separation*1.3)))
+      :Math.max(310,Math.min(480,ratio*450))):Math.max(1180,ratio*850)
     if(Math.abs(viewWidth-desired)>.1){viewWidth=reduced.matches?desired:viewWidth+(desired-viewWidth)*Math.min(1,dt/180);resize(false)}
-    target.set(follow?p.x-500+Math.cos(p.angle)*32:0,0,follow?p.y-360+Math.sin(p.angle)*32:0)
+    const centerX=duel?(p.x+other.x)/2:p.x,centerY=duel?(p.y+other.y)/2:p.y
+    target.set(follow?centerX-500+(duel?0:Math.cos(p.angle)*32):0,0,follow?centerY-360+(duel?0:Math.sin(p.angle)*32):0)
     if(!initialized||reduced.matches){focus.copy(target);initialized=true}else focus.lerp(target,1-Math.exp(-dt/100))
     camera.position.set(focus.x+(follow?160:0),follow?390:1050,focus.z+(follow?260:780));look.set(focus.x,0,focus.z);camera.lookAt(look)
     if(firstPerson){
@@ -211,7 +270,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       if(Math.abs(nextFov-cockpitCamera.fov)>.005){cockpitCamera.fov=nextFov;cockpitCamera.updateProjectionMatrix()}
       const bob=motion?Math.sin(now*.022)*speed*.5:0
       const shake=motion?cockpitImpact*Math.sin(now*.11)*1.6:0
-      cockpitCamera.position.copy(point(pose.x,pose.z,pose.y+bob+shake))
+      cockpitCamera.position.copy(point(pose.x,pose.z,pose.y+bob+shake+trackElevation(TRACKS[s.track],p.progress)))
       look.copy(cockpitCamera.position).add(new THREE.Vector3(Math.cos(cockpitHeading)*200,-Math.tan(pose.pitch)*200+shake*.7,Math.sin(cockpitHeading)*200))
       cockpitCamera.lookAt(look)
       cockpitCamera.rotateZ(motion?(p.drifting?Math.sin(now*.007)*.012:0)+cockpitImpact*Math.sin(now*.085)*.008:0)
@@ -220,7 +279,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     if(parent.dataset.projection!==projection)parent.dataset.projection=projection
     s.cars.forEach((car,id)=>{
       const model=cars[id],x=car.x-500,z=car.y-360,turn=Math.atan2(Math.sin(car.angle-model.previousAngle),Math.cos(car.angle-model.previousAngle));model.previousAngle=car.angle
-      model.root.position.set(x,5,z);model.root.rotation.y=-car.angle;model.root.rotation.x=car.drifting&&!reduced.matches?Math.sin(now*.02)*.025:0
+      model.root.position.set(x,5+trackElevation(TRACKS[s.track],car.progress),z);model.root.rotation.y=-car.angle;model.root.rotation.x=car.drifting&&!reduced.matches?Math.sin(now*.02)*.025:0
       model.root.visible=!(firstPerson&&id===0)&&(car.finishedAt===null||s.phase==='finished');model.label.visible=model.root.visible;model.label.position.set(x,53,z)
       model.wheels.forEach(w=>{w.rotation.z-=car.speed*dt/1000/6.7});model.front.forEach(w=>{w.rotation.y=-Math.max(-.38,Math.min(.38,turn*12))})
       if(model.lastHealth!==car.health){model.lastHealth=car.health;model.paint.color.set(car.build.color).lerp(new THREE.Color('#5b4b3b'),(1-car.health)*.6)}
@@ -233,7 +292,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
       if(model.fragment.visible){model.fragment.position.set(24+burst*28,5+burst*30-burst*burst*42,burst*20);model.fragment.rotation.set(burst*8,burst*5,burst*7)}
       model.flame.visible=car.boosting>0&&!reduced.matches;model.flame.scale.set(1+Math.sin(now*.035)*.12,1,1)
       if(car.drifting&&!reduced.matches&&s.phase==='playing'){
-        skidPosition.set(x-Math.cos(car.angle)*16,5.2,z-Math.sin(car.angle)*16)
+        skidPosition.set(x-Math.cos(car.angle)*16,5.2+trackElevation(TRACKS[s.track],car.progress),z-Math.sin(car.angle)*16)
         const previous=lastMarks[id]
         if(previous&&previous.distanceToSquared(skidPosition)>1){const i=markIndex*6;marks.set([previous.x,previous.y,previous.z,skidPosition.x,skidPosition.y,skidPosition.z],i);markIndex=(markIndex+1)%256;markCount=Math.min(256,markCount+1);markGeometry.attributes.position.needsUpdate=true;markGeometry.setDrawRange(0,markCount*2)}
         if(previous)previous.copy(skidPosition)

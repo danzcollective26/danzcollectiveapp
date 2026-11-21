@@ -206,3 +206,77 @@
 .danz-home-priority .danz-wallet-link:hover{border-color:#c0a9d4}
 @media(max-width:850px){.danz-home-priority{grid-template-columns:minmax(0,1fr)}.danz-home-priority>.danz-home-photo{grid-column:auto}.danz-home-priority .danz-wallet-link{min-height:165px}.danz-home-priority>.danz-home-arcade{min-height:305px}.danz-home-priority .danz-wallet-stack{width:132px;height:118px}}
 @media(max-width:430px){.danz-home-priority{gap:12px}.danz-home-priority>.danz-home-photo{min-height:320px}.danz-home-priority .danz-wallet-link{padding:17px 12px;gap:12px}.danz-home-priority .danz-wallet-stack{width:105px;height:108px}.danz-home-priority .danz-wallet-home-copy>strong{font-size:clamp(19px,5vw,26px)}.danz-home-priority>.danz-home-arcade{min-height:290px}}
+
+
+/* Member card lives beside the passport, without occupying the book viewport. */
+.danz-wallet-account-link{display:flex;width:100%;align-items:center;gap:16px;padding:17px 20px;margin-top:10px;border:1px solid #77766d;background:#1b1b1a;color:#f5f2e9;text-align:left;cursor:pointer}
+.danz-wallet-account-link>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px}
+.danz-wallet-account-link strong{font-size:16px;letter-spacing:.08em}
+.danz-wallet-account-link small{font-size:11px;color:#c1bdb2}
+.danz-wallet-account-icon{font-size:28px;color:var(--acid)}
+.danz-wallet-account-link:hover,.danz-wallet-account-link:focus-visible{border-color:var(--acid)}
+.passport-open .passport-immersive-mount{min-height:100dvh}
+.passport-open .passport-account-access{position:relative;z-index:3;display:block;margin:12px auto;padding:10px 16px;border:1px solid #aaa596;border-radius:8px;background:#211f1c;color:#f8f4e8;font-size:11px;letter-spacing:.08em;cursor:pointer}
+.passport-open .passport-account-access:focus-visible{outline:2px solid var(--acid)}
+.passport-open .footer{display:none}
+
+/* DANZ wallet, two independently accessible pockets (approved 20 Nov).
+   Top pocket = member card, lower pocket = passport. Neither masks the other.
+   Keep a real vertical flow instead of absolute overlays or negative margins. */
+.danz-home-priority>.danz-wallet-home.danz-wallet-home{
+  position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+  gap:12px;min-width:0;padding:18px 14px 20px;overflow:hidden;
+  border:1px solid #615447;border-radius:18px;
+  background:repeating-linear-gradient(104deg,#ffffff05 0 1px,transparent 2px 5px),
+  linear-gradient(145deg,#25221f,#0f1010 80%);box-shadow:inset 0 2px 8px #fff1,0 14px 30px #0004;
+}
+.danz-wallet-home .danz-wallet-leather{
+  display:flex;align-items:center;justify-content:center;height:26px;flex:none;
+  color:#beac88;opacity:.65;pointer-events:none
+}
+.danz-wallet-home .danz-wallet-leather svg{width:22px;height:22px}
+.danz-home-priority .danz-wallet-home .danz-wallet-account-link,
+.danz-home-priority .danz-wallet-home .danz-wallet-link{
+  box-sizing:border-box;width:100%;min-height:0;height:auto;position:relative;z-index:1;flex:none;
+  display:flex;align-items:center;gap:15px;margin:0;padding:20px 18px;
+  text-align:left;border-radius:13px;box-shadow:0 7px 19px #0005;
+  transform:none;overflow:hidden;cursor:pointer
+}
+.danz-home-priority .danz-wallet-home .danz-wallet-account-link{
+  min-height:155px;order:0;border:1px solid #b8a487;
+  background:radial-gradient(ellipse at 85% 0%,#786a5340,transparent 72%),linear-gradient(120deg,#322c25,#171614 84%);color:#f8f0dc
+}
+.danz-home-priority .danz-wallet-home .danz-wallet-link{
+  min-height:120px;order:1;border:1px solid #b1a58b;
+  background:linear-gradient(125deg,#e6decc,#bfb4a0);color:#241f1b
+}
+.danz-wallet-home .danz-wallet-account-icon{font-size:37px;line-height:1;color:#eed8aa;flex:none}
+.danz-wallet-home .danz-wallet-account-copy{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
+.danz-wallet-home .danz-wallet-account-copy>small{font-weight:750;letter-spacing:.13em;font-size:10px;color:#bca987}
+.danz-wallet-home .danz-wallet-account-copy>strong{font:900 clamp(27px,3.1vw,42px)/1 Impact,'Arial Narrow',Arial,sans-serif;letter-spacing:.02em;color:#fff8e9}
+.danz-wallet-home .danz-wallet-account-copy>em{font-size:10px;font-style:normal;font-weight:850;letter-spacing:.08em;color:#e4cb96}
+.danz-wallet-home .danz-wallet-icons{display:flex;gap:6px;flex-wrap:wrap;color:#f3e3b9}
+.danz-wallet-home .danz-wallet-icons>span{padding:4px 7px;border:1px solid #b6a38077;border-radius:20px;font-size:9px;font-weight:850;letter-spacing:.06em}
+.danz-wallet-home .danz-wallet-passport-thumb{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  flex:0 0 76px;min-height:89px;max-width:76px;
+  padding:7px 4px;border-radius:3px 9px 10px 3px;border:2px solid #b9a47d;border-left:7px solid #282722;
+  background:radial-gradient(at 45% 15%,#383731,#0c0e0c 75%);color:#e4cd96;box-shadow:4px 4px 10px #0004
+}
+.danz-wallet-home .danz-wallet-passport-thumb svg{width:23px;height:23px}
+.danz-wallet-home .danz-wallet-passport-thumb strong{font:900 23px/1 Impact,'Arial Narrow',Arial,sans-serif}
+.danz-wallet-home .danz-wallet-passport-thumb small{font-size:8px;letter-spacing:.1em}
+.danz-wallet-home .danz-wallet-link .danz-wallet-home-copy{display:flex;flex-direction:column;gap:6px}
+.danz-wallet-home .danz-wallet-link .danz-wallet-home-copy>small{color:#554a3b}
+.danz-wallet-home .danz-wallet-link .danz-wallet-home-copy>strong{color:#29221b;font-size:clamp(23px,2.8vw,35px)}
+.danz-wallet-home .danz-wallet-link .danz-wallet-home-copy>span{color:#443d35;font-size:12px}
+.danz-wallet-home .danz-wallet-link .danz-wallet-home-copy>em{color:#48351e;margin:0;font-size:10px}
+.danz-wallet-home .danz-wallet-account-link:focus-visible,.danz-wallet-home .danz-wallet-link:focus-visible{outline:3px solid var(--acid);outline-offset:3px}
+@media(max-width:430px){
+ .danz-home-priority>.danz-wallet-home.danz-wallet-home{padding:14px 11px 16px;gap:10px}
+ .danz-home-priority .danz-wallet-home .danz-wallet-account-link{min-height:148px;padding:17px 14px}
+ .danz-home-priority .danz-wallet-home .danz-wallet-link{padding:12px 13px;min-height:116px}
+ .danz-wallet-home .danz-wallet-account-icon{font-size:30px}
+ .danz-wallet-home .danz-wallet-account-copy>strong{font-size:28px}
+ .danz-wallet-home .danz-wallet-passport-thumb{flex-basis:68px;max-width:68px}
+}

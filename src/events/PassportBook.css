@@ -95,3 +95,102 @@
 .danz-portrait-demo input::file-selector-button{border:1px solid #655e51;padding:8px 10px;margin-right:10px;background:#252420;color:#f8f4ed;cursor:pointer}
 .danz-portrait-demo p{margin:0;font-size:10px;line-height:1.4;color:#6c6255}
 .danz-portrait-demo button{border:1px solid #655e51;background:transparent;color:#25201c;font-size:10px;font-weight:850;min-height:36px;padding:7px 10px}
+
+/* Immersive, edge-to-edge passport. The home teaser remains a normal scrollable button. */
+.passport-immersive-mount{position:static!important;padding:0!important;margin:0!important}
+.passport-immersive{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom);background:#11100f;color:#f4eee4;overflow:hidden;overscroll-behavior:none}
+.passport-immersive .danz-travel{width:min(100%,650px);height:100%;margin:0;display:flex;flex-direction:column;justify-content:center;min-height:0;padding-top:42px}
+.passport-immersive .danz-travel-top{flex-shrink:0;padding:7px 3px}
+.passport-immersive .danz-travel-window{width:100%;min-height:0;height:auto;flex:1;max-height:820px;touch-action:pan-y;overscroll-behavior:contain}
+.passport-immersive .danz-travel-leaf{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.passport-immersive .danz-travel-leaf::-webkit-scrollbar{display:none}
+.passport-immersive .danz-travel-feedback{flex-shrink:0;padding:8px 0 2px}
+.passport-immersive .danz-photo-choice-status{flex-shrink:0;padding:3px 0;font-size:9px}
+.passport-immersive-close{position:absolute;z-index:10001;top:calc(env(safe-area-inset-top) + 9px);right:max(12px,env(safe-area-inset-right));display:flex;align-items:center;gap:8px;min-height:38px;border:1px solid #8c877d;border-radius:99px;background:#262320;color:#f4eee4;padding:5px 14px;font-size:12px;font-weight:850;letter-spacing:.1em;cursor:pointer}
+.passport-immersive .danz-travel-blank-reader{display:none}
+@media(max-height:740px){
+ .passport-immersive .danz-travel{padding-top:45px}
+ .passport-immersive .danz-travel-leaf{padding:16px}
+ .passport-immersive .danz-paper-rule{margin:9px 0}
+ .passport-immersive .danz-paper-kicker{margin:5px 0 9px}
+ .passport-immersive .danz-paper-title{font-size:clamp(26px,7vw,40px);margin-bottom:9px}
+ .passport-immersive .danz-member-photo{height:105px}
+ .passport-immersive .danz-trip-photo{height:125px}
+}
+
+
+/* Physical passport cover and gesture onboarding, respecting short mobile viewports. */
+.danz-swipe-tutorial{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px;color:#e6d4ab;font-size:10px;font-weight:850;letter-spacing:.12em;pointer-events:none;animation:danz-hint-fade 3s ease-in-out infinite}
+.danz-swipe-tutorial span{font-size:30px;line-height:1;animation:danz-hint-swipe 1.6s ease-in-out infinite}
+@keyframes danz-hint-swipe{0%,100%{transform:translateX(22px);opacity:.4}60%{transform:translateX(-18px);opacity:1}}
+@keyframes danz-hint-fade{0%,100%{opacity:.7}50%{opacity:1}}
+.danz-passport-instagram{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;font-weight:900;padding:10px;border:1px solid #a89b7e;color:#252119;text-decoration:none;overflow-wrap:anywhere}
+.danz-passport-instagram span{font-size:9px;letter-spacing:.06em;text-align:right}
+.passport-immersive .danz-travel-leaf{overscroll-behavior:contain}
+@media(max-height:740px){.passport-immersive .danz-portrait-demo{margin:5px 0;gap:2px}.passport-immersive .danz-portrait-demo p{font-size:9px}.passport-immersive .danz-member-fields{gap:1px}.passport-immersive .danz-travel-cover-bottom{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.danz-swipe-tutorial,.danz-swipe-tutorial span{animation:none}}
+
+/* 19 Nov: tactile, book-like cover and quiet tutorial centered on the book. */
+.danz-travel-cover{
+  isolation:isolate;cursor:pointer;
+  border:7px solid #26251f;border-left-width:14px;
+  border-radius:9px 21px 21px 9px;
+  background:
+    radial-gradient(ellipse 85% 65% at 53% 24%,#5a5144aa,transparent 85%),
+    repeating-linear-gradient(92deg,#ffffff08 0 1px,#00000005 2px 4px),
+    repeating-linear-gradient(7deg,transparent 0 3px,#00000018 4px 5px),
+    linear-gradient(112deg,#161715,#33362c 14%,#272a24 53%,#151713 100%);
+  box-shadow:inset 5px 0 5px #a6a08a33,inset 15px 0 23px #0009,inset -5px 0 12px #b6ac7b22,0 13px 28px #0009;
+  overflow:hidden;
+}
+.danz-travel-cover:after{
+  content:'';position:absolute;inset:5px 5px 5px 8px;pointer-events:none;
+  border-radius:4px 13px 13px 4px;border:1px solid #d6bf8c20;
+  box-shadow:inset 0 0 0 2px #0003;
+}
+.danz-travel-cover .danz-travel-logo{filter:drop-shadow(0 2px 1px #0008)}
+.danz-swipe-tutorial{
+  position:absolute;left:50%;top:53%;transform:translate(-50%,-50%);
+  width:min(78%,280px);z-index:5;pointer-events:none;
+  color:#fff5de;opacity:.56;font-weight:500;font-size:10px;
+  text-shadow:0 0 15px #fff8,0 0 25px #d4c29788;
+  animation:danz-tutorial-ether 4.2s ease-in-out infinite;
+}
+.danz-swipe-tutorial span{
+  font-size:31px;font-weight:300;filter:blur(.35px);
+  animation:danz-ether-swipe 2.4s cubic-bezier(.3,.2,.45,1) infinite;
+}
+@keyframes danz-tutorial-ether{
+  0%,100%{opacity:.21;filter:blur(1.1px)}
+  48%{opacity:.71;filter:blur(0)}
+}
+@keyframes danz-ether-swipe{
+  0%,100%{transform:translateX(23px);opacity:.15}
+  55%{transform:translateX(-25px);opacity:.85}
+}
+.danz-travel-paper{
+  background:
+    repeating-linear-gradient(0deg,transparent 0 3px,#4b42300a 4px 5px),
+    radial-gradient(circle at 24% 32%,#fffdf2 0,#eee6d7 63%,#d8cbbc 100%);
+  border:1px solid #bdb2a1;border-left:7px solid #c3b8a6;
+  border-radius:2px 10px 12px 2px;
+  box-shadow:inset 7px 0 13px #72614a26,inset -3px 0 9px #fff9;
+}
+.passport-immersive .danz-travel-window{touch-action:pan-y}
+.passport-immersive .danz-travel-cover{touch-action:pan-y;overflow:hidden}
+@media(prefers-reduced-motion:reduce){.danz-swipe-tutorial,.danz-swipe-tutorial span{animation:none}}
+
+/* Preview refinement: near-black grained leather with subtle embossed pores. */
+.danz-travel-cover{
+  border-color:#10100f;
+  background:
+    radial-gradient(ellipse at 52% 24%,#33333170,transparent 69%),
+    repeating-linear-gradient(117deg,#f3e7cc09 0 1px,transparent 1px 3px,#00000038 3px 5px),
+    repeating-linear-gradient(31deg,transparent 0 2px,#efe3c006 2px 3px,transparent 4px 6px),
+    radial-gradient(ellipse at 25% 71%,#272623,#080909 73%);
+  box-shadow:inset 3px 0 4px #b1a18440,inset 13px 0 19px #000c,inset -4px 0 9px #c0a6751a,0 16px 34px #000b;
+}
+.danz-travel-cover:before{
+  border-color:#cbb58f55;
+  box-shadow:0 0 0 2px #0009,inset 0 0 0 1px #000b;
+}

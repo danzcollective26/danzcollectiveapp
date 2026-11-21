@@ -85,9 +85,7 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
         <span role="status">{offlineState === 'unsupported' ? 'Este navegador no permite guardar DANZ sin conexión.' : 'El modo sin conexión aún no está listo. Puedes seguir usando DANZ con Internet.'}</span>
         {offlineState === 'unavailable' && <button className="outline-btn" disabled={!online} onClick={() => setOfflineAttempt(attempt => attempt + 1)}>REINTENTAR GUARDADO</button>}
       </div>}
-      {!installed && (isPreviewHost()
-        ? <a className="outline-btn" href={productionUrl}>ABRIR DANZ PARA INSTALAR ↗</a>
-        : <button className="outline-btn" disabled={busy} title={canInstall ? "Instalar directamente en el móvil" : "Abrir opciones de instalación"} onClick={() => { void install() }}>INSTALAR DANZ</button>)}
+      {!installed && !isPreviewHost() && <button className="outline-btn" disabled={busy} title={canInstall ? "Instalar directamente en el móvil" : "Abrir opciones de instalación"} onClick={() => { void install() }}>INSTALAR DANZ</button>}
       {update && <button className="outline-btn" onClick={() => setOpen('update')}>VERSIÓN NUEVA DISPONIBLE</button>}
     </div>}
     <dialog className="pwa-dialog" ref={dialog} aria-labelledby="pwa-dialog-title" onCancel={() => setOpen(null)} onClose={() => setOpen(null)}>

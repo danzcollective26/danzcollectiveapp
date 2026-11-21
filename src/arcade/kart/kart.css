@@ -41,3 +41,22 @@
 
 .kart-cockpit{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}.kart-cockpit svg{position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:max(100%,460px);height:clamp(80px,24%,160px);filter:drop-shadow(0 -5px 12px #091a2866)}.kart-first-person .kart-speed{bottom:6px;background:#101f26bd;border-radius:5px;padding:5px 8px}.kart-first-person .kart-speed>strong{font-size:26px}.kart-first-person .kart-minimap{width:95px;opacity:.88}.kart-first-person .kart-service-banner{max-width:60%}
 @media(orientation:landscape){.kart-first-person .kart-cockpit svg{height:30%;min-height:80px}.kart-first-person .kart-minimap{width:86px}.kart-first-person .kart-speed>strong{font-size:21px}}
+
+/* DANZPORTER paint studio — quick touch palette, no impact on vehicle physics. */
+.kart-paint-palette{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;align-items:center;margin:4px 0 8px;max-width:420px;width:100%;justify-self:center}
+.kart-game .kart-paint-chip{display:grid;place-items:center;position:relative;min-height:44px;min-width:0;padding:5px;border:1px solid #8f9b98;border-radius:8px;background:linear-gradient(150deg,#33363f,#111922);box-shadow:inset 0 1px #ffffff26}
+.kart-paint-chip span{display:block;width:min(100%,38px);height:27px;border-radius:5px;background:linear-gradient(125deg,#ffffff9c 0%,#ffffff13 35%,#00000022 75%),var(--kart-paint);box-shadow:inset 0 2px #ffffff65,0 3px 7px #0008;transform:skewX(-11deg)}
+.kart-game .kart-paint-chip[aria-pressed=true]{border-color:#fcf2dc;box-shadow:0 0 0 2px var(--kart-paint),0 0 14px color-mix(in srgb,var(--kart-paint) 45%,transparent)}
+.kart-game .kart-paint-chip:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.kart-console-preview{position:relative;border-radius:9px;background:radial-gradient(ellipse at 50% 68%,color-mix(in srgb,currentColor 22%,transparent),transparent 70%),linear-gradient(155deg,#22363c,#0e1924);box-shadow:inset 0 0 0 1px #8b9aa348}
+.kart-console-preview:after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(110deg,transparent 25%,#ffffff0d 45%,transparent 66%);pointer-events:none}
+@media(orientation:landscape) and (max-height:540px){.kart-paint-palette{grid-template-columns:repeat(12,minmax(0,1fr));max-width:none;gap:3px}.kart-game .kart-paint-chip{min-height:44px;padding:2px}.kart-paint-chip span{height:24px}}
+
+/* Kart circuit moodboards: the selected venue is a miniature scene, not a flat swatch. */
+.kart-menu-venue-swatch{position:relative;isolation:isolate;min-height:84px;width:min(100%,310px);height:110px;border-radius:9px;background-image:linear-gradient(180deg,#ffffff21,transparent 65%);box-shadow:inset 0 0 0 1px #ffffff26,0 12px 23px #0008}
+.kart-menu-venue-swatch .kart-venue-sun{position:absolute;top:12%;right:16%;width:28px;height:28px;border-radius:50%;box-shadow:0 0 24px currentColor;opacity:.9}
+.kart-menu-venue-swatch .kart-venue-sea{position:absolute;inset:51% 0 0;clip-path:polygon(0 14%,12% 8%,28% 15%,47% 7%,70% 11%,100% 2%,100% 100%,0 100%);opacity:.86}
+.kart-menu-venue-swatch .kart-venue-track{position:absolute;z-index:1;left:-10%;right:-10%;bottom:-16px;height:58%;border:7px solid;border-radius:55% 55% 0 0/60% 60% 0 0;transform:rotate(-8deg);background:#242832;box-shadow:inset 0 8px #f5efe015,0 0 0 4px #151b2099;pointer-events:none}
+.kart-menu-venue-swatch>i{position:absolute;inset:auto 0 0;height:16px;border-top:3px solid #d7dcbbad;opacity:.8;z-index:2}
+.kart-menu-venue-swatch .kart-venue-label{position:absolute;z-index:3;bottom:6px;left:8px;max-width:80%;font:900 9px system-ui;letter-spacing:.13em;color:#fff5e8;text-shadow:0 1px 5px #000,0 0 10px #000}
+@media(orientation:landscape) and (max-height:540px){.kart-menu-venue-swatch{height:70px;min-height:65px}.kart-menu-venue-swatch .kart-venue-sun{width:20px;height:20px}}

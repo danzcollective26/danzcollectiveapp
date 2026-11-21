@@ -1,4 +1,5 @@
 import GameSurface from './GameSurface'
+import GrooveStage3D from './GrooveStage3D'
 import ClubRig from './ClubRig'
 import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
@@ -73,6 +74,31 @@ function ScratchDeck({ game }: { game: GrooveState }) {
     <text y="307" textAnchor="middle" fill="#cdbba2" fontSize="15">{scratch.turns}/{pattern.steps.length} GESTOS · {Math.round(60_000 / game.beatMs)} BPM · LEVANTAR RECOLOCA LA MANO</text>
   </g>
 }
+/** Static perspective layers give the booth a sense of depth without adding game-loop work. */
+const ClubDepth = memo(function ClubDepth({ stage }: { stage: number }) {
+  const accent = stage === 1 ? '#eeaf57' : stage === 2 ? '#5ac7e5' : '#da85ed'
+  return <g className="gn-club-depth" pointerEvents="none" aria-hidden="true">
+    <path d="M0 0H640V760H0Z" fill="url(#gn-depth-backdrop)"/>
+    <path d="M0 118 132 173 178 590 0 760Z" fill="url(#gn-depth-wall-left)"/>
+    <path d="M640 118 508 173 462 590 640 760Z" fill="url(#gn-depth-wall-right)"/>
+    <path d="M132 173H508L462 590H178Z" fill="url(#gn-depth-room)" stroke="#d6b98a" strokeOpacity=".14" strokeWidth="2"/>
+    {Array.from({ length: 7 }, (_, i) => {
+      const t = (i + 1) / 8
+      const y = 174 + 410 * t * t
+      return <path key={i} d={`M${132 + t * 46} ${y}H${508 - t * 46}`} stroke={accent} strokeOpacity={.04 + .085 * t} strokeWidth="2"/>
+    })}
+    <path d="M0 653 178 590H462L640 653V760H0Z" fill="url(#gn-depth-foreground)"/>
+    <path d="M0 653 178 590M640 653 462 590" stroke={accent} strokeOpacity=".36" strokeWidth="4"/>
+    <path d="M153 168V566M487 168V566" stroke={accent} strokeOpacity=".3" strokeWidth="4"/>
+    <path d="M0 117 132 173M640 117 508 173" stroke={accent} strokeOpacity=".48" strokeWidth="3"/>
+    {[0, 1, 2, 3].map((n) => <g key={n}>
+      <rect x={193 + n * 67} y="132" width="42" height="6" rx="3" fill={accent} opacity=".56"/>
+      <path d={`M${214 + n * 67} 141L${214 + n * 67 - 65} 420H${214 + n * 67 + 65}Z`} fill={accent} opacity=".025"/>
+    </g>)}
+    <ellipse cx="320" cy="375" rx="248" ry="255" fill="url(#gn-depth-haze)" opacity=".8"/>
+  </g>
+})
+
 const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
 const CabinetDetails = memo(function CabinetDetails() {
   return <g className="gn-cabinet-details" pointerEvents="none">
@@ -102,6 +128,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   const [audioIssue, setAudioIssue] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [preferences, setPreferences] = useState(readGroovePreferences)
+  const [depthReady, setDepthReady] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const options = useRef<HTMLDivElement>(null), optionsButton = useRef<HTMLButtonElement>(null)
   const sound = useRef<GrooveAudio | null>(null)
@@ -315,9 +342,17 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
         {game.mode === 'cut' ? <div className="gn-weapons" role="group" aria-label="Arma de corte">{(Object.keys(GROOVE_WEAPONS) as GrooveWeapon[]).map((key, i) => <button key={key} type="button" aria-pressed={game.weapon === key} onClick={() => { trail.current = []; commit(selectGrooveWeapon(current.current, key)) }}><span aria-hidden="true">{['╱', '〢', '✧'][i]}</span><span>{GROOVE_WEAPONS[key].name}<small>{GROOVE_WEAPONS[key].detail}</small></span></button>)}</div>
           : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>FLECHA = DIRECCIÓN · CORTO / LARGO = RECORRIDO</small></div>}
       </div>
-      <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className="gn-play-area">
-        <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="none" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
+      <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className={`gn-play-area${depthReady && screen.active && preferences.effects !== 'lite' ? ' gn-3d-active' : ''}`}>
+        {screen.active && preferences.effects !== 'lite' && <GrooveStage3D stage={stage} onReady={setDepthReady} />}
+        <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
           <defs>
+            <linearGradient id="gn-depth-backdrop" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#050c14"/><stop offset=".5" stopColor="#253743"/><stop offset="1" stopColor="#110b14"/></linearGradient>
+            <linearGradient id="gn-depth-wall-left" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#030609"/><stop offset="1" stopColor="#33424b" stopOpacity=".85"/></linearGradient>
+            <linearGradient id="gn-depth-wall-right" x1="1" y1="0" x2="0" y2="0"><stop stopColor="#030609"/><stop offset="1" stopColor="#33424b" stopOpacity=".85"/></linearGradient>
+            <linearGradient id="gn-depth-room" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#283e50" stopOpacity=".65"/><stop offset="1" stopColor="#100e16" stopOpacity=".12"/></linearGradient>
+            <linearGradient id="gn-depth-foreground" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#080d13" stopOpacity=".4"/><stop offset="1" stopColor="#08070a" stopOpacity=".9"/></linearGradient>
+            <radialGradient id="gn-depth-haze"><stop stopColor="#f9ce8b" stopOpacity=".14"/><stop offset="1" stopColor="#000" stopOpacity="0"/></radialGradient>
+            <radialGradient id="gn-vinyl-depth-shadow"><stop stopColor="#000" stopOpacity=".58"/><stop offset=".55" stopColor="#000" stopOpacity=".22"/><stop offset="1" stopColor="#000" stopOpacity="0"/></radialGradient>
             <radialGradient id="gn-disc" cx="32%" cy="22%" r="80%"><stop stopColor="#505258"/><stop offset=".3" stopColor="#1b1c21"/><stop offset=".66" stopColor="#303137"/><stop offset="1" stopColor="#050607"/></radialGradient>
             <linearGradient id="gn-reflection" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f7f0d7" stopOpacity=".6"/><stop offset=".48" stopColor="#e2f2ff" stopOpacity=".08"/><stop offset="1" stopColor="#b5c9d3" stopOpacity=".3"/></linearGradient>
             <linearGradient id="gn-label" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fff2b0" stopOpacity=".7"/><stop offset=".5" stopColor="#fff" stopOpacity="0"/><stop offset="1" stopColor="#30200c" stopOpacity=".4"/></linearGradient>
@@ -332,6 +367,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
             <clipPath id="gn-half-b"><rect x="-60" y="0" width="120" height="60"/></clipPath>
           </defs>
           <rect width="640" height="760" fill="url(#gn-floor)"/>
+          <ClubDepth stage={stage}/>
           <rect width="640" height="760" fill="url(#gn-grain)"/><rect width="640" height="760" fill="url(#gn-light)"/>
           <ellipse cx="320" cy="355" rx="330" ry="280" fill={GROOVE_WEAPONS[game.weapon].color} opacity=".065"/>
           <CabinetDetails/><ClubRig id="gn-rig"/>
@@ -361,7 +397,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           {game.discs.map(disc => {
             const p = discPosition(disc, game.flightTime)
             return <g key={disc.id} className={`gn-target gn-${disc.kind}`} data-disc-id={disc.id} data-special={disc.special ?? 'normal'} data-axis={disc.axis} data-direction={disc.direction} data-sequence={disc.sequence} data-step={disc.step} data-layer={disc.layer} data-fragment={disc.fragment || undefined} data-x={p.x.toFixed(1)} data-y={p.y.toFixed(1)} transform={`translate(${p.x} ${p.y})`}>
-              {disc.kind === 'vinyl' ? <g transform={`scale(${disc.size ?? 1})`}><ellipse cy="15" rx="61" ry="54" fill="#050303" opacity=".4"/><g transform={`rotate(${(game.flightTime - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer} special={disc.special}/></g><rect x="-35" y="62" width="70" height="24" rx="4" fill="#1a130e" stroke={GROOVE_COLORS[disc.layer]} strokeOpacity=".8"/><text y="79" textAnchor="middle" fill={GROOVE_COLORS[disc.layer]} fontSize="14" fontWeight="900">{disc.special === 'gold' ? 'ORO ×3' : disc.special === 'freeze' ? 'HIELO' : disc.special === 'arrow' ? `${disc.step !== undefined ? `${disc.step + 1} · ` : ''}${disc.direction ? GROOVE_DIRECTIONS[disc.direction].arrow : disc.axis === 'x' ? '↔' : '↕'} CUT ${disc.layer + 1}` : disc.special === 'combo' ? 'COMBO ×2' : disc.special === 'split' ? 'SPLIT DISC' : disc.fragment ? 'MINI BONUS' : GROOVE_VINYLS[disc.layer]}</text><DirectionCue disc={disc} game={game}/></g>
+              {disc.kind === 'vinyl' ? <g transform={`scale(${disc.size ?? 1})`}><ellipse cx="8" cy="34" rx="84" ry="72" fill="url(#gn-vinyl-depth-shadow)"/><ellipse cy="15" rx="61" ry="54" fill="#050303" opacity=".4"/><g transform={`rotate(${(game.flightTime - disc.born) * .035 + disc.spin * 40})`}><Vinyl layer={disc.layer} special={disc.special}/></g><rect x="-35" y="62" width="70" height="24" rx="4" fill="#1a130e" stroke={GROOVE_COLORS[disc.layer]} strokeOpacity=".8"/><text y="79" textAnchor="middle" fill={GROOVE_COLORS[disc.layer]} fontSize="14" fontWeight="900">{disc.special === 'gold' ? 'ORO ×3' : disc.special === 'freeze' ? 'HIELO' : disc.special === 'arrow' ? `${disc.step !== undefined ? `${disc.step + 1} · ` : ''}${disc.direction ? GROOVE_DIRECTIONS[disc.direction].arrow : disc.axis === 'x' ? '↔' : '↕'} CUT ${disc.layer + 1}` : disc.special === 'combo' ? 'COMBO ×2' : disc.special === 'split' ? 'SPLIT DISC' : disc.fragment ? 'MINI BONUS' : GROOVE_VINYLS[disc.layer]}</text><DirectionCue disc={disc} game={game}/></g>
                 : <g className="gn-feedback-speaker"><path d="M-38-48-48-35V43L-35 52H36L47 40V-36L36-48Z" fill="url(#gn-metal)" stroke="#ff645f" strokeWidth="3"/><rect x="-34" y="-38" width="68" height="80" rx="7" fill="#270c0b" stroke="#952e25"/><circle cy="9" r="26" fill="#120b09" stroke="#c54630" strokeWidth="3"/><circle cy="9" r="18" fill="#4b1712"/><circle cy="9" r="10" fill="url(#gn-brass)"/><circle cy="-23" r="7" fill="#fb6c49"/><path d="M-54-27-62-11-53-3M54-27 62-11 53-3" fill="none" stroke="#ffb775" strokeWidth="3"/><path d="M-8-64 0-79 4-68 13-82" fill="none" stroke="#f7d55e" strokeWidth="3"/><text y="77" textAnchor="middle" fill="#ff9a78" stroke="#20110a" strokeWidth="4" paintOrder="stroke" fontSize="17" fontWeight="900">! ACOPLE</text></g>}
             </g>
           })}

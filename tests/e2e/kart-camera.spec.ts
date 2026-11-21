@@ -22,13 +22,13 @@ test('first person shares the live race and returns to track view without resett
  await page.getByRole('button',{name:'VOLVER A PISTA',exact:true}).click()
  await expect.poll(async()=>Number(await page.locator('.kart-game').getAttribute('data-elapsed'))).toBeGreaterThan(Number(before))
 })
-test('cockpit preference persists but a local duel always keeps the shared circuit',async({page})=>{
+test('cockpit preference persists but a local duel always keeps the shared chase camera',async({page})=>{
  await page.goto('/test?seccion=arcade&juego=kart')
  await menuTab(page,'AJUSTES');await selectReel(page,'Cámara','PRIMERA PERSONA');await page.reload()
  await expect(page.locator('.kart-game')).toHaveAttribute('data-camera','cockpit')
  await selectReel(page,'Modo de DANZPORTER','DUELO LOCAL')
- await expect(page.locator('.kart-game')).toHaveAttribute('data-camera','track')
- await menuTab(page,'AJUSTES');await expect(page.getByRole('group',{name:'Cámara',exact:true})).toContainText('PISTA COMPARTIDA')
+ await expect(page.locator('.kart-game')).toHaveAttribute('data-camera','follow')
+ await menuTab(page,'AJUSTES');await expect(page.getByRole('group',{name:'Cámara',exact:true})).toContainText('CÁMARA COMPARTIDA')
  await menuTab(page,'CORRER');await selectReel(page,'Modo de DANZPORTER','CONTRARRELOJ')
  await expect(page.locator('.kart-game')).toHaveAttribute('data-camera','cockpit')
 })

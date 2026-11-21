@@ -13,6 +13,8 @@ import './EventPassport.css'
 type Stamp = Database['public']['Functions']['danz_my_passport']['Returns'][number]
 type Props = {
   arrival: boolean
+  immersive?: boolean
+  onClose?: () => void
   client: SupabaseClient<Database> | null
   userId: string | null
   registeredAt: string | null
@@ -25,9 +27,10 @@ type Props = {
   onSignIn: () => void
   onContinue: () => void
   onGallery: (eventId: string) => void
+  onOpenPassport?: () => void
 }
 
-export default function EventPassport({ arrival, client, userId, registeredAt, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery }: Props) {
+export default function EventPassport({ arrival, immersive = false, onClose, client, userId, registeredAt, authLoading, pendingPass, pendingCount, redemption, launchIssue, onPendingPass, onSignIn, onContinue, onGallery, onOpenPassport }: Props) {
   const [code, setCode] = useState(pendingPass ?? '')
   const [message, setMessage] = useState<string | null>(launchIssue)
   const busy = redemption.busy
@@ -130,13 +133,23 @@ export default function EventPassport({ arrival, client, userId, registeredAt, a
 
   const items = !authLoading && passport.owner === userId ? passport.items : []
   const stampsReady = Boolean(userId && !authLoading && passport.owner === userId && !passport.loading && !passport.error)
+  if (immersive) return <section className="passport-immersive" role="dialog" aria-modal="true" aria-label="Mi Pasaporte DANZ">
+    <button type="button" className="passport-immersive-close" onClick={onClose} aria-label="Cerrar pasaporte y volver a la pantalla anterior">✕ <span>CERRAR</span></button>
+    <PassportBook client={client} userId={userId} registeredAt={registeredAt} authLoading={authLoading} stamps={items} ready={stampsReady} loading={passport.loading} failed={passport.error} celebrating={celebrating} onSignIn={requestSignIn} onGallery={onGallery} onRefresh={() => setRetry(value => value + 1)} immersive />
+  </section>
   return <>
     <div className="eyebrow">DANZ COLLECTIVE / TU PASAPORTE</div>
     <h1 className="page-title passport-title">TU PASAPORTE <em>DANZ.</em></h1>
     <p className="page-lead">Cada noche es un viaje. Desliza las páginas para recorrer los sellos y recuerdos de tus fiestas.</p>
     {redemption.message && <p className="passport-message passport-link-status" role="status">{redemption.message}</p>}
     <div className="passport-layout">
-      <PassportBook client={client} userId={userId} registeredAt={registeredAt} authLoading={authLoading} stamps={items} ready={stampsReady} loading={passport.loading} failed={passport.error} celebrating={celebrating} onSignIn={requestSignIn} onGallery={onGallery} onRefresh={() => setRetry(value => value + 1)}/>
+      {onOpenPassport
+        ? <button type="button" className="passport-event-open" onClick={onOpenPassport} aria-label="Abrir el pasaporte DANZ a pantalla completa">
+            <strong>DANZ PASAPORTE</strong>
+            <span>Tus viajes, tus sellos y una página libre para la próxima fiesta.</span>
+            <small>ABRIR A PANTALLA COMPLETA ↗</small>
+          </button>
+        : <PassportBook client={client} userId={userId} registeredAt={registeredAt} authLoading={authLoading} stamps={items} ready={stampsReady} loading={passport.loading} failed={passport.error} celebrating={celebrating} onSignIn={requestSignIn} onGallery={onGallery} onRefresh={() => setRetry(value => value + 1)}/>}
       <section className="passport-redeem" aria-labelledby="redeem-title">
         <div className="passport-redeem-intro"><span className="passport-redeem-number" aria-hidden="true">+</span><div><h2 id="redeem-title">Guarda tu noche.</h2>
         <p>Escanea el QR del evento con la cámara de tu móvil o introduce su código. {userId ? 'El sello se añadirá a la cuenta con la que has iniciado sesión.' : 'Puedes guardar el pase ahora y añadirlo a tu cuenta después.'}</p></div></div>

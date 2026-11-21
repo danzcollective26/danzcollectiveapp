@@ -47,6 +47,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Verify passport immersive navigation contract
+        run: npm run test:e2e -- tests/e2e/passport-immersive-contract.spec.ts tests/e2e/member-wallet-contract.spec.ts tests/e2e/passport-stamps-immersive.spec.ts --project=${{ matrix.viewport }} --workers=1
       - run: npm run test:e2e -- --project=${{ matrix.viewport }} --workers=2 --max-failures=5
       - name: Upload browser test report
         if: always()
