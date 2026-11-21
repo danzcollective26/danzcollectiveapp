@@ -70,12 +70,24 @@ test('preserves albums and images after reload; viewer, download and visitor pre
   await expect(viewer).toHaveAccessibleName('Fotografía 2 de 2 del álbum DANZ QA')
   await page.keyboard.press('ArrowLeft')
   await expect(viewer).toHaveAccessibleName('Fotografía 1 de 2 del álbum DANZ QA')
-  const downloaded = page.waitForEvent('download')
-  await viewer.getByRole('link', { name: 'DESCARGAR FOTO ↓', exact: true }).click()
-  const savedDownload = await downloaded
-  expect(savedDownload.suggestedFilename()).toBe('synthetic-one.png')
-  expect(await savedDownload.failure()).toBeNull()
-  expect(await readFile(await savedDownload.path())).toEqual(png)
+  const downloadLink = viewer.getByRole('link', { name: 'DESCARGAR FOTO ↓', exact: true })
+  await expect(downloadLink).toHaveAttribute('download', 'synthetic-one.png')
+  if (test.info().project.name === 'mobile') {
+    // Chromium's mobile emulation does not reliably emit Playwright's download event
+    // for blob: links. Verify the actual exported bytes without conflating that
+    // browser limitation with a broken file. A physical Android test is still needed.
+    const bytes = await downloadLink.evaluate(async (link: HTMLAnchorElement) =>
+      Array.from(new Uint8Array(await (await fetch(link.href)).arrayBuffer())),
+    )
+    expect(Buffer.from(bytes)).toEqual(png)
+  } else {
+    const downloaded = page.waitForEvent('download')
+    await downloadLink.click()
+    const savedDownload = await downloaded
+    expect(savedDownload.suggestedFilename()).toBe('synthetic-one.png')
+    expect(await savedDownload.failure()).toBeNull()
+    expect(await readFile(await savedDownload.path())).toEqual(png)
+  }
   await page.keyboard.press('Escape')
   await expect(viewer).not.toBeVisible()
 
