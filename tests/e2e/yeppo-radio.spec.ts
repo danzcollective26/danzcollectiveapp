@@ -8,6 +8,18 @@ test('Home keeps the approved account/passport wallet unobstructed by Yeppo',asy
  await expect(page.getByRole('button',{name:'Abrir mi tarjeta de socio DANZ'})).toBeVisible()
  await expect(page.getByRole('button',{name:'Abrir mi Pasaporte DANZ y ver mis sellos'})).toBeVisible()
 })
+test('test laboratory never opens with Yeppo on screen by default',async({page})=>{
+ await page.addInitScript(()=>{localStorage.setItem('danz-yeppo-enabled-v1','true');localStorage.setItem('danz-yeppo-welcome-v1','done')})
+ await page.goto('/test')
+ await expect(page.locator('.yeppo')).toHaveCount(0)
+ const lab=page.getByRole('region',{name:'Zona de pruebas DANZ'})
+ await expect(lab).toBeVisible()
+ const optional=lab.locator('details.test-lab-yeppo')
+ await expect(optional).not.toHaveAttribute('open','')
+ await expect(optional.getByText('LABORATORIO OPCIONAL · YEPPO (EN DESARROLLO)')).toBeVisible()
+ await expect(lab.getByRole('button',{name:/DANZPORTER/})).toBeVisible()
+})
+
 test('disabling Yeppo prevents first-use teaser',async({page})=>{
  await page.addInitScript(()=>{localStorage.setItem('danz-yeppo-enabled-v1','false');localStorage.removeItem('danz-yeppo-welcome-v1')})
  await page.goto('/')
