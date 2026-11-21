@@ -406,6 +406,11 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
             const seconds = (game.elapsed - spark.born) / 1000
             const age = seconds / .75
             return <g key={spark.id} transform={`translate(${spark.x} ${spark.y})`} opacity={1 - age}>
+              {preferences.effects !== 'lite' && <g className="gn-cut-impact" fill="none" pointerEvents="none">
+                <circle r={18 + age * 62} stroke={spark.color} strokeWidth={Math.max(.8,4 * (1 - age))} opacity=".7"/>
+                <circle r={9 + age * 34} stroke="#fff1cf" strokeWidth={Math.max(.5,2 * (1 - age))} opacity=".65"/>
+                {[-1,1].map(sign => <path key={sign} d={`M${sign * (14 + age * 26)} -13l${sign * 12} -12`} stroke={spark.color} strokeWidth="2" strokeLinecap="round"/>)}
+              </g>}
               {spark.layer !== undefined && <g className="gn-cut-pieces" transform={`translate(${(spark.velocity?.x ?? 0) * seconds} ${(spark.velocity?.y ?? -90) * seconds + 370 * seconds * seconds}) rotate(${spark.angle ?? 0}) scale(${spark.size ?? 1})`}>{[-1, 1].map(sign => <g key={sign} transform={`translate(0 ${sign * (5 + seconds * 175)}) rotate(${age * sign * 100})`}><g clipPath={`url(#gn-half-${sign < 0 ? 'a' : 'b'})`}><g transform={`rotate(${(spark.rotation ?? 0) - (spark.angle ?? 0)})`}><Vinyl layer={spark.layer!} special={spark.special}/></g></g><path d={`M-52 0H52`} stroke="#f9dc9d" strokeOpacity=".7" strokeWidth="1.5"/></g>)}</g>}
               <g className="gn-fragments">{Array.from({ length: 12 }, (_, i) => {
                 const angle = i * Math.PI / 6, distance = age * (85 + i % 3 * 36)
