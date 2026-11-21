@@ -3,7 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, trackElevation, type Race, type Track } from './engine'
 import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
-import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
+import { mesh, box, buildKart, palm, canvasTexture, signTexture, flowerTexture } from './models3d'
 import { batchMeshes } from './batch3d'
 import { cockpitFov, cockpitPose, effectiveCamera } from './camera'
 
@@ -47,6 +47,30 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
     const p=trackPoint(track,distance/track.length),offset=side*(ROAD_WIDTH/2+13);transform.position.copy(point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,7+trackElevation(track,distance/track.length)));transform.rotation.y=-p.angle;transform.updateMatrix();barriers.setMatrixAt(count,transform.matrix);transform.position.y=11.1+trackElevation(track,distance/track.length);transform.updateMatrix();caps.setMatrixAt(count,transform.matrix);count++
   }
   barriers.count=caps.count=count;barriers.castShadow=shadows;barriers.receiveShadow=true;scene.add(barriers,caps)
+  // Real DANZ decals on the outside barrier, not just on the garage board.
+  // Share two textures; panels are decoration only and never join collision.
+  const flowerDecal=new THREE.MeshBasicMaterial({map:flowerTexture(venue.curb),transparent:true,side:THREE.DoubleSide,depthWrite:false})
+  const sponsorDecal=new THREE.MeshBasicMaterial({map:signTexture('DANZ','COLLECTIVE',venue.curb),side:THREE.DoubleSide,depthWrite:false})
+  for(let distance=110,number=0;distance<track.length-80;distance+=175,number++){
+    const progress=distance/track.length,p=trackPoint(track,progress)
+    const offset=ROAD_WIDTH/2+17,signPos=point(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,15+trackElevation(track,progress))
+    const plate=mesh(new THREE.PlaneGeometry(number%3===0?26:34,number%3===0?26:13),number%3===0?flowerDecal:sponsorDecal)
+    plate.position.copy(signPos);plate.rotation.y=-p.angle
+    scene.add(plate)
+  }
+  // Speaker stacks echo the collective's sound system; they are set well
+  // outside the track, with no gameplay collisions or animated workloads.
+  const woofer=new THREE.MeshStandardMaterial({color:'#12161a',roughness:.88})
+  const cone=new THREE.MeshStandardMaterial({color:'#657f7c',metalness:.36,roughness:.56})
+  for(const [x,z] of [[70,70],[930,70],[70,655],[930,655]]){
+    const stack=new THREE.Group();stack.position.copy(point(x,z))
+    stack.add(box(30,54,20,dark,0,27,0,1))
+    for(const [y,radius] of [[18,10],[39,6]] as const){
+      stack.add(mesh(new THREE.CircleGeometry(radius,24),cone,0,y,10.3))
+      stack.add(mesh(new THREE.CircleGeometry(radius*.66,24),woofer,0,y,10.6))
+    }
+    scene.add(stack)
+  }
   // Crew garage between the upper straight and the interior hairpin.
   const garage=new THREE.Group();garage.position.copy(point(450,200))
   garage.add(box(255,42,35,dark,0,22,0,2),box(267,5,44,silver,0,46,0,1))
