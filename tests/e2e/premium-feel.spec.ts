@@ -114,7 +114,7 @@ test('gallery and passport show bounded loading states while authorized reads ar
 })
 
 test('Yeppo yields to typing and hidden tabs, while intentional reactions respect reduced motion', async ({ page }, testInfo) => {
-  await mockSupabase(page); await page.goto('/test?seccion=danzers')
+  await mockSupabase(page); await page.goto('/test?seccion=danzers&yeppo=1')
   const launcher=page.getByRole('button',{name:'Hablar con Yeppo',exact:true})
   await expect(launcher).toBeVisible()
   await page.getByLabel('CÓDIGO DEL EVENTO',{exact:true}).fill('DANZTEST123456')
