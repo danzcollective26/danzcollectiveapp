@@ -83,7 +83,7 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const banner=mesh(new THREE.PlaneGeometry(105,20),new THREE.MeshBasicMaterial({map:signTexture('DANZ','START / FINISH')}),5,58,0);banner.rotation.y=Math.PI/2;gantry.add(banner);scene.add(gantry)
   const gridTexture=canvasTexture(128,128,c=>{for(let y=0;y<8;y++)for(let x=0;x<8;x++){c.fillStyle=(x+y)%2?'#12252c':'#e8edd4';c.fillRect(x*16,y*16,16,16)}})
   const grid=mesh(new THREE.PlaneGeometry(15,ROAD_WIDTH-4),new THREE.MeshStandardMaterial({map:gridTexture,roughness:.9}),0,5.15,0);grid.rotation.x=-Math.PI/2;gantry.add(grid)
-  const routePoints=[];for(let d=0;d<track.length;d+=16){const p=trackPoint(track,d/track.length);routePoints.push(point(p.x,p.y,5.12))}routePoints.push(routePoints[0].clone())
+  const routePoints=[];for(let d=0;d<track.length;d+=16){const p=trackPoint(track,d/track.length);routePoints.push(point(p.x,p.y,5.12+trackElevation(track,d/track.length)))}routePoints.push(routePoints[0].clone())
   const route=new THREE.Line(new THREE.BufferGeometry().setFromPoints(routePoints),new THREE.LineDashedMaterial({color:'#cedca5',transparent:true,opacity:.19,dashSize:7,gapSize:13}));route.computeLineDistances();scene.add(route)
   addPitLane(scene,track,lime,silver,dark)
   // Scenography only: venue-themed luminous beacons sit outside the driving
@@ -120,14 +120,14 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
 function addPitLane(scene:THREE.Scene,track:Track,accent:THREE.Material,metal:THREE.Material,dark:THREE.Material){
   const positions:number[]=[],indices:number[]=[],line:THREE.Vector3[]=[]
   for(let n=0;n<=40;n++){
-    const p=pitPoint(track,n/40);line.push(point(p.x,p.y,5.8))
-    for(const side of [-20,20])positions.push(p.x-500-Math.sin(p.angle)*side,5.4,p.y-360+Math.cos(p.angle)*side)
+    const p=pitPoint(track,n/40),height=trackElevation(track,PIT_ENTRY+(PIT_EXIT-PIT_ENTRY)*n/40);line.push(point(p.x,p.y,5.8+height))
+    for(const side of [-20,20])positions.push(p.x-500-Math.sin(p.angle)*side,5.4+height,p.y-360+Math.cos(p.angle)*side)
     if(n<40){const b=n*2;indices.push(b,b+2,b+1,b+2,b+3,b+1)}
   }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals()
   scene.add(mesh(g,new THREE.MeshStandardMaterial({color:'#5e685d',roughness:.9,side:THREE.DoubleSide})))
   const route=new THREE.Line(new THREE.BufferGeometry().setFromPoints(line),new THREE.LineDashedMaterial({color:'#edbd60',dashSize:9,gapSize:8}));route.computeLineDistances();scene.add(route)
-  const p=pitPoint(track,.5),station=new THREE.Group();station.position.copy(point(p.x,p.y))
+  const p=pitPoint(track,.5),station=new THREE.Group();station.position.copy(point(p.x,p.y,trackElevation(track,(PIT_ENTRY+PIT_EXIT)/2)))
   for(const x of [-44,44])for(const z of [-24,24])station.add(box(2,55,2,metal,x,30,z,.5))
   station.add(box(104,4,56,accent,0,59,0,1),box(106,6,2,dark,0,55,28,.5))
   station.add(mesh(new THREE.PlaneGeometry(90,20),new THREE.MeshBasicMaterial({map:signTexture('BOXES','DANZPORTER / CREW SERVICE','#edb644')}),0,47,29))
