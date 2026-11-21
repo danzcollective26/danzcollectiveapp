@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { grooveStagePixelRatio } from './grooveRenderBudget'
 
 /**
  * Real perspective scenery underneath the existing SVG hit plane.
@@ -113,13 +114,14 @@ export default function GrooveStage3D({ stage, onReady }: { stage: number; onRea
     let alive = true
     try {
       renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'low-power' })
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
+      renderer.setPixelRatio(grooveStagePixelRatio(window.devicePixelRatio || 1, Math.max(1,canvas.clientWidth), Math.max(1,canvas.clientHeight)))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
       const paint = () => {
         if (!alive || !renderer) return
         const width = Math.max(1, canvas.clientWidth), height = Math.max(1, canvas.clientHeight)
         if (width <= 1 || height <= 1) return
+        renderer.setPixelRatio(grooveStagePixelRatio(window.devicePixelRatio || 1, width, height))
         renderer.setSize(width, height, false)
         camera.aspect = width / height
         camera.updateProjectionMatrix()
