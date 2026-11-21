@@ -78,6 +78,6 @@ test('Home keeps the approved passport wallet clear of mascot overlays', async (
 test('Yeppo remains available only in explicit test lab and member account', async ({ page }) => {
   await page.goto('/?seccion=arcade')
   await expect(page.locator('.yeppo')).toHaveCount(0)
-  await page.goto('/test')
+  await page.goto('/test?yeppo=1')
   await expect(page.getByRole('button', { name: 'Hablar con Yeppo', exact: true })).toBeVisible()
 })
