@@ -1,21 +1,12 @@
 import {test,expect} from '@playwright/test'
-test('Yeppo peeks on the first visit and introduces DANZ after the first section tap',async({page})=>{
+test('Home keeps the approved account/passport wallet unobstructed by Yeppo',async({page})=>{
  await page.addInitScript(()=>{localStorage.removeItem('danz-yeppo-welcome-v1');localStorage.removeItem('danz-yeppo-enabled-v1')})
  await page.goto('/')
- await expect(page.getByLabel('Yeppo asomándose')).toBeVisible()
- await page.getByRole('navigation').getByRole('button',{name:'ARCADANZ',exact:true}).click()
- const welcome=page.getByRole('region',{name:'Yeppo te presenta DANZ'})
- await expect(welcome).toBeVisible()
- await expect(welcome.getByText('FOTOS',{exact:true})).toBeVisible()
- await expect(welcome.getByText('PASAPORTE',{exact:true})).toBeVisible()
- await expect(welcome.getByText('ARCADANZ',{exact:true})).toBeVisible()
- await expect(welcome.getByText('DANZFLOR',{exact:true})).toBeVisible()
- // The original navigation gesture must still navigate.
- await expect(page.getByLabel('Biblioteca ARCADANZ')).toBeVisible()
- await welcome.getByRole('button',{name:/DÉJAME VIVIR/}).click()
- await expect(welcome).not.toBeVisible()
- await page.reload()
  await expect(page.getByLabel('Yeppo asomándose')).toHaveCount(0)
+ await expect(page.getByRole('region',{name:'Yeppo te presenta DANZ'})).toHaveCount(0)
+ await expect(page.locator('.danz-wallet-home')).toBeVisible()
+ await expect(page.getByRole('button',{name:'Abrir mi tarjeta de socio DANZ'})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Abrir mi Pasaporte DANZ y ver mis sellos'})).toBeVisible()
 })
 test('disabling Yeppo prevents first-use teaser',async({page})=>{
  await page.addInitScript(()=>{localStorage.setItem('danz-yeppo-enabled-v1','false');localStorage.removeItem('danz-yeppo-welcome-v1')})
@@ -40,13 +31,13 @@ test('radio starts minimized, opens the seven-track queue and minimizes without 
  await expect(page).toHaveURL(/seccion=fotos/)
 })
 
-test('returning visitor gets one lightweight Yeppo wink without a blocking welcome',async({page})=>{
+test('Yeppo lab previews a returning visitor greeting',async({page})=>{
  await page.addInitScript(()=>{
   localStorage.setItem('danz-yeppo-welcome-v1','done')
   localStorage.setItem('danz-yeppo-enabled-v1','true')
   sessionStorage.removeItem('danz-yeppo-visit-peek-v1')
  })
- await page.goto('/')
+ await page.goto('/test')
  await expect(page.getByLabel('Yeppo te saluda')).toBeVisible()
  await expect(page.getByRole('region',{name:'Yeppo te presenta DANZ'})).toHaveCount(0)
  await page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true}).click()
@@ -61,7 +52,7 @@ test('Yeppo offers optional guided conversation and navigates to photos without 
   localStorage.setItem('danz-yeppo-enabled-v1','true')
   sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
  })
- await page.goto('/')
+ await page.goto('/test')
  await page.getByRole('button',{name:'Hablar con Yeppo'}).click()
  const dialogue=page.getByRole('dialog',{name:'Hablar con Yeppo'})
  await expect(dialogue).toBeVisible()
@@ -82,7 +73,7 @@ test('Yeppo uses the DANZFLOR bag-inspired full-body flower with accessible chat
   localStorage.setItem('danz-yeppo-enabled-v1','true')
   sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
  })
- await page.goto('/')
+ await page.goto('/test')
  const yeppo=page.getByRole('button',{name:'Hablar con Yeppo'})
  await expect(yeppo).toBeVisible()
  await expect(yeppo.locator('svg.yeppo-character')).toHaveCount(1)
@@ -98,7 +89,7 @@ test('Yeppo walkabout can be previewed on demand and visibly crosses the screen'
   localStorage.setItem('danz-yeppo-enabled-v1','true')
   sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
  })
- await page.goto('/')
+ await page.goto('/test')
  await page.getByRole('button',{name:'Hablar con Yeppo'}).click()
  await page.getByRole('button',{name:/VER A YEPPO PASEARSE/}).click()
  const walk=page.getByTestId('yeppo-walkabout')
@@ -120,7 +111,7 @@ test('Yeppo previews a different playful crossing on consecutive replays',async(
   localStorage.setItem('danz-yeppo-enabled-v1','true')
   sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
  })
- await page.goto('/')
+ await page.goto('/test')
  const launcher=page.getByRole('button',{name:'Hablar con Yeppo'})
  await launcher.click()
  for(const [index,style] of ['stroll','sneak','dash'].entries()){
