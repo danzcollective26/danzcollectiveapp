@@ -24,6 +24,12 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         g.fillStyle((x + y) % 120 ? 0x1e3037 : 0x23373c,.18).fillRoundedRect(x, y, 57, 57, 4)
         g.lineStyle(1, 0x8caa9e, .08).lineBetween(x + 3, y + 2, x + 54, y + 2)
       }
+      // Club spotlights are baked once: real-time updates stay limited to players.
+      for (const [x,y,light] of [[W*.26,H*.28,0xffd36e],[W*.74,H*.73,0x86e4dc]] as const) {
+        g.fillStyle(light,.045).fillCircle(x,y,130)
+        g.lineStyle(2,light,.25).strokeCircle(x,y,112)
+        g.lineStyle(1,light,.15).strokeCircle(x,y,88)
+      }
       g.lineStyle(3, 0x8bb3aa, .7).strokeRoundedRect(10, 10, W - 20, H - 20, 17)
       for (let id = 0; id < 2; id++) {
         const x = id ? W - 36 : 26
