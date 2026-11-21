@@ -87,3 +87,15 @@
   aspect-ratio:640/760;
   box-sizing:border-box;
 }
+
+/* Layered venue light: stage mood changes stay out of the touch/score pipeline.
+   Box shadows preserve the 640×760 board geometry on small landscape screens. */
+.gn-panel{--gn-venue-rim:#e2aa6e;--gn-venue-bloom:#e2aa6e24}
+.gn-panel[data-stage="2"]{--gn-venue-rim:#77cde8;--gn-venue-bloom:#4daae52b}
+.gn-panel[data-stage="3"]{--gn-venue-rim:#df8fcf;--gn-venue-bloom:#dc65be2f}
+.gn-play-area{box-shadow:0 0 0 3px #130f0b,0 8px 22px #0008,inset 0 0 50px #0008,0 0 24px var(--gn-venue-bloom)}
+.gn-panel[data-status=playing] .gn-play-area{border-color:var(--gn-venue-rim)}
+.gn-panel .gn-club-depth{pointer-events:none}
+.gn-panel[data-stage="2"] .gn-hud-vinyl{border-color:#8fc7da}
+.gn-panel[data-stage="3"] .gn-hud-vinyl{border-color:#e7add9}
+@media(prefers-reduced-motion:reduce){.gn-play-area{transition:none}.gn-panel .gn-club-depth{animation:none}}
