@@ -341,7 +341,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>FLECHA = DIRECCIÓN · CORTO / LARGO = RECORRIDO</small></div>}
       </div>
       <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className="gn-play-area">
-        <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="none" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
+        <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
           <defs>
             <linearGradient id="gn-depth-backdrop" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#050c14"/><stop offset=".5" stopColor="#253743"/><stop offset="1" stopColor="#110b14"/></linearGradient>
             <linearGradient id="gn-depth-wall-left" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#030609"/><stop offset="1" stopColor="#33424b" stopOpacity=".85"/></linearGradient>
