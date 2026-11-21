@@ -4,7 +4,7 @@ import SelectionReel, { type MenuChoice } from '../SelectionReel'
 import { CHASSIS, WHEELS, DRIVERS, KART_COLORS, kartStats, type KartBuild } from './garage'
 
 const PARTS=[{id:'chassis',label:'CHASIS'},{id:'wheels',label:'RUEDAS'},{id:'color',label:'PINTURA'},{id:'driver',label:'PILOTO'}]
-const PAINT_NAMES=['TAXI GOLD','LIMA CLUB','PETROL RUN','CREW ROSÉ','IVORY','CORAL']
+const PAINT_NAMES=['TAXI GOLD','LIMA CLUB','PETROL RUN','CREW ROSÉ','IVORY','CORAL','VIOLET RUSH','MINT CHROME','SOLAR GOLD','ELECTRIC BLUE','PINK AFTER','TERRACOTTA']
 export default function KartGarage({builds,duel,onChange}:{builds:[KartBuild,KartBuild];duel:boolean;onChange:(player:0|1,build:KartBuild)=>void}){
   const [selected,setSelected]=useState<0|1>(0),[part,setPart]=useState('chassis'),player=duel?selected:0,build=builds[player],stats=kartStats(build)
   const update=(value:Partial<KartBuild>)=>onChange(player,{...build,...value})
