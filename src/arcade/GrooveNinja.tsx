@@ -1,4 +1,5 @@
 import GameSurface from './GameSurface'
+import GrooveStage3D from './GrooveStage3D'
 import ClubRig from './ClubRig'
 import GrooveDestruction from './GrooveDestruction'
 import ArcadeLaunch from './ArcadeLaunch'
@@ -127,6 +128,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
   const [audioIssue, setAudioIssue] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [preferences, setPreferences] = useState(readGroovePreferences)
+  const [depthReady, setDepthReady] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const options = useRef<HTMLDivElement>(null), optionsButton = useRef<HTMLButtonElement>(null)
   const sound = useRef<GrooveAudio | null>(null)
@@ -340,7 +342,8 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
         {game.mode === 'cut' ? <div className="gn-weapons" role="group" aria-label="Arma de corte">{(Object.keys(GROOVE_WEAPONS) as GrooveWeapon[]).map((key, i) => <button key={key} type="button" aria-pressed={game.weapon === key} onClick={() => { trail.current = []; commit(selectGrooveWeapon(current.current, key)) }}><span aria-hidden="true">{['╱', '〢', '✧'][i]}</span><span>{GROOVE_WEAPONS[key].name}<small>{GROOVE_WEAPONS[key].detail}</small></span></button>)}</div>
           : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>FLECHA = DIRECCIÓN · CORTO / LARGO = RECORRIDO</small></div>}
       </div>
-      <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className="gn-play-area">
+      <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className={`gn-play-area${depthReady && screen.active && preferences.effects !== 'lite' ? ' gn-3d-active' : ''}`}>
+        {screen.active && preferences.effects !== 'lite' && <GrooveStage3D stage={stage} onReady={setDepthReady} />}
         <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
           <defs>
             <linearGradient id="gn-depth-backdrop" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#050c14"/><stop offset=".5" stopColor="#253743"/><stop offset="1" stopColor="#110b14"/></linearGradient>
