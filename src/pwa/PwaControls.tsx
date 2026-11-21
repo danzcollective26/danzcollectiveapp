@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { prepareOffline, type OfflinePreparation } from './offline'
+import { isPreviewHostname, shouldRegisterOffline } from './previewHost'
 import './PwaControls.css'
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
 const production = Boolean((import.meta as ImportMeta & { env: { PROD?: boolean } }).env.PROD)
-const isPreviewHost = () => window.location.hostname.endsWith('.vercel.app') && window.location.hostname !== 'danzcollectiveapp.vercel.app'
+const isPreviewHost = () => isPreviewHostname(window.location.hostname)
 const productionUrl = 'https://danzcollectiveapp.vercel.app/'
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 
@@ -39,7 +40,9 @@ export default function PwaControls({ quiet = false }: { quiet?: boolean }) {
   }, [])
 
   useEffect(() => {
-    if (!production) return
+    // Previews stay online-only: an old service worker must not mask a new test build.
+    // Production retains its existing offline/installation behaviour.
+    if (!shouldRegisterOffline(production, window.location.hostname)) return
     if (!('serviceWorker' in navigator) || !window.isSecureContext) { setOfflineState('unsupported'); return }
     try {
       const container = navigator.serviceWorker
