@@ -34,6 +34,13 @@
 - DANZPORTER, Groove Ninja, Snake, Yeppo y demás juegos siguen sus propios documentos de mecánica y aprobaciones.
 - Música ajena solo con licencias y autorización; no copiar otros juegos ni portada de forma literal.
 
+## Prioridad confirmada por el propietario — 21/11/2026
+- **Cerrar primero Inicio, Mi Cuenta y Pasaporte**: cartera aprobada (tarjeta pequeña de Cuenta con Instagram/DANZPOINTS/sellos; Pasaporte debajo), lector inmersivo, flujos de acceso y comprobaciones móviles. No volver a desplazar Inicio con una presentación automática de Yeppo.
+- Yeppo no protagoniza Inicio; su desarrollo queda secundario y sus pruebas/demos pertenecen a Cuenta o al laboratorio explícito `/test`.
+- DANZPORTER: ideas de flores, vallas decoradas, altavoces, más trazados con desniveles y duelo compartido con coches grandes quedan registradas; **no ampliar ahora el alcance** hasta cerrar cuenta/pasaporte y verificar CI. La compatibilidad y calidad táctil del duelo exigen pruebas reales.
+- Groove Ninja: conservar las mecánicas de cortes que funcionan y mejorar solo volumen/profundidad/encaje. No añadir más funciones por iniciativa propia ni solicitar imágenes/referencias al propietario por ahora.
+- Orden de entrega: reparar regresiones de la PR, validar en móvil/tableta/escritorio y PWA, presentar preview para prueba en Android físico, esperar aprobación antes de fusionar. Distinguir CI del guardado físico de fotografías y del renderizado visual en el Android del propietario.
+
 ## Estado del bloque activo (ver PR #64)
 - En preview: nueva cartera apilada y tarjeta compacta, lector inmersivo, Instagram de verificación manual y privacidad.
 - En automatización: tests de contrato de Pasaporte y cartera. Algunos E2E antiguos siguen esperando interfaz de Cuenta anterior; corregir antes de fusionar.
