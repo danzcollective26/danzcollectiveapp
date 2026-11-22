@@ -137,7 +137,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
     current.current = next; setGame(next)
     if (next.hits > previous.hits) sound.current?.slice(next.sparks.at(-1)?.layer ?? 0)
     if (next.misses > previous.misses) sound.current?.stumble()
-    if (next.status !== 'playing') { sound.current?.pause(); music.current?.pause() }
+    if (next.status !== 'playing') { gesture.current = null; trail.current = []; sound.current?.pause(); music.current?.pause() }
   }
   function pause() { gesture.current = null; trail.current = []; commit(setGroovePlaying(current.current, false)); sound.current?.pause(); music.current?.pause(); setMusicStatus('idle') }
   function chooseMusic(id: string) {
