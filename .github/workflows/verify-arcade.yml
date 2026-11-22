@@ -1,0 +1,52 @@
+name: Verify ARCADANZ
+
+on:
+  pull_request:
+    paths:
+      - 'src/arcade/**'
+      - 'src/snake.ts'
+      - 'src/App.tsx'
+      - 'tests/e2e/**'
+      - 'tests/*.test.ts'
+      - '.github/workflows/verify-arcade.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-arcade-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  arcade-browser:
+    name: arcade (${{ matrix.viewport }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [mobile, tablet, desktop]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run actual games in browser
+        run: >-
+          npm run test:e2e -- --project=${{ matrix.viewport }}
+          --workers=2
+          tests/e2e/snake.spec.ts
+          tests/e2e/groove.spec.ts
+          tests/e2e/kart.spec.ts
+          tests/e2e/kart-camera.spec.ts
+          tests/e2e/collecta-joystick.spec.ts
+      - name: Upload ARCADANZ report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcade-${{ matrix.viewport }}-report
+          path: playwright-report/
+          retention-days: 7
