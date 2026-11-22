@@ -316,7 +316,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>FLECHA = DIRECCIÓN · CORTO / LARGO = RECORRIDO</small></div>}
       </div>
       <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className="gn-play-area">
-        <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="none" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
+        <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="none" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={event => { if (gesture.current?.id === event.pointerId) pause() }} onLostPointerCapture={release}>
           <defs>
             <radialGradient id="gn-disc" cx="32%" cy="22%" r="80%"><stop stopColor="#505258"/><stop offset=".3" stopColor="#1b1c21"/><stop offset=".66" stopColor="#303137"/><stop offset="1" stopColor="#050607"/></radialGradient>
             <linearGradient id="gn-reflection" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f7f0d7" stopOpacity=".6"/><stop offset=".48" stopColor="#e2f2ff" stopOpacity=".08"/><stop offset="1" stopColor="#b5c9d3" stopOpacity=".3"/></linearGradient>
