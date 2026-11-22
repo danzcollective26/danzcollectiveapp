@@ -441,3 +441,19 @@ for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }]) {
     await expect(disc).toHaveCount(0)
   })
 }
+
+test('cancelling a secondary pointer does not pause an active Groove cut', async ({ page }) => {
+  await openGroove(page); await start(page)
+  const board = page.locator('.gn-board')
+  const box = (await board.boundingBox())!
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  try {
+    await board.evaluate(element => element.dispatchEvent(new PointerEvent('pointercancel', {
+      bubbles: true, pointerId: 999, pointerType: 'touch', isPrimary: false
+    })))
+    await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'playing')
+  } finally {
+    await page.mouse.up()
+  }
+})
