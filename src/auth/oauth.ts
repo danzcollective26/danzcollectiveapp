@@ -22,8 +22,45 @@ export function accountBrowserUrl(origin: string, pendingPass: string | null): s
 
 /** Production origin for links opened from email or a shared Vercel preview. */
 export const DANZ_CANONICAL_ORIGIN = 'https://danzcollectiveapp.vercel.app'
+export const DANZ_PREVIEW_AUTH_ORIGIN = 'https://danzcollectiveapp-preview.vercel.app'
+/** Enable only after this exact URL is allowlisted in Supabase Auth URL Configuration.
+ * Preview OAuth needs its PKCE verifier and callback on the same browser origin.
+ * This flag must never be enabled for arbitrary per-commit Vercel preview URLs.
+ */
+export function isDanzPreviewAuthAllowed(origin: string, enabled: boolean): boolean {
+  if (!enabled) return false
+  try {
+    const url = new URL(origin)
+    return url.origin === DANZ_PREVIEW_AUTH_ORIGIN
+  } catch { return false }
+}
+/** The email handoff must remain on the exact preview host when configured in Supabase.
+ * It is deliberately independent of Google OAuth's opt-in PKCE flag. */
+/** Both the stable preview alias and Vercel deployments belong to the same DANZ test project.
+ * Never treat an arbitrary vercel.app website as our preview. */
+export function isDanzPreviewAppOrigin(origin: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(origin)
+    return protocol === 'https:' && (
+      hostname === 'danzcollectiveapp-preview.vercel.app' ||
+      /^danzcollectiveapp-[a-z0-9-]+-danzcollectiveapp-5608\.vercel\.app$/.test(hostname)
+    )
+  } catch { return false }
+}
+
+export function danzEmailRedirectOrigin(origin: string): string {
+  const url = new URL(origin)
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
+  return isDanzPreviewAppOrigin(url.origin) ? DANZ_PREVIEW_AUTH_ORIGIN : DANZ_CANONICAL_ORIGIN
+}
+
+/** Social OAuth is allowed on preview only after the explicit Supabase allowlist and env toggle. */
+export function danzPreviewOAuthEnabled(origin: string): boolean {
+  return isDanzPreviewAuthAllowed(origin, (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_PREVIEW_OAUTH_ENABLED === 'true')
+}
 export function danzAuthOrigin(origin: string): string {
   const url = new URL(origin)
   if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
+  if (danzPreviewOAuthEnabled(url.origin)) return DANZ_PREVIEW_AUTH_ORIGIN
   return DANZ_CANONICAL_ORIGIN
 }

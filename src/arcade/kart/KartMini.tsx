@@ -8,7 +8,7 @@ import KartMinimap from './KartMinimap'
 import KartController, { type Pedal } from './KartController'
 import KartMenu from './KartMenu'
 import Cockpit from './Cockpit'
-import { cockpitSteering, effectiveCamera } from './camera'
+import { cockpitSteering, effectiveCamera, kartSpeedCue } from './camera'
 import { requestArcadeFullscreen } from '../arcadeFullscreen'
 import { buildKey, buildName, type KartBuild } from './garage'
 import { readKartPreferences, saveKartPreferences, type KartPreferences } from './preferences'
@@ -90,9 +90,9 @@ export default function KartMini({onBack}:{onBack:()=>void}){
   const order=raceOrder(hud),position=order.findIndex(c=>c.id===0)+1,p1=hud.cars[0]
   const controller=(id:0|1)=><KartController car={hud.cars[id]} active={moving} automatic={preferences.autoThrottle} firstPerson={cockpit} onVector={v=>{inputs.current[id]={...inputs.current[id],vector:v}}} onHold={(key,held)=>hold(id,key,held)} onPit={()=>{inputs.current[id].pit=true}}/>
   const serviceText=p1.tow>0?`GRÚA EN ${Math.ceil(p1.tow/1000)} S`:p1.service>0?`REPARANDO · ${Math.ceil(p1.service/1000)} S`:p1.pit!==null?'ASISTENCIA EN BOXES':p1.pitRequested?'BOXES EN LA PRÓXIMA ENTRADA':''
-  return <section ref={panel} tabIndex={-1} className={`kart-game${duel?' kart-duel':' kart-solo'}${cockpit?' kart-first-person':''}`} aria-label="DANZPORTER" data-camera={camera} data-phase={hud.phase} data-mode={hud.mode} data-track={hud.track} data-elapsed={Math.floor(hud.elapsed)} data-p1={`${p1.x.toFixed(1)},${p1.y.toFixed(1)}`} data-laps={p1.laps} data-drifting={p1.drifting} data-render-mode={renderMode} data-health={p1.health.toFixed(3)} data-speed={p1.speed.toFixed(1)} data-pit={p1.pit===null?'none':p1.service>0?'repair':'lane'} data-build={buildKey(p1.build)}>
+  return <section ref={panel} tabIndex={-1} className={`kart-game${duel?' kart-duel':' kart-solo'}${cockpit?' kart-first-person':''}`} aria-label="DANZPORTER" data-camera={camera} data-phase={hud.phase} data-mode={hud.mode} data-track={hud.track} data-elapsed={Math.floor(hud.elapsed)} data-p1={`${p1.x.toFixed(1)},${p1.y.toFixed(1)}`} data-laps={p1.laps} data-drifting={p1.drifting} data-render-mode={renderMode} data-health={p1.health.toFixed(3)} data-speed={p1.speed.toFixed(1)} data-speed-cue={active ? kartSpeedCue(p1.speed) : 'cruise'} data-pit={p1.pit===null?'none':p1.service>0?'repair':'lane'} data-build={buildKey(p1.build)}>
     <header className="kart-top" aria-hidden={!moving}><button type="button" onClick={exit} aria-label="Salir de DANZPORTER">← ARCADE</button><div><strong>DANZ<em>PORTER</em></strong><small>COLLECTIVE RACING DEPARTMENT</small></div><button type="button" aria-label="Ajustes del kart" onClick={()=>{pause();setSettingsOpen(true)}}>···</button><button type="button" disabled={!moving&&hud.phase!=='paused'} onClick={()=>hud.phase==='paused'?play():pause()}>{hud.phase==='paused'?'REANUDAR':'PAUSAR'}</button></header>
-    <div className="kart-hud" aria-hidden={!moving}><span>VUELTA <b>{Math.min(RACE_LAPS,p1.laps+1)}/{RACE_LAPS}</b></span><strong>{formatRaceTime(hud.elapsed)}</strong><span>{hud.mode==='time'?'RÉCORD':'POSICIÓN'} <b>{hud.mode==='time'?formatRaceTime(best):`${position}/${hud.cars.length}`}</b></span></div>
+    <div className="kart-hud" aria-hidden={!moving}><span>{duel ? "VUELTAS · P1 / P2" : "VUELTA"} <b>{duel ? `${Math.min(RACE_LAPS,p1.laps+1)} / ${Math.min(RACE_LAPS,hud.cars[1].laps+1)} DE ${RACE_LAPS}` : `${Math.min(RACE_LAPS,p1.laps+1)}/${RACE_LAPS}`}</b></span><strong>{formatRaceTime(hud.elapsed)}</strong><span>{hud.mode==='time'?'RÉCORD':'POSICIÓN'} <b>{hud.mode==='time'?formatRaceTime(best):`${position}/${hud.cars.length}`}</b></span></div>
     <div className="kart-layout" aria-hidden={!moving}>{duel&&controller(1)}<GameSurface ratio={1000/720} className={`kart-board-slot${renderMode==='3d'||cockpit?' kart-board-3d':''}`}><div className="kart-board" ref={host} role="img" aria-label={`Circuito ${TRACKS[hud.track].name}, ${hud.cars.length} karts`} data-ready={ready}/>
       {moving&&camera!=='track'&&!duel&&(renderMode==='3d'||cockpit)&&<KartMinimap race={hud}/>}
       {moving&&cockpit&&<Cockpit car={p1}/>}

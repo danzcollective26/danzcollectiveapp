@@ -29,6 +29,8 @@ test('Kart local duel exposes opposed, independent sticks and clears on rotation
   await selectReel(page,'Modo de DANZPORTER','DUELO LOCAL')
   await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
   await expect(page.locator('.kart-game')).toHaveAttribute('data-phase','playing',{timeout:8000})
+  await expect(page.locator('.kart-hud')).toContainText('VUELTAS · P1 / P2')
+  await expect(page.locator('.kart-hud')).toContainText('1 / 1 DE 3')
   for(const p of [1,2]){
     const stick=page.getByRole('button',{name:`P${p} Joystick`,exact:true}),box=await stick.boundingBox()
     expect(box?.width).toBeGreaterThanOrEqual(111);expect(box?.height).toBeGreaterThanOrEqual(111)
@@ -46,6 +48,16 @@ test('Both circuits can be selected without changing the chosen mode',async({pag
   await expect(page.locator('.kart-game')).toHaveAttribute('data-track','backstage')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-mode','time')
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true',{timeout:15000})
+})
+
+test('three new challenging circuits can be selected and each loads the same race controls',async({page})=>{
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await menuTab(page,'CIRCUITO')
+  for(const [name,id] of [['CREW SWITCHBACK','switchback'],['FLOWER CHICANE','flower'],['SKYLINE EXPRESS','skyline']] as const){
+    await selectReel(page,'Circuito de DANZPORTER',name)
+    await expect(page.locator('.kart-game')).toHaveAttribute('data-track',id)
+    await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true',{timeout:15000})
+  }
 })
 
 test('Graphics can switch to compatible 2D and back without losing the mode',async({page})=>{
@@ -72,6 +84,42 @@ test('Garage changes real parts and persists them across reloads',async({page})=
   await menuTab(page,'GARAJE')
   await page.getByRole('navigation',{name:'Piezas del garaje'}).getByRole('button',{name:'PILOTO',exact:true}).click();await expect(page.getByRole('group',{name:'PILOTO',exact:true})).toContainText('NIGHT COURIER')
 })
+test('garage shows distinct racing decals when switching between chassis',async({page})=>{
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await menuTab(page,'GARAJE')
+  const preview=page.locator('.kart-console-preview svg')
+  await expect(preview.locator('g[aria-hidden="true"]')).toHaveCount(1)
+  const first=await preview.locator('g[aria-hidden="true"]').innerHTML()
+  await selectReel(page,'CHASIS','SPRINT')
+  const sprint=await preview.locator('g[aria-hidden="true"]').innerHTML()
+  expect(sprint).not.toBe(first)
+  await selectReel(page,'CHASIS','TRANSPORT')
+  const transport=await preview.locator('g[aria-hidden="true"]').innerHTML()
+  expect(transport).not.toBe(sprint)
+  await expect(page.locator('.kart-console-stats')).toBeVisible()
+})
+
+test('DANZPORTER paint studio offers twelve accessible paints and five circuit moods',async({page})=>{
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await menuTab(page,'GARAJE')
+  await page.getByRole('navigation',{name:'Piezas del garaje'}).getByRole('button',{name:'PINTURA',exact:true}).click()
+  const palette=page.getByRole('group',{name:'Paleta de pinturas DANZPORTER'})
+  await expect(palette.getByRole('button')).toHaveCount(12)
+  const paint=palette.getByRole('button',{name:'Pintura VIOLET RUSH',exact:true})
+  await paint.click()
+  await expect(paint).toHaveAttribute('aria-pressed','true')
+  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('danzporter-preferences-v3')||'{}').builds?.[0]?.color)).toBe('#8c75e8')
+  await menuTab(page,'CIRCUITO')
+  await page.getByRole('navigation',{name:'Opciones de circuito'}).getByRole('button',{name:'AMBIENTE',exact:true}).click()
+  await selectReel(page,'Ambiente','NEON DELIVERY')
+  await expect(page.locator('.kart-menu-venue-swatch')).toHaveAttribute('aria-label','Vista del ambiente NEON DELIVERY')
+  await expect(page.locator('.kart-menu-venue-swatch .kart-venue-sun')).toBeVisible()
+  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('danzporter-preferences-v3')||'{}').venue)).toBe('neon')
+  await page.reload()
+  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('danzporter-preferences-v3')||'{}').builds?.[0]?.color)).toBe('#8c75e8')
+  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('danzporter-preferences-v3')||'{}').venue)).toBe('neon')
+})
+
 test('A pit request enters the real service lane and returns to the track',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')
   await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()

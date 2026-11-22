@@ -4,7 +4,11 @@ import type { KartCamera } from './preferences.ts'
 export type CameraPoint = { x:number; y:number; z:number }
 export type CockpitPose = CameraPoint & { heading:number; pitch:number }
 export const CAMERA_NEAR = 2
-export const effectiveCamera = (camera:KartCamera,mode:KartMode):KartCamera => mode==='duel'?'track':camera
+export const effectiveCamera = (camera:KartCamera,mode:KartMode):KartCamera => mode==='duel'?'follow':camera
+/** Shared chase framing: prioritize readable karts, widen only as players separate. */
+export const duelChaseDistance = (separation:number,aspect:number) => Math.max(235,Math.min(1100,235+Math.max(0,separation)*1.32/Math.max(.65,aspect)))
+/** Presentation-only speed cue. No effect on acceleration, scoring or inputs. */
+export const kartSpeedCue = (speed:number):'cruise'|'quick'|'rush' => !Number.isFinite(speed)||Math.abs(speed)<85?'cruise':Math.abs(speed)<145?'quick':'rush'
 export const cockpitFov = (aspect:number) => Math.min(94,Math.max(56,2*Math.atan(Math.tan(43*Math.PI/180)/Math.max(.2,aspect))*180/Math.PI))
 export const cockpitPose = (car:Pick<Car,'x'|'y'|'angle'>):CockpitPose => ({x:car.x+Math.cos(car.angle)*7,y:32,z:car.y+Math.sin(car.angle)*7,heading:car.angle,pitch:.065})
 

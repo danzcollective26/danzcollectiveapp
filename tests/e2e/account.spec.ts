@@ -2,8 +2,8 @@ import { expect, test, type Page } from '@playwright/test'
 import { installMockSession, makeSession, mockSupabase, supabaseHost, sessionStorageKey, switchMockSession, USER_A, USER_B } from './helpers/supabase'
 
 async function account(page: Page) {
-  await page.goto('/')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  // The wallet is the stable account entry on mobile; desktop navigation is not required.
+  await page.goto('/?seccion=cuenta')
 }
 
 async function profileMock(page: Page) {
@@ -21,7 +21,7 @@ test('correo explícito, código, perfil por columnas y cierre de sesión', asyn
   await page.route(`${supabaseHost}/auth/v1/otp**`, async route => {
     sends.push(route.request().postDataJSON())
     const redirect = new URL(route.request().url()).searchParams.get('redirect_to')
-    expect(redirect).toBe('http://127.0.0.1:4173/')
+    expect(redirect).toBe('http://127.0.0.1:4173/?seccion=cuenta')
     await route.fulfill({ json: {} })
   })
   await page.route(`${supabaseHost}/auth/v1/verify`, async route => {
@@ -42,24 +42,26 @@ test('correo explícito, código, perfil por columnas y cierre de sesión', asyn
   await page.getByRole('button', { name: 'MI CORREO INCLUYE UN CÓDIGO', exact: true }).click()
   await page.getByLabel('Código de acceso', { exact: true }).fill('123456')
   await page.getByRole('button', { name: 'COMPROBAR CÓDIGO', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
+  await page.getByRole('button', { name: 'ADMINISTRAR MI PERFIL Y AJUSTES' }).click()
+  await page.getByLabel('Nombre público o alias (puede ser distinto al del correo)', { exact: true }).fill('Miembro QA')
   await page.getByLabel('Instagram (opcional)', { exact: true }).fill('invalid handle')
-  await page.getByRole('button', { name: 'GUARDAR PERFIL', exact: true }).click()
-  await expect(page.getByText(/^Revisa el nombre y el usuario/)).toBeVisible()
-  await page.getByLabel('Nombre visible', { exact: true }).fill('Miembro QA')
+  await page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true }).click()
+  await expect(page.getByText('El usuario de Instagram solo admite letras, números, puntos o guiones bajos.')).toBeVisible()
+  await page.getByLabel('Nombre público o alias (puede ser distinto al del correo)', { exact: true }).fill('Miembro QA')
   await page.getByLabel('Instagram (opcional)', { exact: true }).fill('@miembro_qa')
-  await expect(page.getByRole('button', { name: 'GUARDAR PERFIL', exact: true })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true })).toBeEnabled()
   const create = page.waitForRequest(request => request.url().includes('/rest/v1/danz_profiles') && request.method() === 'POST')
-  await page.getByRole('button', { name: 'GUARDAR PERFIL', exact: true }).click()
-  expect((await create).postDataJSON()).toEqual({ user_id: USER_A, display_name: 'Miembro QA', instagram_handle: 'miembro_qa' })
+  await page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true }).click()
+  expect((await create).postDataJSON()).toEqual({ user_id: USER_A, display_name: 'Miembro QA', instagram_handle: 'miembro_qa', instagram_public: false })
   await expect(page.getByText('Perfil guardado.', { exact: true })).toBeVisible()
-  await page.getByLabel('Nombre visible', { exact: true }).fill('Miembro editado')
+  await page.getByLabel('Nombre público o alias (puede ser distinto al del correo)', { exact: true }).fill('Miembro editado')
   const update = page.waitForRequest(request => request.url().includes('/rest/v1/danz_profiles') && request.method() === 'PATCH')
-  await page.getByRole('button', { name: 'GUARDAR PERFIL', exact: true }).click()
+  await page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true }).click()
   const updated = await update
-  expect(updated.postDataJSON()).toEqual({ display_name: 'Miembro editado', instagram_handle: 'miembro_qa' })
+  expect(updated.postDataJSON()).toEqual({ display_name: 'Miembro editado', instagram_handle: 'miembro_qa', instagram_public: false })
   expect(new URL(updated.url()).searchParams.get('user_id')).toBe(`eq.${USER_A}`)
-  await expect(page.getByRole('button', { name: 'GUARDAR PERFIL', exact: true })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true })).toBeEnabled()
   await page.getByRole('button', { name: 'CERRAR SESIÓN', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Entra con tu correo' })).toBeVisible()
   await expect(page.getByText('first@example.invalid', { exact: true })).toHaveCount(0)
@@ -72,7 +74,7 @@ test('rechaza sesión guardada que getUser no valida en servidor', async ({ page
   await page.route(`${supabaseHost}/rest/v1/danz_profiles**`, async route => { profiles += 1; await route.fulfill({ json: [] }) })
   await account(page)
   await expect(page.getByRole('heading', { name: 'Entra con tu correo' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toHaveCount(0)
   expect(profiles).toBe(0)
   await expect(page.getByText(/Do not display raw token/)).toHaveCount(0)
 })
@@ -86,7 +88,7 @@ test('rate-limit y errores callback son legibles sin reflejar texto externo', as
   await expect(page.getByText(/Has hecho varios intentos seguidos/)).toBeVisible()
   await expect(page.getByText(/untrusted server message/)).toHaveCount(0)
   await page.goto('/?error=access_denied&error_code=otp_expired&error_description=UNTRUSTED_CALLBACK&code=secret')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  // OAuth callbacks already open CUENTA; do not depend on desktop-only navigation.
   await expect(page.getByText(/El enlace o código ha caducado/)).toBeVisible()
   expect(page.url()).not.toMatch(/secret|error_description|otp_expired/)
   await expect(page.getByText(/UNTRUSTED_CALLBACK/)).toHaveCount(0)
@@ -99,14 +101,16 @@ test('carga de perfil fallida ofrece reintento y cierre fallido no anuncia éxit
   await page.route(`${supabaseHost}/auth/v1/logout**`, route => route.fulfill({ status: 400, json: { code: 'synthetic_failure', message: 'Synthetic error' } }))
   await account(page)
   await expect(page.getByText('No se pudo cargar tu perfil. Inténtalo de nuevo.', { exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'GUARDAR PERFIL', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'ADMINISTRAR MI PERFIL' })).toBeVisible()
+  await page.getByRole('button', { name: 'ADMINISTRAR MI PERFIL' }).click()
+  await expect(page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true })).toHaveCount(0)
   failed = false
   await page.getByRole('button', { name: 'VOLVER A CARGAR PERFIL', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'GUARDAR PERFIL', exact: true })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'GUARDAR CAMBIOS', exact: true })).toBeEnabled()
   await page.getByRole('button', { name: 'CERRAR SESIÓN', exact: true }).click()
   await expect(page.getByText(/Has salido de este navegador/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Entra con tu correo' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'CERRAR SESIÓN', exact: true })).toHaveCount(0)
 })
 
@@ -121,6 +125,7 @@ test('el resultado de un logout antiguo no cierra una nueva cuenta de otra pesta
     await route.fulfill({ status: 400, json: { code: 'synthetic_failure', message: 'Synthetic error' } })
   })
   await account(page)
+  await page.getByRole('button', { name: 'ADMINISTRAR MI PERFIL' }).click()
   await expect(page.getByRole('button', { name: 'CERRAR SESIÓN', exact: true })).toBeVisible()
   const logout = page.waitForRequest(request => request.url().includes('/auth/v1/logout'))
   await page.getByRole('button', { name: 'CERRAR SESIÓN', exact: true }).click()
@@ -129,8 +134,9 @@ test('el resultado de un logout antiguo no cierra una nueva cuenta de otra pesta
   const completed = page.waitForResponse(response => response.url().includes('/auth/v1/logout'))
   release()
   await completed
-  await expect(page.getByRole('button', { name: 'CERRAR SESIÓN', exact: true })).toBeVisible()
-  await expect(page.getByText('second@example.invalid', { exact: true })).toBeVisible()
+  // A new account is authenticated independently; its management panel may be collapsed.
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
+  await expect(page.getByText(/second@example.invalid/).first()).toBeVisible()
   await expect(page.getByText(/Has salido de este navegador/)).toHaveCount(0)
 })
 
@@ -146,9 +152,9 @@ test('enlace PKCE canjea el código, valida usuario y limpia la URL', async ({ p
     await route.fulfill({ json: makeSession() })
   })
   await page.goto('/?code=synthetic-code')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
-  await expect(page.getByText('first@example.invalid', { exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+  // OAuth callbacks already open CUENTA; do not depend on desktop-only navigation.
+  await expect(page.getByText(/first@example.invalid/).first()).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
   expect(exchanges).toBe(1)
   expect(new URL(page.url()).searchParams.has('code')).toBe(false)
 })
@@ -159,14 +165,14 @@ test('enlace abierto sin verificador no inicia sesión y elimina el código resi
   let exchanges = 0
   await page.route(`${supabaseHost}/auth/v1/token**`, async route => { exchanges += 1; await route.fulfill({ status: 400, json: { code: 'bad_code_verifier' } }) })
   await page.goto('/?code=missing-verifier-code&sb_flow_id=missing-flow')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  // OAuth callbacks already open CUENTA; do not depend on desktop-only navigation.
   await expect(page.getByText(/Este enlace necesita el navegador donde solicitaste/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Entra con tu correo' })).toBeVisible()
   expect(exchanges).toBe(0)
   const current = new URL(page.url())
   expect(current.searchParams.has('code')).toBe(false)
   expect(current.searchParams.has('sb_flow_id')).toBe(false)
-  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toHaveCount(0)
 })
 
 test('email token link works in a fresh browser without the requesting browser verifier', async ({ browser, page, baseURL }) => {
@@ -189,13 +195,13 @@ test('email token link works in a fresh browser without the requesting browser v
       await route.fulfill({ json: makeSession() })
     })
     await other.goto('/?token_hash=synthetic-email-token-hash&type=email')
-    await expect(other.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+    await expect(other.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
     expect(verifies).toBe(1)
     expect(pkce).toBe(0)
     expect(other.url()).not.toMatch(/token_hash|synthetic-email|type=email/)
     await other.reload()
-    await other.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
-    await expect(other.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+    await other.goto('/?seccion=cuenta')
+    await expect(other.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
     expect(verifies).toBe(1)
   } finally { await second.close() }
 })
@@ -211,13 +217,13 @@ test('a failed email token grants no session and a fresh browser can enter an em
   })
   await page.goto('/?token_hash=synthetic-expired-email-token&type=email')
   await expect(page.getByText(/El enlace o código ha caducado/)).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toHaveCount(0)
   expect(page.url()).not.toContain('token_hash')
   await page.getByRole('button', { name: 'MI CORREO INCLUYE UN CÓDIGO', exact: true }).click()
   await page.getByLabel('Correo asociado al código', { exact: true }).fill('first@example.invalid')
   await page.getByLabel('Código de acceso', { exact: true }).fill('123456')
   valid = true
   await page.getByRole('button', { name: 'COMPROBAR CÓDIGO', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Tu perfil' })).toBeVisible()
   await expect(page.getByText(/El enlace o código ha caducado/)).toHaveCount(0)
 })

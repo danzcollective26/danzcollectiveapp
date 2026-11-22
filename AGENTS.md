@@ -4,7 +4,6 @@ Este repositorio contiene la app DANZ Collective. Mantener las decisiones y el
 trabajo pendiente en `docs/ARCADANZ_ROADMAP.md` y distinguir siempre lo probado,
 lo publicado y lo propuesto.
 
-
 ## Regla permanente: proteger el trabajo existente (todas las IA y colaboradores)
 
 Antes de cualquier cambio, leer este archivo y la [issue #62](https://github.com/danzcollective26/danzcollectiveapp/issues/62) para prevenir regresiones. Aplicar estas reglas también cuando trabaje Grok, Codex, ChatGPT, un complemento o un desarrollador externo:
@@ -15,6 +14,13 @@ Antes de cualquier cambio, leer este archivo y la [issue #62](https://github.com
 4. Revisar RLS, migraciones y controles de consentimiento antes de tocar perfiles, Instagram, fotos privadas, puntos, sellos o cuentas. Nunca abrir información personal por conveniencia técnica.
 5. En el PR: anotar comportamiento anterior, cambio, riesgos, pruebas, despliegue de prueba y reversión. No corregir un fallo destruyendo otra función.
 6. Trabajar en bloques de tres o cuatro mejoras; comunicar avances reales y distinguir claramente código, compilación, despliegue, pruebas y aprobación. No afirmar actividad de fondo tras finalizar la respuesta.
+
+## Instrucciones actuales para todo agente de IA
+
+- Leer **`docs/DECISIONES_VIGENTES.md`** y las tareas [#62](https://github.com/danzcollective26/danzcollectiveapp/issues/62) y [#63](https://github.com/danzcollective26/danzcollectiveapp/issues/63) antes de modificar funcionalidades. Conservar decisiones, visuales y mecánicas aprobados, crear rama/PR, comprobar y no fusionar sin autorización.
+- Para desarrollar o diseñar juegos ARCADANZ seguir **`docs/ARCADANZ_FLUJO_IA_MODELOS.md`** y la tarea [#66](https://github.com/danzcollective26/danzcollectiveapp/issues/66): escoger esfuerzo/modelo proporcional a complejidad, generación visual/Figma para arte y Codex para integración, pruebas móviles y revisión.
+- **No afirmar que una issue puede cambiar automáticamente el selector del modelo ChatGPT.** Para GPT-6 Extra High o Pro/Astra se requiere selección por el propietario si está disponible. API externa, costes y claves deben autorizarse antes.
+- Si se modifica autenticación OAuth, preservar flujo PKCE y no habilitar en preview dominios que Supabase no tenga en allowlist; mantener el flag de preview desactivado hasta verificación.
 
 ## Seguimiento para no perder peticiones
 

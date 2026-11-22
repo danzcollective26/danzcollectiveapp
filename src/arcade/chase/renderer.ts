@@ -24,6 +24,12 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         g.fillStyle((x + y) % 120 ? 0x1e3037 : 0x23373c,.18).fillRoundedRect(x, y, 57, 57, 4)
         g.lineStyle(1, 0x8caa9e, .08).lineBetween(x + 3, y + 2, x + 54, y + 2)
       }
+      // Club spotlights are baked once: real-time updates stay limited to players.
+      for (const [x,y,light] of [[W*.26,H*.28,0xffd36e],[W*.74,H*.73,0x86e4dc]] as const) {
+        g.fillStyle(light,.045).fillCircle(x,y,130)
+        g.lineStyle(2,light,.25).strokeCircle(x,y,112)
+        g.lineStyle(1,light,.15).strokeCircle(x,y,88)
+      }
       g.lineStyle(3, 0x8bb3aa, .7).strokeRoundedRect(10, 10, W - 20, H - 20, 17)
       for (let id = 0; id < 2; id++) {
         const x = id ? W - 36 : 26
@@ -68,6 +74,14 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         const bob = !media.matches && running ? Math.abs(step) * .3 : 0
         g.fillStyle(0x000000, .4).fillEllipse(p.x, p.y + 25, 56, 20)
         g.lineStyle(id === s.hunter ? 4 : 2, COLORS[id], id === s.hunter ? 1 : .5).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 7)
+        // The pursuer has a shape marker as well as a coloured ring and label.
+        // It stays readable when both players overlap during a capture.
+        if(id === s.hunter){
+          const markerX=Math.min(W-15,Math.max(15,p.x+37)),markerY=Math.max(16,p.y-15)
+          g.fillStyle(0x0e2029,.88).fillCircle(markerX,markerY,13)
+          g.lineStyle(2,0xffe2a5,1).strokeCircle(markerX,markerY,11)
+          g.fillStyle(0xffe2a5,1).fillTriangle(markerX-5,markerY-4,markerX+5,markerY-4,markerX,markerY+6)
+        }
         if (s.elapsed < s.protectedUntil && id !== s.hunter) g.lineStyle(2, 0xffffff, .65).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 12)
         const frame = !media.matches && running ? Math.floor(time/110)%2 : 0
         this.heads[id].setPosition(p.x,p.y-10-bob).setTexture(`club-${id===0?'security':'yeppo'}-${frame}`)

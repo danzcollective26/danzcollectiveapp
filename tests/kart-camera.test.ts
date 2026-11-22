@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {cameraPoint,clipNear,cockpitFov,cockpitPose,cockpitSteering,effectiveCamera} from '../src/arcade/kart/camera.ts'
+import {cameraPoint,clipNear,cockpitFov,cockpitPose,cockpitSteering,duelChaseDistance,effectiveCamera,kartSpeedCue} from '../src/arcade/kart/camera.ts'
 import {TRACKS,trackPoint} from '../src/arcade/kart/engine.ts'
 
 test('cockpit follows every circuit heading with a stable up vector and a visible road ahead',()=>{
@@ -19,7 +19,29 @@ test('near-plane clipping keeps crossing asphalt finite and rejects faces behind
   for(const p of clipped){assert.ok(p.z>=2);assert.ok(Number.isFinite(p.x/p.z)&&Number.isFinite(p.y/p.z))}
   assert.equal(clipNear(face.map(p=>({...p,z:-5}))).length,0)
 })
-test('first person steers relative to the driver and the local duel keeps a shared track view',()=>{
+test('first person steers relative to the driver and the local duel keeps a shared chase view',()=>{
   assert.equal(cockpitSteering({x:-.7,y:0},0),-.7);assert.equal(cockpitSteering({x:1,y:-1},1),1);assert.equal(cockpitSteering(undefined,0),0)
-  assert.equal(effectiveCamera('cockpit','duel'),'track');assert.equal(effectiveCamera('follow','duel'),'track');assert.equal(effectiveCamera('cockpit','race'),'cockpit');assert.equal(effectiveCamera('cockpit','time'),'cockpit')
+  assert.equal(effectiveCamera('cockpit','duel'),'follow');assert.equal(effectiveCamera('follow','duel'),'follow');assert.equal(effectiveCamera('cockpit','race'),'cockpit');assert.equal(effectiveCamera('cockpit','time'),'cockpit')
+})
+
+test('shared duel perspective keeps nearby karts large and widens smoothly for distant opponents',()=>{
+  for(const aspect of [.5,1,1.8]){
+    const close=duelChaseDistance(0,aspect)
+    const apart=duelChaseDistance(170,aspect)
+    const far=duelChaseDistance(900,aspect)
+    assert.equal(close,235)
+    assert.ok(apart>close&&apart<far)
+    assert.ok(far<=1100)
+  }
+})
+
+test('speed atmosphere switches by race velocity without affecting steering',()=>{
+  assert.equal(kartSpeedCue(0),'cruise')
+  assert.equal(kartSpeedCue(84),'cruise')
+  assert.equal(kartSpeedCue(85),'quick')
+  assert.equal(kartSpeedCue(144),'quick')
+  assert.equal(kartSpeedCue(145),'rush')
+  assert.equal(kartSpeedCue(-160),'rush')
+  assert.equal(kartSpeedCue(Number.NaN),'cruise')
+  assert.equal(cockpitSteering({x:.3,y:0},0),.3)
 })

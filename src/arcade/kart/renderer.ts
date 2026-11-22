@@ -31,6 +31,37 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   c.save();path();c.lineWidth=ROAD_WIDTH;c.strokeStyle='#58625d18';c.setLineDash([1,7]);c.stroke();c.setLineDash([]);c.restore()
   path();c.lineWidth=1;c.strokeStyle='#bfc9b529';c.setLineDash([7,18]);c.stroke();c.setLineDash([])
   for(const side of [-1,1])for(let n=0;n<track.length;n+=83){if(side===-1&&n/track.length>PIT_ENTRY-.01&&n/track.length<PIT_EXIT+.01)continue;const p=trackPoint(track,n/track.length),x=p.x-Math.sin(p.angle)*side*(ROAD_WIDTH/2+12),y=p.y+Math.cos(p.angle)*side*(ROAD_WIDTH/2+12);c.save();c.translate(x,y);c.rotate(p.angle);rounded(c,-11,-4,24,10,4,'#0b151a');rounded(c,-10,-6,20,7,3,side<0?venue.curb:'#a3b6ac');c.restore()}
+  // Branded barrier panels also appear in the no-WebGL compatible renderer.
+  // All details are baked into the track texture once, not each frame.
+  for(let distance=110,index=0;distance<track.length-80;distance+=175,index++){
+    const p=trackPoint(track,distance/track.length),offset=ROAD_WIDTH/2+18
+    c.save();c.translate(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset);c.rotate(p.angle)
+    rounded(c,-22,-10,44,20,3,'#122329')
+    if(index%3===0)flower(c,0,0,7,venue.curb)
+    else {c.fillStyle=venue.curb;c.textAlign='center';c.font='900 11px Arial';c.fillText('DANZ',0,4)}
+    c.restore()
+  }
+  // Mirror the four course identity panels in the compatible 2D view.
+  for(const progress of [.12,.37,.62,.87]){
+    const p=trackPoint(track,progress),offset=ROAD_WIDTH/2+48
+    c.save()
+    c.translate(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset)
+    c.rotate(p.angle)
+    rounded(c,-32,-13,64,26,4,'#10252b')
+    c.lineWidth=2;c.strokeStyle=venue.curb;c.strokeRect(-30,-11,60,22)
+    c.fillStyle='#f3f2db';c.textAlign='center';c.font='900 12px Arial'
+    c.fillText('DANZ',0,-1)
+    c.fillStyle=venue.curb;c.font='bold 6px Arial'
+    c.fillText(track.name.slice(0,19),0,8)
+    c.restore()
+  }
+  for(const [x,y] of [[70,65],[930,65],[70,650],[930,650]]){
+    rounded(c,x-16,y-29,32,58,3,'#101b21')
+    for(const [offset,r] of [[-13,10],[13,7]] as const){
+      c.fillStyle='#829b92';c.beginPath();c.arc(x,y+offset,r,0,Math.PI*2);c.fill()
+      c.fillStyle='#0e1216';c.beginPath();c.arc(x,y+offset,r*.63,0,Math.PI*2);c.fill()
+    }
+  }
   c.beginPath();for(let n=0;n<=40;n++){const p=pitPoint(track,n/40);n?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)}c.strokeStyle='#87917a';c.lineWidth=44;c.stroke();c.strokeStyle='#424d49';c.lineWidth=40;c.stroke();c.strokeStyle=venue.curb;c.lineWidth=2;c.setLineDash([9,7]);c.stroke();c.setLineDash([])
   // Marked grid and checkerboard finish line, perpendicular to the route.
   const start=trackPoint(track,0);c.save();c.translate(start.x,start.y);c.rotate(start.angle)
@@ -43,6 +74,24 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   c.fillStyle='#b9c7b8';c.font='bold 8px Arial';c.fillText(venue.name,340,219)
   for(const [x,y] of [[660,250],[690,254],[720,258]]){rounded(c,x+5,y+6,24,45,3,'#060e15');rounded(c,x,y,24,45,3,'#53646a');for(let k=0;k<5;k++){c.fillStyle='#aebcb551';c.fillRect(x+3,y+4+k*8,18,2)}}
   for(const [x,y] of [[75,90],[910,595],[300,650],[500,65]]){for(let j=0;j<6;j++){c.save();c.translate(x,y);c.rotate(j*Math.PI/3);c.fillStyle=j%2?'#526c48':'#3a563e';c.beginPath();c.ellipse(0,12,5,23,.2,0,Math.PI*2);c.fill();c.restore()}c.fillStyle='#8b9871';c.beginPath();c.arc(x,y,4,0,Math.PI*2);c.fill()}
+  // Venue-specific colour accents remain visible in the compatible 2D renderer.
+  // Keep this baked into the static track canvas: no per-frame draw overhead.
+  const lightColours=venue.id==='neon'?['#ff78c7','#7ce8ff','#b18cff']
+    :venue.id==='sunset'?['#ffb568','#ff8378','#74dbc7']
+    :venue.id==='night'?['#f9ca6f','#7cb8e8','#eda280']
+    :[venue.curb,'#b4dcdb','#efbd83']
+  for(const [index,[x,y]] of ([[99,96],[905,100],[99,609],[900,605]] as const).entries()){
+    for(let n=0;n<3;n++){
+      const xx=x+(n-1)*14,yy=y-12-n*4
+      const colour=lightColours[(index+n)%lightColours.length]
+      const pool=c.createRadialGradient(xx,yy,0,xx,yy,38)
+      pool.addColorStop(0,colour+'66')
+      pool.addColorStop(1,colour+'00')
+      c.fillStyle=pool;c.fillRect(xx-38,yy-38,76,76)
+      rounded(c,xx-3,yy-12,6,24+n*5,2,'#10121b')
+      rounded(c,xx-2,yy-11,4,21+n*5,2,colour)
+    }
+  }
   // Warm floodlights with translucent pools, no realtime blur or shaders.
   for(const [x,y] of [[190,68],[760,76],[80,585],[915,480]]){const glow=c.createRadialGradient(x,y,0,x,y,86);glow.addColorStop(0,'#fae8ae18');glow.addColorStop(1,'#fae8ae00');c.fillStyle=glow;c.fillRect(x-86,y-86,172,172);rounded(c,x-14,y-3,28,6,2,'#09171b');rounded(c,x-11,y-4,22,3,1,'#ffe1a5')}
   const pit=pitPoint(track,.5);rounded(c,pit.x-62,pit.y-35,124,15,3,'#16292d');c.fillStyle='#efc76c';c.font='900 13px Arial';c.textAlign='center';c.fillText('BOXES / CREW',pit.x,pit.y-23)
@@ -57,6 +106,16 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
   const body=c.createLinearGradient(-23,-12,23,12);body.addColorStop(0,'#1b292b');body.addColorStop(.35,color);body.addColorStop(.68,color);body.addColorStop(1,'#37474a')
   rounded(c,-24,-10,48,20,7,'#0b161a');rounded(c,-21,-12,build.chassis==='sprint'?46:41,build.chassis==='hauler'?25:22,7,body);rounded(c,12,-14,build.chassis==='sprint'?14:10,28,4,color)
   c.strokeStyle='#fff8';c.lineWidth=1;c.beginPath();c.moveTo(-15,-10);c.lineTo(13,-10);c.stroke()
+  // Match the three factory livery styles on devices using the offline 2D view.
+  const factoryInk=build.chassis==='hauler'?'#263a43':'#f5e9cf'
+  if(build.chassis==='sprint'){
+    rounded(c,-11,-7,35,2,1,factoryInk);rounded(c,-11,6,35,2,1,factoryInk)
+  }else if(build.chassis==='hauler'){
+    rounded(c,-13,-9,30,3,1,factoryInk);rounded(c,-13,8,30,3,1,factoryInk)
+    rounded(c,15,-5,6,10,2,'#edc46a')
+  }else{
+    rounded(c,-12,-9,33,1.2,.6,factoryInk);rounded(c,-12,8,33,1.2,.6,factoryInk)
+  }
   rounded(c,-20,-17,6,34,2,'#ced8c4');rounded(c,-19,-15,3,30,1,color);rounded(c,-12,-9,17,18,5,driver.color)
   c.fillStyle='#111b20';c.beginPath();c.arc(-2,-1,10,0,Math.PI*2);c.fill();const helmet=c.createLinearGradient(-10,-8,8,8);helmet.addColorStop(0,'#ffefd2');helmet.addColorStop(.45,'#e0c9a3');helmet.addColorStop(1,'#82756b');c.fillStyle=helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill()
   c.fillStyle=driver.helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill();rounded(c,1,-8,6,11,3,'#182e37');c.fillStyle='#c6f7ed';c.fillRect(4,-7,1,7);flower(c,-3,-4,3,color)

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('the app opens its own sections without connecting to the collective website or music platforms', async ({ page }) => {
+test('the app opens its own sections without connecting to the collective website or music platforms', async ({ page }, testInfo) => {
   // Catalog refresh may be unavailable; the bundled shop must remain usable.
   await page.route('https://danzcolective.myshopify.com/api/2026-10/graphql.json', route => route.abort())
   const externalRequests: string[] = []
@@ -9,10 +9,12 @@ test('the app opens its own sections without connecting to the collective websit
   })
   await page.goto('/')
   const nav = page.getByRole('navigation')
-  await nav.getByRole('button', { name: 'DANZFLOR', exact: true }).click()
+  if (testInfo.project.name === 'mobile') await page.goto('/?seccion=danzflor')
+  else await nav.getByRole('button', { name: 'DANZFLOR', exact: true }).click()
   await expect(page.getByText('La ropa del colectivo.', { exact: false })).toBeVisible()
   await expect(page.getByRole('link', { name: 'VISITAR LA WEB OFICIAL' })).toHaveCount(0)
-  await nav.getByRole('button', { name: 'DANZ IN', exact: true }).click()
+  if (testInfo.project.name === 'mobile') await page.goto('/?seccion=musica')
+  else await nav.getByRole('button', { name: 'DANZ IN', exact: true }).click()
   for (const name of ['Chicharro (ES)', 'TonyDawgs', 'Wizme', 'LEÖN']) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
   await expect(page.getByRole('article')).toHaveCount(4)
   await expect(page.locator('.artist-links a')).toHaveCount(15)
@@ -78,5 +80,5 @@ test('every artist link opens its platform while music and an unclaimed event pa
   }
   await page.getByRole('navigation').getByRole('button', { name: 'INICIO', exact: true }).click()
   expect(new URL(page.url()).searchParams.has('seccion')).toBe(false)
-  await expect(page.getByRole('heading', { name: 'WE ARE DANZ.' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' })).toBeVisible()
 })

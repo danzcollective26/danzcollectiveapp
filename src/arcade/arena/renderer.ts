@@ -65,6 +65,14 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
             bg.lineStyle(2,0xa87148).strokeRect(x+28,y+41,15,5)
           }
         })
+        // Static illuminated player entry pads; never redraw per animation frame.
+        for (const [id, gx, gy] of [[0,1,1],[1,9,7]] as const) {
+          const x=(gx+.5)*S,y=(gy+.5)*S
+          bg.fillStyle(COLORS[id],.075).fillCircle(x,y,30)
+          bg.lineStyle(2,COLORS[id],.55).strokeCircle(x,y,27)
+          bg.lineStyle(1,0xf1f3dc,.27).strokeCircle(x,y,34)
+          bg.fillStyle(COLORS[id],.42).fillRoundedRect(x-13,y+29,26,3,1)
+        }
         bg.lineStyle(3, 0x83aaa5, .6).strokeRoundedRect(3, 3, ARENA_COLS * S - 6, ARENA_ROWS * S - 6, 10)
       }
       g.clear()
@@ -86,6 +94,15 @@ export function createArenaRenderer(parent: HTMLElement, read: () => Arena, adva
         g.fillStyle(COLORS[b.owner]).fillCircle(x, y, 9)
         g.fillStyle(0x0b1720).fillCircle(x, y, 3)
         g.lineStyle(3, fuse < .3 ? 0xffad7b : COLORS[b.owner]).beginPath().arc(x, y, 28, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fuse).strokePath()
+        // Final fuse warning is geometric as well as coloured, so it stays
+        // readable to both players without sound or a colour distinction.
+        if(fuse < .3){
+          g.lineStyle(3,0xfff4d9,.85)
+          for(const sign of [-1,1]){
+            g.lineBetween(x+sign*32,y-11,x+sign*39,y-19)
+            g.lineBetween(x+sign*32,y+11,x+sign*39,y+19)
+          }
+        }
       }
       for (const blast of state.blasts) {
         const x = (blast.cell % ARENA_COLS + .5) * S, y = (Math.floor(blast.cell / ARENA_COLS) + .5) * S

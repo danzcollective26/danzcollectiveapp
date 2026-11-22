@@ -6,6 +6,7 @@ test('radio picker is explicitly clickable on Android and shows selected file',a
  await installMockSession(page)
  await page.route(`${supabaseHost}/rest/v1/rpc/danz_admin_context`,route=>route.fulfill({json:[{is_admin:true,permissions:['events.manage']}]}))
  await page.goto('/?seccion=cuenta')
+ await page.getByRole('button',{name:'ADMINISTRAR MI PERFIL Y AJUSTES'}).click()
  const upload=page.getByRole('region',{name:'Publicar hilo musical'})
  await expect(upload.getByRole('button',{name:'ABRIR ARCHIVOS DEL MÓVIL'})).toBeVisible()
  const picker=page.waitForEvent('filechooser')

@@ -221,6 +221,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           instagram_handle: string | null
+          instagram_public: boolean
           yeppo_enabled: boolean
           user_id: string
         }
@@ -228,6 +229,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           instagram_handle?: string | null
+          instagram_public?: boolean
           yeppo_enabled?: boolean
           user_id: string
         }
@@ -235,6 +237,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           instagram_handle?: string | null
+          instagram_public?: boolean
           yeppo_enabled?: boolean
           user_id?: string
         }
@@ -246,6 +249,7 @@ export type Database = {
     }
     Functions: {
       danz_identity_status: { Args:Record<string,never>; Returns:Json }
+      danz_public_instagram_card: { Args: { p_user: string }; Returns: Json }
       danz_instagram_request: { Args:{p_handle:string}; Returns:Json }
       danz_instagram_admin: { Args:Record<string,never>; Returns:Json }
       danz_instagram_review: { Args:{p_user:string;p_code:string;p_approve:boolean}; Returns:undefined }
