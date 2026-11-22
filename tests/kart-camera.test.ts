@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {cameraPoint,clipNear,cockpitFov,cockpitPose,cockpitSteering,duelChaseDistance,effectiveCamera} from '../src/arcade/kart/camera.ts'
+import {cameraPoint,clipNear,cockpitFov,cockpitPose,cockpitSteering,duelChaseDistance,effectiveCamera,kartSpeedCue} from '../src/arcade/kart/camera.ts'
 import {TRACKS,trackPoint} from '../src/arcade/kart/engine.ts'
 
 test('cockpit follows every circuit heading with a stable up vector and a visible road ahead',()=>{
@@ -33,4 +33,15 @@ test('shared duel perspective keeps nearby karts large and widens smoothly for d
     assert.ok(apart>close&&apart<far)
     assert.ok(far<=1100)
   }
+})
+
+test('speed atmosphere switches by race velocity without affecting steering',()=>{
+  assert.equal(kartSpeedCue(0),'cruise')
+  assert.equal(kartSpeedCue(84),'cruise')
+  assert.equal(kartSpeedCue(85),'quick')
+  assert.equal(kartSpeedCue(144),'quick')
+  assert.equal(kartSpeedCue(145),'rush')
+  assert.equal(kartSpeedCue(-160),'rush')
+  assert.equal(kartSpeedCue(Number.NaN),'cruise')
+  assert.equal(cockpitSteering({x:.3,y:0},0),.3)
 })
