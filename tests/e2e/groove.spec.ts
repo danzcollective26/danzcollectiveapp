@@ -214,7 +214,16 @@ test('playfield, mixer and primary controls fit 320px portrait and short landsca
       expect(r!.x + r!.width).toBeLessThanOrEqual(size.width + 1); expect(r!.y + r!.height).toBeLessThanOrEqual(size.height + 1)
     }
     const r = await page.locator('.gn-board').boundingBox()
-    expect(Math.abs(r!.width / r!.height - 640 / 760)).toBeLessThan(.01)
+    // Portrait intentionally fills the available stage. Landscape retains the
+    // 640:760 court ratio; touch hit-testing uses the SVG viewBox in both cases.
+    const portrait = size.height > size.width
+    if (portrait) {
+      const stage = (await page.locator('.gn-play-slot').boundingBox())!
+      expect(Math.abs(r!.width - stage.width)).toBeLessThanOrEqual(2)
+      expect(Math.abs(r!.height - stage.height)).toBeLessThanOrEqual(2)
+    } else {
+      expect(Math.abs(r!.width / r!.height - 640 / 760)).toBeLessThan(.01)
+    }
     await page.getByRole('button', { name: 'AJUSTES', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'TU CABINA.', exact: true })
     const d = (await dialog.boundingBox())!
