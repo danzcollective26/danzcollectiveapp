@@ -242,7 +242,13 @@ export function beginGrooveCut(state: GrooveState): GrooveState {
 }
 // Keyboard alternative uses the visible layer number; it never awards DANZPOINTS.
 export function keyCutGroove(previous: GrooveState, layer: number, direction: GrooveCutDirection | 'x' | 'y' = 'x') {
-  const disc = previous.discs.find(item => item.kind === 'vinyl' && item.layer === layer && discPosition(item, previous.flightTime).y > 80 && discPosition(item, previous.flightTime).y < 650)
+  const candidates = previous.discs.filter(item => item.kind === 'vinyl' && item.layer === layer && discPosition(item, previous.flightTime).y > 80 && discPosition(item, previous.flightTime).y < 650)
+  // Keyboard players must be able to reach the next ordered target even if
+  // another disc shares its layer. Never skip sequence order to award points.
+  const sequence = previous.cutSequence
+  const disc = candidates.find(item => sequence && item.sequence === sequence.id && item.step === sequence.next)
+    ?? candidates.find(item => item.sequence === undefined)
+    ?? candidates[0]
   if (!disc) return previous
   const p = discPosition(disc, previous.flightTime)
   const state = beginGrooveCut(previous)
