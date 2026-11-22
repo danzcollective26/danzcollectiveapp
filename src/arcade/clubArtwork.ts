@@ -16,6 +16,13 @@ export function bakeClubPeople(scene:Phaser.Scene,accent:string){
     box(c,-31,-3,12,29+step,5,'#24373c');box(c,19,-3,12,29-step,5,'#405449')
     circle(c,-25,25+step,6,'#c3916c');circle(c,25,25-step,6,'#d6a37a')
     box(c,-30,7,10,5,1,accent);box(c,20,7,10,5,1,accent)
+    // Consistent costume detail across Arena and Chase. Purely baked sprite
+    // highlights: facial features, silhouettes and two-frame steps stay as approved.
+    c.strokeStyle=role==='security'?'#d4c9a180':'#a5ded080'
+    c.lineWidth=1.5;c.beginPath();c.moveTo(-17,0);c.lineTo(-12,17);c.lineTo(-7,21)
+    c.moveTo(17,0);c.lineTo(12,17);c.lineTo(7,21);c.stroke()
+    box(c,-12,30+step,7,2,1,'#d9e6c077')
+    box(c,5,30-step,7,2,1,'#d9e6c077')
     box(c,-9,6,18,7,1,'#cfdbc0');c.fillStyle='#263b32';c.font='bold 4px Arial';c.textAlign='center';c.fillText(role==='security'?'SECURITY':'CREW',0,11)
     box(c,-21,25,42,5,2,'#10232b');box(c,-4,25,8,5,1,'#9eac93')
     if(role==='security'){
