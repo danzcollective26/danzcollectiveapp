@@ -227,3 +227,17 @@ test('keyboard prioritizes the current ordered sequence target when a normal vin
   assert.deepEqual(next.discs.map(d => d.id), [301])
   assert.equal(state.cutSequence.next, 0)
 })
+
+test('later vinyl waves add a staggered fan and crossing pair without touching scoring', () => {
+  const base = atVinyl()
+  const fan = advanceGroove({ ...base, discs: [], wave: 5, nextWaveAt: 0, cutSequence: null }, 50)
+  assert.equal(fan.discs.length, 3)
+  assert.deepEqual(fan.discs.map(d => d.x), [155, 320, 485])
+  assert.deepEqual(fan.discs.map(d => d.drift), [55, 0, -55])
+  const crossing = advanceGroove({ ...base, discs: [], wave: 6, nextWaveAt: 0, cutSequence: null }, 50)
+  assert.equal(crossing.discs.length, 2)
+  assert.deepEqual(crossing.discs.map(d => d.x), [145, 495])
+  assert.deepEqual(crossing.discs.map(d => d.drift), [85, -85])
+  assert.equal(fan.score, base.score)
+  assert.equal(crossing.lives, base.lives)
+})
