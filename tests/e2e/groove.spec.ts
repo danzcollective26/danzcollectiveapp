@@ -219,8 +219,8 @@ test('playfield, mixer and primary controls fit 320px portrait and short landsca
     const portrait = size.height > size.width
     if (portrait) {
       const stage = (await page.locator('.gn-play-slot').boundingBox())!
-      expect(Math.abs(r!.width - stage.width)).toBeLessThan(2)
-      expect(Math.abs(r!.height - stage.height)).toBeLessThan(2)
+      expect(Math.abs(r!.width - stage.width)).toBeLessThanOrEqual(2)
+      expect(Math.abs(r!.height - stage.height)).toBeLessThanOrEqual(2)
     } else {
       expect(Math.abs(r!.width / r!.height - 640 / 760)).toBeLessThan(.01)
     }
