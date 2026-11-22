@@ -173,7 +173,7 @@ export default function App() {
   }
 
   const startGesture = (event: PointerEvent<HTMLDivElement>) => {
-    if (!event.isPrimary) return
+    if (!event.isPrimary || gesture.current !== null || (event.pointerType === 'mouse' && event.button !== 0)) return
     gesture.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
     event.currentTarget.setPointerCapture(event.pointerId)
   }
@@ -459,7 +459,7 @@ export default function App() {
               </div>
               {game.mode === 'maze' && <div className="maze-level-picker"><label htmlFor="maze-level">RECORRIDO</label><select id="maze-level" value={game.stage} onChange={event => {competition.clear();dispatch({ type: 'maze-level', stage: Number(event.target.value) })}}>{MAZE_STAGES.map((name, i) => <option key={name} value={i + 1}>{i + 1} · {name}</option>)}</select><span>{game.stage < MAZE_STAGES.length ? `${game.stageGoals}/5 OBJETIVOS` : 'MODO INFINITO'}</span></div>}
               <div className="game-heading"><span>PUNTOS <strong key={game.score} className={game.score ? 'snake-score-gain' : undefined}>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span className="snake-stage">NIVEL {game.mode === 'maze' ? game.stage : gameLevel(game.score)}<span className="snake-stage-progress" aria-label={game.mode === 'classic' && gameLevel(game.score) === 10 ? 'Velocidad máxima alcanzada' : game.mode === 'maze' && game.stage === MAZE_STAGES.length ? 'Laberinto infinito' : `${game.mode === 'maze' ? game.stageGoals : game.score % 50 / 10} de 5 objetivos para el siguiente nivel`}>{Array.from({length:5},(_,i)=><i key={i} data-filled={i < (game.mode === 'maze' ? game.stageGoals : game.score % 50 / 10)}/>)}</span></span></div>
-              <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} onLostPointerCapture={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
+              <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={event => { if (gesture.current?.pointerId === event.pointerId) gesture.current = null }} onLostPointerCapture={event => { if (gesture.current?.pointerId === event.pointerId) gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
                 <SnakeCable points={game.snake} grid={GRID}/>
                 <SnakeCells game={game} artwork={collective.snake}/>
                 {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'PARTY OVER' : game.levelUp ? `NIVEL ${game.stage}` : game.steps ? 'EN PAUSA' : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : game.steps ? 'REANUDA CUANDO QUIERAS' : 'PULSA JUGAR'}</small></div>}
