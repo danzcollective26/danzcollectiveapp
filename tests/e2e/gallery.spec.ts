@@ -58,8 +58,14 @@ test('preserves albums and images after reload; viewer, download and visitor pre
   await expect(viewer).toHaveAccessibleName('Fotografía 2 de 2 del álbum DANZ QA')
   await page.keyboard.press('ArrowLeft')
   await expect(viewer).toHaveAccessibleName('Fotografía 1 de 2 del álbum DANZ QA')
-  const downloaded = page.waitForEvent('download')
-  await viewer.getByRole('link', { name: 'DESCARGAR FOTO ↓', exact: true }).click()
+  const downloadLink=viewer.getByRole('link', { name: 'DESCARGAR FOTO ↓', exact: true })
+  // A fixed bottom bar must not cover the original-file download on mobile.
+  await expect.poll(()=>downloadLink.evaluate(link=>{
+    const r=link.getBoundingClientRect()
+    return link.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2))
+  })).toBe(true)
+  const downloaded=page.waitForEvent('download')
+  await downloadLink.click()
   expect((await downloaded).suggestedFilename()).toBe('synthetic-one.png')
   await page.keyboard.press('Escape')
   await expect(viewer).not.toBeVisible()
