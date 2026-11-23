@@ -68,7 +68,7 @@ export default function Yeppo({page,gameActive=false,events=NO_EVENTS,onNavigate
    const target=event.target
    if(!(target instanceof Element))return
    const control=target.closest<HTMLElement>('nav button,.feature,.module,.passport-home-link')
-   if(!control||control.closest('.yeppo'))return
+   if(!control||control.closest('.yeppo')||control.matches('[aria-label="Más secciones"]'))return
    welcomeUsed.current=true
    markYeppoWelcomeDone()
    setWelcome('intro');setExpression('wink');setMenu(false);setVisible(false)
