@@ -1,0 +1,38 @@
+name: Verify Jack Snake touch
+
+on:
+  pull_request:
+    paths:
+      - 'src/App.tsx'
+      - 'tests/e2e/arcade-library.spec.ts'
+      - '.github/workflows/verify-snake-touch.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-snake-pointer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-swipe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Check Jack Snake immersive navigation and pointer isolation
+        run: npm run test:e2e -- --project=mobile --workers=1 tests/e2e/arcade-library.spec.ts --grep 'Jack opens immersive|Snake keeps a live swipe'
+      - name: Upload regression traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snake-touch-report
+          path: playwright-report/
+          retention-days: 7
