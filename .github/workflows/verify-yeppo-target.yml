@@ -1,0 +1,36 @@
+name: Verify Yeppo walkabout target
+
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e/yeppo-radio.spec.ts'
+      - '.github/workflows/verify-yeppo-target.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-yeppo-target-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  desktop-visible-target:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify visible card visit and Yeppo chat escape
+        run: npm run test:e2e -- --project=desktop --workers=1 tests/e2e/yeppo-radio.spec.ts --grep 'Yeppo walkabout can be previewed'
+      - name: Upload trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeppo-card-visit-report
+          path: playwright-report/
+          retention-days: 7
