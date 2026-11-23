@@ -117,11 +117,12 @@ test('two-thumb gas and drift keep acceleration until the owning finger releases
     const before=await speed()
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[first,second]})
     await page.waitForTimeout(180)
-    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[first]})
-    // Releasing the second finger must not release the first gas pointer.
+    // CDP touchEnd specifies which contacts end, not those that remain.
+    // Lift the drifting finger (id 2), keeping the accelerating finger (id 1).
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[second]})
     await expect.poll(speed).toBeGreaterThan(before+3)
     const held=await speed()
-    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[first]})
     await expect.poll(speed).toBeLessThan(held)
   } finally {
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}).catch(()=>{})
