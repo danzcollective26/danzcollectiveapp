@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties, type PointerEvent } from 'react'
+import { useEffect, useRef, type CSSProperties, type PointerEvent } from 'react'
 import VersusJoystick from '../VersusJoystick'
 import { RACE_LAPS, type Car, type Point } from './engine'
 
@@ -22,6 +22,18 @@ export default function KartController({car,active,automatic,onVector,onHold,onP
     }
   }
   const servicing=car.pit!==null||car.tow>0
+  const onHoldLatest=useRef(onHold)
+  onHoldLatest.current=onHold
+  useEffect(()=>{
+    // A paused race, pit stop or tow must never leave a stale pointer owner
+    // that prevents a later session from pressing the same pedal again.
+    if(active&&!servicing)return
+    for(const key of ['throttle','drift','brake'] as const){
+      if(pointerOwner.current[key]===null)continue
+      pointerOwner.current[key]=null
+      onHoldLatest.current(key,false)
+    }
+  },[active,servicing])
   return <section className={`kart-controller versus-controller versus-p${id+1}`} style={{'--player':car.build.color} as CSSProperties} aria-label={`Mando de kart P${id+1}`}><div className="versus-face">
     <VersusJoystick player={id} active={active&&!servicing} onChange={onVector} keyboardEnabled={false} keyboardHelp={firstPerson?'Gira a izquierda o derecha con el joystick. W gas, S freno, A/D giro, F derrape, B boxes.':id===0?'Apunta el rumbo con el joystick. Teclado: W gas, S freno, A/D giro, F derrape, B boxes.':'Apunta el rumbo con el joystick. Teclado: flechas gas/freno/giro, L derrape, O boxes.'}/>
     <div className="kart-control-meta"><strong>P{id+1}<small>V{Math.min(RACE_LAPS,car.laps+1)}/{RACE_LAPS} · {Math.round(car.health*100)}%</small></strong>
