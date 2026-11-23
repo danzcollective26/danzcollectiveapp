@@ -1,0 +1,44 @@
+name: Verify integrated mobile navigation and gallery
+
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e/responsiveNav.ts'
+      - 'tests/e2e/gallery.spec.ts'
+      - 'tests/e2e/independent.spec.ts'
+      - 'tests/e2e/premium-feel.spec.ts'
+      - 'src/PhotoGallery.css'
+      - 'tests/e2e/yeppo-radio.spec.ts'
+      - '.github/workflows/verify-integrated-mobile.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-integrated-mobile-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-responsive-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Test mobile section navigation and photo download
+        run: >-
+          npm run test:e2e -- --project=mobile --workers=1
+          tests/e2e/gallery.spec.ts tests/e2e/independent.spec.ts tests/e2e/premium-feel.spec.ts
+          --grep 'preserves albums and images after reload|main sections and photo viewer fit|the app opens its own sections without connecting|native section transitions|unsupported transitions'
+      - name: Upload trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-mobile-smoke
+          path: playwright-report/
+          retention-days: 7
