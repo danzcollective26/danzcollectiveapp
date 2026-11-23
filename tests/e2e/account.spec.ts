@@ -1,9 +1,20 @@
 import { expect, test, type Page } from '@playwright/test'
 import { installMockSession, makeSession, mockSupabase, supabaseHost, sessionStorageKey, switchMockSession, USER_A, USER_B } from './helpers/supabase'
 
+// Desktop has a direct tab; mobile puts Cuenta in the accessible MÁS sheet.
+// Use the public navigation rather than assuming both viewports share a menu.
+async function navigateToAccount(page: Page) {
+  const more = page.getByRole('button', { name: 'Más secciones', exact: true })
+  if (await more.isVisible()) {
+    await more.click()
+    await page.getByRole('region', { name: 'Más secciones de DANZ' }).getByRole('button', { name: /MI CUENTA/ }).click()
+  } else {
+    await page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('button', { name: 'CUENTA', exact: true }).click()
+  }
+}
 async function account(page: Page) {
   await page.goto('/')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  await navigateToAccount(page)
 }
 
 async function profileMock(page: Page) {
@@ -86,7 +97,7 @@ test('rate-limit y errores callback son legibles sin reflejar texto externo', as
   await expect(page.getByText(/Has hecho varios intentos seguidos/)).toBeVisible()
   await expect(page.getByText(/untrusted server message/)).toHaveCount(0)
   await page.goto('/?error=access_denied&error_code=otp_expired&error_description=UNTRUSTED_CALLBACK&code=secret')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  await navigateToAccount(page)
   await expect(page.getByText(/El enlace o código ha caducado/)).toBeVisible()
   expect(page.url()).not.toMatch(/secret|error_description|otp_expired/)
   await expect(page.getByText(/UNTRUSTED_CALLBACK/)).toHaveCount(0)
@@ -146,7 +157,7 @@ test('enlace PKCE canjea el código, valida usuario y limpia la URL', async ({ p
     await route.fulfill({ json: makeSession() })
   })
   await page.goto('/?code=synthetic-code')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  await navigateToAccount(page)
   await expect(page.getByText('first@example.invalid', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
   expect(exchanges).toBe(1)
@@ -159,7 +170,7 @@ test('enlace abierto sin verificador no inicia sesión y elimina el código resi
   let exchanges = 0
   await page.route(`${supabaseHost}/auth/v1/token**`, async route => { exchanges += 1; await route.fulfill({ status: 400, json: { code: 'bad_code_verifier' } }) })
   await page.goto('/?code=missing-verifier-code&sb_flow_id=missing-flow')
-  await page.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+  await navigateToAccount(page)
   await expect(page.getByText(/Este enlace necesita el navegador donde solicitaste/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Entra con tu correo' })).toBeVisible()
   expect(exchanges).toBe(0)
