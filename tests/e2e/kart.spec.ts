@@ -95,3 +95,36 @@ test('The focused joystick delegates gas and brake to the racing keyboard',async
   await expect.poll(async()=>Number(await page.locator('.kart-game').getAttribute('data-speed'))).toBeLessThan(1)
   await page.keyboard.up('s')
 })
+
+test('two-thumb gas and drift keep acceleration until the owning finger releases', async ({page,browserName}) => {
+  test.skip(browserName !== 'chromium', 'CDP multitouch is Chromium-only')
+  await page.setViewportSize({width:390,height:844})
+  await page.addInitScript(() => localStorage.setItem('danzporter-preferences-v3',JSON.stringify({quality:'flat',autoThrottle:false,sound:false})))
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true',{timeout:15000})
+  await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
+  const game=page.locator('.kart-game')
+  await expect(game).toHaveAttribute('data-phase','playing',{timeout:8000})
+  const gas=(await page.getByRole('button',{name:'P1 Acelerar'}).boundingBox())!
+  const drift=(await page.getByRole('button',{name:'P1 Derrapar'}).boundingBox())!
+  const center=(box:{x:number;y:number;width:number;height:number})=>({x:box.x+box.width/2,y:box.y+box.height/2})
+  const first={...center(gas),id:1},second={...center(drift),id:2}
+  const cdp=await page.context().newCDPSession(page)
+  const speed=async()=>Number(await game.getAttribute('data-speed'))
+  try{
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[first]})
+    await expect.poll(speed).toBeGreaterThan(15)
+    const before=await speed()
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[first,second]})
+    await page.waitForTimeout(180)
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[first]})
+    // Releasing the second finger must not release the first gas pointer.
+    await expect.poll(speed).toBeGreaterThan(before+3)
+    const held=await speed()
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})
+    await expect.poll(speed).toBeLessThan(held)
+  } finally {
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}).catch(()=>{})
+    await cdp.detach()
+  }
+})
