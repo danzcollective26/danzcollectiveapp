@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'src/cloud/PrivateGallery.css'
+      - 'src/ui/MobileBottomNav.css'
       - 'src/admin/AlbumPhotoViewer.tsx'
       - 'tests/e2e/gallery-admin.spec.ts'
       - '.github/workflows/verify-photo-viewer.yml'
