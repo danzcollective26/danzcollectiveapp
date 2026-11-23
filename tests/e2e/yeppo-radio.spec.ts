@@ -99,6 +99,14 @@ test('Yeppo walkabout can be previewed on demand and visibly crosses the screen'
   sessionStorage.setItem('danz-yeppo-visit-peek-v1','done')
  })
  await page.goto('/')
+ // Card-visiting animation is only correct when an actual card is visible.
+ // The approved editorial homepage hero can otherwise fill the viewport.
+ const feature=page.locator('.danz-home-priority .feature').first()
+ await feature.scrollIntoViewIfNeeded()
+ await expect.poll(()=>feature.evaluate(el=>{
+  const r=el.getBoundingClientRect()
+  return r.width>70&&r.right>200&&Math.min(r.bottom,innerHeight-76)-Math.max(r.top,125)>48
+ })).toBe(true)
  await page.getByRole('button',{name:'Hablar con Yeppo'}).click()
  await page.getByRole('button',{name:/VER A YEPPO PASEARSE/}).click()
  const walk=page.getByTestId('yeppo-walkabout')
