@@ -31,6 +31,7 @@ const TestLab = lazy(() => import('./testlab/TestLab'))
 const ArenaDuel = lazy(() => import('./arcade/arena/ArenaDuel'))
 const YeppoChase = lazy(() => import('./arcade/chase/YeppoChase'))
 const CollectaHub = lazy(() => import('./arcade/CollectaHub'))
+const CollectaDropDefense = lazy(() => import('./arcade/CollectaDropDefense'))
 const KartMini = lazy(() => import('./arcade/kart/KartMini'))
 const DanzIdleStudio = lazy(() => import('./arcade/idle/DanzIdleStudio'))
 import { gameReducer, initialGame, GRID, MAZE_STAGES, swipeDirection, gameLevel, gameTickMs, readSnakeRecord, saveSnakeRecord, type Direction } from './snake'
@@ -77,9 +78,9 @@ const pages: { id: Page; label: string }[] = [
 function Arrow() { return <svg aria-hidden="true" className="arrow" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19 19 5M5 5h14v14" /></svg> }
 const launchPass = captureLaunchPass()
 const testLab = /^\/test\/?$/.test(window.location.pathname)
-function locationGame(): 'snake' | 'groove' | 'arena' | 'arena-solo' | 'chase' | 'collecta' | 'kart' | 'idle' | null {
+function locationGame(): 'snake' | 'groove' | 'arena' | 'arena-solo' | 'chase' | 'collecta' | 'drop' | 'kart' | 'idle' | null {
   const value = new URLSearchParams(window.location.search).get('juego')
-  return value === 'idle-studio' ? 'idle' : value === 'kart' ? 'kart' : value === 'arena-solo' ? 'arena-solo' : value === 'collecta' ? 'collecta' : value === 'pilla-pilla' ? 'chase' : value === 'arena' ? 'arena' : value === 'groove-ninja' ? 'groove' : value === 'jack' || value === 'snake' ? 'snake' : null
+  return value === 'idle-studio' ? 'idle' : value === 'kart' ? 'kart' : value === 'arena-solo' ? 'arena-solo' : value === 'collecta' ? 'collecta' : value === 'drop' ? 'drop' : value === 'pilla-pilla' ? 'chase' : value === 'arena' ? 'arena' : value === 'groove-ninja' ? 'groove' : value === 'jack' || value === 'snake' ? 'snake' : null
 }
 
 export default function App() {
@@ -332,6 +333,15 @@ export default function App() {
     setPage('arcade'); setArcadeGame('collecta'); window.scrollTo({top:0})
     requestArcadeFullscreen()
   }
+  const openDrop = () => {
+    cancelSectionTransition()
+    dispatch({ type: 'pause' }); gameScreen.leave()
+    const url = new URL(window.location.href)
+    url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'drop')
+    try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
+    setPage('arcade'); setArcadeGame('drop'); window.scrollTo({top:0})
+    requestArcadeFullscreen()
+  }
 
   useEffect(() => {
     const back = () => { cancelSectionTransition(); dispatch({ type: 'pause' }); gameScreen.leave(); setLaunchGroove(locationGame() === 'groove'); setInstagramRequested(new URLSearchParams(window.location.search).get('vincular') === 'instagram'); setPage(locationPage()); setArcadeGame(locationGame()) }
@@ -431,7 +441,8 @@ export default function App() {
           <ArcadeChooser onSelect={choice => choice === 'kart' ? openKart() : choice === 'collecta' ? openCollecta() : choice === 'groove' ? openGroove(true) : openSnake()} />
           <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
         </section>}
-        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onDrop={openDrop} onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'drop' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Drop Defense…</p>}><CollectaDropDefense onBack={openCollecta} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'idle' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Idle Studio…</p>}><DanzIdleStudio onExit={() => go('arcade')} /></Suspense>}
         {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="arcade-loading" role="status">Preparando DANZPORTER…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
         {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
