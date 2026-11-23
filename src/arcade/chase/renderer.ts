@@ -68,6 +68,20 @@ export function createChaseRenderer(parent: HTMLElement, read: () => Chase, adva
         const bob = !media.matches && running ? Math.abs(step) * .3 : 0
         g.fillStyle(0x000000, .4).fillEllipse(p.x, p.y + 25, 56, 20)
         g.lineStyle(id === s.hunter ? 4 : 2, COLORS[id], id === s.hunter ? 1 : .5).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 7)
+        // Make the active hunter recognizable without relying on color or animation.
+        if (id === s.hunter) {
+          g.fillStyle(0xf3dfb5, .98).fillTriangle(p.x - 10, p.y - 55, p.x + 10, p.y - 55, p.x, p.y - 44)
+          g.lineStyle(2, 0x19252c, .9).strokeTriangle(p.x - 10, p.y - 55, p.x + 10, p.y - 55, p.x, p.y - 44)
+        }
+        // Sprint feedback is purely cosmetic: gameplay speed and collisions are untouched.
+        if (running && p.dashUntil > s.elapsed) {
+          g.lineStyle(3, COLORS[id], .75).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 14)
+          if (!media.matches) {
+            g.lineStyle(2, COLORS[id], .5)
+            g.lineBetween(p.x - 23, p.y + 19, p.x - 38, p.y + 19)
+            g.lineBetween(p.x - 19, p.y + 27, p.x - 31, p.y + 27)
+          }
+        }
         if (s.elapsed < s.protectedUntil && id !== s.hunter) g.lineStyle(2, 0xffffff, .65).strokeCircle(p.x, p.y + 4, CHASE_RADIUS + 12)
         const frame = !media.matches && running ? Math.floor(time/110)%2 : 0
         this.heads[id].setPosition(p.x,p.y-10-bob).setTexture(`club-${id===0?'security':'yeppo'}-${frame}`)
