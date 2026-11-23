@@ -1,6 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { installMockSession, makeSession, mockSupabase, supabaseHost, sessionStorageKey, switchMockSession, USER_A, USER_B } from './helpers/supabase'
 
+// Authentication flows run without the unrelated Yeppo introduction overlay.
+// Yeppo itself has dedicated interaction and accessibility coverage.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('danz-yeppo-enabled-v1', 'false'))
+})
+
 // Desktop has a direct tab; mobile puts Cuenta in the accessible MÁS sheet.
 // Use the public navigation rather than assuming both viewports share a menu.
 async function navigateToAccount(page: Page) {
