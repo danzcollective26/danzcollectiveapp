@@ -8,6 +8,7 @@ on:
       - 'tests/e2e/independent.spec.ts'
       - 'tests/e2e/premium-feel.spec.ts'
       - 'src/PhotoGallery.css'
+      - 'src/ui/MobileBottomNav.css'
       - 'tests/e2e/yeppo-radio.spec.ts'
       - '.github/workflows/verify-integrated-mobile.yml'
   workflow_dispatch:
