@@ -8,6 +8,7 @@ on:
       - 'src/ui/MobileBottomNav.tsx'
       - 'tests/e2e/account.spec.ts'
       - 'tests/e2e/event-passport.spec.ts'
+      - 'tests/e2e/oauth.spec.ts'
       - '.github/workflows/verify-account-passport.yml'
   workflow_dispatch:
 
@@ -34,7 +35,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - name: Exercise real account and passport UI with mocked data
-        run: npm run test:e2e -- --project=${{ matrix.viewport }} --workers=1 --max-failures=3 tests/e2e/account.spec.ts tests/e2e/event-passport.spec.ts
+        run: npm run test:e2e -- --project=${{ matrix.viewport }} --workers=1 --max-failures=3 tests/e2e/account.spec.ts tests/e2e/event-passport.spec.ts tests/e2e/oauth.spec.ts
       - name: Upload focused report
         if: always()
         uses: actions/upload-artifact@v4
