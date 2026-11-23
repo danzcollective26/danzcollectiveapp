@@ -1,0 +1,41 @@
+name: Verify Yeppo account access
+
+on:
+  pull_request:
+    paths:
+      - 'src/yeppo/Yeppo.tsx'
+      - 'tests/e2e/yeppo-account.spec.ts'
+      - '.github/workflows/verify-yeppo-login.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-yeppo-login-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  account-entrance:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [mobile, desktop]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify uninterrupted account entry
+        run: npm run test:e2e -- --project=${{ matrix.viewport }} --workers=1 tests/e2e/yeppo-account.spec.ts
+      - name: Upload browser report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeppo-account-${{ matrix.viewport }}
+          path: playwright-report/
+          retention-days: 7
