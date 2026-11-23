@@ -1,4 +1,5 @@
 import { test as base, expect, type Page } from '@playwright/test'
+import { visitDanzSection } from './responsiveNav'
 
 // A generated one-pixel PNG: these tests never need a person's photograph.
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC', 'base64')
@@ -12,13 +13,9 @@ const test = base.extend<{ pageErrors: void }>({
   }, { auto: true }],
 })
 
-async function navigate(page: Page, section: string) {
-  await page.getByRole('navigation', { name: 'Navegación principal' })
-    .getByRole('button', { name: section, exact: true }).click()
-}
 
 async function openGallery(page: Page) {
-  await navigate(page, 'FOTOS')
+  await visitDanzSection(page, 'FOTOS')
   await page.getByRole('button', { name: 'Álbumes de este navegador', exact: true }).click()
   await expect(page.getByText('✓ GUARDADO LOCAL ACTIVADO', { exact: true })).toBeVisible()
 }
@@ -125,7 +122,7 @@ test('rejects unsupported files without changing an album', async ({ page }) => 
 
 test('main sections and photo viewer fit the current viewport', async ({ page }) => {
   for (const section of ['INICIO', 'FOTOS', 'ARCADANZ', 'DANZERS', 'DANZ IN', 'DANZFLOR', 'DANZPOINTS', 'CUENTA']) {
-    await navigate(page, section)
+    await visitDanzSection(page, section)
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   }
   await openGallery(page)
