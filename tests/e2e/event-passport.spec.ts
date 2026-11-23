@@ -117,7 +117,7 @@ test('an empty or signed-out booklet never invents attendance and keeps sign-in 
   await openStampIndex(page)
   await expect(page.locator('.danz-book-stamp')).toHaveCount(0)
   await expect(page.getByText('Regístrate para guardar tus primeros sellos.', { exact: false })).toBeVisible()
-  await page.getByRole('button', { name: 'INICIAR SESIÓN ↗' }).click()
+  await book(page).getByRole('button', { name: 'INICIAR SESIÓN ↗', exact: true }).click()
   await expect(page.getByLabel('Correo electrónico', { exact: true })).toBeVisible()
 })
 
