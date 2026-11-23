@@ -7,6 +7,7 @@ type Tower = { id: number; x: number; y: number; type: 'speaker' | 'light' | 'ba
 type Enemy = { id: number; pathIndex: number; progress: number; hp: number; type: 'hater' | 'resaca'; speed: number }
 
 // Labyrinth path (waypoints) – serpentine from top to bottom
+const MAX_TOWERS = 10
 const PATH: { x: number; y: number }[] = [
   { x: 80, y: -20 },
   { x: 80, y: 120 },
@@ -124,6 +125,7 @@ export default function CollectaDropDefense({ onBack }: { onBack: () => void }) 
     const x = (event.clientX - rect.left) * 640 / rect.width
     const y = (event.clientY - rect.top) * 760 / rect.height
     if (distToPath(x, y) < 42) { setMessage('Fuera del camino'); return }
+    if (towers.length >= MAX_TOWERS) { setMessage(`Límite de ${MAX_TOWERS} defensas`); return }
     if (y < 40 || y > 740 || x < 20 || x > 620) return
     setTowers(prev => [...prev, { id: nextId.current++, x, y, type: selected, cooldown: 0 }])
     setMessage(`${selected === 'speaker' ? 'ALTAVOZ' : selected === 'light' ? 'LUZ' : 'BARRERA'} COLOCADO`)
@@ -150,7 +152,7 @@ export default function CollectaDropDefense({ onBack }: { onBack: () => void }) 
 
   return (
     <div className="collecta-drop-page">
-      <header><button onClick={onBack}>←</button><strong>DROP DEFENSE</strong><span>{Math.ceil((480000 - elapsed) / 1000)}s · VIDAS {lives} · {score}</span></header>
+      <header><button onClick={onBack}>←</button><strong>DROP DEFENSE</strong><span>{Math.ceil((480000 - elapsed) / 1000)}s · VIDAS {lives} · DEF {towers.length}/{MAX_TOWERS} · {score}</span></header>
       <div className="collecta-drop-tools">
         {(['speaker', 'light', 'barrier'] as const).map(t => (
           <button key={t} aria-pressed={selected === t} onClick={() => setSelected(t)}>
