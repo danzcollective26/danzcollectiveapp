@@ -88,6 +88,8 @@ export default function App() {
   const [collectaControls, setCollectaControls] = useState(readCollectaControls)
   useEffect(() => saveCollectaControls(collectaControls), [collectaControls])
   const [yeppoDemo, setYeppoDemo] = useState<YeppoDemoRequest>({ id: 0, move: 'stroll' })
+  // Keep setup only in this page's memory while a focus check revalidates the
+  // account. A different verified owner or sign-out clears it before display.
   const adminMfaSetup = useRef<AdminMfaEnrollment | null>(null)
   if (adminMfaSetup.current && (adminMfaSetup.current.client !== auth.client || (!auth.loading && adminMfaSetup.current.owner !== auth.user?.id))) adminMfaSetup.current = null
   const admin = useAdminAccess(auth.client, auth.user?.id ?? null, auth.loading)
@@ -249,6 +251,7 @@ export default function App() {
     if (destination === 'inicio') url.searchParams.delete('seccion')
     else url.searchParams.set('seccion', destination === 'danzin' ? 'musica' : destination)
     if (window.location.href !== url.href) haptic('selection')
+    // History changes with the gesture; a snapshot must not delay browser Back.
     try { if (window.location.href !== url.href) window.history.pushState(window.history.state, '', url) } catch { /* In-memory navigation remains usable. */ }
     const destinationLocation = window.location.href
     transitionSection(() => {
@@ -312,22 +315,13 @@ export default function App() {
     setPage('arcade'); setArcadeGame('chase')
     requestArcadeFullscreen()
   }
-  const openDrop = () => {
-    cancelSectionTransition()
-    dispatch({ type: 'pause' }); gameScreen.leave()
-    const url = new URL(window.location.href)
-    url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'drop')
-    try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
-    setPage('arcade'); setArcadeGame('drop'); window.scrollTo({top:0})
-    requestArcadeFullscreen()
-  }
   const openKart = () => {
     cancelSectionTransition()
     dispatch({ type: 'pause' }); gameScreen.leave()
     const url = new URL(window.location.href)
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'kart')
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
-    setPage('arcade'); setArcadeGame('kart')
+    setPage('arcade'); setArcadeGame('kart'); window.scrollTo({top:0})
     requestArcadeFullscreen()
   }
   const openCollecta = () => {
@@ -337,6 +331,15 @@ export default function App() {
     url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'collecta')
     try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
     setPage('arcade'); setArcadeGame('collecta'); window.scrollTo({top:0})
+    requestArcadeFullscreen()
+  }
+  const openDrop = () => {
+    cancelSectionTransition()
+    dispatch({ type: 'pause' }); gameScreen.leave()
+    const url = new URL(window.location.href)
+    url.searchParams.delete('panel'); url.searchParams.set('seccion', 'arcade'); url.searchParams.set('juego', 'drop')
+    try { window.history.pushState(window.history.state, '', url) } catch { /* Local navigation remains available. */ }
+    setPage('arcade'); setArcadeGame('drop'); window.scrollTo({top:0})
     requestArcadeFullscreen()
   }
 
@@ -354,80 +357,179 @@ export default function App() {
         </button>
         <nav className="desktop-nav" aria-label="Navegación principal">
           {pages.map((item) => (
-            <button key={item.id} type="button" className={page === item.id ? 'active' : ''} onClick={() => go(item.id)}>{item.label}</button>
+            <button key={item.id} onClick={() => go(item.id)} className={page === item.id ? 'active' : ''} aria-current={page === item.id ? 'page' : undefined}>
+              {item.label}
+            </button>
           ))}
+          {admin.member && !admin.loading && <button onClick={() => go('admin')} className={page === 'admin' ? 'active' : ''}>ADMINISTRAR</button>}
         </nav>
+        <span className="build-tag"><span className="status-dot"/> {auth.user ? 'CONECTADO' : 'EN DESARROLLO'}</span>
       </header>
-      {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onDrop={openDrop} onBack={() => go('arcade')}/></Suspense>}
-      {page === 'arcade' && arcadeGame === 'drop' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Drop Defense…</p>}><CollectaDropDefense onBack={openCollecta} /></Suspense>}
-      {page === 'arcade' && arcadeGame === 'idle' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Idle Studio…</p>}><DanzIdleStudio onExit={() => go('arcade')} /></Suspense>}
-      {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="arcade-loading" role="status">Preparando DANZPORTER…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
-      {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
-      {page === 'arcade' && (arcadeGame === 'arena' || arcadeGame === 'arena-solo') && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Arena…</p>}><ArenaDuel key={arcadeGame} opponent={arcadeGame === 'arena-solo' ? 'cpu' : 'human'} controls={collectaControls} onBack={openCollecta} /></Suspense>}
-      {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
-      {page === 'arcade' && arcadeGame === 'snake' && (
-        <section className="content inner-page arcade-page">
+
+      <PwaControls quiet={quickArrival || page === 'arcade'} />
+      {auth.user && !quickArrival && page !== 'arcade' && page !== 'cuenta' && <div className="content"><InstagramWelcome onConnect={() => {
+        setInstagramRequested(true)
+        go('cuenta')
+      }} /></div>}
+
+      <main className="app-main">
+        {pendingPass && page !== 'danzers' && page !== 'pasaporte' && page !== 'arcade' && <div className="content pending-pass-banner"><span>{pendingPasses.length === 1 ? 'Tienes un pase de evento guardado.' : `Tienes ${pendingPasses.length} pases de evento guardados.`}</span><button className="outline-btn" onClick={() => go('danzers')}>ABRIR MI PASE ↗</button></div>}
+        {page === 'inicio' && testLab && <Suspense fallback={<p role="status">Abriendo zona de pruebas…</p>}><TestLab onKart={openKart} onCollecta={openCollecta} onJack={openSnake} onGroove={()=>openGroove(true)} onLibrary={()=>go('arcade')} onYeppo={move=>{markYeppoWelcomeDone();setYeppoEnabled(true);setYeppoDemo(previous=>({id:previous.id+1,move}))}}/></Suspense>}
+        {page === 'inicio' && !testLab && (
+          <>
+            <section className="intro content">
+              <div className="eyebrow"><DanzFlower className="eyebrow-flower" /> MUSIC · PEOPLE · CULTURE</div>
+              <h1>VIVE.<br /><em>RECUERDA.</em><br />JUEGA.</h1>
+              <div className="intro-bottom">
+                <p>Tu noche no acaba cuando termina la música.</p>
+                <span>FOTOS · PASAPORTE · ARCADANZ ↓</span>
+              </div>
+            </section>
+
+            <section className="danz-home-priority content" aria-label="Descubre DANZ">
+              <button className="feature photo-feature danz-home-photo" onClick={() => go('fotos')}>
+                <span className="feature-top"><span>01 / NUESTRAS NOCHES</span><Arrow /></span>
+                <div className="photo-art" aria-hidden="true"><span>★</span><i/><b>AFTER<br />THE<br />NIGHT</b></div>
+                <span className="feature-bottom"><strong>FOTOS</strong><small>Las noches pasan. Los recuerdos quedan. <span aria-hidden="true">↗</span></small></span>
+              </button>
+
+              <section className="passport-home-section danz-wallet-home" aria-label="Tu pasaporte DANZ">
+                <button className="danz-wallet-link" type="button" onClick={() => go('pasaporte')} aria-label="Abrir mi Pasaporte DANZ y ver mis sellos">
+                  <span className="danz-wallet-stack" aria-hidden="true"><span className="danz-wallet-back-card"/><span className="danz-wallet-front-card"><DanzFlower/><b>DANZ</b><small>PASAPORTE</small></span><span className="danz-wallet-strap"><DanzFlower/></span></span>
+                  <span className="danz-wallet-home-copy"><small>02 / TU CARTERA DE FIESTAS</small><strong>UN PASAPORTE.<br/>TODAS TUS NOCHES.</strong><span>Una fiesta, un sello, un recuerdo. Descubre tu colección DANZ.</span><em>DESCUBRIR MI PASAPORTE <span aria-hidden="true">↗</span></em></span>
+                </button>
+              </section>
+
+              <button className="feature arcade-feature danz-home-arcade" onClick={() => go('arcade')}>
+                <span className="feature-top"><span>03 / PLAY DANZ</span><Arrow /></span>
+                <GameCover className="snake-art cable-cover" decorative />
+                <span className="feature-bottom"><strong>ARCADANZ</strong><small>Juega, compite y descubre. <span aria-hidden="true">↗</span></small></span>
+              </button>
+            </section>
+
+            <section className="content lower-section">
+              <div className="section-heading"><span>EL UNIVERSO DANZ</span><span>03 — 05</span></div>
+              <div className="module-grid">
+                <button onClick={() => go('danzers')} className="module"><span>DANZERS <Arrow /></span><small>EVENTOS Y FIESTAS</small></button>
+                <button onClick={() => go('danzin')} className="module"><span>DANZ IN <Arrow /></span><small>MÚSICA Y ARTISTAS</small></button>
+                <button onClick={() => go('danzflor')} className="module"><span>DANZFLOR <Arrow /></span><small>MODA Y COLECCIONES</small></button>
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Se mantiene montada para conservar las fotos al cambiar entre secciones.
+            El contenido solo es visible cuando estamos en Fotos. */}
+        {page === 'fotos' && <div className="content photo-source-nav" role="group" aria-label="Elegir galerías">
+          <button type="button" className="outline-btn" aria-pressed={photoSource === 'private'} onClick={() => setPhotoSource('private')}>{managesPhotos ? 'Mis álbumes' : 'Galerías privadas'}</button>
+          {managesPhotos && <button type="button" className="outline-btn" aria-pressed={photoSource === 'attendance'} onClick={() => setPhotoSource('attendance')}>Galerías con mi sello</button>}
+          <button type="button" className="outline-btn" aria-pressed={photoSource === 'local'} onClick={() => setPhotoSource('local')}>Álbumes de este navegador</button>
+        </div>}
+        {localGalleryOpened.current && <Suspense fallback={<div className="content"><LoadingSkeleton label="Abriendo tus álbumes…"/></div>}><PhotoGallery active={page === 'fotos' && photoSource === 'local'} onBack={() => go('inicio')} /></Suspense>}
+        {page === 'fotos' && photoSource !== 'local' && <Suspense fallback={<div className="content"><LoadingSkeleton label="Abriendo las galerías…"/></div>}>{admin.loading ? <div className="content"><LoadingSkeleton label="Comprobando tus álbumes…"/></div> : photoSource === 'private' && managesPhotos ? <section className="content inner-page"><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} albumsOnly /></section> : <PrivateGallery key={`${auth.user?.id ?? 'guest'}-${galleryEvent}`} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} initialEventId={galleryEvent} onSignIn={() => go('cuenta')} />}</Suspense>}
+        {page === 'cuenta' && <section className="content inner-page">
           <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
-          <div className="arcade-intro">
-            <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
-            <div className="eyebrow">ARCADANZ / GAME 001</div>
-            <h1 className="page-title arcade-game-title">LA QUE HAS<br /><em>LIAO, JACK.</em></h1>
-            <p className="page-lead">Un cable suelto, las caras del colectivo y doce laberintos. Que no te pillen.</p>
-            <GameCover className="snake-cover" />
-          </div>
-          <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}${game.seed!==undefined?' is-ranked':''}${competition.run?.status==='active'?' is-ranked-live':game.seed!==undefined?' is-ranked-result':''}`}>
-            {gameScreen.active && <ArcadeLaunch game="snake" running={game.running} onPlay={play} onExit={()=>{gameScreen.leave();go('arcade')}} settings={<button type="button" aria-pressed={showControls} onClick={toggleControls}>BOTONES EN PANTALLA <b>{showControls?'ON':'OFF'}</b></button>}>
-              <SelectionReel label="Modo de Snake" choices={[{id:'classic',name:'CLÁSICO',note:'El cable crece. La crew no espera.'},{id:'maze',name:'LABERINTO',note:'Doce recorridos. Cero choques.'}]} value={game.mode} onChange={id=>{competition.clear();dispatch({type:'mode',mode:id==='maze'?'maze':'classic'})}}/>
-              {game.mode==='maze'&&<SelectionReel compact label="Recorrido del laberinto" choices={MAZE_STAGES.map((name,i)=>({id:String(i+1),name}))} value={String(game.stage)} onChange={id=>{competition.clear();dispatch({type:'maze-level',stage:Number(id)})}}/>}
-            </ArcadeLaunch>}
-            <div className="game-board" onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={endGesture}>
-              <SnakeCable />
-              <SnakeCells game={game} />
+          {admin.member && !admin.loading && <button className="outline-btn admin-link" onClick={() => go('admin')}>ABRIR ADMINISTRACIÓN</button>}
+          <Suspense fallback={<p role="status">Abriendo tu cuenta…</p>}><Account key={auth.user?.id ?? 'guest'} focusInstagram={instagramRequested} /></Suspense>
+        </section>}
+        {page === 'admin' && <section className="content inner-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><Suspense fallback={<p role="status">Abriendo administración…</p>}><AdminPanel key={auth.user?.id ?? 'guest'} client={auth.client} userId={auth.user?.id ?? null} authLoading={auth.loading} access={admin} setup={adminMfaSetup} onSignIn={() => go('cuenta')} /></Suspense></section>}
+
+        {page === 'arcade' && arcadeGame === null && <section className="content inner-page arcade-library" aria-label="Biblioteca ARCADANZ">
+          <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+          <header className="arcade-library-heading"><div><span className="eyebrow">DANZ COLLECTIVE / PLAY TOGETHER</span><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724"/><h1>TU BIBLIOTECA.</h1><p>Elige una portada. La siguiente partida es tuya.</p></div><span className="arcade-library-count">05 <small>JUEGOS DISPONIBLES</small></span></header>
+          <button type="button" className="arcade-library-upcoming" aria-label="DANZ Idle Studio" onClick={openIdle}><img src="/arcade/idle-studio-industrial.webp" alt="Taller creativo de DANZ Idle Studio" width="1200" height="900" loading="lazy"/><div><span className="eyebrow">05 / ESTUDIO</span><h2>DANZ IDLE STUDIO</h2><p>Música, moda, vídeo y el sello. El código del juego está en el repositorio.</p><small>JUGAR ↗ · src/arcade/idle</small></div></button>
+          <ArcadeChooser onSelect={choice => choice === 'kart' ? openKart() : choice === 'collecta' ? openCollecta() : choice === 'groove' ? openGroove(true) : openSnake()} />
+          <SnakeCompetition key={auth.user?.id??'guest'} competition={competition} onSignIn={()=>go('cuenta')} />
+        </section>}
+        {page === 'arcade' && arcadeGame === 'collecta' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Collecta…</p>}><CollectaHub controls={collectaControls} onControls={setCollectaControls} onArena={() => openArena()} onSolo={() => openArena('arena-solo')} onChase={openChase} onDrop={openDrop} onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'drop' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Drop Defense…</p>}><CollectaDropDefense onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'idle' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo DANZ Idle Studio…</p>}><DanzIdleStudio onExit={() => go('arcade')} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'kart' && <Suspense fallback={<p className="arcade-loading" role="status">Preparando DANZPORTER…</p>}><KartMini onBack={() => go('arcade')}/></Suspense>}
+        {page === 'arcade' && arcadeGame === 'chase' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Persecución…</p>}><YeppoChase controls={collectaControls} onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && (arcadeGame === 'arena' || arcadeGame === 'arena-solo') && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo Arena…</p>}><ArenaDuel key={arcadeGame} opponent={arcadeGame === 'arena-solo' ? 'cpu' : 'human'} controls={collectaControls} onBack={openCollecta} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'groove' && <Suspense fallback={<p className="arcade-loading" role="status">Abriendo GROOVE NINJA…</p>}><GrooveNinja autoEnter={launchGroove} onBack={() => { setLaunchGroove(false); go('arcade') }} /></Suspense>}
+        {page === 'arcade' && arcadeGame === 'snake' && (
+          <section className="content inner-page arcade-page">
+            <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+            <div className="arcade-intro">
+              <div className="arcadanz-brand"><img src="/brand/arcadanz-wordmark-v2.webp" alt="ARCADANZ" width="2172" height="724" decoding="async" /></div>
+              <div className="eyebrow">ARCADANZ / GAME 001</div>
+              <h1 className="page-title arcade-game-title">LA QUE HAS<br /><em>LIAO, JACK.</em></h1>
+              <p className="page-lead">Un cable suelto, las caras del colectivo y doce laberintos. Que no te pillen.</p>
+              <GameCover className="snake-cover" />
             </div>
-            {showControls && <div className="game-controls">
-              <button type="button" onClick={() => turn('up')}>↑</button>
-              <button type="button" onClick={() => turn('left')}>←</button>
-              <button type="button" onClick={() => turn('down')}>↓</button>
-              <button type="button" onClick={() => turn('right')}>→</button>
-            </div>}
-            <div className="game-actions">
-              <button type="button" className="primary" onClick={play}>{game.running ? 'PAUSA' : 'JUGAR'}</button>
-              <button type="button" onClick={() => dispatch({ type: 'restart' })}>REINICIAR</button>
+            <div ref={gameScreen.panel} className={`game-panel${gameScreen.active ? ' is-immersive' : ''}${showControls ? ' has-controls' : ''}${game.seed!==undefined?' is-ranked':''}${competition.run?.status==='active'?' is-ranked-live':game.seed!==undefined?' is-ranked-result':''}`}>
+              {gameScreen.active && <ArcadeLaunch game="snake" running={game.running} onPlay={play} onExit={()=>{gameScreen.leave();go('arcade')}} settings={<button type="button" aria-pressed={showControls} onClick={toggleControls}>BOTONES EN PANTALLA <b>{showControls?'ON':'OFF'}</b></button>}>
+                <SelectionReel label="Modo de Snake" choices={[{id:'classic',name:'CLÁSICO',note:'El cable crece. La crew no espera.'},{id:'maze',name:'LABERINTO',note:'Doce recorridos. Cero choques.'}]} value={game.mode} onChange={id=>{competition.clear();dispatch({type:'mode',mode:id==='maze'?'maze':'classic'})}}/>
+                {game.mode==='maze'&&<SelectionReel compact label="Recorrido del laberinto" choices={MAZE_STAGES.map((name,i)=>({id:String(i+1),name}))} value={String(game.stage)} onChange={id=>{competition.clear();dispatch({type:'maze-level',stage:Number(id)})}}/>}
+              </ArcadeLaunch>}
+              {gameScreen.active && <div className="game-screen-bar"><span>{GAME_SHORT_TITLE} · {GRID} × {GRID}</span><button type="button" className="outline-btn" onClick={() => { gameScreen.leave(); go('arcade') }}>SALIR DEL JUEGO ↗</button></div>}
+              <div className="game-modes" role="group" aria-label="Modo de Snake">
+                <button type="button" aria-pressed={game.mode === 'classic'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'classic' })}}>CLÁSICO</button>
+                <button type="button" aria-pressed={game.mode === 'maze'} onClick={() => {competition.clear();dispatch({ type: 'mode', mode: 'maze' })}}>LABERINTO <span>{MAZE_STAGES.length} NIVELES</span></button>
+              </div>
+              {game.mode === 'maze' && <div className="maze-level-picker"><label htmlFor="maze-level">RECORRIDO</label><select id="maze-level" value={game.stage} onChange={event => {competition.clear();dispatch({ type: 'maze-level', stage: Number(event.target.value) })}}>{MAZE_STAGES.map((name, i) => <option key={name} value={i + 1}>{i + 1} · {name}</option>)}</select><span>{game.stage < MAZE_STAGES.length ? `${game.stageGoals}/5 OBJETIVOS` : 'MODO INFINITO'}</span></div>}
+              <div className="game-heading"><span>PUNTOS <strong key={game.score} className={game.score ? 'snake-score-gain' : undefined}>{String(game.score).padStart(4, '0')}</strong></span><span>RÉCORD <strong>{String(record).padStart(4, '0')}</strong></span><span className="snake-stage">NIVEL {game.mode === 'maze' ? game.stage : gameLevel(game.score)}<span className="snake-stage-progress" aria-label={game.mode === 'classic' && gameLevel(game.score) === 10 ? 'Velocidad máxima alcanzada' : game.mode === 'maze' && game.stage === MAZE_STAGES.length ? 'Laberinto infinito' : `${game.mode === 'maze' ? game.stageGoals : game.score % 50 / 10} de 5 objetivos para el siguiente nivel`}>{Array.from({length:5},(_,i)=><i key={i} data-filled={i < (game.mode === 'maze' ? game.stageGoals : game.score % 50 / 10)}/>)}</span></span></div>
+              <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={() => { gesture.current = null }} onLostPointerCapture={() => { gesture.current = null }} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
+                <SnakeCable points={game.snake} grid={GRID}/>
+                <SnakeCells game={game} artwork={collective.snake}/>
+                {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'PARTY OVER' : game.levelUp ? `NIVEL ${game.stage}` : game.steps ? 'EN PAUSA' : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : game.steps ? 'REANUDA CUANDO QUIERAS' : 'PULSA JUGAR'}</small></div>}
+              </div></div>
+              <div className="game-actions">
+                <button className="primary-btn" disabled={competition.busy||(game.seed!==undefined&&['saving','error'].includes(competition.run?.status??''))} onClick={play}>{game.seed!==undefined&&['saved','expired'].includes(competition.run?.status??'')?'VOLVER A COMPETIR':game.running ? 'PAUSAR' : game.over ? 'VOLVER A JUGAR' : game.levelUp ? 'CONTINUAR NIVEL' : 'JUGAR'} <span>→</span></button>
+                <button className="outline-btn" onClick={() => {competition.clear();dispatch({ type: 'reset' })}}>REINICIAR</button>
+                {competition.run?.status==='active'&&Boolean(game.replay)&&!game.over&&<button className="outline-btn ranked-finish" onClick={()=>void competition.save()}>TERMINAR Y GUARDAR</button>}
+                {competition.run?.status==='error'&&<button className="outline-btn ranked-finish" onClick={()=>void competition.save()}>REINTENTAR GUARDADO</button>}
+              </div>
+              {game.seed!==undefined&&<p className="game-competition-status" role="status">{competition.message}</p>}
+              <div className="game-control-options">
+                <p>Gira al deslizar, sin levantar el dedo.</p>
+                <button type="button" className="outline-btn" aria-pressed={showControls} onClick={toggleControls}>
+                  {showControls ? 'OCULTAR BOTONES' : 'MOSTRAR BOTONES'} ⌘
+                </button>
+              </div>
+              {showControls && <div className="controls" aria-label="Controles para móvil">
+                {(['up', 'left', 'down', 'right'] as Direction[]).map((direction, i) => <button key={direction} aria-label={['Arriba', 'Izquierda', 'Abajo', 'Derecha'][i]} onPointerDown={event => { event.preventDefault(); turn(direction) }} onClick={event => { if (event.detail === 0) turn(direction) }}>{['↑', '←', '↓', '→'][i]}</button>)}
+              </div>}
+              <p className="game-local-note">Aparece un objetivo más cada cinco caras recogidas, hasta cinco a la vez. Diez personas, tres expresiones cada una: no se agotan.<br />{game.mode === 'maze' ? `Recoge cinco caras para avanzar. En ${MAZE_STAGES.at(-1)}, sigue hasta donde llegues.` : 'La velocidad sube cada cinco caras.'} Cambiar de modo o recorrido inicia otra partida.<br />Práctica: récord de {game.mode === 'maze' ? 'laberinto' : 'clásico'} en este navegador. {COMPETITION_ENABLED?'Entra desde COMPETIR para registrar una partida en tu cuenta.':'La clasificación entre cuentas y sus premios están en preparación.'}</p>
             </div>
-            <div className="game-stats">
-              <span>PUNTOS <strong>{game.score}</strong></span>
-              <span>RÉCORD <strong>{record}</strong></span>
-              <span>NIVEL <strong>{gameLevel(game.score)}</strong></span>
-            </div>
-            {competition.run && <SnakeCompetition run={competition.run} onClear={competition.clear} />} 
-          </div>
-        </section>
-      )}
-      {page !== 'arcade' && (
-        <main>
-          {page === 'inicio' && <section className="hero">
-            <div className="hero-content">
-              <div className="eyebrow">MUSIC · PEOPLE · CULTURE</div>
-              <h1>DANZ<br /><em>COLLECTIVE</em></h1>
-              <p>El colectivo. La pista. La crew.</p>
-              <button type="button" className="cta" onClick={() => go('arcade')}>ARCADANZ <Arrow /></button>
-            </div>
-          </section>}
-          {page === 'pasaporte' && <EventPassport />}
-          {page === 'fotos' && <Suspense fallback={<LoadingSkeleton />}><PhotoGallery event={galleryEvent} source={photoSource} onSource={setPhotoSource} manages={managesPhotos} /></Suspense>}
-          {page === 'danzers' && <section className="content"><h1>DANZERS</h1><p>La crew.</p></section>}
-          {page === 'danzin' && <DanzMusic />}
-          {page === 'danzflor' && <section className="content"><h1>DANZFLOR</h1></section>}
-          {page === 'danzpoints' && <Suspense fallback={<LoadingSkeleton />}><DanzPoints /></Suspense>}
-          {page === 'cuenta' && <Suspense fallback={<LoadingSkeleton />}><Account /></Suspense>}
-          {page === 'admin' && <Suspense fallback={<LoadingSkeleton />}><AdminPanel /></Suspense>}
-        </main>
-      )}
-      <MobileBottomNav page={page} onGo={go} />
-      <Yeppo demo={yeppoDemo} onDemo={setYeppoDemo} />
-      <InstagramWelcome requested={instagramRequested} onClose={() => setInstagramRequested(false)} />
-      <PwaControls />
-      {testLab && <Suspense fallback={null}><TestLab /></Suspense>}
+          </section>
+        )}
+
+        {(page === 'pasaporte' || page === 'danzers') && (
+          <section className="content inner-page passport-page">
+            <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+            <EventPassport key={auth.user?.id ?? 'guest'} arrival={page === 'danzers'} client={auth.client} userId={auth.user?.id ?? null} registeredAt={auth.user?.created_at ?? null} authLoading={auth.loading} pendingPass={pendingPass} pendingCount={pendingPasses.length} redemption={redemption} launchIssue={passIssue} onPendingPass={syncPasses} onSignIn={() => go('cuenta')} onContinue={() => go('inicio')} onGallery={eventId => { setGalleryEvent(eventId); setPhotoSource('attendance'); go('fotos') }} />
+          </section>
+        )}
+
+        {page === 'danzpoints' && <section className="content inner-page points-page"><button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button><div className="eyebrow">DANZ COLLECTIVE / RECOMPENSAS</div><h1 className="page-title">DANZ<br /><em>POINTS.</em></h1><Suspense fallback={<p role="status">Abriendo DANZPOINTS…</p>}><DanzPoints key={auth.user?.id??'guest'} onSignIn={()=>go('cuenta')} /></Suspense></section>}
+
+        {page === 'danzin' && (
+          <section className="content inner-page">
+            <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+            <div className="eyebrow">DANZ COLLECTIVE / LABEL</div>
+            <h1 className="page-title">DANZ<br /><em>IN.</em></h1>
+            <p className="page-lead">Los DJs del colectivo, en un mismo lugar. Descubre su música, sus sesiones y lo que está por sonar.</p>
+            <DanzMusic artists={collective.artists} />
+          </section>
+        )}
+
+        {page === 'danzflor' && (
+          <section className="content inner-page shop-page">
+            <button className="back" onClick={() => go('inicio')}>← VOLVER AL INICIO</button>
+            <div className="eyebrow">DANZ COLLECTIVE / CLOTHING</div>
+            <h1 className="page-title">DANZ<br /><em>FLOR.</em></h1>
+            <p className="page-lead">La ropa del colectivo. Diseñada para la música, hecha para llevarla contigo.</p>
+            <Suspense fallback={<p role="status">Abriendo DANZFLOR…</p>}><DanzShop /></Suspense>
+          </section>
+        )}
+      </main>
+
+      <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
+      <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
+      <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />
+      <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>
   )
 }
