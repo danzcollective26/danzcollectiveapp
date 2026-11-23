@@ -69,6 +69,14 @@ test('browser history restores the library and selected game', async ({ page }) 
 
 test('Yeppo hand reaches a real card, reacts in sync and cancels when the page scrolls', async ({ page }) => {
   await page.goto('/')
+  // The approved editorial hero occupies the initial viewport. Move an actual
+  // feature into view before asking Yeppo to touch it: offscreen cards must not
+  // be targeted, and the test must not depend on the height of the hero.
+  await page.locator('.danz-home-priority .feature').first().scrollIntoViewIfNeeded()
+  await expect.poll(() => page.locator('.danz-home-priority .feature').first().evaluate(el => {
+    const r = el.getBoundingClientRect()
+    return r.width > 70 && r.right > 200 && Math.min(r.bottom, innerHeight - 76) - Math.max(r.top, 125) > 48
+  })).toBe(true)
   await page.getByRole('button', { name: 'Hablar con Yeppo', exact: true }).click()
   await page.getByRole('button', { name: /VER A YEPPO PASEARSE/ }).click()
   const stage = page.locator('.yeppo-visiting-card')
