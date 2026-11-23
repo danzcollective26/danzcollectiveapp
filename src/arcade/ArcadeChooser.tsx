@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import './arcadeChooser.css'
 
-type ArcadeChoice = 'snake' | 'groove' | 'collecta' | 'kart'
+type ArcadeChoice = 'snake' | 'groove' | 'collecta' | 'kart' | 'mike'
 const YEPPO_DARES: Record<ArcadeChoice, string[]> = {
   kart: ['Carga un derrape y suéltalo al salir de la curva. Que la crew te vea la matrícula.', 'Completa tres vueltas en Contrarreloj y guarda tu primera marca.'],
+  mike: ['Coloca defensas y frena las oleadas. Mike lo para todo.', 'Activa a Mike cuando se ponga feo y evoluciona con Mikepoints.'],
   collecta: ['Gana una ronda de Arena creando una cadena de discos. Pero sal de la onda, figura.', 'En Persecución, pilla al rival y escapa antes de que te la devuelva. Así, con cariño.'],
   snake: [
     'Sobrevive hasta recoger 5 objetivos sin parar. ¡Que no te coman los nervios!',
@@ -36,6 +37,10 @@ export default function ArcadeChooser({ onSelect }: { onSelect: (choice: ArcadeC
       <span className="arcade-choice-copy"><small>02 / ARCADE · MÚSICA</small><strong>GROOVE NINJA</strong><span>Vinyl Cut + Scratch Session <b>JUGAR ↗</b></span></span>
     </button>
     <button type="button" className="arcade-choice" onClick={() => onSelect('collecta')}>
+    <button type="button" className="arcade-choice" onClick={() => onSelect('mike')}>
+      <img src="/arcade/collecta-mobile-v1.webp" alt="" width="600" height="800" decoding="async" />
+      <span>IT'S MIKE'S FAULT</span>
+    </button>
       <img src="/arcade/collecta-mobile-v1.webp" alt="" width="600" height="800" decoding="async" />
       <span className="arcade-choice-copy"><small>03 / SEGURIDAD · BETA LOCAL</small><strong>DANZ COLLECTA</strong><span>Arena + Persecución <b>ELEGIR MODO ↗</b></span></span>
     </button>
