@@ -205,7 +205,7 @@ test('email token link works in a fresh browser without the requesting browser v
     expect(pkce).toBe(0)
     expect(other.url()).not.toMatch(/token_hash|synthetic-email|type=email/)
     await other.reload()
-    await other.getByRole('navigation').getByRole('button', { name: 'CUENTA', exact: true }).click()
+    await navigateToAccount(other)
     await expect(other.getByRole('heading', { name: 'Tu perfil', exact: true })).toBeVisible()
     expect(verifies).toBe(1)
   } finally { await second.close() }
