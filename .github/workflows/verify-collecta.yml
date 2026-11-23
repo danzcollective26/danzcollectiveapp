@@ -1,0 +1,42 @@
+name: Verify Collecta
+
+on:
+  pull_request:
+    paths:
+      - 'src/arcade/chase/**'
+      - 'src/arcade/arena/**'
+      - 'tests/e2e/chase.spec.ts'
+      - 'tests/e2e/arena.spec.ts'
+      - 'tests/e2e/arena-solo.spec.ts'
+      - 'tests/e2e/collecta-joystick.spec.ts'
+      - '.github/workflows/verify-collecta.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-collecta-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  collecta-mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Test Arena, Persecucion, CPU and touch controls
+        run: npm run test:e2e -- --project=mobile --workers=1 tests/e2e/arena.spec.ts tests/e2e/arena-solo.spec.ts tests/e2e/chase.spec.ts tests/e2e/collecta-joystick.spec.ts
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collecta-mobile-report
+          path: playwright-report/
+          retention-days: 7
