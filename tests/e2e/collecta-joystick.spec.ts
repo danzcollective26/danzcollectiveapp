@@ -126,3 +126,33 @@ test('a focused joystick supports keyboard, and recentering cannot leave a stuck
   await page.getByRole('button',{name:'PAUSAR',exact:true}).click()
   await expect(page.locator('.chase-game')).toHaveAttribute('data-phase','paused')
 })
+
+test('Collecta joystick stays engaged while a second finger focuses Sprint',async({page,browserName})=>{
+  test.skip(browserName!=='chromium')
+  await page.setViewportSize({width:844,height:390})
+  await choose(page)
+  await launchCollecta(page,'chase')
+  await expect(page.locator('.chase-board')).toHaveAttribute('data-ready','true',{timeout:15000})
+  await page.getByRole('button',{name:'EMPEZAR PERSECUCIÓN',exact:true}).click()
+  await expect(page.locator('.chase-game')).toHaveAttribute('data-phase','playing')
+  const stick=page.getByRole('button',{name:'P1 Joystick',exact:true})
+  const drag=await point(page,1,0,-1)
+  const sprint=(await page.getByRole('button',{name:'P1 Sprint',exact:true}).boundingBox())!
+  const sprintTouch={id:2,x:sprint.x+sprint.width/2,y:sprint.y+sprint.height/2}
+  const cdp=await page.context().newCDPSession(page)
+  try{
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[drag]})
+    await expect(stick).toHaveAttribute('data-engaged','true')
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[drag,sprintTouch]})
+    await expect(stick).toHaveAttribute('data-engaged','true')
+    // CDP touchEnd's touchPoints names the *released* contacts, not the
+    // remaining contacts. Lift Sprint (id 2) while the joystick (id 1) stays.
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[sprintTouch]})
+    await expect(stick).toHaveAttribute('data-engaged','true')
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[drag]})
+    await expect(stick).toHaveAttribute('data-engaged','false')
+  } finally {
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]}).catch(()=>{})
+    await cdp.detach()
+  }
+})
