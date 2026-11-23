@@ -145,9 +145,11 @@ test('Collecta joystick stays engaged while a second finger focuses Sprint',asyn
     await expect(stick).toHaveAttribute('data-engaged','true')
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[drag,sprintTouch]})
     await expect(stick).toHaveAttribute('data-engaged','true')
-    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[drag]})
+    // CDP touchEnd's touchPoints names the *released* contacts, not the
+    // remaining contacts. Lift Sprint (id 2) while the joystick (id 1) stays.
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[sprintTouch]})
     await expect(stick).toHaveAttribute('data-engaged','true')
-    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[drag]})
     await expect(stick).toHaveAttribute('data-engaged','false')
   } finally {
     await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]}).catch(()=>{})
