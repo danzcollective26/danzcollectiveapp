@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { installMockSession, mockSupabase, supabaseHost } from './helpers/supabase'
+import { visitDanzSection, expectDanzSectionSelected } from './responsiveNav'
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -11,20 +12,18 @@ test.beforeEach(async ({ page }) => {
 test('native section transitions keep URL, history and rapid navigation in sync', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror',error=>errors.push(error.message))
   await mockSupabase(page); await page.goto('/')
-  await page.getByRole('navigation').getByRole('button',{name:'PASAPORTE',exact:true}).click()
+  await visitDanzSection(page,'PASAPORTE')
   await expect(page.getByRole('region',{name:'Pasaporte DANZ, un viaje por página'})).toBeVisible()
   await expect(page).toHaveURL(/seccion=pasaporte/)
-  await page.evaluate(()=>{const nav=document.querySelector('nav')!;for(const label of ['FOTOS','PASAPORTE']) [...nav.querySelectorAll('button')].find(button=>button.textContent===label)?.click()})
+  await visitDanzSection(page,'FOTOS')
+  await visitDanzSection(page,'PASAPORTE')
   await expect(page).toHaveURL(/seccion=pasaporte/)
-  await expect(page.getByRole('navigation').getByRole('button',{name:'PASAPORTE',exact:true})).toHaveAttribute('aria-current','page')
-  await page.evaluate(()=>{
-    const nav=document.querySelector('nav')!
-    for(const label of ['FOTOS','DANZ IN','DANZFLOR']) [...nav.querySelectorAll('button')].find(button=>button.textContent===label)?.click()
-  })
-  await expect(page.getByRole('navigation').getByRole('button',{name:'DANZFLOR',exact:true})).toHaveAttribute('aria-current','page')
+  await expectDanzSectionSelected(page,'PASAPORTE')
+  for(const section of ['FOTOS','DANZ IN','DANZFLOR'])await visitDanzSection(page,section)
+  await expectDanzSectionSelected(page,'DANZFLOR')
   await expect(page).toHaveURL(/seccion=danzflor/)
   await page.goBack(); await expect(page).toHaveURL(/seccion=musica/)
-  await expect(page.getByRole('navigation').getByRole('button',{name:'DANZ IN',exact:true})).toHaveAttribute('aria-current','page')
+  await expectDanzSectionSelected(page,'DANZ IN')
   expect(errors).toEqual([])
 })
 
@@ -35,9 +34,9 @@ test('unsupported transitions and haptics remain fully navigable with reduced mo
     Object.defineProperty(navigator,'vibrate',{configurable:true,value:undefined})
   })
   await mockSupabase(page); await page.goto('/')
-  for(const section of ['FOTOS','PASAPORTE','CUENTA','INICIO']) {
-    await page.getByRole('navigation').getByRole('button',{name:section,exact:true}).click()
-    await expect(page.getByRole('navigation').getByRole('button',{name:section,exact:true})).toHaveAttribute('aria-current','page')
+  for(const section of ['FOTOS','PASAPORTE','CUENTA','INICIO']){
+    await visitDanzSection(page,section)
+    await expectDanzSectionSelected(page,section)
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })
@@ -52,7 +51,7 @@ test('gallery and passport show bounded skeletons while their authorized reads a
   release();await expect(page.getByRole('region',{name:'Pasaporte DANZ, un viaje por página'})).toBeVisible()
   let releaseEvents!:()=>void;const events=new Promise<void>(resolve=>{releaseEvents=resolve})
   await page.route(`${supabaseHost}/rest/v1/danz_events**`,async route=>{await events;await route.fulfill({json:[]}).catch(()=>{})})
-  await page.getByRole('navigation').getByRole('button',{name:'FOTOS',exact:true}).click()
+  await visitDanzSection(page,'FOTOS')
   await expect(page.getByText('Cargando tus galerías…',{exact:true})).toBeVisible()
   await expect(page.locator('.skeleton-gallery')).toBeVisible()
   releaseEvents();await expect(page.getByText('Todavía no hay galerías disponibles para tu cuenta',{exact:true})).toBeVisible()
