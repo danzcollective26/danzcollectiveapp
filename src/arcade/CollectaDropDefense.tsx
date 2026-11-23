@@ -77,28 +77,55 @@ export default function CollectaDropDefense({ onBack }: { onBack: () => void }) 
     setMessage(`${selected === 'speaker' ? 'ALTAVOZ' : selected === 'light' ? 'LUZ' : 'BARRERA'} COLOCADO`)
   }
 
-  if (menuOpen) return <ArcadeMenu title="DROP DEFENSE" eyebrow="DANZ COLLECTA / CIERRE DE PISTA" art="/arcade/collecta-mobile-v1.webp" accent="#efc267" tabs={[{id:'play',label:'JUGAR'},{id:'how',label:'CÓMO'}]} page="play" onPage={()=>{}} onBack={onBack} action={{label:'EMPEZAR CIERRE', onClick:()=>{setMenuOpen(false);setRunning(true)}}} footer="8-12 min · Defiende la pista">
-    <p>El encargado coloca altavoces, luces y barreras de gente para que haters y resacas no invadan la pista. Cada drop activa las defensas. Sesiones de 8-12 minutos.</p>
-  </ArcadeMenu>
+  if (menuOpen) {
+    return (
+      <ArcadeMenu
+        title="DROP DEFENSE"
+        eyebrow="DANZ COLLECTA / CIERRE DE PISTA"
+        art="/arcade/collecta-mobile-v1.webp"
+        accent="#efc267"
+        tabs={[{ id: 'play', label: 'JUGAR' }, { id: 'how', label: 'CÓMO' }]}
+        page="play"
+        onPage={() => {}}
+        onBack={onBack}
+        action={{ label: 'EMPEZAR CIERRE', onClick: () => { setMenuOpen(false); setRunning(true) } }}
+        footer="8-12 min · Defiende la pista"
+      >
+        <p>El encargado coloca altavoces, luces y barreras de gente para que haters y resacas no invadan la pista. Cada drop activa las defensas. Sesiones de 8-12 minutos.</p>
+      </ArcadeMenu>
+    )
+  }
 
-  return <div className="collecta-drop-page">
-    <header><button onClick={onBack}>←</button><strong>DROP DEFENSE</strong><span>{Math.ceil((480000-elapsed)/1000)}s · VIDAS {lives} · {score}</span></header>
-    <div className="collecta-drop-tools">
-      {(['speaker','light','barrier'] as const).map(t => <button key={t} aria-pressed={selected===t} onClick={()=>setSelected(t)}>{t==='speaker'?'ALTAVOZ':t==='light'?'LUZ':'BARRERA'}</button>)}
+  return (
+    <div className="collecta-drop-page" style={{ background: '#0e0a12', minHeight: '100dvh', color: '#fff' }}>
+      <header><button onClick={onBack}>←</button><strong>DROP DEFENSE</strong><span>{Math.ceil((480000 - elapsed) / 1000)}s · VIDAS {lives} · {score}</span></header>
+      <div className="collecta-drop-tools">
+        {(['speaker', 'light', 'barrier'] as const).map(t => (
+          <button key={t} aria-pressed={selected === t} onClick={() => setSelected(t)}>
+            {t === 'speaker' ? 'ALTAVOZ' : t === 'light' ? 'LUZ' : 'BARRERA'}
+          </button>
+        ))}
+      </div>
+      <GameSurface ratio={640 / 760} className="collecta-drop-board">
+        <svg ref={board} viewBox="0 0 640 760" className="gn-board" onPointerDown={place} style={{ background: '#0f0c14', width: '100%', height: '100%' }}>
+          <rect width="640" height="760" fill="#0f0c14" />
+          <ClubRig id="collecta-drop-rig" />
+          <text x="320" y="36" textAnchor="middle" fill="#efc267" fontSize="16">{message}</text>
+          {towers.map(t => (
+            <g key={t.id} transform={`translate(${t.x} ${t.y})`}>
+              <circle r={t.type === 'barrier' ? 30 : 24} fill={t.type === 'speaker' ? '#8cf9ea' : t.type === 'light' ? '#ffdb7c' : '#c8f879'} opacity=".85" />
+              <text y="5" textAnchor="middle" fill="#111" fontSize="11" fontWeight="900">{t.type[0].toUpperCase()}</text>
+            </g>
+          ))}
+          {enemies.map(e => (
+            <g key={e.id} transform={`translate(${e.x} ${e.y})`}>
+              <circle r="15" fill={e.type === 'hater' ? '#ff6b8a' : '#a78bfa'} />
+              <text y="4" textAnchor="middle" fill="#fff" fontSize="9">{e.type === 'hater' ? 'H' : 'R'}</text>
+            </g>
+          ))}
+        </svg>
+      </GameSurface>
+      <footer><button onClick={() => setRunning(r => !r)}>{running ? 'PAUSA' : 'REANUDAR'}</button></footer>
     </div>
-    <GameSurface ratio={640/760} className="collecta-drop-board"><svg ref={board} viewBox="0 0 640 760" className="gn-board" onPointerDown={place}>
-      <rect width="640" height="760" fill="#0f0c14"/>
-      <ClubRig id="collecta-drop-rig"/>
-      <text x="320" y="36" textAnchor="middle" fill="#efc267" fontSize="16">{message}</text>
-      {towers.map(t => <g key={t.id} transform={`translate(${t.x} ${t.y})`}>
-        <circle r={t.type==='barrier'?30:24} fill={t.type==='speaker'?'#8cf9ea':t.type==='light'?'#ffdb7c':'#c8f879'} opacity=".85"/>
-        <text y="5" textAnchor="middle" fill="#111" fontSize="11" fontWeight="900">{t.type[0].toUpperCase()}</text>
-      </g>)}
-      {enemies.map(e => <g key={e.id} transform={`translate(${e.x} ${e.y})`}>
-        <circle r="15" fill={e.type==='hater'?'#ff6b8a':'#a78bfa'}/>
-        <text y="4" textAnchor="middle" fill="#fff" fontSize="9">{e.type==='hater'?'H':'R'}</text>
-      </g>)}
-    </svg></GameSurface>
-    <footer><button onClick={()=>setRunning(r=>!r)}>{running?'PAUSA':'REANUDAR'}</button></footer>
-  </div>
+  )
 }
