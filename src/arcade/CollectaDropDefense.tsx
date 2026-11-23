@@ -86,7 +86,7 @@ export default function CollectaDropDefense({ onBack }: { onBack: () => void }) 
     <div className="collecta-drop-tools">
       {(['speaker','light','barrier'] as const).map(t => <button key={t} aria-pressed={selected===t} onClick={()=>setSelected(t)}>{t==='speaker'?'ALTAVOZ':t==='light'?'LUZ':'BARRERA'}</button>)}
     </div>
-    <GameSurface ratio={640/760}><svg ref={board} viewBox="0 0 640 760" className="gn-board" onPointerDown={place}>
+    <GameSurface ratio={640/760} className="collecta-drop-board"><svg ref={board} viewBox="0 0 640 760" className="gn-board" onPointerDown={place}>
       <rect width="640" height="760" fill="#0f0c14"/>
       <ClubRig id="collecta-drop-rig"/>
       <text x="320" y="36" textAnchor="middle" fill="#efc267" fontSize="16">{message}</text>
