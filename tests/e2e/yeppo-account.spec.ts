@@ -11,6 +11,8 @@ test('opening Cuenta from Inicio dismisses any Yeppo welcome before the login fo
   const more = page.getByRole('button', { name: 'Más secciones', exact: true })
   if (await more.isVisible()) {
     await more.click()
+    await expect(page.getByRole('region', { name: 'Más secciones de DANZ' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Yeppo te presenta DANZ' })).toHaveCount(0)
     await page.getByRole('region', { name: 'Más secciones de DANZ' })
       .getByRole('button', { name: /MI CUENTA/ }).click()
   } else {
