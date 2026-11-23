@@ -107,7 +107,7 @@ export default function CollectaDropDefense({ onBack }: { onBack: () => void }) 
         ))}
       </div>
       <GameSurface ratio={640 / 760} className="collecta-drop-board">
-        <svg ref={board} viewBox="0 0 640 760" className="gn-board" onPointerDown={place} style={{ background: '#0f0c14', width: '100%', height: '100%' }}>
+        <svg ref={board} viewBox="0 0 640 760" className="gn-board" onPointerDown={place} style={{width:"100%",height:"100%",background:"#0f0c14"}}>
           <rect width="640" height="760" fill="#0f0c14" />
           <ClubRig id="collecta-drop-rig" />
           <text x="320" y="36" textAnchor="middle" fill="#efc267" fontSize="16">{message}</text>
