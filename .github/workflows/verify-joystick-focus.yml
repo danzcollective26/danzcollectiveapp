@@ -1,0 +1,38 @@
+name: Verify shared joystick focus
+
+on:
+  pull_request:
+    paths:
+      - 'src/arcade/VersusJoystick.tsx'
+      - 'tests/e2e/collecta-joystick.spec.ts'
+      - '.github/workflows/verify-joystick-focus.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-stick-focus-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-multitouch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Keep joystick engaged through second-finger focus
+        run: npm run test:e2e -- --project=mobile --workers=1 tests/e2e/collecta-joystick.spec.ts --grep 'Collecta joystick stays engaged'
+      - name: Upload mobile trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-joystick-focus
+          path: playwright-report/
+          retention-days: 7
