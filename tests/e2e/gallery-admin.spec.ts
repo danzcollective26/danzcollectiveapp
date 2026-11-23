@@ -361,7 +361,14 @@ for (const mode of ['save', 'cancel', 'write-error', 'empty-readback', 'changed-
       else { expect(result.events).toEqual(mode === 'write-error' ? ['picker', 'create', 'write', 'abort'] : ['picker', 'create', 'write', 'close', 'readback']); await expect(viewer.getByRole('alert')).toContainText('No se pudo comprobar el archivo guardado.') }
     }
     await expect(viewer).toBeVisible()
-    await viewer.getByRole('button', { name: 'INSTAGRAM: CÓMO SUBIR LA FOTO', exact: true }).click()
+    const instagramHelp = viewer.getByRole('button', { name: 'INSTAGRAM: CÓMO SUBIR LA FOTO', exact: true })
+    await instagramHelp.scrollIntoViewIfNeeded()
+    // Mobile navigation must never intercept actions inside the modal lightbox.
+    await expect.poll(() => instagramHelp.evaluate(button => {
+      const rect = button.getBoundingClientRect()
+      return button.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2))
+    })).toBe(true)
+    await instagramHelp.click()
     await expect(viewer.getByText(/En Instagram pulsa/)).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   })

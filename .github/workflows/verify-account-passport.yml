@@ -1,0 +1,45 @@
+name: Verify Cuenta and Pasaporte
+
+on:
+  pull_request:
+    paths:
+      - 'src/auth/**'
+      - 'src/events/**'
+      - 'src/ui/MobileBottomNav.tsx'
+      - 'tests/e2e/account.spec.ts'
+      - 'tests/e2e/event-passport.spec.ts'
+      - 'tests/e2e/oauth.spec.ts'
+      - '.github/workflows/verify-account-passport.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-account-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  accounts-and-stamps:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [mobile, desktop]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Exercise real account and passport UI with mocked data
+        run: npm run test:e2e -- --project=${{ matrix.viewport }} --workers=1 --max-failures=3 tests/e2e/account.spec.ts tests/e2e/event-passport.spec.ts tests/e2e/oauth.spec.ts
+      - name: Upload focused report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuenta-pasaporte-${{ matrix.viewport }}
+          path: playwright-report/
+          retention-days: 7

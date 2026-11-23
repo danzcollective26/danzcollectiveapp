@@ -100,7 +100,17 @@ export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(del
         if(car.health<.35||car.tow>0)for(let n=0;n<4;n++){const rise=(n*7+now*.015)%30;g.fillStyle(0x7c8787,.4-n*.06).fillCircle(car.x-Math.cos(car.angle)*16+Math.sin(n)*5,car.y-Math.sin(car.angle)*16-rise,4+n*1.1)}
         const burst=(now-this.bursts[id])/1000;if(burst<.65)for(let n=0;n<3;n++)g.fillStyle(0xe3c799,.7-burst).fillRect(car.x+Math.cos(n*2)*burst*50,car.y+Math.sin(n*2)*burst*45,4,3)
         if(car.drifting){const color=car.charge>.65?0xffbd64:0x95e6ec;for(const side of [-1,1]){const x=car.x-Math.cos(car.angle)*20+Math.sin(car.angle)*side*14,y=car.y-Math.sin(car.angle)*20-Math.cos(car.angle)*side*14;g.fillStyle(color,.7).fillCircle(x,y,3+car.charge*3);g.lineStyle(2,color,.6).lineBetween(x,y,x-Math.cos(car.angle)*13,y-Math.sin(car.angle)*13)}}
-        if(car.boosting>0){g.fillStyle(0xc9ff7b,.3).fillEllipse(car.x-Math.cos(car.angle)*30,car.y-Math.sin(car.angle)*30,45,25);g.lineStyle(5,0xf8f4b9,.8).lineBetween(car.x-Math.cos(car.angle)*21,car.y-Math.sin(car.angle)*21,car.x-Math.cos(car.angle)*44,car.y-Math.sin(car.angle)*44)}
+        if(car.boosting>0){
+          // Lightweight speed trails in the compatible 2D renderer. No gameplay changes.
+          const forwardX=Math.cos(car.angle),forwardY=Math.sin(car.angle)
+          const sideX=-forwardY,sideY=forwardX
+          g.fillStyle(0xc9ff7b,.3).fillEllipse(car.x-forwardX*30,car.y-forwardY*30,45,25)
+          g.lineStyle(5,0xf8f4b9,.8).lineBetween(car.x-forwardX*21,car.y-forwardY*21,car.x-forwardX*44,car.y-forwardY*44)
+          for(const side of [-1,1]){
+            const x=car.x-forwardX*25+sideX*side*14,y=car.y-forwardY*25+sideY*side*14
+            g.lineStyle(2,0xc9ff7b,.48).lineBetween(x,y,x-forwardX*24,y-forwardY*24)
+          }
+        }
       })
     }
   }
