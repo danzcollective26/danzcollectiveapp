@@ -1,0 +1,36 @@
+name: Verify gallery to passport link
+
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e/private-gallery.spec.ts'
+      - '.github/workflows/verify-gallery-passport.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-gallery-passport-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gallery-to-booklet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify private gallery refresh and approved passport link
+        run: npm run test:e2e -- --project=desktop --workers=1 tests/e2e/private-gallery.spec.ts --grep 'unpublished gallery'
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gallery-passport-link-report
+          path: playwright-report/
+          retention-days: 7
