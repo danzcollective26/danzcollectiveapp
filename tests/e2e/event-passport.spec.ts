@@ -22,8 +22,12 @@ const goToPassport = async (page: import('@playwright/test').Page) => {
   if (await more.isVisible()) {
     await more.click()
     await page.getByRole('region', { name: 'Más secciones de DANZ' }).getByRole('button', { name: /MI PASAPORTE/ }).click()
-  } else {
+  } else if (await page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('button', { name: 'PASAPORTE', exact: true }).isVisible()) {
     await page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('button', { name: 'PASAPORTE', exact: true }).click()
+  } else {
+    // Arrival can temporarily hide both navigation bars. The approved home
+    // wallet remains the canonical entry point to the passport.
+    await page.getByRole('button', { name: 'Abrir mi Pasaporte DANZ y ver mis sellos' }).click()
   }
 }
 
