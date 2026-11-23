@@ -1,0 +1,39 @@
+name: Verify DANZPORTER controls
+
+on:
+  pull_request:
+    paths:
+      - 'src/arcade/kart/**'
+      - 'tests/e2e/kart.spec.ts'
+      - 'tests/e2e/kart-camera.spec.ts'
+      - '.github/workflows/verify-kart.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-kart-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  kart-mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Test touch pedals, cameras and gameplay
+        run: npm run test:e2e -- --project=mobile --workers=1 tests/e2e/kart.spec.ts tests/e2e/kart-camera.spec.ts
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: danzporter-mobile-report
+          path: playwright-report/
+          retention-days: 7
