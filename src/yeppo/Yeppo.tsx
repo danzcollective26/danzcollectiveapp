@@ -167,7 +167,8 @@ export default function Yeppo({page,gameActive=false,events=NO_EVENTS,onNavigate
  useEffect(()=>{if(!demoRequest||demoRequest.id<=lastDemo.current||!enabled||gameActive)return;lastDemo.current=demoRequest.id;previewWalk(demoRequest.move)},[demoRequest,enabled,gameActive,previewWalk])
  const close=()=>{writeLedger(dismissed(readLedger(),Date.now()));setVisible(false);setRoaming(false);setMenu(false)}
  const leaveWelcome=()=>{setWelcome('off')}
- if(!enabled||gameActive||page==='admin'||!tabVisible||(typingElsewhere&&!chatOpen))return null
+ // Account forms must never be covered by an unsolicited welcome or visit.
+  if(!enabled||gameActive||page==='admin'||page==='cuenta'||!tabVisible||(typingElsewhere&&!chatOpen))return null
  if(welcome==='peek'&&page==='inicio')return <aside className="yeppo yeppo-first-peek" aria-label="Yeppo asomándose">
    <div className="yeppo-peek-text">Psst… ¿a dónde vas, figura?</div>
    <div className="yeppo-peek-avatar"><YeppoMascot expression="smirk"/><span>YEPPO</span></div>
