@@ -78,5 +78,5 @@ test('every artist link opens its platform while music and an unclaimed event pa
   }
   await page.getByRole('navigation').getByRole('button', { name: 'INICIO', exact: true }).click()
   expect(new URL(page.url()).searchParams.has('seccion')).toBe(false)
-  await expect(page.getByRole('heading', { name: 'WE ARE DANZ.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /VIVE\./ })).toBeVisible()
 })
