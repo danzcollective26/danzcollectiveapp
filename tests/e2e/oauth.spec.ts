@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { mockSupabase, makeSession, supabaseHost } from './helpers/supabase'
 
+// Authentication flows run without the unrelated Yeppo introduction overlay.
+// Yeppo itself has dedicated interaction and accessibility coverage.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('danz-yeppo-enabled-v1', 'false'))
+})
+
 async function openRedeemedStamp(page: import('@playwright/test').Page, title: string) {
   await page.goto('/?seccion=pasaporte')
   await expect(page.getByRole('region', { name: 'Pasaporte DANZ, un viaje por página' })).toBeVisible()
