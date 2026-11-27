@@ -29,7 +29,7 @@ test('Kart physics is independent of 16, 33 and 50 ms render cadence',()=>{
   const states=[16,33,50].map(dt=>advance(startRace(createRace('time')),9000,dt))
   for(const state of states){assert.ok(Math.abs(state.elapsed-6000)<.001);assert.ok(Math.abs(state.cars[0].x-states[0].cars[0].x)<.001);assert.ok(Math.abs(state.cars[0].y-states[0].cars[0].y)<.001)}
 })
-for(const id of ['dock','backstage'] as TrackId[])test(`A complete three-lap race is possible on ${id}`,()=>{
+for(const id of Object.keys(TRACKS) as TrackId[])test(`A complete three-lap race is possible on ${id}`,()=>{
   let s=startRace(createRace('race',id)),frames=0
   while(s.phase!=='finished'&&frames++<11000)s=stepRace(s,s.cars.map(c=>cpuInput(s,c)),1000/60)
   assert.equal(s.phase,'finished');assert.equal(s.cars[0].laps,RACE_LAPS);assert.ok(s.elapsed<90000)
@@ -63,4 +63,13 @@ test('Two local players receive independent commands and braking reduces speed',
   s=stepRace(s,[{turn:-1,brake:true,drift:false},{turn:1,brake:false,drift:false}],200)
   assert.ok(s.cars[0].speed<before);assert.notEqual(s.cars[0].angle,s.cars[1].angle)
   assert.equal(stepRace(s,[NO_INPUT],Number.NaN),s)
+})
+
+test('Midnight Chicane is a distinct selectable track with safe geometry and three laps',()=>{
+  const midnight=TRACKS.midnight
+  assert.ok(midnight.points.length>TRACKS.dock.points.length,'two added chicane sections use more spline nodes')
+  assert.ok(midnight.length>TRACKS.dock.length,'the extra bends extend the track')
+  assert.equal(createRace('time','midnight').track,'midnight')
+  assert.equal(createRace('race','midnight').cars.length,4)
+  assert.ok(midnight.points.every(p=>p.x>=ROAD_WIDTH/2&&p.x<=1000-ROAD_WIDTH/2&&p.y>=ROAD_WIDTH/2&&p.y<=720-ROAD_WIDTH/2))
 })

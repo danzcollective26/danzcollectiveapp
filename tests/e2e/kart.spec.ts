@@ -39,13 +39,23 @@ test('Kart local duel exposes opposed, independent sticks and clears on rotation
   await expect(page.locator('.kart-game')).toHaveAttribute('data-phase','paused')
   await expect(page.locator('.versus-p1 .versus-stick')).toHaveAttribute('data-engaged','false')
 })
-test('Both circuits can be selected without changing the chosen mode',async({page})=>{
+test('All three circuits can be selected and Midnight Chicane can be driven',async({page})=>{
   await page.goto('/test?seccion=arcade&juego=kart')
   await selectReel(page,'Modo de DANZPORTER','CONTRARRELOJ')
-  await menuTab(page,'CIRCUITO');await selectReel(page,'Circuito de DANZPORTER','BACKSTAGE RING')
+  await menuTab(page,'CIRCUITO')
+  await selectReel(page,'Circuito de DANZPORTER','BACKSTAGE RING')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-track','backstage')
-  await expect(page.locator('.kart-game')).toHaveAttribute('data-mode','time')
+  await selectReel(page,'Circuito de DANZPORTER','MIDNIGHT CHICANE')
+  const game=page.locator('.kart-game')
+  await expect(game).toHaveAttribute('data-track','midnight')
+  await expect(game).toHaveAttribute('data-mode','time')
   await expect(page.locator('.kart-board')).toHaveAttribute('data-ready','true',{timeout:15000})
+  await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
+  await expect(game).toHaveAttribute('data-phase','playing',{timeout:8000})
+  const initial=await game.getAttribute('data-p1')
+  await page.keyboard.down('w')
+  await expect.poll(()=>game.getAttribute('data-p1')).not.toBe(initial)
+  await page.keyboard.up('w')
 })
 
 test('Graphics can switch to compatible 2D and back without losing the mode',async({page})=>{
