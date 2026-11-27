@@ -1,6 +1,6 @@
 # DANZ Collective — revisión general y registro de pendientes
 
-**Actualización:** 16 de noviembre de 2026, Europe/Madrid.
+**Actualización:** 17 de noviembre de 2026, Europe/Madrid.
 **Propósito:** mantener en un lugar las peticiones del propietario, las entregas
 comprobadas, lo pendiente y lo aplazado. Este es el registro general vigente;
 las especificaciones antiguas siguen siendo referencias históricas.
@@ -37,6 +37,9 @@ y favoritas; PF03: Yeppo menos intrusivo y celebración de sellos confirmados.
 Implementación y validación en revisión, sin presentarla como publicada en main.
 Detalle: `PREMIUM_FEEL_2026-11-16.md`. Scratch continúa conservado en PR 47,
 con CI 239 correcto, separado de esta rama.
+
+17/11: **NN01 NomeNoConEso**, esqueleto dentro de DANZ Collecta. No es jugable
+ni está en el hub. Siguiente paso en la sección 24 y en `docs/NOMENOCONESO_PLAN.md`.
 
 | ID | Petición | Estado comprobado | Siguiente acción / cierre |
 | --- | --- | --- | --- |
@@ -672,3 +675,17 @@ vibración real, FPS ni audio oído.
 
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
 La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.
+
+## 24. NomeNoConEso — esqueleto de modo, 17/11
+
+| ID | Petición | Estado comprobado | Siguiente acción |
+| --- | --- | --- | --- |
+| NN01 | Modo NomeNoConEso dentro de DANZ Collecta: puerta del after, noches, escáner y progresión local | Esqueleto tipado en rama. Pruebas de catálogo. No jugable, no publicado, no visible en hub, biblioteca ni `/test` | Implementar el MVP del plan. No cablear CollectaHub ni ArcadeChooser hasta sustituir los `throw` de partida. |
+
+El propietario (Tronco) cierra el diseño: un modo más junto a Arena y
+Persecución, sin tarjeta nueva de biblioteca. Arena, Persecución y el duelo
+contra la máquina no cambian en esta entrega. DANZPOINTS queda en un aviso
+local con `claim: false`. QR artístico sigue aplazado.
+
+Detalle, flujo de una noche, datos, integración y criterios:
+`docs/NOMENOCONESO_PLAN.md`.
