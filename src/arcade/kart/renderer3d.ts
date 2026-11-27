@@ -5,7 +5,7 @@ import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
 import { batchMeshes } from './batch3d'
-import { cockpitFov, cockpitPose, effectiveCamera } from './camera'
+import { cockpitFov, cockpitPose, effectiveCamera, followCameraPose } from './camera'
 
 const point=(x:number,z:number,y=0)=>new THREE.Vector3(x-500,y,z-360)
 function ribbon(track:Track,inner:number,outer:number,height:number,colored=false,accent='#b6d374'){
@@ -169,6 +169,7 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
   const focus=new THREE.Vector3(),target=new THREE.Vector3(),look=new THREE.Vector3(),skidPosition=new THREE.Vector3();let initialized=false,viewWidth=1180
   // Camera motion is presentation-only; it never alters deterministic kart physics.
   let cockpitHeading=0,cockpitInitialized=false,cockpitImpact=0,lastCockpitImpacts=0
+  let followHeading=0,followInitialized=false
   let lastCanvasWidth=0,lastCanvasHeight=0,lastViewWidth=0
   const resize=(repaint=true)=>{
     if(disposed)return
@@ -206,9 +207,27 @@ export function createPremiumKartRenderer(parent:HTMLElement,read:()=>Race,advan
     const ratio=Math.max(.3,parent.clientWidth/Math.max(1,parent.clientHeight))
     const desired=follow?Math.max(310,Math.min(480,ratio*450)):Math.max(1180,ratio*850)
     if(Math.abs(viewWidth-desired)>.1){viewWidth=reduced.matches?desired:viewWidth+(desired-viewWidth)*Math.min(1,dt/180);resize(false)}
-    target.set(follow?p.x-500+Math.cos(p.angle)*32:0,0,follow?p.y-360+Math.sin(p.angle)*32:0)
-    if(!initialized||reduced.matches){focus.copy(target);initialized=true}else focus.lerp(target,1-Math.exp(-dt/100))
-    camera.position.set(focus.x+(follow?160:0),follow?390:1050,focus.z+(follow?260:780));look.set(focus.x,0,focus.z);camera.lookAt(look)
+    if(follow){
+      // Smooth heading across +/-PI without rotating a full revolution.
+      const turn=Math.atan2(Math.sin(p.angle-followHeading),Math.cos(p.angle-followHeading))
+      followHeading=!followInitialized||reduced.matches?p.angle:followHeading+turn*(1-Math.exp(-dt/180))
+      followInitialized=true
+      const pose=followCameraPose(p,followHeading)
+      target.set(pose.look.x,pose.look.y,pose.look.z)
+      if(!initialized||reduced.matches){focus.copy(target);initialized=true}
+      else focus.lerp(target,1-Math.exp(-dt/105))
+      camera.position.set(focus.x+pose.position.x-pose.look.x,pose.position.y,focus.z+pose.position.z-pose.look.z)
+      look.copy(focus)
+    }else{
+      followInitialized=false
+      target.set(0,0,0)
+      if(!initialized||reduced.matches){focus.copy(target);initialized=true}
+      else focus.lerp(target,1-Math.exp(-dt/100))
+      // Approved full-track camera: preserve its framing verbatim.
+      camera.position.set(focus.x,1050,focus.z+780)
+      look.set(focus.x,0,focus.z)
+    }
+    camera.lookAt(look)
     if(firstPerson){
       const pose=cockpitPose(p),motion=!reduced.matches&&s.phase==='playing'
       const blend=1-Math.exp(-dt/85)
