@@ -1,7 +1,7 @@
 import { DEFAULT_BUILD, KART_COLORS, buildKey, kartStats, normalizeBuild, type KartBuild } from './garage.ts'
 
 export type KartMode = 'race' | 'duel' | 'time'
-export type TrackId = 'dock' | 'backstage'
+export type TrackId = 'dock' | 'backstage' | 'midnight'
 export type Point = { x: number; y: number }
 export type KartInput = { turn: number; drift: boolean; brake: boolean; throttle?:number; pit?:boolean; vector?: Point }
 export type Track = { id: TrackId; name: string; subtitle: string; points: Point[]; length: number; lengths: number[]; accent: string }
@@ -46,6 +46,7 @@ function makeTrack(id: TrackId, name: string, subtitle: string, accent: string, 
 export const TRACKS: Record<TrackId, Track> = {
   dock: makeTrack('dock', 'AFTERHOURS DOCK', 'El último ferry sale contigo.', '#c9f56d', [[740,625],[500,625],[220,580],[120,420],[155,235],[310,125],[570,120],[760,135],[825,175],[850,235],[825,295],[760,320],[620,275],[430,280],[365,310],[340,360],[360,415],[420,450],[500,465],[700,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
   backstage: makeTrack('backstage', 'BACKSTAGE RING', 'Flightcases fuera. Cero excusas.', '#82dadd', [[740,625],[500,625],[215,580],[120,420],[160,230],[310,120],[440,125],[560,165],[680,140],[770,130],[835,165],[865,220],[850,280],[805,320],[735,330],[620,300],[520,300],[450,295],[390,320],[365,380],[390,440],[450,465],[530,475],[740,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
+  midnight: makeTrack('midnight', 'MIDNIGHT CHICANE', 'Dos eses. Una sola salida.', '#d6b9f7', [[740,625],[640,652],[555,650],[500,625],[220,580],[120,420],[155,235],[310,125],[385,170],[485,110],[570,120],[760,135],[825,175],[850,235],[825,295],[760,320],[620,275],[430,280],[365,310],[345,360],[360,415],[420,450],[500,465],[700,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
 }
 
 export function trackPoint(track: Track, progress: number): Point & { angle: number } {
