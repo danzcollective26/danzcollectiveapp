@@ -672,3 +672,15 @@ vibración real, FPS ni audio oído.
 
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
 La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.
+
+## 24. Continuidad con Claude: P0 y ARCADANZ premium, 27/11
+
+Petición del propietario: continuar el trabajo de Codex (uso limitado),
+resolver primero los P0 y llevar los juegos a sensación premium, gratis primero.
+
+| ID | Petición | Estado comprobado | Siguiente acción |
+| --- | --- | --- | --- |
+| P67 | #67: Android abre la PWA antigua desde la preview | Causa encontrada y corregida en rama `claude/danz-apo-analysis-nfzou2`: el login de las previews volvía siempre a producción y Android lo abría en la PWA instalada. Ahora vuelve a la misma preview del proyecto; etiqueta «PRUEBA · commit». Build y 281 pruebas internas correctas. Sin probar en Android. | Propietario: añadir en Supabase → Auth → URL Configuration las Redirect URLs de previews y quitar o compartir la protección de Vercel en previews. Después probar en Android. |
+| P75 | #75: regresiones E2E Cuenta/Pasaporte | Resuelto en ramas: PR #87 con Verify DANZ, integración y Cuenta/Pasaporte **success** en móvil, tableta y escritorio (commit `562ee5dd`). | Prueba física Android del propietario y aprobación para fusionar #87. |
+| AP01 | Auditoría visual y propuesta juego por juego | Entregado: `docs/PROPUESTA_JUEGOS_PREMIUM_2026-11-27.md` y capturas en `docs/evidence/2026-11-27-auditoria-juegos/`. Emulador, no dispositivo físico. | Propietario elige el orden; propuesto: kit premium + Jack. |
+| AP02 | Revisar hilos de Grok | Bloqueado: sin acceso a Grok desde esta sesión. Solo vistas sus ramas #85 y #86 (dos *tower defense* casi idénticos). | Propietario comparte enlaces públicos o texto exportado de los hilos. |
