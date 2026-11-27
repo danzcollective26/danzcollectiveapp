@@ -23,15 +23,40 @@ export function buildKart(build:KartBuild,id:number):KartModel{
   const suit=new THREE.MeshStandardMaterial({color:driver.color,roughness:.8}),helmet=ivory.clone();helmet.color.set(driver.helmet)
   const root=new THREE.Group(),wheels:THREE.Group[]=[],front:THREE.Group[]=[]
   const paint=new THREE.MeshPhysicalMaterial({color,metalness:.26,roughness:.29,clearcoat:.9,clearcoatRoughness:.2})
-  const length=build.chassis==='sprint'?32:build.chassis==='hauler'?35:28
-  root.add(box(34,3,22,graphite,0,6,0,1),box(length,build.chassis==='hauler'?6:4,24,paint,2,8,0,1.5))
-  for(const side of [-1,1]){
-    root.add(box(22,6,6,paint,-1,10,side*13,1.4),box(20,1,1.2,ivory,0,13.1,side*14.5,.3))
-    root.add(rod(new THREE.Vector3(-18,5,side*15),new THREE.Vector3(22,5,side*15),1.1,chrome))
+  // Each chassis has a recognizable shape in the actual race, not only in Garage.
+  root.add(box(34,3,22,graphite,0,6,0,1))
+  if(build.chassis==='sprint'){
+    // Lower open-wheel racer: thin pointed nose, exposed outriggers and dual wings.
+    root.add(box(27,4,14,paint,-4,8,0,1),box(19,3,8,paint,17,8,0,1))
+    for(const side of [-1,1]){
+      root.add(box(22,4,6,paint,-5,9,side*12,1.1))
+      root.add(rod(new THREE.Vector3(-13,6,side*13),new THREE.Vector3(23,6,side*9),.9,chrome))
+      root.add(box(10,1.7,9,graphite,22,8,side*11,.5))
+    }
+    root.add(box(4,2,35,ivory,-24,10,0,.5),box(3,2,32,chrome,27,9,0,.5))
+    root.add(box(3,2,15,graphite,25,7,0,.4))
+  }else if(build.chassis==='hauler'){
+    // Heavy crew transporter: raised wide panels, reinforced rails and a cage.
+    root.add(box(43,7,29,paint,-1,9,0,2),box(13,8,30,paint,17,9,0,1))
+    for(const side of [-1,1]){
+      root.add(box(36,5,4,graphite,-1,13,side*15,.8))
+      root.add(box(31,2,2,chrome,-2,16,side*15,.3))
+      root.add(rod(new THREE.Vector3(-18,9,side*13),new THREE.Vector3(-14,25,side*12),1.4,chrome))
+      root.add(rod(new THREE.Vector3(-14,25,side*12),new THREE.Vector3(3,25,side*12),1.4,chrome))
+      root.add(rod(new THREE.Vector3(3,25,side*12),new THREE.Vector3(10,10,side*13),1.4,chrome))
+    }
+    root.add(box(4,4,35,chrome,-25,8,0,.6),box(4,4,36,chrome,26,8,0,.6))
+    root.add(box(9,2,29,graphite,-10,24,0,.6))
+  }else{
+    // Club: middle-width sculpted shell and visible tubular frame.
+    root.add(box(28,4,24,paint,2,8,0,1.5))
+    for(const side of [-1,1]){
+      root.add(box(22,6,6,paint,-1,10,side*13,1.4),box(20,1,1.2,ivory,0,13.1,side*14.5,.3))
+      root.add(rod(new THREE.Vector3(-18,5,side*15),new THREE.Vector3(22,5,side*15),1.1,chrome))
+    }
+    root.add(box(9,6,26,paint,18,8,0,1.6),box(3,4,29,graphite,-23,7,0,.7))
   }
-  root.add(box(build.chassis==='sprint'?13:9,6,build.chassis==='hauler'?28:26,paint,18,8,0,1.6),box(3,4,29,graphite,-23,7,0,.7))
   const bumper=new THREE.Group();bumper.position.set(24,5,0);bumper.add(box(3,3,32,chrome));root.add(bumper)
-  if(build.chassis==='hauler')for(const side of [-1,1])root.add(rod(new THREE.Vector3(-20,8,side*12),new THREE.Vector3(-15,22,side*12),1.4,chrome))
   root.add(box(10,12,17,rubber,-9,15,0,2),box(18,3,17,rubber,-3,9,0,1.5))
   const engine=box(10,10,12,graphite,-17,12,0,1);root.add(engine)
   for(let n=0;n<5;n++)root.add(box(9,.6,12,chrome,-17,10+n*1.5,0,.2))
