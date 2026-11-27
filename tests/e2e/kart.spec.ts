@@ -46,6 +46,8 @@ test('All three circuits can be selected and Midnight Chicane can be driven',asy
   await selectReel(page,'Circuito de DANZPORTER','BACKSTAGE RING')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-track','backstage')
   await selectReel(page,'Circuito de DANZPORTER','MIDNIGHT CHICANE')
+  // Actual hazards are visible before choosing a track, not just invisible physics.
+  await expect(page.locator('.kart-console-circuit svg [data-hazard]')).toHaveCount(4)
   const game=page.locator('.kart-game')
   await expect(game).toHaveAttribute('data-track','midnight')
   await expect(game).toHaveAttribute('data-mode','time')
