@@ -51,26 +51,46 @@ function ScratchDeck({ game }: { game: GrooveState }) {
   const target = scratch.firstAt + scratchOffset(game, step.offset)
   const phase = (game.elapsed % game.beatMs) / game.beatMs
   const movement = scratch.anchor === null ? 0 : Math.max(0, Math.min(1, (scratch.pointer - scratch.anchor) * step.direction / step.distance))
-  const duration = scratchOffset(game, pattern.steps.at(-1)!.offset) + game.beatMs * 2
-  const cursor = Math.max(0, Math.min(1, (game.elapsed - scratch.firstAt + game.beatMs) / duration))
+  const ready = Math.abs(game.elapsed - target) <= scratch.window
+  const feedback = game.scratchFeedback && game.elapsed - game.scratchFeedback.at < 600 ? game.scratchFeedback : null
+  const judgement = feedback ? feedback.kind === 'perfect' ? 'PERFECTO' : feedback.kind === 'early' ? 'ADELANTADO · A TIEMPO' : 'TARDE · A TIEMPO' : game.judgement
+  // Notes use the same elapsed time as judging: no CSS animation or second clock.
+  const notes = pattern.steps.map((note, i) => ({ ...note, time: scratch.firstAt + scratchOffset(game, note.offset), done: i < scratch.turns }))
   return <g className="gn-scratch" data-turns={scratch.turns} data-pattern={scratch.pattern} data-target={target} data-distance={step.distance} data-direction={step.direction} transform="translate(320 355)">
-    <text y="-237" textAnchor="middle" fill="#f3d193" fontSize="19" fontWeight="900" letterSpacing="2">{pattern.name}</text>
-    <text y="-185" textAnchor="middle" fill={Math.abs(game.elapsed - target) <= scratch.window ? '#d9ff6b' : '#fff3db'} fontSize="44" fontWeight="900">{step.direction > 0 ? '→' : '←'} {step.distance > 60 ? 'LARGO' : 'CORTO'}</text>
-    <text y="-153" textAnchor="middle" fill="#cdbfa7" fontSize="17">{game.elapsed < target - scratch.window ? 'PREPARA · TERMINA EL GESTO EN EL PULSO' : '¡AHORA! SIGUE LA FLECHA'}</text>
+    <text y="-239" textAnchor="middle" fill="#f3d193" fontSize="21" fontWeight="900" letterSpacing="2">{pattern.name}</text>
+    <text className="gn-scratch-next" y="-191" textAnchor="middle" fill={ready ? '#d9ff6b' : '#fff3db'} fontSize="44" fontWeight="900">{step.direction > 0 ? '→' : '←'} {step.distance > 60 ? 'LARGO' : 'CORTO'}</text>
+    <text y="-161" textAnchor="middle" fill="#e4d5b9" fontSize="19" fontWeight="700">{ready ? '¡AHORA! TERMINA EL GESTO' : `PREPARA · PULSO EN ${Math.max(1, Math.ceil((target - game.elapsed) / game.beatMs))}`}</text>
     <circle r="127" fill="#ff789f" opacity=".07"/>
     <circle r="121" fill="none" stroke="#695445" strokeWidth="9"/>
-    <circle r="121" fill="none" stroke="#efc97f" strokeWidth="9" strokeDasharray={`${(1 - phase) * 760} 760`} opacity={.5 + .5 * (1 - phase)} transform="rotate(-90)"/>
+    <circle className="gn-scratch-pulse" r="121" fill="none" stroke="#efc97f" strokeWidth="9" strokeDasharray={`${(1 - phase) * 760} 760`} opacity={.5 + .5 * (1 - phase)} transform="rotate(-90)"/>
     <g transform={`rotate(${scratch.pointer * .65})`}><Vinyl layer={1} radius={101}/><path d="M0-96V-66" stroke="#fff4ce" strokeWidth="6" strokeLinecap="round"/></g>
-    <text y="155" textAnchor="middle" fill={game.judgement === 'PERFECTO' ? '#d9ff6b' : '#ffe0a2'} fontSize="22" fontWeight="900">{game.judgement}</text>
     <path d="M-100 124H100" stroke="#493a32" strokeWidth="7"/><path d={`M-100 124H${-100 + movement * 200}`} stroke="#ffacd1" strokeWidth="7"/>
-    {pattern.steps.map((note, i) => {
-      const x = (i - (pattern.steps.length - 1) / 2) * 100
-      return <g key={i} transform={`translate(${x} 193)`}><rect x="-41" y="-24" width="82" height="48" rx="8" fill={i < scratch.turns ? '#304626' : i === scratch.turns ? '#7e4f32' : '#201c18'} stroke={i === scratch.turns ? '#ffe0a2' : '#66533c'} strokeWidth="2"/><text y="4" textAnchor="middle" fill={i < scratch.turns ? '#d9ff6b' : '#fff2d2'} fontSize="26" fontWeight="900">{i < scratch.turns ? '✓' : note.direction > 0 ? '→' : '←'}</text><text y="37" textAnchor="middle" fill="#d5c5ad" fontSize="13">{note.distance > 60 ? 'LARGO' : 'CORTO'}</text></g>
-    })}
-    <path d="M-215 262H215" stroke="#6b5539" strokeWidth="5"/>
-    {pattern.steps.map((note, i) => <g key={i} transform={`translate(${-215 + (scratchOffset(game, note.offset) + game.beatMs) / duration * 430} 262)`}><rect x={-scratch.window / duration * 430} y="-12" width={scratch.window * 2 / duration * 430} height="24" fill="#e8c06c" opacity=".2"/><circle r="7" fill={i < scratch.turns ? '#d9ff6b' : '#f6cb76'}/></g>)}
-    <path d={`M${-215 + cursor * 430} 245v34`} stroke="#fff" strokeWidth="4"/>
-    <text y="307" textAnchor="middle" fill="#cdbba2" fontSize="15">{scratch.turns}/{pattern.steps.length} GESTOS · {Math.round(60_000 / game.beatMs)} BPM · LEVANTAR RECOLOCA LA MANO</text>
+    <text className="gn-scratch-judgement" data-offset={feedback?.offset.toFixed(1)} y="155" textAnchor="middle" fill={feedback?.kind === 'perfect' ? '#d9ff6b' : '#ffe0a2'} fontSize="24" fontWeight="900">{judgement}</text>
+    <text y="178" textAnchor="middle" fill="#d7c9b0" fontSize="17">{feedback ? `${Math.round(Math.abs(feedback.offset))} ms ${feedback.offset < 0 ? 'ANTES' : feedback.offset > 0 ? 'DESPUÉS' : '· EN EL PULSO'}` : 'SUJETA EL DISCO · LA FLECHA MARCA EL RECORRIDO'}</text>
+    <g className="gn-scratch-rail-scrolling" transform="translate(-320 232)" aria-label="Notas hacia la marca de pulso">
+      <defs><clipPath id="gn-scratch-track-clip"><rect x="60" y="-31" width="520" height="64" rx="7"/></clipPath></defs>
+      <text x="142" y="-40" textAnchor="middle" fill="#f4d28e" fontSize="17" fontWeight="900">TERMINA AQUÍ ↓</text>
+      <rect x="60" y="-31" width="520" height="64" rx="7" fill="#101c1a" stroke="#81714e" strokeWidth="2"/>
+      <rect x={142 - scratch.window / game.beatMs * 88} y="-30" width={scratch.window * 2 / game.beatMs * 88} height="62" fill="#eac46c" opacity=".16"/>
+      <path className="gn-scratch-hit-line" d="M142-32V33" stroke="#ffe4a1" strokeWidth="4"/>
+      <g clipPath="url(#gn-scratch-track-clip)">
+        {notes.map((note, i) => {
+          const x = 142 + (note.time - game.elapsed) / game.beatMs * 88
+          return <g className="gn-scratch-note" key={i} data-note={i} data-at={note.time} data-x={x.toFixed(2)} data-done={note.done} transform={`translate(${x} 0)`}>
+            <rect x="-20" y="-24" width="40" height="48" rx="6" fill={note.done ? '#314c28' : i === scratch.turns ? '#f1cf83' : '#273c37'} stroke={note.done ? '#d9ff6b' : '#e7c78c'} strokeWidth="2"/>
+            <text y="10" textAnchor="middle" fill={note.done || i !== scratch.turns ? '#f3e8c8' : '#12201b'} fontSize="30" fontWeight="900">{note.done ? '✓' : note.direction > 0 ? '→' : '←'}</text>
+          </g>
+        })}
+      </g>
+    </g>
+    <g className="gn-scratch-rail-static" transform="translate(0 232)" aria-label="Frase fija, siguiente gesto resaltado">
+      {notes.map((note, i) => <g key={i} transform={`translate(${(i - (notes.length - 1) / 2) * 115} 0)`}>
+        <rect x="-50" y="-28" width="100" height="56" rx="7" fill={note.done ? '#314c28' : i === scratch.turns ? '#f1cf83' : '#172824'} stroke={i === scratch.turns ? '#fff0b7' : '#81714e'} strokeWidth={i === scratch.turns ? 4 : 2}/>
+        <text y="10" textAnchor="middle" fill={i === scratch.turns ? '#14201c' : '#f4e6c5'} fontSize="32" fontWeight="900">{note.done ? '✓' : note.direction > 0 ? '→' : '←'}</text>
+        <text y="-40" textAnchor="middle" fill="#e0d2b7" fontSize="17">{note.distance > 60 ? 'LARGO' : 'CORTO'}</text>
+      </g>)}
+    </g>
+    <text y="291" textAnchor="middle" fill="#e4d2b3" fontSize="17" fontWeight="700">{scratch.turns}/{pattern.steps.length} GESTOS · {Math.round(60_000 / game.beatMs)} BPM · LEVANTA PARA RECOLOCAR</text>
   </g>
 }
 const STAGES = ['ABRE LA CABINA', 'SUBE LA MEZCLA', 'SUELTA EL DROP']
@@ -313,7 +333,7 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       </div>
       <div className="gn-challenge-bar">
         {game.mode === 'cut' ? <div className="gn-weapons" role="group" aria-label="Arma de corte">{(Object.keys(GROOVE_WEAPONS) as GrooveWeapon[]).map((key, i) => <button key={key} type="button" aria-pressed={game.weapon === key} onClick={() => { trail.current = []; commit(selectGrooveWeapon(current.current, key)) }}><span aria-hidden="true">{['╱', '〢', '✧'][i]}</span><span>{GROOVE_WEAPONS[key].name}<small>{GROOVE_WEAPONS[key].detail}</small></span></button>)}</div>
-          : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>FLECHA = DIRECCIÓN · CORTO / LARGO = RECORRIDO</small></div>}
+          : <div className="gn-scratch-instruction"><strong>LEE → MUEVE → CLAVA EL PULSO</strong><small>TERMINA EN LA MARCA · CORTO / LARGO = RECORRIDO</small></div>}
       </div>
       <GameSurface ratio={640/760} className="gn-play-slot" enabled={screen.active}><div className="gn-play-area">
         <svg ref={board} className="gn-board" viewBox="0 0 640 760" preserveAspectRatio="none" role="img" aria-label={`Cabina de Groove Ninja, ${game.hits} cortes, ${game.scratches} scratches, ${game.lives} vidas`} onPointerDown={start} onPointerMove={move} onPointerUp={release} onPointerCancel={() => pause()} onLostPointerCapture={release}>
@@ -391,8 +411,8 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
           {game.status === 'ready' && screen.active && <div className="gn-quick-modes" role="group" aria-label="Elegir modo antes de jugar"><button type="button" aria-pressed={game.mode === 'cut'} onClick={() => chooseMode('cut')}>VINYL CUT</button><button type="button" aria-pressed={game.mode === 'scratch'} onClick={() => chooseMode('scratch')}>SCRATCH SESSION</button></div>}
           <span className="gn-overlay-kicker">{ended ? 'TU SESIÓN' : game.status === 'paused' ? 'LA CABINA TE ESPERA' : `${game.mode === 'cut' ? 'VINYL CUT' : 'SCRATCH SESSION'} / 60 SEGUNDOS`}</span>
           <strong>{game.status === 'over' ? 'PARTY OVER' : game.status === 'complete' ? 'BUENA SESIÓN.' : game.status === 'paused' ? 'EN PAUSA.' : game.mode === 'cut' ? <>CORTA<br/>EL GROOVE.</> : <>DALE<br/>AL SCRATCH.</>}</strong>
-          {ended ? <><span className="gn-final-score">{game.score.toLocaleString('es-ES')}</span><span className="gn-result-details">{game.mode === 'cut' ? `${game.hits} CORTES · ${game.multiCuts} MULTICORTES · ${game.sequences} SECUENCIAS · ${game.golds} DORADOS` : `${game.scratches} FRASES · ${game.perfects} GESTOS PERFECTOS`} · COMBO {game.bestCombo}</span></>
-            : <p>{game.status === 'paused' ? 'Reanuda cuando quieras.' : game.mode === 'cut' ? 'Desliza sobre los vinilos al vuelo. Corta varios en una pasada y esquiva los acoples rojos.' : 'Sigue las flechas y el recorrido corto o largo. Termina cada gesto cuando el cursor llegue al pulso dorado. Puedes levantar el dedo para recolocarlo.'}</p>}
+          {ended ? <><span className="gn-final-score">{game.score.toLocaleString('es-ES')}</span><span className="gn-result-details">{game.mode === 'cut' ? `${game.hits} CORTES · ${game.multiCuts} MULTICORTES · ${game.sequences} SECUENCIAS · ${game.golds} DORADOS` : `${game.scratches} FRASES · ${game.perfects}/${game.scratchGestures} GESTOS PERFECTOS · ${game.scratchGestures ? Math.round(game.perfects / game.scratchGestures * 100) : 0}%`} · COMBO {game.bestCombo}</span></>
+            : <p>{game.status === 'paused' ? 'Reanuda cuando quieras.' : game.mode === 'cut' ? 'Desliza sobre los vinilos al vuelo. Corta varios en una pasada y esquiva los acoples rojos.' : 'Sigue las flechas y el recorrido corto o largo. Termina cada gesto cuando su flecha llegue a la marca dorada. Con efectos suaves, las flechas permanecen fijas y se resalta la siguiente. Puedes levantar el dedo para recolocarlo.'}</p>}
           {musicStatus === 'error' && <div className="gn-music-error" role="alert"><p>No se pudo reproducir el tema. Reintenta con REANUDAR o empieza otra sesión con ENSAYO.</p><button type="button" onClick={() => chooseMusic('practice')}>USAR ENSAYO</button></div>}
           {!optionsOpen && musicNotice}
         </div>}
@@ -412,6 +432,6 @@ export default function GrooveNinja({ onBack, autoEnter = false }: { onBack: () 
       <div className="gn-bottom"><span>RÉCORD LOCAL {record.toLocaleString('es-ES')}</span><button type="button" onClick={() => setShowHelp(!showHelp)} aria-expanded={showHelp}>CÓMO JUGAR {showHelp ? '−' : '+'}</button></div>
       {audioIssue && <p className="gn-audio-issue" role="status">No se pudo activar el audio. Puedes seguir jugando sin sonido o volver a pulsar SONIDO.</p>}
     </div>
-    {showHelp && <div className="gn-help"><h2>LA CABINA ES TUYA.</h2><p>VINYL CUT: elige Katana (100 puntos), Doble Filo (80, más alcance y más riesgo de acoples) o Aguja (125, exige precisión). Cambia de arma durante la partida. Los dorados valen el triple: corta tres para un bonus de 750. El hielo ralentiza el vuelo tres segundos. Los discos con flecha exigen el sentido exacto: arriba, abajo, izquierda o derecha, y valen el doble. Corta los vinilos numerados en orden para ganar un bonus de 300. Un gesto incorrecto permite reintentar; perder la secuencia cuesta una vida en total. Combo Disc prepara una pasada ×2 durante cuatro segundos; un gesto sin aciertos no lo consume. Split Disc se divide en dos minivinilos de bonus que también puedes cortar; dejarlos caer no resta vidas. Cortar varios de una pasada da bonus. Los acoples rojos y los discos perdidos cuestan una vida.</p><p>SCRATCH SESSION: completa Baby Scratch, Long Pull, Double Time y Boomerang. Cada flecha indica dirección y recorrido: corto o largo. Termina el gesto al cruzar el pulso dorado de la línea de tiempo. La indicación PERFECTO premia la precisión. La puntuación se concede al completar toda la frase. Puedes levantar el dedo para recolocarlo; no cuenta como gesto. Un pulso perdido cuesta una vida y aparece otra frase. Primero practicas dos patrones, luego entran los cuatro y se reduce el margen de tiempo.</p><p>Cada cinco aciertos seguidos sube el multiplicador, hasta ×4. Tienes cinco vidas y un minuto en cada modo, con récords separados por tema y modo.</p><p>En teclado: Q/W/E cambian de arma; elige el sentido con ↑/↓/←/→ y pulsa 1–4 para cortar el vinilo CUT de ese número (Mayús + 1–4 corta hacia abajo); ← y → ejecutan el gesto de scratch al pulso; espacio pausa; Esc sale de pantalla completa.</p><p>Funky Fiesta y WTHIMH usan su audio real y un pulso aproximado de 127 BPM: las oleadas y los patrones siguen el reloj de la canción. Si el audio carga, la sesión espera. Pausar conserva el punto del tema. El ensayo original funciona sin conexión a 120 BPM. Cambiar de tema empieza otra sesión. La música es continua y no depende de los aciertos. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS.</p></div>}
+    {showHelp && <div className="gn-help"><h2>LA CABINA ES TUYA.</h2><p>VINYL CUT: elige Katana (100 puntos), Doble Filo (80, más alcance y más riesgo de acoples) o Aguja (125, exige precisión). Cambia de arma durante la partida. Los dorados valen el triple: corta tres para un bonus de 750. El hielo ralentiza el vuelo tres segundos. Los discos con flecha exigen el sentido exacto: arriba, abajo, izquierda o derecha, y valen el doble. Corta los vinilos numerados en orden para ganar un bonus de 300. Un gesto incorrecto permite reintentar; perder la secuencia cuesta una vida en total. Combo Disc prepara una pasada ×2 durante cuatro segundos; un gesto sin aciertos no lo consume. Split Disc se divide en dos minivinilos de bonus que también puedes cortar; dejarlos caer no resta vidas. Cortar varios de una pasada da bonus. Los acoples rojos y los discos perdidos cuestan una vida.</p><p>SCRATCH SESSION: completa Baby Scratch, Long Pull, Double Time y Boomerang. Cada flecha indica dirección y recorrido: corto o largo. Las notas llegan de la derecha: termina el gesto cuando su flecha alcance la marca dorada. PERFECTO premia la precisión; ADELANTADO o TARDE te ayudan a ajustar el siguiente gesto, con el desfase en milisegundos. El resultado muestra cuántos gestos fueron perfectos. Con efectos suaves o reducir movimiento, la frase permanece fija y se resalta el siguiente gesto. La puntuación se concede al completar toda la frase. Puedes levantar el dedo para recolocarlo; no cuenta como gesto. Un pulso perdido cuesta una vida y aparece otra frase. Primero practicas dos patrones, luego entran los cuatro y se reduce el margen de tiempo.</p><p>Cada cinco aciertos seguidos sube el multiplicador, hasta ×4. Tienes cinco vidas y un minuto en cada modo, con récords separados por tema y modo.</p><p>En teclado: Q/W/E cambian de arma; elige el sentido con ↑/↓/←/→ y pulsa 1–4 para cortar el vinilo CUT de ese número (Mayús + 1–4 corta hacia abajo); ← y → ejecutan el gesto de scratch al pulso; espacio pausa; Esc sale de pantalla completa.</p><p>Funky Fiesta y WTHIMH usan su audio real y un pulso aproximado de 127 BPM: las oleadas y los patrones siguen el reloj de la canción. Si el audio carga, la sesión espera. Pausar conserva el punto del tema. El ensayo original funciona sin conexión a 120 BPM. Cambiar de tema empieza otra sesión. La música es continua y no depende de los aciertos. Tus resultados se guardan solo en este navegador y no suman DANZPOINTS.</p></div>}
   </section>
 }

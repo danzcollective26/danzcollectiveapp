@@ -28,20 +28,21 @@ export const SCRATCH_PATTERNS = [
   { name: 'BOOMERANG', steps: [{ direction: 1, distance: 100, offset: 0 }, { direction: -1, distance: 56, offset: 500 }, { direction: 1, distance: 56, offset: 1000 }, { direction: -1, distance: 100, offset: 1750 }] },
 ] as const
 export type GrooveScratch = { id: number; until: number; turns: number; direction: number; anchor: number | null; pointer: number; pattern: number; firstAt: number; window: number; perfect: number }
+export type ScratchFeedback = { at: number; offset: number; kind: 'perfect' | 'early' | 'late' }
 export type GrooveSpark = { id: number; x: number; y: number; color: string; born: number; label: string; layer?: number; angle?: number; rotation?: number; velocity?: GroovePoint; special?: GrooveSpecial; size?: number }
 export type GrooveState = {
   status: 'ready' | 'playing' | 'paused' | 'over' | 'complete'; mode: GrooveMode; elapsed: number; score: number; combo: number; bestCombo: number;
   lives: number; hits: number; misses: number; scratches: number; nextScratchAt: number; discs: GrooveDisc[];
   scratch: GrooveScratch | null; sparks: GrooveSpark[]; seed: number; nextId: number; beat: number; message: string;
   weapon: GrooveWeapon; flightTime: number; freezeUntil: number; nextWaveAt: number; wave: number; golds: number; multiCuts: number; strokeHits: number; perfects: number; judgement: string; doubleUntil: number; strokeDoubleUntil: number;
-  cutSequence: GrooveSequence | null; sequences: number; beatMs: number;
+  cutSequence: GrooveSequence | null; sequences: number; beatMs: number; scratchGestures: number; scratchFeedback: ScratchFeedback | null;
 }
 
 export function initialGroove(seed = 27, mode: GrooveMode = 'cut', weapon: GrooveWeapon = 'katana', bpm = 120): GrooveState {
   return { status: 'ready', mode, elapsed: 0, score: 0, combo: 0, bestCombo: 0, lives: 5, hits: 0, misses: 0, scratches: 0, nextScratchAt: 0,
     discs: [], scratch: null, sparks: [], seed: Math.max(1, Math.floor(seed) % 2147483647), nextId: 1, beat: -1,
     weapon, flightTime: 0, freezeUntil: 0, nextWaveAt: 0, wave: 0, golds: 0, multiCuts: 0, strokeHits: 0, perfects: 0, judgement: '', doubleUntil: 0, strokeDoubleUntil: 0,
-    cutSequence: null, sequences: 0, beatMs: 60_000 / (Number.isFinite(bpm) && bpm >= 60 && bpm <= 200 ? bpm : 120),
+    cutSequence: null, sequences: 0, beatMs: 60_000 / (Number.isFinite(bpm) && bpm >= 60 && bpm <= 200 ? bpm : 120), scratchGestures: 0, scratchFeedback: null,
     message: mode === 'cut' ? 'DORADOS ×3 · HIELO RALENTIZA · SIGUE LAS FLECHAS.' : 'SIGUE LAS FLECHAS Y TERMINA CADA GESTO EN SU PULSO.' }
 }
 export function grooveStage(time: number) { return Math.min(3, 1 + Math.floor(time / 20_000)) }
@@ -265,7 +266,9 @@ export function scratchGroove(previous: GrooveState, x: number, release = false)
   scratch.anchor = x; scratch.turns++; scratch.direction = Math.sign(delta)
   const perfect = Math.abs(timing) <= 95
   if (perfect) { scratch.perfect++; state.perfects++ }
-  state.judgement = perfect ? 'PERFECTO' : 'A TIEMPO'
+  state.scratchGestures++
+  state.scratchFeedback = { at: state.elapsed, offset: timing, kind: perfect ? 'perfect' : timing < 0 ? 'early' : 'late' }
+  state.judgement = perfect ? 'PERFECTO' : timing < 0 ? 'A TIEMPO · ADELANTADO' : 'A TIEMPO · TARDE'
   // Points are awarded for a complete phrase, so random partial gestures cannot farm a record.
   if (scratch.turns === steps.length) {
     const points = reward(state, 200 + scratch.perfect * 75); state.scratches++; state.scratch = null
