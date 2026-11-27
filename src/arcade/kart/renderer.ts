@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
+import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
 import { DRIVERS,VENUES,type KartBuild } from './garage'
 import type { KartPreferences } from './preferences'
 
@@ -37,6 +37,19 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   for(let row=0;row<2;row++)for(let n=0;n<10;n++){c.fillStyle=(row+n)%2?'#eef1dd':'#111d23';c.fillRect(row*7-7,n*8-40,7,8)}
   c.fillStyle='#e9e8cf';c.font='bold 12px Arial';c.textAlign='center';c.fillText('START / FINISH',-5,-54);c.restore()
   for(let n=0;n<4;n++){const p=trackPoint(track,.02-n*.014);c.save();c.translate(p.x,p.y);c.rotate(p.angle);c.strokeStyle='#d6dfd57a';c.lineWidth=2;c.strokeRect(-17,n%2?-33:7,33,26);c.restore()}
+  // Draw static hazards once into the baked track artwork.
+  for(const hazard of TRACK_HAZARDS[track.id]){
+    c.save();c.translate(hazard.x,hazard.y);c.rotate(hazard.angle)
+    c.fillStyle='#07171c88';c.beginPath();c.ellipse(3,4,14,10,0,0,Math.PI*2);c.fill()
+    if(hazard.kind==='cone'){
+      c.fillStyle='#ea8e3e';c.beginPath();c.moveTo(0,-11);c.lineTo(10,9);c.lineTo(-10,9);c.closePath();c.fill()
+      rounded(c,-7,3,14,3,1,'#f4e3c4');rounded(c,-11,8,22,3,1,'#222f35')
+    }else{
+      rounded(c,-12,-11,24,22,2,'#122830');rounded(c,-10,-9,20,18,2,'#b7a37b')
+      rounded(c,-10,-1,20,4,0,'#2a3942');rounded(c,-2,-9,4,18,0,'#2a3942')
+    }
+    c.restore()
+  }
   // The Midnight track has its own neon paddock in the central infield,
   // rather than copying the same loading-bay set directly onto the road.
   const midnight=track.id==='midnight',sx=midnight?350:322,sy=midnight?315:179
