@@ -120,3 +120,24 @@ Para nuevos juegos 2D evaluar primero Phaser y, si conviene por peso o alcance,
 Kaplay. Para un futuro Yeppo 3D evaluar Three.js o React Three Fiber; conservar el
 personaje y las animaciones actuales hasta verificar que la mejora justifica la
 migración. No sustituir motores que ya funcionan únicamente por cambiar de librería.
+
+## Flujo de trabajo con el propietario — preferencia permanente (27/11/2026)
+
+El propietario quiere el mínimo trabajo manual posible. Toda IA o colaborador debe:
+
+1. Hacer por sí mismo todo lo que permitan las herramientas conectadas, sin pedir
+   al propietario que copie, pegue o navegue entre aplicaciones si existe una vía
+   automática segura.
+2. Proponer **de primeras** la opción que menos trabajo le suponga y sea más
+   eficiente: conectores (GitHub, Vercel, Supabase, Hugging Face, Figma),
+   credenciales guardadas en el entorno o automatizaciones, antes que pasos manuales.
+3. Cuando un paso manual sea inevitable, dar el **enlace directo** a la pantalla
+   exacta y los pasos numerados, nunca instrucciones genéricas.
+4. Ofrecer botones o tarjetas de conexión cuando la herramienta lo permita.
+5. Guardar credenciales solo en el almacén seguro del entorno o en variables del
+   servidor; nunca en Git, Vite, chats ni registros. Pedir el mínimo permiso.
+6. Las acciones con efecto externo (cambiar ajustes de producción, publicar, fusionar)
+   siguen requiriendo la aprobación del propietario descrita arriba.
+
+Datos de referencia: Supabase `ttgehdknhnrxtddxpknc`; Vercel equipo
+`danzcollectiveapp-5608`, proyecto `danzcollectiveapp`.
