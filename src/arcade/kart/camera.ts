@@ -7,6 +7,17 @@ export const CAMERA_NEAR = 2
 export const effectiveCamera = (camera:KartCamera,mode:KartMode):KartCamera => mode==='duel'?'track':camera
 export const cockpitFov = (aspect:number) => Math.min(94,Math.max(56,2*Math.atan(Math.tan(43*Math.PI/180)/Math.max(.2,aspect))*180/Math.PI))
 export const cockpitPose = (car:Pick<Car,'x'|'y'|'angle'>):CockpitPose => ({x:car.x+Math.cos(car.angle)*7,y:32,z:car.y+Math.sin(car.angle)*7,heading:car.angle,pitch:.065})
+/** A chase-style camera for the optional follow mode only.
+ *  Positions use Three.js world coordinates and do not change race physics. */
+export function followCameraPose(car:Pick<Car,'x'|'y'|'angle'|'speed'>,heading=car.angle){
+  const direction={x:Math.cos(heading),z:Math.sin(heading)}
+  const lead=48+Math.min(35,Math.abs(car.speed)*.12)
+  return {
+    position:{x:car.x-500-direction.x*255,y:235,z:car.y-360-direction.z*255},
+    look:{x:car.x-500+direction.x*lead,y:12,z:car.y-360+direction.z*lead}
+  }
+}
+
 
 /** Camera coordinates shared by the compatible perspective and its clipping tests. */
 export function cameraPoint(p:CameraPoint,camera:CockpitPose):CameraPoint {
