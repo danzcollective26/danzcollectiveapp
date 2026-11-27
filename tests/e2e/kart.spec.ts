@@ -180,3 +180,20 @@ test('Garage previews use distinct geometry and change with real mechanical part
   await expect(visual).toHaveAttribute('data-wheel','endurance')
   await expect(page.locator('.kart-game')).toHaveAttribute('data-build','hauler:endurance')
 })
+
+test('Garage 3D preview reuses kart geometry while keeping a fallback on weak devices',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('danzporter-preferences-v3',JSON.stringify({quality:'auto',autoThrottle:false,sound:false})))
+  await page.goto('/test?seccion=arcade&juego=kart')
+  await menuTab(page,'GARAJE')
+  const preview=page.locator('.kart-console-preview')
+  await expect(preview.locator('svg[data-chassis="club"]')).toHaveCount(1)
+  const showroom=preview.locator('.kart-showroom')
+  if(await showroom.count()){
+    await expect(showroom.locator('canvas')).toHaveCount(1)
+    await expect(showroom).toHaveAttribute('data-ready',/^(true|false)$/)
+  }
+  await selectReel(page,'CHASIS','SPRINT')
+  await expect(preview.locator('svg[data-chassis="sprint"]')).toHaveCount(1)
+  await selectReel(page,'CHASIS','TRANSPORT')
+  await expect(preview.locator('svg[data-chassis="hauler"]')).toHaveCount(1)
+})
