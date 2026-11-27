@@ -32,3 +32,17 @@ test('cockpit preference persists but a local duel always keeps the shared circu
  await menuTab(page,'CORRER');await selectReel(page,'Modo de DANZPORTER','CONTRARRELOJ')
  await expect(page.locator('.kart-game')).toHaveAttribute('data-camera','cockpit')
 })
+
+test('compatible follow camera switches to the full circuit while paused',async({page})=>{
+ await page.goto('/test?seccion=arcade&juego=kart')
+ await page.getByRole('button',{name:'SALIR A PISTA',exact:true}).click()
+ await expect(page.locator('.kart-board')).toHaveAttribute('data-projection','follow')
+ await expect(page.locator('.kart-minimap')).toBeVisible()
+ await page.getByRole('button',{name:'Ajustes del kart',exact:true}).click()
+ const elapsed=await page.locator('.kart-game').getAttribute('data-elapsed')
+ await selectReel(page,'Cámara','PISTA COMPLETA')
+ await expect(page.locator('.kart-board')).toHaveAttribute('data-projection','track')
+ await selectReel(page,'Cámara','PERSECUCIÓN DINÁMICA')
+ await expect(page.locator('.kart-board')).toHaveAttribute('data-projection','follow')
+ await expect(page.locator('.kart-game')).toHaveAttribute('data-elapsed',elapsed!)
+})

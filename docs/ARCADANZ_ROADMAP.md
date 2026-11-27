@@ -267,3 +267,5 @@ GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.
 Danzporter, PR #96. Las vistas de garaje y carrera comparten la distribución de ejes por chasis. CLUB 01 es compacto, SPRINT tiene mayor batalla y TRANSPORT monta dos ejes traseros. Pendiente valoración de legibilidad en carrera en Android físico.
 
 BACKSTAGE RING v2 cambia el trazado y abre una clasificación personal independiente del recorrido anterior. El selector muestra salida y obstáculos. Garaje de pista situado por circuito en los tres renderizadores. En cabina compatible, los rivales llevan la carrocería y ejes de su chasis.
+
+Persecución 2D compatible. Cámara cenital ampliada con anticipación según velocidad, minimapa y cambio de vista durante la pausa. Duelo conserva el circuito compartido.
