@@ -65,7 +65,7 @@ export function segmentDistance(point: GroovePoint, from: GroovePoint, to: Groov
 function random(state: GrooveState) { state.seed = state.seed * 48271 % 2147483647; return state.seed / 2147483647 }
 function spawnWave(state: GrooveState) {
   const stage = grooveStage(state.elapsed)
-  const wave = state.wave++, layout = wave % 7
+  const wave = state.wave++, layout = wave % 9
   if (wave % 4 === 3 && !state.cutSequence) {
     // Introduce up/down first, then alternate four directions and a third target.
     const patterns: GrooveCutDirection[][] = stage === 1 ? [['up', 'down'], ['down', 'up']] : [['up', 'down', 'right'], ['left', 'right', 'up'], ['down', 'up', 'left']]
@@ -80,17 +80,21 @@ function spawnWave(state: GrooveState) {
     state.nextWaveAt = nextWave(state, stage)
     return
   }
-  const count = layout === 0 ? 1 : layout === 3 ? Math.min(3, stage + 1) : layout === 5 ? 3 : 2
+  const count = layout === 0 ? 1 : layout === 3 ? Math.min(3, stage + 1) : layout === 5 ? 3 : layout === 7 && stage > 1 ? 3 : 2
   const center = 230 + random(state) * 180
   for (let i = 0; i < count; i++) {
-    // Two additional silhouettes: a stepped fan and a crossing pair.
-    // Both preserve the existing timing, scoring and hit geometry.
+    // Distinct silhouettes without changing cut timing, scoring or lives:
+    // stepped fan, crossing pair, rising staircase, and outward split.
     const x = layout === 5 ? 155 + i * 165 : layout === 6 ? (i ? 495 : 145)
+      : layout === 7 ? 150 + i * 160 : layout === 8 ? 245 + i * 150
       : count === 1 ? 105 + Math.floor(random(state) * 4) * 140
       : center + (i - (count - 1) / 2) * (layout === 1 ? 96 : 145)
     const special: GrooveSpecial = wave === 0 ? 'normal' : i === 0 && wave % 8 === 5 ? 'combo' : i === 0 && wave % 8 === 1 ? 'split' : i === 0 && wave % 4 === 2 ? 'gold' : i === 0 && wave % 9 === 4 ? 'freeze' : 'normal'
     state.discs.push({ id: state.nextId++, kind: 'vinyl', special, axis: wave % 2 ? 'y' : 'x', layer: Math.floor(random(state) * 4),
-      born: state.flightTime, x, drift: layout === 5 ? (1 - i) * 55 : layout === 6 ? (i ? -85 : 85) : (320 - x) * (layout === 4 ? .38 : .12),
+      born: state.flightTime, x, originY: layout === 7 ? 760 + i * 45 : undefined,
+      drift: layout === 5 ? (1 - i) * 55 : layout === 6 ? (i ? -85 : 85)
+        : layout === 7 ? (i - 1) * 28 : layout === 8 ? (i ? 90 : -90)
+        : (320 - x) * (layout === 4 ? .38 : .12),
       launch: 665 + random(state) * 80 + (layout === 2 ? i * 35 : layout === 5 ? i * 26 : 0), spin: random(state) * 5 })
   }
   if (wave >= 5 && wave % (stage === 1 ? 5 : 3) === 0) {
