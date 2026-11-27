@@ -56,14 +56,17 @@ const HAZARD_LAYOUT:Record<TrackId,readonly {progress:number;side:-1|1;kind:Trac
   backstage:[{progress:.27,side:-1,kind:'flightcase'},{progress:.56,side:1,kind:'cone'},{progress:.80,side:-1,kind:'cone'}],
   midnight:[{progress:.24,side:-1,kind:'cone'},{progress:.43,side:1,kind:'flightcase'},{progress:.67,side:-1,kind:'cone'},{progress:.86,side:1,kind:'flightcase'}],
 }
-export const TRACK_HAZARDS:Record<TrackId,readonly TrackHazard[]> = Object.fromEntries(
-  (Object.keys(TRACKS) as TrackId[]).map(id=>[id,HAZARD_LAYOUT[id].map((h,i)=>{
-    const at=trackPoint(TRACKS[id],h.progress),offset=h.side*33
-    return {id:`${id}-${i}`,kind:h.kind,progress:h.progress,side:h.side,
-      angle:at.angle,x:at.x-Math.sin(at.angle)*offset,y:at.y+Math.cos(at.angle)*offset,
-      radius:h.kind==='flightcase'?10:8}
-  })])
-) as Record<TrackId,readonly TrackHazard[]>
+const buildHazards=(id:TrackId):readonly TrackHazard[]=>HAZARD_LAYOUT[id].map((h,i)=>{
+  const at=trackPoint(TRACKS[id],h.progress),offset=h.side*33
+  return {id:`${id}-${i}`,kind:h.kind,progress:h.progress,side:h.side,
+    angle:at.angle,x:at.x-Math.sin(at.angle)*offset,y:at.y+Math.cos(at.angle)*offset,
+    radius:h.kind==='flightcase'?10:8}
+})
+export const TRACK_HAZARDS:Record<TrackId,readonly TrackHazard[]>={
+  dock:buildHazards('dock'),
+  backstage:buildHazards('backstage'),
+  midnight:buildHazards('midnight')
+}
 
 export function trackPoint(track: Track, progress: number): Point & { angle: number } {
   const distance = wrap(progress) * track.length
