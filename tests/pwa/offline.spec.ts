@@ -28,6 +28,7 @@ test('a production build reopens offline and plays Snake without caching photos 
   expect(cached.some(url => new URL(url).pathname === '/arcade/idle-studio-industrial.webp')).toBe(true)
   expect(cached.every(url => !new URL(url).search && new URL(url).origin === 'http://127.0.0.1:4175')).toBe(true)
   expect(cached.some(url => /supabase|token|private-photo|backup-galerias/.test(url))).toBe(false)
+  expect(cached.some(url => url.includes('/arcade/intros/') || url.endsWith('.mp4'))).toBe(false)
 })
 
 test('Groove Ninja and its sound-free practice reopen offline from the cached game link', async ({ page, context }) => {

@@ -263,3 +263,11 @@ valida sesión y emite enlaces de 120 s; Ensayo sigue sin cuenta y offline.
 Publicado PR 46: CI 235 pasa build, 267 internas, 582 navegador y 16 offline.
 Backend protegido y apertura pública comprobados; T01 conserva prueba física. Ver
 GROOVE_MUSICA_PROTEGIDA_2026-11-16.md.
+
+## Groove — intro de cinco segundos, 16/11
+
+En `feature/arcade-intros`, todavía sin publicar. Una película aprobada se
+reproduce una vez por sesión, a pantalla completa, antes del menú de cabina.
+Saltar o el final del vídeo entran al juego. Movimiento reducido no la
+reproduce. Jack, Collecta y DANZPORTER no tienen intro. El archivo no se
+precacha. Registro G09.
