@@ -5,9 +5,10 @@ import { AuthProvider } from './auth/AuthProvider'
 import './index.css'
 import { rememberNativePhotoLaunch } from './cloud/nativePhoto'
 import NativePhotosNotice from './cloud/NativePhotosNotice'
+import PreviewBadge from './pwa/PreviewBadge'
 
 rememberNativePhotoLaunch()
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode><NativePhotosNotice /><AuthProvider><App /></AuthProvider></StrictMode>,
+  <StrictMode><PreviewBadge /><NativePhotosNotice /><AuthProvider><App /></AuthProvider></StrictMode>,
 )
