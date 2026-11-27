@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
+import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PADDOCK_CENTER, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
 import { AXLE_LAYOUT, DRIVERS,VENUES,type KartBuild } from './garage'
 import type { KartPreferences } from './preferences'
 
@@ -52,7 +52,7 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   }
   // The Midnight track has its own neon paddock in the central infield,
   // rather than copying the same loading-bay set directly onto the road.
-  const midnight=track.id==='midnight',sx=midnight?350:322,sy=midnight?315:179
+  const midnight=track.id==='midnight',sx=PADDOCK_CENTER[track.id].x-130,sy=PADDOCK_CENTER[track.id].y-20
   rounded(c,sx+6,sy+6,260,40,8,'#0006');rounded(c,sx,sy,260,40,8,'#18262a')
   rounded(c,sx+4,sy+4,252,31,6,midnight?'#d6b9f7':venue.curb)
   c.fillStyle='#1c2c2d';c.font='900 26px Arial';c.textAlign='left';c.fillText('DANZPORTER',sx+17,sy+28);flower(c,sx+229,sy+19,13,'#273a35')

@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { TRACKS, ROAD_WIDTH, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
+import { TRACKS, ROAD_WIDTH, TRACK_HAZARDS, PADDOCK_CENTER, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
 import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
@@ -48,7 +48,7 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   }
   barriers.count=caps.count=count;barriers.castShadow=shadows;barriers.receiveShadow=true;scene.add(barriers,caps)
   // Crew garage between the upper straight and the interior hairpin.
-  const garage=new THREE.Group();garage.position.copy(point(450,200))
+  const garage=new THREE.Group();const paddock=PADDOCK_CENTER[track.id];garage.position.copy(point(paddock.x,paddock.y))
   garage.add(box(255,42,35,dark,0,22,0,2),box(267,5,44,silver,0,46,0,1))
   const roof=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,1.4,41),dark,28)
   for(let i=0;i<28;i++){transform.position.set(-128+i*9.5,49,0);transform.rotation.set(0,0,0);transform.updateMatrix();roof.setMatrixAt(i,transform.matrix)}garage.add(roof)
@@ -67,7 +67,7 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const servicePoints=Array.from({length:21},(_,n)=>pitPoint(track,n/20));let plantCount=0,stoneCount=0
   for(let n=0;n<180;n++){
     const x=55+(n*137.23%890),z=45+(n*91.37%630)
-    if(projectTrack(track,{x,y:z}).distance<ROAD_WIDTH/2+26||servicePoints.some(p=>Math.hypot(p.x-x,p.y-z)<35)||(x>300&&x<600&&z>165&&z<235))continue
+    if(projectTrack(track,{x,y:z}).distance<ROAD_WIDTH/2+26||servicePoints.some(p=>Math.hypot(p.x-x,p.y-z)<35)||(Math.abs(x-paddock.x)<150&&Math.abs(z-paddock.y)<35))continue
     transform.position.copy(point(x,z,5));transform.rotation.set(0,n*1.79,0)
     if(plantCount<90){transform.scale.set(8+n%9,4+n%7,6+n%9);transform.updateMatrix();plants.setMatrixAt(plantCount,transform.matrix);plants.setColorAt(plantCount,new THREE.Color(n%3?'#687852':'#8a9164'));plantCount++}
     if(stoneCount<60){transform.position.x+=15;transform.position.y=3;transform.scale.set(3+n%4,2+n%2,4+n%3);transform.updateMatrix();stones.setMatrixAt(stoneCount++,transform.matrix)}

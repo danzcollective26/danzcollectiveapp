@@ -1,5 +1,5 @@
-import { ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race } from './engine'
-import { VENUES } from './garage'
+import { ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PADDOCK_CENTER, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race } from './engine'
+import { AXLE_LAYOUT, DRIVERS, VENUES } from './garage'
 import type { KartPreferences } from './preferences'
 import { cameraPoint, clipNear, cockpitFov, cockpitPose, type CameraPoint } from './camera'
 
@@ -35,7 +35,8 @@ export function createCockpitRenderer(parent:HTMLElement,read:()=>Race,advance:(
     if(n%4===0)staticFaces.push({points:quad(a,b,-26,-18,5.1),color:'#343b39'})
   }
   for(let n=0;n<40;n++)staticFaces.push({points:quad(pitPoint(track,n/40),pitPoint(track,(n+1)/40),-20,20,5.4),color:n%2?'#626951':'#59614f'})
-  staticFaces.push(...cuboid(450,200,255,35,42,'#647568'),...cuboid(450,200,267,44,5,'#a1aa93',0,47))
+  const paddock=PADDOCK_CENTER[track.id]
+  staticFaces.push(...cuboid(paddock.x,paddock.y,255,35,42,'#647568'),...cuboid(paddock.x,paddock.y,267,44,5,'#a1aa93',0,47))
   for(const [x,z,color]of [[945,250,'#768e83'],[920,600,'#bc906d'],[80,60,'#718b7b']]as const)staticFaces.push(...cuboid(x,z,76,38,37,color))
   for(const [x,z,h]of [[85,125,89],[910,637,85],[310,665,74],[620,58,80],[72,590,94]]){
     staticFaces.push(...cuboid(x,z,4,4,h,'#8a7859'))
@@ -72,8 +73,22 @@ export function createCockpitRenderer(parent:HTMLElement,read:()=>Race,advance:(
     paint(ground,venue.ground)
     const dynamic:Face[]=[]
     for(const car of state.cars.slice(1)){
-      dynamic.push(...cuboid(car.x,car.y,42,23,12,car.build.color,car.angle),...cuboid(car.x-Math.cos(car.angle)*4,car.y-Math.sin(car.angle)*4,14,14,13,'#e6d9bd',car.angle,17))
-      for(const x of [-12,14])for(const z of [-15,15])dynamic.push(...cuboid(car.x+x*Math.cos(car.angle)-z*Math.sin(car.angle),car.y+x*Math.sin(car.angle)+z*Math.cos(car.angle),10,8,10,'#141d1e',car.angle,3))
+      const axles=AXLE_LAYOUT[car.build.chassis]
+      const cos=Math.cos(car.angle),sin=Math.sin(car.angle)
+      const part=(x:number,z:number,length:number,width:number,height:number,color:string,base=5)=>
+        dynamic.push(...cuboid(car.x+x*cos-z*sin,car.y+x*sin+z*cos,length,width,height,color,car.angle,base))
+      const paint=car.build.color
+      if(car.build.chassis==='sprint'){
+        part(-5,0,31,17,8,paint);part(16,0,21,8,6,paint);part(-19,0,5,39,3,'#eee5c9',14)
+      }else if(car.build.chassis==='hauler'){
+        part(0,0,47,31,13,paint);part(-14,0,16,27,6,'#43545a',18)
+      }else{
+        part(0,0,40,22,10,paint);part(16,0,8,28,5,paint)
+      }
+      const driver=DRIVERS.find(driver=>driver.id===car.build.driver)??DRIVERS[0]
+      part(-3,0,13,14,12,driver.helmet,16)
+      for(const x of axles.positions)for(const side of [-1,1])
+        part(x,side*axles.halfWidth,11,8,10,'#141d1e',3)
     }
     const faces=[...staticFaces,...dynamic].map(face=>{const points=clipNear(face.points.map(v=>cameraPoint(v,pose)));return{points,color:face.color,depth:points.reduce((sum,p)=>sum+p.z,0)/Math.max(1,points.length)}}).filter(f=>f.points.length>2&&f.depth<2000).sort((a,b)=>b.depth-a.depth)
     for(const face of faces)paint(face.points,face.color)
