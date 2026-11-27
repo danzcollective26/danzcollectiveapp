@@ -18,7 +18,7 @@ export default function KartGarage({builds,duel,quality,onChange}:{builds:[KartB
     <MenuTabs label="Piezas del garaje" tabs={PARTS} value={part} onChange={setPart}/>
     <SelectionReel label={PARTS.find(p=>p.id===part)!.label} choices={choices} value={build[part as keyof KartBuild]} onChange={value=>update({[part]:value})}>
       <div className="kart-console-preview" style={{color:build.color}} aria-label={`Kart P${player+1}`}>
-<Suspense fallback={<KartSilhouette build={build}/>}><KartShowroom build={build} quality={quality}/></Suspense>
+{quality==='flat'?<KartSilhouette build={build}/>:<Suspense fallback={<KartSilhouette build={build}/>}><KartShowroom build={build} quality={quality}/></Suspense>}
       </div>
     </SelectionReel>
     {part==='color'&&<label className="kart-console-color">COLOR LIBRE<input type="color" value={build.color} aria-label={`Color libre P${player+1}`} onChange={e=>update({color:e.target.value})}/></label>}
