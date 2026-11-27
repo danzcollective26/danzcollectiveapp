@@ -34,5 +34,8 @@
 @media (max-width: 780px) {
   html:has(.private-gallery-viewer[aria-modal="true"]) .danz-bottom-nav,
   html:has(.private-gallery-viewer[aria-modal="true"]) .danz-more-sheet,
-  html:has(.private-gallery-viewer[aria-modal="true"]) .danz-more-backdrop { display: none; }
+  html:has(.private-gallery-viewer[aria-modal="true"]) .danz-more-backdrop,
+  html:has(.gallery-lightbox[aria-modal="true"]) .danz-bottom-nav,
+  html:has(.gallery-lightbox[aria-modal="true"]) .danz-more-sheet,
+  html:has(.gallery-lightbox[aria-modal="true"]) .danz-more-backdrop { display: none; }
 }
