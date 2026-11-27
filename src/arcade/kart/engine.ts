@@ -45,8 +45,20 @@ function makeTrack(id: TrackId, name: string, subtitle: string, accent: string, 
 }
 export const TRACKS: Record<TrackId, Track> = {
   dock: makeTrack('dock', 'AFTERHOURS DOCK', 'El último ferry sale contigo.', '#c9f56d', [[740,625],[500,625],[220,580],[120,420],[155,235],[310,125],[570,120],[760,135],[825,175],[850,235],[825,295],[760,320],[620,275],[430,280],[365,310],[340,360],[360,415],[420,450],[500,465],[700,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
-  backstage: makeTrack('backstage', 'BACKSTAGE RING', 'Flightcases fuera. Cero excusas.', '#82dadd', [[740,625],[500,625],[215,580],[120,420],[160,230],[310,120],[440,125],[560,165],[680,140],[770,130],[835,165],[865,220],[850,280],[805,320],[735,330],[620,300],[520,300],[450,295],[390,320],[365,380],[390,440],[450,465],[530,475],[740,475],[820,475],[873,497],[895,550],[873,603],[820,625]]),
+  backstage: makeTrack('backstage', 'BACKSTAGE RING', 'Recta de carga, horquilla y eses entre bastidores.', '#82dadd', [
+    [723,616],[495,610],[265,610],[155,570],[115,490],[125,420],
+    [183,375],[255,380],[320,425],[391,436],[437,398],[443,343],
+    [405,293],[299,272],[251,219],[264,149],[344,111],[550,100],
+    [735,113],[837,164],[868,234],[835,295],[759,306],[689,318],
+    [656,372],[676,436],[755,463],[837,470],[874,532],[841,606],
+  ]),
   midnight: makeTrack('midnight', 'MIDNIGHT CHICANE', 'Tres curvas enlazadas bajo las luces.', '#d6b9f7', [[500,154],[590,179],[704,182],[836,218],[900,308],[848,405],[744,463],[670,508],[608,578],[500,644],[361,639],[273,558],[256,463],[240,394],[188,320],[164,218],[239,133],[379,117]]),
+}
+
+export const PADDOCK_CENTER: Record<TrackId, Point> = {
+  dock: { x: 450, y: 200 },
+  backstage: { x: 580, y: 220 },
+  midnight: { x: 510, y: 340 },
 }
 
 /** Fixed trackside obstacles. A centre-lane kart can pass every one. */
@@ -70,8 +82,12 @@ export const TRACK_HAZARDS:Record<TrackId,readonly TrackHazard[]>={
 
 export function trackPoint(track: Track, progress: number): Point & { angle: number } {
   const distance = wrap(progress) * track.length
-  let index = 0
-  while (index < track.points.length-1 && track.lengths[index+1] < distance) index++
+  let index = 0, end = track.points.length - 1
+  while (index < end) {
+    const middle = (index + end) >>> 1
+    if (track.lengths[middle + 1] < distance) index = middle + 1
+    else end = middle
+  }
   const a = track.points[index], b = track.points[(index+1) % track.points.length]
   const t = (distance-track.lengths[index]) / (track.lengths[index+1]-track.lengths[index])
   return { x: a.x+(b.x-a.x)*t, y: a.y+(b.y-a.y)*t, angle: Math.atan2(b.y-a.y,b.x-a.x) }
@@ -252,10 +268,13 @@ export function formatRaceTime(ms: number | null) {
   const total = Math.max(0,ms), seconds = Math.floor(total/1000)
   return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}.${String(Math.floor(total%1000/10)).padStart(2,'0')}`
 }
+function recordSlot(track: TrackId, build: KartBuild) {
+  return (track === 'backstage' ? 'backstage-v2' : track) + ':' + buildKey(build)
+}
 export function readKartBest(track: TrackId,build:KartBuild=DEFAULT_BUILD): number | null {
-  try { const n = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}')[track+':'+buildKey(build)]; return Number.isFinite(n) && n > 0 && n <= RACE_LIMIT ? n : null } catch { return null }
+  try { const n = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}')[recordSlot(track,build)]; return Number.isFinite(n) && n > 0 && n <= RACE_LIMIT ? n : null } catch { return null }
 }
 export function saveKartBest(track: TrackId, ms: number,build:KartBuild=DEFAULT_BUILD): boolean {
   if (!Number.isFinite(ms) || ms <= 0 || ms > RACE_LIMIT) return false
-  try { const values = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}'), previous = readKartBest(track,build); if (previous !== null && previous <= ms) return false; localStorage.setItem(KART_RECORD_KEY,JSON.stringify({...values,[track+':'+buildKey(build)]:ms})); return true } catch { return false }
+  try { const values = JSON.parse(localStorage.getItem(KART_RECORD_KEY) ?? '{}'), previous = readKartBest(track,build); if (previous !== null && previous <= ms) return false; localStorage.setItem(KART_RECORD_KEY,JSON.stringify({...values,[recordSlot(track,build)]:ms})); return true } catch { return false }
 }

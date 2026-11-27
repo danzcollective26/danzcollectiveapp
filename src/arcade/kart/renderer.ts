@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
-import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
-import { DRIVERS,VENUES,type KartBuild } from './garage'
+import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PADDOCK_CENTER, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
+import { AXLE_LAYOUT, DRIVERS,VENUES,type KartBuild } from './garage'
 import type { KartPreferences } from './preferences'
 
 function rounded(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill: string | CanvasGradient) {
@@ -52,7 +52,7 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   }
   // The Midnight track has its own neon paddock in the central infield,
   // rather than copying the same loading-bay set directly onto the road.
-  const midnight=track.id==='midnight',sx=midnight?350:322,sy=midnight?315:179
+  const midnight=track.id==='midnight',sx=PADDOCK_CENTER[track.id].x-130,sy=PADDOCK_CENTER[track.id].y-20
   rounded(c,sx+6,sy+6,260,40,8,'#0006');rounded(c,sx,sy,260,40,8,'#18262a')
   rounded(c,sx+4,sy+4,252,31,6,midnight?'#d6b9f7':venue.curb)
   c.fillStyle='#1c2c2d';c.font='900 26px Arial';c.textAlign='left';c.fillText('DANZPORTER',sx+17,sy+28);flower(c,sx+229,sy+19,13,'#273a35')
@@ -79,7 +79,8 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
   const color=build.color,driver=DRIVERS.find(d=>d.id===build.driver)??DRIVERS[0]
   c.translate(48,48)
   c.fillStyle='#0006';c.beginPath();c.ellipse(4,6,24,17,0,0,Math.PI*2);c.fill()
-  for(const x of [-12,14])for(const y of [-15,15]){rounded(c,x-5,y-5,11,build.wheels==='endurance'?11:9,3,'#070e13');rounded(c,x-4,y-5,9,3,1,build.wheels==='slick'?'#e3d8b0':build.wheels==='slide'?color:'#47575b');if(build.wheels==='grip'||build.wheels==='endurance'){c.fillStyle='#84978b';for(let n=0;n<3;n++)c.fillRect(x-4+n*3,y-3,1,6)}}
+  const axles = AXLE_LAYOUT[build.chassis]
+  for(const x of axles.positions)for(const y of [-axles.halfWidth,axles.halfWidth]){rounded(c,x-5,y-5,11,build.wheels==='endurance'?11:9,3,'#070e13');rounded(c,x-4,y-5,9,3,1,build.wheels==='slick'?'#e3d8b0':build.wheels==='slide'?color:'#47575b');if(build.wheels==='grip'||build.wheels==='endurance'){c.fillStyle='#84978b';for(let n=0;n<3;n++)c.fillRect(x-4+n*3,y-3,1,6)}}
   const body=c.createLinearGradient(-23,-12,23,12);body.addColorStop(0,'#1b292b');body.addColorStop(.35,color);body.addColorStop(.68,color);body.addColorStop(1,'#37474a')
   if(build.chassis==='sprint'){
     // Open-wheeler: long tapered nose, exposed sidepods and a contrasting aero wing.
@@ -120,9 +121,11 @@ export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(del
     private labels: Phaser.GameObjects.Text[]=[]
     private effects!: Phaser.GameObjects.Graphics
     private previous: Race|null=null
+    private following=false
     private impacts:number[]=[]
     private bursts:number[]=[]
     create(){
+      this.cameras.main.setBounds(0,0,W,H)
       const state=read(),map=this.textures.createCanvas('kart-track',W,H)!
       mapArt(map.getContext(),TRACKS[state.track],VENUES.find(v=>v.id===options().venue)??VENUES[0]);map.refresh();this.add.image(0,0,'kart-track').setOrigin(0)
       this.effects=this.add.graphics()
@@ -136,10 +139,25 @@ export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(del
     update(){
       if(disposed||!this.effects)return
       const now=performance.now();advance(Math.min(250,Math.max(0,now-lastTick)));lastTick=now
-      const s=read();if(s===this.previous)return;this.previous=s;const g=this.effects;g.clear()
+      const s=read()
+      const follow=options().camera==='follow' && s.mode!=='duel' && s.phase!=='ready' && s.phase!=='finished'
+      if(s===this.previous && follow===this.following)return
+      const camera=this.cameras.main
+      if(follow){
+        const car=s.cars[0]
+        const lead=reduced.matches?0:Math.max(-35,Math.min(80,car.speed*.35))
+        if(!this.following)camera.setZoom(2)
+        camera.centerOn(car.x+Math.cos(car.angle)*lead,car.y+Math.sin(car.angle)*lead)
+      }else if(this.following){
+        camera.setZoom(1).centerOn(W/2,H/2)
+      }
+      if(follow!==this.following)parent.dataset.projection=follow?'follow':'track'
+      this.following=follow
+      this.previous=s
+      const g=this.effects;g.clear()
       s.cars.forEach((car,id)=>{
         const sprite=this.cars[id];sprite.setPosition(car.x,car.y).setRotation(car.angle).setAlpha(car.finishedAt===null?1:.6).setTint(Phaser.Display.Color.GetColor(255,Math.round(155+100*car.health),Math.round(140+115*car.health)))
-        this.labels[id].setPosition(car.x,car.y-25)
+        this.labels[id].setVisible(!follow || id===0 || car.service>0 || car.tow>0).setPosition(car.x,car.y-25)
         const label=car.service>0?'REPARANDO':car.tow>0?'GRÚA':s.mode==='race'&&id>0?`CREW ${id}`:`P${id+1}`;if(this.labels[id].text!==label)this.labels[id].setText(label)
         if(car.impacts!==this.impacts[id]){this.impacts[id]=car.impacts;this.bursts[id]=now}
         if(reduced.matches||s.phase!=='playing')return

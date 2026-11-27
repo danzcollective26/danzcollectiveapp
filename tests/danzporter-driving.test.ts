@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {createRace,stepRace,startRace,pauseRace,trackPoint,TRACKS,NO_INPUT,KART_RADIUS,PIT_ENTRY,PIT_EXIT,pitPoint,readKartBest,saveKartBest,type Race,type KartInput} from '../src/arcade/kart/engine.ts'
+import {createRace,stepRace,startRace,pauseRace,trackPoint,KART_RECORD_KEY,TRACKS,NO_INPUT,KART_RADIUS,PIT_ENTRY,PIT_EXIT,pitPoint,readKartBest,saveKartBest,type Race,type KartInput} from '../src/arcade/kart/engine.ts'
 import {DEFAULT_BUILD,CHASSIS,WHEELS,kartStats,buildKey,type KartBuild} from '../src/arcade/kart/garage.ts'
 
 const GAS:KartInput={...NO_INPUT,throttle:1}
@@ -84,6 +84,12 @@ test('Time records stay separate for different mechanical configurations',()=>{
   const original=Object.getOwnPropertyDescriptor(globalThis,'localStorage'),data=new Map<string,string>()
   Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>data.set(k,v)}})
   try{
+    const oldBackstageSlot = 'backstage:' + buildKey(DEFAULT_BUILD)
+    data.set(KART_RECORD_KEY, JSON.stringify({ [oldBackstageSlot]: 42000 }))
+    assert.equal(readKartBest('backstage'), null)
+    assert.equal(saveKartBest('backstage', 57000), true)
+    assert.equal(readKartBest('backstage'), 57000)
+    assert.equal(JSON.parse(data.get(KART_RECORD_KEY)!)[oldBackstageSlot], 42000)
     const fast={...DEFAULT_BUILD,chassis:'sprint'} as KartBuild
     assert.equal(saveKartBest('dock',60000,DEFAULT_BUILD),true);assert.equal(readKartBest('dock',fast),null)
     assert.equal(saveKartBest('dock',50000,fast),true);assert.equal(readKartBest('dock',DEFAULT_BUILD),60000)
