@@ -67,8 +67,11 @@ test('Two local players receive independent commands and braking reduces speed',
 
 test('Midnight Chicane is a distinct selectable track with safe geometry and three laps',()=>{
   const midnight=TRACKS.midnight
-  assert.ok(midnight.points.length>TRACKS.dock.points.length,'two added chicane sections use more spline nodes')
-  assert.ok(midnight.length>TRACKS.dock.length,'the extra bends extend the track')
+  // A genuinely new course, not the dock's C silhouette with a small kink.
+  assert.notEqual(midnight.points.length,TRACKS.dock.points.length)
+  assert.ok(midnight.length>1500,'there is room for a full competitive lap')
+  assert.ok(Math.hypot(midnight.points[0].x-TRACKS.dock.points[0].x,midnight.points[0].y-TRACKS.dock.points[0].y)>200,
+    'the opening segment must not trace the old circuit')
   assert.equal(createRace('time','midnight').track,'midnight')
   assert.equal(createRace('race','midnight').cars.length,4)
   assert.ok(midnight.points.every(p=>p.x>=ROAD_WIDTH/2&&p.x<=1000-ROAD_WIDTH/2&&p.y>=ROAD_WIDTH/2&&p.y<=720-ROAD_WIDTH/2))
