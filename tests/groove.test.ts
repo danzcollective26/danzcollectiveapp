@@ -243,3 +243,32 @@ test('later vinyl waves add a staggered fan and crossing pair without touching s
   assert.equal(fan.score, base.score)
   assert.equal(crossing.lives, base.lives)
 })
+
+test('new stage-two staircase and outward split wave layouts stay deterministic and fair', () => {
+  const base = atVinyl()
+  const staircase = advanceGroove({ ...base, elapsed: 25_000, discs: [], wave: 16, nextWaveAt: 0, cutSequence: null }, 50)
+  const steps = staircase.discs.filter(d => d.kind === 'vinyl')
+  assert.equal(steps.length, 3)
+  assert.deepEqual(steps.map(d => d.x), [150, 310, 470])
+  assert.deepEqual(steps.map(d => d.drift), [-28, 0, 28])
+  assert.deepEqual(steps.map(d => d.originY), [760, 805, 850])
+  assert.ok(steps.every(d => d.born === staircase.flightTime))
+  assert.equal(staircase.score, base.score)
+  assert.equal(staircase.lives, base.lives)
+  assert.deepEqual(
+    advanceGroove({ ...base, elapsed: 25_000, discs: [], wave: 16, nextWaveAt: 0, cutSequence: null }, 50),
+    staircase,
+    'same seed and input must produce the same wave'
+  )
+
+  const outward = advanceGroove({ ...base, discs: [], wave: 8, nextWaveAt: 0, cutSequence: null }, 50)
+  const pair = outward.discs.filter(d => d.kind === 'vinyl')
+  assert.equal(pair.length, 2)
+  assert.deepEqual(pair.map(d => d.x), [245, 395])
+  assert.deepEqual(pair.map(d => d.drift), [-90, 90])
+  assert.ok(pair.every(d => d.originY === undefined))
+  assert.equal(outward.lives, base.lives)
+
+  const firstStage = advanceGroove({ ...base, discs: [], wave: 16, nextWaveAt: 0, cutSequence: null }, 50)
+  assert.equal(firstStage.discs.filter(d => d.kind === 'vinyl').length, 2, 'intro stage stays manageable')
+})
