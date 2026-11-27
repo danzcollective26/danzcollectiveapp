@@ -49,6 +49,22 @@ export const TRACKS: Record<TrackId, Track> = {
   midnight: makeTrack('midnight', 'MIDNIGHT CHICANE', 'Tres curvas enlazadas bajo las luces.', '#d6b9f7', [[500,154],[590,179],[704,182],[836,218],[900,308],[848,405],[744,463],[670,508],[608,578],[500,644],[361,639],[273,558],[256,463],[240,394],[188,320],[164,218],[239,133],[379,117]]),
 }
 
+/** Fixed trackside obstacles. A centre-lane kart can pass every one. */
+export type TrackHazard = Point & { id:string;kind:'cone'|'flightcase';progress:number;side:-1|1;radius:number;angle:number }
+const HAZARD_LAYOUT:Record<TrackId,readonly {progress:number;side:-1|1;kind:TrackHazard['kind']}[]>={
+  dock:[{progress:.31,side:1,kind:'cone'},{progress:.64,side:-1,kind:'flightcase'}],
+  backstage:[{progress:.27,side:-1,kind:'flightcase'},{progress:.56,side:1,kind:'cone'},{progress:.80,side:-1,kind:'cone'}],
+  midnight:[{progress:.24,side:-1,kind:'cone'},{progress:.43,side:1,kind:'flightcase'},{progress:.67,side:-1,kind:'cone'},{progress:.86,side:1,kind:'flightcase'}],
+}
+export const TRACK_HAZARDS:Record<TrackId,readonly TrackHazard[]> = Object.fromEntries(
+  (Object.keys(TRACKS) as TrackId[]).map(id=>[id,HAZARD_LAYOUT[id].map((h,i)=>{
+    const at=trackPoint(TRACKS[id],h.progress),offset=h.side*33
+    return {id:`${id}-${i}`,kind:h.kind,progress:h.progress,side:h.side,
+      angle:at.angle,x:at.x-Math.sin(at.angle)*offset,y:at.y+Math.cos(at.angle)*offset,
+      radius:h.kind==='flightcase'?10:8}
+  })])
+) as Record<TrackId,readonly TrackHazard[]>
+
 export function trackPoint(track: Track, progress: number): Point & { angle: number } {
   const distance = wrap(progress) * track.length
   let index = 0
@@ -164,6 +180,17 @@ function integrate(s: Race, inputs: readonly KartInput[], dt: number): Race {
     const angle=car.angle+steering*stats.steering*(drifting?1.2:1)*dt*Math.min(1,speed/70)*(.8+.2*car.tires)
     const slip=drifting?-steering*.28*stats.drift/stats.grip:0
     let x=car.x+Math.cos(angle+slip)*speed*dt,y=car.y+Math.sin(angle+slip)*speed*dt,nextSpeed=speed
+    // Static objects add risk only near the edge; the centre is always clear.
+    for(const hazard of TRACK_HAZARDS[s.track]){
+      const dx=x-hazard.x,dy=y-hazard.y,dist=Math.hypot(dx,dy),clearance=KART_RADIUS+hazard.radius
+      if(dist>=clearance)continue
+      const normal=dist>.001?{x:dx/dist,y:dy/dist}:{x:Math.sin(hazard.angle)*hazard.side,y:-Math.cos(hazard.angle)*hazard.side}
+      x=hazard.x+normal.x*clearance;y=hazard.y+normal.y*clearance
+      car=hit(car,speed)
+      nextSpeed=Math.min(nextSpeed,Math.max(16,speed*.56))
+      charge=0;boosting=0
+      break
+    }
     const projection=projectTrack(track,{x,y}),edge=ROAD_WIDTH/2-KART_RADIUS
     if(projection.distance>edge){
       const nx=(x-projection.x)/projection.distance,ny=(y-projection.y)/projection.distance
