@@ -1,7 +1,7 @@
 export const CHASSIS = [
   { id:'club', name:'CLUB 01', note:'Equilibrado. La base de la crew.', speed:1, acceleration:1, steering:1, durability:1 },
-  { id:'sprint', name:'SPRINT', note:'Más rápido y ligero; aguanta menos golpes.', speed:1.06, acceleration:1.07, steering:1.03, durability:.8 },
-  { id:'hauler', name:'TRANSPORT', note:'Chasis reforzado; más resistente y pesado.', speed:.94, acceleration:.92, steering:.97, durability:1.4 },
+  { id:'sprint', name:'SPRINT', note:'Monoplaza: aceleración y giro muy rápidos; carrocería frágil.', speed:1.12, acceleration:1.16, steering:1.10, durability:.75 },
+  { id:'hauler', name:'TRANSPORT', note:'Blindado: resiste impactos; sacrifica salida, punta y giro.', speed:.88, acceleration:.84, steering:.90, durability:1.55 },
 ] as const
 export const WHEELS = [
   { id:'street', name:'STREET', note:'Agarre y desgaste equilibrados.', speed:1, acceleration:1, grip:1, drift:1, durability:1 },

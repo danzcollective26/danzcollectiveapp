@@ -41,3 +41,10 @@
 
 .kart-cockpit{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}.kart-cockpit svg{position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:max(100%,460px);height:clamp(80px,24%,160px);filter:drop-shadow(0 -5px 12px #091a2866)}.kart-first-person .kart-speed{bottom:6px;background:#101f26bd;border-radius:5px;padding:5px 8px}.kart-first-person .kart-speed>strong{font-size:26px}.kart-first-person .kart-minimap{width:95px;opacity:.88}.kart-first-person .kart-service-banner{max-width:60%}
 @media(orientation:landscape){.kart-first-person .kart-cockpit svg{height:30%;min-height:80px}.kart-first-person .kart-minimap{width:86px}.kart-first-person .kart-speed>strong{font-size:21px}}
+
+/* Give the newly authored chassis silhouettes room without enlarging compact
+   landscape controls or changing the approved console layout. */
+@media(orientation:portrait) and (min-height:700px){
+  .kart-console-garage .selection-reel .reel-card{min-height:205px}
+  .kart-console-garage .reel-preview svg{max-height:128px}
+}

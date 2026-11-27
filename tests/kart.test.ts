@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, RACE_LAPS, raceOrder, type Race, type TrackId, type KartInput } from '../src/arcade/kart/engine.ts'
+import { kartStats, DEFAULT_BUILD, type KartBuild } from '../src/arcade/kart/garage.ts'
 
 const GAS:KartInput={...NO_INPUT,throttle:1}
 function advance(s:Race,time:number,frame:number,input:KartInput=GAS){let remaining=time;while(remaining>0){const dt=Math.min(remaining,frame);s=stepRace(s,[input,input],dt);remaining-=dt}return s}
@@ -67,9 +68,25 @@ test('Two local players receive independent commands and braking reduces speed',
 
 test('Midnight Chicane is a distinct selectable track with safe geometry and three laps',()=>{
   const midnight=TRACKS.midnight
-  assert.ok(midnight.points.length>TRACKS.dock.points.length,'two added chicane sections use more spline nodes')
-  assert.ok(midnight.length>TRACKS.dock.length,'the extra bends extend the track')
+  // A genuinely new course, not the dock's C silhouette with a small kink.
+  assert.notEqual(midnight.points.length,TRACKS.dock.points.length)
+  assert.ok(midnight.length>1500,'there is room for a full competitive lap')
+  assert.ok(Math.hypot(midnight.points[0].x-TRACKS.dock.points[0].x,midnight.points[0].y-TRACKS.dock.points[0].y)>200,
+    'the opening segment must not trace the old circuit')
   assert.equal(createRace('time','midnight').track,'midnight')
   assert.equal(createRace('race','midnight').cars.length,4)
   assert.ok(midnight.points.every(p=>p.x>=ROAD_WIDTH/2&&p.x<=1000-ROAD_WIDTH/2&&p.y>=ROAD_WIDTH/2&&p.y<=720-ROAD_WIDTH/2))
+})
+
+test('Chassis choice changes handling and impact resistance, not merely the picture',()=>{
+  const build=(chassis:KartBuild['chassis']):KartBuild=>({...DEFAULT_BUILD,chassis})
+  const club=kartStats(build('club')),sprint=kartStats(build('sprint')),transport=kartStats(build('hauler'))
+  assert.ok(sprint.speed>club.speed*1.1,'Sprint has clearly higher top speed')
+  assert.ok(sprint.acceleration>club.acceleration*1.1,'Sprint launches faster')
+  assert.ok(sprint.steering>club.steering,'Sprint turns more quickly')
+  assert.ok(sprint.durability<club.durability,'Sprint pays for speed with fragility')
+  assert.ok(transport.speed<club.speed*.9,'Transport trades away top speed')
+  assert.ok(transport.acceleration<club.acceleration*.9,'Transport accelerates more slowly')
+  assert.ok(transport.steering<club.steering,'Transport is less nimble')
+  assert.ok(transport.durability>club.durability*1.5,'Transport resists impacts')
 })

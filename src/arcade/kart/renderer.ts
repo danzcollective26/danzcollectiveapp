@@ -37,10 +37,23 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   for(let row=0;row<2;row++)for(let n=0;n<10;n++){c.fillStyle=(row+n)%2?'#eef1dd':'#111d23';c.fillRect(row*7-7,n*8-40,7,8)}
   c.fillStyle='#e9e8cf';c.font='bold 12px Arial';c.textAlign='center';c.fillText('START / FINISH',-5,-54);c.restore()
   for(let n=0;n<4;n++){const p=trackPoint(track,.02-n*.014);c.save();c.translate(p.x,p.y);c.rotate(p.angle);c.strokeStyle='#d6dfd57a';c.lineWidth=2;c.strokeRect(-17,n%2?-33:7,33,26);c.restore()}
-  // Center paddock, speakers, shipping containers and leaf clusters.
-  rounded(c,328,185,260,40,8,'#0006');rounded(c,322,179,260,40,8,'#18262a');rounded(c,326,183,252,31,6,venue.curb);
-  c.fillStyle='#1c2c2d';c.font='900 26px Arial';c.textAlign='left';c.fillText('DANZPORTER',339,207);flower(c,551,198,13,'#273a35')
-  c.fillStyle='#b9c7b8';c.font='bold 8px Arial';c.fillText(venue.name,340,219)
+  // The Midnight track has its own neon paddock in the central infield,
+  // rather than copying the same loading-bay set directly onto the road.
+  const midnight=track.id==='midnight',sx=midnight?350:322,sy=midnight?315:179
+  rounded(c,sx+6,sy+6,260,40,8,'#0006');rounded(c,sx,sy,260,40,8,'#18262a')
+  rounded(c,sx+4,sy+4,252,31,6,midnight?'#d6b9f7':venue.curb)
+  c.fillStyle='#1c2c2d';c.font='900 26px Arial';c.textAlign='left';c.fillText('DANZPORTER',sx+17,sy+28);flower(c,sx+229,sy+19,13,'#273a35')
+  c.fillStyle='#b9c7b8';c.font='bold 8px Arial';c.fillText(midnight?'MIDNIGHT / SECTOR 03':venue.name,sx+18,sy+40)
+  if(midnight){
+    // Painted paddock lanes and soft light pools, baked into the map texture.
+    for(const y of [375,412,449]){rounded(c,370,y,225,3,1,'#c5a3e66e');rounded(c,370,y+7,12,15,3,'#45344b')}
+    for(const [x,y] of [[310,355],[665,370],[510,490]]){
+      const glow=c.createRadialGradient(x,y,0,x,y,55)
+      glow.addColorStop(0,'#d8a8fc37');glow.addColorStop(1,'#d8a8fc00')
+      c.fillStyle=glow;c.fillRect(x-55,y-55,110,110)
+      rounded(c,x-8,y-4,16,8,2,'#e1bbfc')
+    }
+  }
   for(const [x,y] of [[660,250],[690,254],[720,258]]){rounded(c,x+5,y+6,24,45,3,'#060e15');rounded(c,x,y,24,45,3,'#53646a');for(let k=0;k<5;k++){c.fillStyle='#aebcb551';c.fillRect(x+3,y+4+k*8,18,2)}}
   for(const [x,y] of [[75,90],[910,595],[300,650],[500,65]]){for(let j=0;j<6;j++){c.save();c.translate(x,y);c.rotate(j*Math.PI/3);c.fillStyle=j%2?'#526c48':'#3a563e';c.beginPath();c.ellipse(0,12,5,23,.2,0,Math.PI*2);c.fill();c.restore()}c.fillStyle='#8b9871';c.beginPath();c.arc(x,y,4,0,Math.PI*2);c.fill()}
   // Warm floodlights with translucent pools, no realtime blur or shaders.
@@ -55,9 +68,30 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
   c.fillStyle='#0006';c.beginPath();c.ellipse(4,6,24,17,0,0,Math.PI*2);c.fill()
   for(const x of [-12,14])for(const y of [-15,15]){rounded(c,x-5,y-5,11,build.wheels==='endurance'?11:9,3,'#070e13');rounded(c,x-4,y-5,9,3,1,build.wheels==='slick'?'#e3d8b0':build.wheels==='slide'?color:'#47575b');if(build.wheels==='grip'||build.wheels==='endurance'){c.fillStyle='#84978b';for(let n=0;n<3;n++)c.fillRect(x-4+n*3,y-3,1,6)}}
   const body=c.createLinearGradient(-23,-12,23,12);body.addColorStop(0,'#1b292b');body.addColorStop(.35,color);body.addColorStop(.68,color);body.addColorStop(1,'#37474a')
-  rounded(c,-24,-10,48,20,7,'#0b161a');rounded(c,-21,-12,build.chassis==='sprint'?46:41,build.chassis==='hauler'?25:22,7,body);rounded(c,12,-14,build.chassis==='sprint'?14:10,28,4,color)
-  c.strokeStyle='#fff8';c.lineWidth=1;c.beginPath();c.moveTo(-15,-10);c.lineTo(13,-10);c.stroke()
-  rounded(c,-20,-17,6,34,2,'#ced8c4');rounded(c,-19,-15,3,30,1,color);rounded(c,-12,-9,17,18,5,driver.color)
+  if(build.chassis==='sprint'){
+    // Open-wheeler: long tapered nose, exposed sidepods and a contrasting aero wing.
+    c.fillStyle='#091b22';c.beginPath();c.moveTo(-18,-10);c.lineTo(3,-11);c.lineTo(28,-4);c.lineTo(28,4);c.lineTo(3,11);c.lineTo(-18,10);c.closePath();c.fill()
+    c.fillStyle=body;c.beginPath();c.moveTo(-19,-9);c.lineTo(2,-8);c.lineTo(30,-3);c.lineTo(30,3);c.lineTo(2,8);c.lineTo(-19,9);c.closePath();c.fill()
+    rounded(c,-13,-20,7,40,1,color);rounded(c,-23,-21,5,42,1,'#dce6d6')
+    rounded(c,7,-14,13,5,2,color);rounded(c,7,9,13,5,2,color)
+    rounded(c,25,-15,4,30,1,'#dde3d1');rounded(c,20,-13,3,26,1,'#173038')
+    rounded(c,-12,-7,13,14,4,driver.color)
+  }else if(build.chassis==='hauler'){
+    // Boxy utility chassis: reinforced cage, heavy side guards and double rear bumper.
+    rounded(c,-25,-16,53,32,4,'#101e22')
+    rounded(c,-21,-15,47,30,3,body)
+    for(const y of [-17,13]){rounded(c,-26,y,52,4,1,'#e1e4d3');rounded(c,-20,y+1,40,2,1,'#1b3740')}
+    for(const x of [-16,14])rounded(c,x,-14,4,28,1,'#22353a')
+    rounded(c,23,-18,6,36,2,'#d9decf');rounded(c,-25,-19,4,38,1,'#abbfba')
+    rounded(c,-12,-8,19,16,4,driver.color)
+  }else{
+    // Narrow club kart: curved shell and exposed rails.
+    rounded(c,-24,-10,48,20,7,'#0b161a')
+    rounded(c,-21,-12,41,22,7,body);rounded(c,12,-14,10,28,4,color)
+    c.strokeStyle='#fff8';c.lineWidth=1;c.beginPath();c.moveTo(-15,-10);c.lineTo(13,-10);c.stroke()
+    rounded(c,-20,-17,6,34,2,'#ced8c4');rounded(c,-19,-15,3,30,1,color)
+    rounded(c,-12,-9,17,18,5,driver.color)
+  }
   c.fillStyle='#111b20';c.beginPath();c.arc(-2,-1,10,0,Math.PI*2);c.fill();const helmet=c.createLinearGradient(-10,-8,8,8);helmet.addColorStop(0,'#ffefd2');helmet.addColorStop(.45,'#e0c9a3');helmet.addColorStop(1,'#82756b');c.fillStyle=helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill()
   c.fillStyle=driver.helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill();rounded(c,1,-8,6,11,3,'#182e37');c.fillStyle='#c6f7ed';c.fillRect(4,-7,1,7);flower(c,-3,-4,3,color)
   c.strokeStyle='#d5ae8b';c.lineWidth=3;c.beginPath();c.moveTo(-3,-10);c.lineTo(7,-10);c.moveTo(-3,8);c.lineTo(7,8);c.stroke()
