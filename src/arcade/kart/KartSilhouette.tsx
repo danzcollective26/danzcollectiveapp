@@ -7,7 +7,7 @@ export default function KartSilhouette({ build }: { build: KartBuild }) {
   const hauler = build.chassis === 'hauler'
   const wheelWidth = build.wheels === 'endurance' ? 21 : build.wheels === 'light' ? 13 : 17
   const wheelColor = build.wheels === 'slick' ? '#e2c77b' : build.wheels === 'slide' ? '#9c8d6e' : '#6f888b'
-  return <svg viewBox="0 0 240 150" role="img" data-chassis={build.chassis} aria-label={`Vista superior del chasis ${build.chassis}`}>
+  return <svg viewBox="0 0 240 150" role="img" data-chassis={build.chassis} data-wheel={build.wheels} data-driver={build.driver} aria-label={`Vista superior del chasis ${build.chassis}`}>
     <ellipse cx="120" cy="133" rx="98" ry="11" fill="#07141c" opacity=".65"/>
     <g fill="#091b20" stroke={wheelColor} strokeWidth="2">
       {[43,180].flatMap(x => [29,96].map(y => <g key={`${x}:${y}`}>
