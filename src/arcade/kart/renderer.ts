@@ -55,9 +55,30 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
   c.fillStyle='#0006';c.beginPath();c.ellipse(4,6,24,17,0,0,Math.PI*2);c.fill()
   for(const x of [-12,14])for(const y of [-15,15]){rounded(c,x-5,y-5,11,build.wheels==='endurance'?11:9,3,'#070e13');rounded(c,x-4,y-5,9,3,1,build.wheels==='slick'?'#e3d8b0':build.wheels==='slide'?color:'#47575b');if(build.wheels==='grip'||build.wheels==='endurance'){c.fillStyle='#84978b';for(let n=0;n<3;n++)c.fillRect(x-4+n*3,y-3,1,6)}}
   const body=c.createLinearGradient(-23,-12,23,12);body.addColorStop(0,'#1b292b');body.addColorStop(.35,color);body.addColorStop(.68,color);body.addColorStop(1,'#37474a')
-  rounded(c,-24,-10,48,20,7,'#0b161a');rounded(c,-21,-12,build.chassis==='sprint'?46:41,build.chassis==='hauler'?25:22,7,body);rounded(c,12,-14,build.chassis==='sprint'?14:10,28,4,color)
-  c.strokeStyle='#fff8';c.lineWidth=1;c.beginPath();c.moveTo(-15,-10);c.lineTo(13,-10);c.stroke()
-  rounded(c,-20,-17,6,34,2,'#ced8c4');rounded(c,-19,-15,3,30,1,color);rounded(c,-12,-9,17,18,5,driver.color)
+  if(build.chassis==='sprint'){
+    // Open-wheeler: long tapered nose, exposed sidepods and a contrasting aero wing.
+    c.fillStyle='#091b22';c.beginPath();c.moveTo(-18,-10);c.lineTo(3,-11);c.lineTo(28,-4);c.lineTo(28,4);c.lineTo(3,11);c.lineTo(-18,10);c.closePath();c.fill()
+    c.fillStyle=body;c.beginPath();c.moveTo(-19,-9);c.lineTo(2,-8);c.lineTo(30,-3);c.lineTo(30,3);c.lineTo(2,8);c.lineTo(-19,9);c.closePath();c.fill()
+    rounded(c,-13,-20,7,40,1,color);rounded(c,-23,-21,5,42,1,'#dce6d6')
+    rounded(c,7,-14,13,5,2,color);rounded(c,7,9,13,5,2,color)
+    rounded(c,25,-15,4,30,1,'#dde3d1');rounded(c,20,-13,3,26,1,'#173038')
+    rounded(c,-12,-7,13,14,4,driver.color)
+  }else if(build.chassis==='hauler'){
+    // Boxy utility chassis: reinforced cage, heavy side guards and double rear bumper.
+    rounded(c,-25,-16,53,32,4,'#101e22')
+    rounded(c,-21,-15,47,30,3,body)
+    for(const y of [-17,13]){rounded(c,-26,y,52,4,1,'#e1e4d3');rounded(c,-20,y+1,40,2,1,'#1b3740')}
+    for(const x of [-16,14])rounded(c,x,-14,4,28,1,'#22353a')
+    rounded(c,23,-18,6,36,2,'#d9decf');rounded(c,-25,-19,4,38,1,'#abbfba')
+    rounded(c,-12,-8,19,16,4,driver.color)
+  }else{
+    // Narrow club kart: curved shell and exposed rails.
+    rounded(c,-24,-10,48,20,7,'#0b161a')
+    rounded(c,-21,-12,41,22,7,body);rounded(c,12,-14,10,28,4,color)
+    c.strokeStyle='#fff8';c.lineWidth=1;c.beginPath();c.moveTo(-15,-10);c.lineTo(13,-10);c.stroke()
+    rounded(c,-20,-17,6,34,2,'#ced8c4');rounded(c,-19,-15,3,30,1,color)
+    rounded(c,-12,-9,17,18,5,driver.color)
+  }
   c.fillStyle='#111b20';c.beginPath();c.arc(-2,-1,10,0,Math.PI*2);c.fill();const helmet=c.createLinearGradient(-10,-8,8,8);helmet.addColorStop(0,'#ffefd2');helmet.addColorStop(.45,'#e0c9a3');helmet.addColorStop(1,'#82756b');c.fillStyle=helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill()
   c.fillStyle=driver.helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill();rounded(c,1,-8,6,11,3,'#182e37');c.fillStyle='#c6f7ed';c.fillRect(4,-7,1,7);flower(c,-3,-4,3,color)
   c.strokeStyle='#d5ae8b';c.lineWidth=3;c.beginPath();c.moveTo(-3,-10);c.lineTo(7,-10);c.moveTo(-3,8);c.lineTo(7,8);c.stroke()
