@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { TRACKS, ROAD_WIDTH, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
+import { TRACKS, ROAD_WIDTH, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, projectTrack, type Race, type Track } from './engine'
 import type { KartPreferences } from './preferences'
 import { VENUES } from './garage'
 import { mesh, box, buildKart, palm, canvasTexture, signTexture } from './models3d'
@@ -86,6 +86,22 @@ function addVenue(scene:THREE.Scene,track:Track,roadMaterial:THREE.Material,shad
   const routePoints=[];for(let d=0;d<track.length;d+=16){const p=trackPoint(track,d/track.length);routePoints.push(point(p.x,p.y,5.12))}routePoints.push(routePoints[0].clone())
   const route=new THREE.Line(new THREE.BufferGeometry().setFromPoints(routePoints),new THREE.LineDashedMaterial({color:'#cedca5',transparent:true,opacity:.19,dashSize:7,gapSize:13}));route.computeLineDistances();scene.add(route)
   addPitLane(scene,track,lime,silver,dark)
+  const orange=new THREE.MeshStandardMaterial({color:'#ed9447',roughness:.75})
+  const stripe=new THREE.MeshStandardMaterial({color:'#f5ead0',roughness:.7})
+  const caseMat=new THREE.MeshStandardMaterial({color:'#988a70',metalness:.2,roughness:.63})
+  for(const hazard of TRACK_HAZARDS[track.id]){
+    const g=new THREE.Group()
+    g.position.copy(point(hazard.x,hazard.y,5));g.rotation.y=-hazard.angle
+    if(hazard.kind==='cone'){
+      g.add(mesh(new THREE.ConeGeometry(9,18,8),orange,0,9,0))
+      g.add(box(22,3,22,dark,0,1,0,1))
+      g.add(mesh(new THREE.CylinderGeometry(5,7,3,8),stripe,0,7,0))
+    }else{
+      g.add(box(20,16,19,caseMat,0,8,0,2),box(21,2,20,silver,0,16,0,.5))
+      for(const side of [-1,1])g.add(box(2,14,20,dark,side*9,8,0,.5))
+    }
+    scene.add(g)
+  }
   batchMeshes(scene)
 }
 

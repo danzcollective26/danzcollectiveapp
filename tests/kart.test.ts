@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, RACE_LAPS, raceOrder, type Race, type TrackId, type KartInput } from '../src/arcade/kart/engine.ts'
+import { createRace, startRace, pauseRace, stepRace, cpuInput, TRACKS, NO_INPUT, projectTrack, updateCheckpoint, ROAD_WIDTH, KART_RADIUS, TRACK_HAZARDS, trackPoint, RACE_LAPS, raceOrder, type Race, type TrackId, type KartInput } from '../src/arcade/kart/engine.ts'
 import { kartStats, DEFAULT_BUILD, type KartBuild } from '../src/arcade/kart/garage.ts'
 
 const GAS:KartInput={...NO_INPUT,throttle:1}
@@ -89,4 +89,35 @@ test('Chassis choice changes handling and impact resistance, not merely the pict
   assert.ok(transport.acceleration<club.acceleration*.9,'Transport accelerates more slowly')
   assert.ok(transport.steering<club.steering,'Transport is less nimble')
   assert.ok(transport.durability>club.durability*1.5,'Transport resists impacts')
+})
+
+test('Hazards allow safe central driving and are always visible on the road',()=>{
+  for(const id of Object.keys(TRACKS) as TrackId[]){
+    const track=TRACKS[id],hazards=TRACK_HAZARDS[id]
+    assert.ok(hazards.length>=2)
+    for(const h of hazards){
+      const distance=projectTrack(track,h).distance
+      assert.ok(h.progress>.18&&h.progress<.95,'start and pit remain clear')
+      assert.ok(distance>KART_RADIUS+h.radius+4,'a centre-line kart can pass')
+      assert.ok(distance+h.radius<ROAD_WIDTH/2,'obstacle stays inside painted road')
+    }
+  }
+})
+test('A flightcase impact causes damage and speed loss but cannot trap the kart',()=>{
+  const hazard=TRACK_HAZARDS.midnight.find(h=>h.kind==='flightcase')!
+  const track=TRACKS.midnight,p=trackPoint(track,hazard.progress)
+  // Begin on the racing side of the flightcase, inside collision distance.
+  const x=hazard.x+Math.sin(p.angle)*hazard.side*12
+  const y=hazard.y-Math.cos(p.angle)*hazard.side*12
+  const started=startRace(createRace('time','midnight'))
+  const state:Race={...started,phase:'playing',countdown:0,cars:[{
+    ...started.cars[0],x,y,progress:hazard.progress,angle:p.angle,speed:160,damageCooldown:0,health:1
+  }]}
+  const next=stepRace(state,[GAS],20).cars[0]
+  assert.ok(next.impacts>=1,'contact registers an impact')
+  assert.ok(next.health<1,'impact consumes health')
+  assert.ok(next.speed<160,'contact slows the car')
+  assert.ok(projectTrack(track,next).distance<=ROAD_WIDTH/2-KART_RADIUS+.001,'kart remains on the road')
+  assert.ok(Math.hypot(next.x-hazard.x,next.y-hazard.y)>=KART_RADIUS+hazard.radius-.01,
+    'collision must resolve the penetration')
 })

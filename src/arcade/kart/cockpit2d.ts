@@ -1,4 +1,4 @@
-import { ROAD_WIDTH, TRACKS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race } from './engine'
+import { ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race } from './engine'
 import { VENUES } from './garage'
 import type { KartPreferences } from './preferences'
 import { cameraPoint, clipNear, cockpitFov, cockpitPose, type CameraPoint } from './camera'
@@ -40,6 +40,12 @@ export function createCockpitRenderer(parent:HTMLElement,read:()=>Race,advance:(
   for(const [x,z,h]of [[85,125,89],[910,637,85],[310,665,74],[620,58,80],[72,590,94]]){
     staticFaces.push(...cuboid(x,z,4,4,h,'#8a7859'))
     for(let n=0;n<6;n++){const a=n*Math.PI/3;staticFaces.push({points:[vertex(x,z,h+4),vertex(x+Math.cos(a)*30,z+Math.sin(a)*30,h-8),vertex(x+Math.cos(a+.8)*25,z+Math.sin(a+.8)*25,h-14)],color:n%2?'#66724e':'#465e47'})}
+  }
+  // Fallback cockpit uses the same actual obstacles as the 3D camera.
+  for(const hazard of TRACK_HAZARDS[track.id]){
+    const width=hazard.kind==='cone'?16:20,height=hazard.kind==='cone'?16:18
+    staticFaces.push(...cuboid(hazard.x,hazard.y,width,width,height,
+      hazard.kind==='cone'?'#e79449':'#a7a084',hazard.angle))
   }
   const pit=pitPoint(track,.5);staticFaces.push(...cuboid(pit.x,pit.y,104,56,4,venue.curb,0,58))
   const start=trackPoint(track,0)
