@@ -1,4 +1,4 @@
-import { DRIVERS, type KartBuild } from './garage'
+import { AXLE_LAYOUT, DRIVERS, type KartBuild } from './garage'
 
 /** A readable 2D identity for each real kart build, shared across all garage tabs. */
 export default function KartSilhouette({ build }: { build: KartBuild }) {
@@ -6,11 +6,14 @@ export default function KartSilhouette({ build }: { build: KartBuild }) {
   const sprint = build.chassis === 'sprint'
   const hauler = build.chassis === 'hauler'
   const wheelWidth = build.wheels === 'endurance' ? 21 : build.wheels === 'light' ? 13 : 17
+  const axles = AXLE_LAYOUT[build.chassis]
+  const wheelRows = axles.positions.map(position => 62 - 2.3 * position)
+  const wheelColumns = [-1, 1].map(side => 120 + side * axles.halfWidth * 3.5 - wheelWidth / 2)
   const wheelColor = build.wheels === 'slick' ? '#e2c77b' : build.wheels === 'slide' ? '#9c8d6e' : '#6f888b'
   return <svg viewBox="0 0 240 150" role="img" data-chassis={build.chassis} data-wheel={build.wheels} data-driver={build.driver} aria-label={`Vista superior del chasis ${build.chassis}`}>
     <ellipse cx="120" cy="133" rx="98" ry="11" fill="#07141c" opacity=".65"/>
-    <g fill="#091b20" stroke={wheelColor} strokeWidth="2">
-      {[43,180].flatMap(x => [29,96].map(y => <g key={`${x}:${y}`}>
+    <g data-wheels="" fill="#091b20" stroke={wheelColor} strokeWidth="2">
+      {wheelColumns.flatMap(x => wheelRows.map(y => <g key={`${x}:${y}`}>
         <rect x={x} y={y} width={wheelWidth} height="33" rx={wheelWidth/3}/>
         {build.wheels === 'grip' || build.wheels === 'endurance'
           ? <path d={`M${x+4} ${y+7}h${wheelWidth-8}m-${wheelWidth-8} 8h${wheelWidth-8}m-${wheelWidth-8} 8h${wheelWidth-8}`} stroke="#b6c6ac" fill="none" strokeWidth="2"/>

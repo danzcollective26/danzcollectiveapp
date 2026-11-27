@@ -3,6 +3,12 @@ export const CHASSIS = [
   { id:'sprint', name:'SPRINT', note:'Monoplaza: aceleración y giro muy rápidos; carrocería frágil.', speed:1.12, acceleration:1.16, steering:1.10, durability:.75 },
   { id:'hauler', name:'TRANSPORT', note:'Blindado: resiste impactos; sacrifica salida, punta y giro.', speed:.88, acceleration:.84, steering:.90, durability:1.55 },
 ] as const
+export const AXLE_LAYOUT = {
+  club: { positions: [-14, 15], halfWidth: 15 },
+  sprint: { positions: [-17, 21], halfWidth: 18 },
+  hauler: { positions: [-19, -5, 16], halfWidth: 19 },
+} as const
+
 export const WHEELS = [
   { id:'street', name:'STREET', note:'Agarre y desgaste equilibrados.', speed:1, acceleration:1, grip:1, drift:1, durability:1 },
   { id:'grip', name:'GRIP', note:'Gira con más agarre; cuesta iniciar el derrape.', speed:.97, acceleration:1.03, grip:1.14, drift:.88, durability:.95 },

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { batchMeshes } from './batch3d'
-import { DRIVERS, type KartBuild } from './garage'
+import { AXLE_LAYOUT, DRIVERS, type KartBuild } from './garage'
 
 const rubber=new THREE.MeshStandardMaterial({color:'#141b21',roughness:.92})
 const graphite=new THREE.MeshStandardMaterial({color:'#233138',roughness:.56,metalness:.25})
@@ -65,8 +65,9 @@ export function buildKart(build:KartBuild,id:number):KartModel{
   const tireGeometry=new THREE.CylinderGeometry(6.7,6.7,wide,build.wheels==='slick'?28:20);tireGeometry.rotateX(Math.PI/2)
   const rimGeometry=new THREE.CylinderGeometry(4.2,4.2,5.6,12);rimGeometry.rotateX(Math.PI/2)
   const hubGeometry=new THREE.CylinderGeometry(1.8,1.8,5.9,8);hubGeometry.rotateX(Math.PI/2)
-  for(const x of [-15,16])for(const side of [-1,1]){
-    const steering=new THREE.Group(),wheel=new THREE.Group();steering.position.set(x,6.7,side*16)
+  const axles = AXLE_LAYOUT[build.chassis]
+  for(const x of axles.positions)for(const side of [-1,1]){
+    const steering=new THREE.Group(),wheel=new THREE.Group();steering.position.set(x,6.7,side*axles.halfWidth)
     wheel.add(mesh(tireGeometry,rubber),mesh(rimGeometry,build.wheels==='slide'?graphite:chrome),mesh(hubGeometry,paint))
     if(build.wheels==='endurance'||build.wheels==='grip')for(let n=0;n<12;n++){const a=n*Math.PI/6,block=mesh(new THREE.BoxGeometry(2,1.1,wide+.1),rubber,Math.cos(a)*6.5,Math.sin(a)*6.5);block.rotation.z=a+Math.PI/2;wheel.add(block)}
     if(build.wheels==='slick'||build.wheels==='light'||build.wheels==='slide'){

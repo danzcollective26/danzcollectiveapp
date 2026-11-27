@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, TRACK_HAZARDS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
-import { DRIVERS,VENUES,type KartBuild } from './garage'
+import { AXLE_LAYOUT, DRIVERS,VENUES,type KartBuild } from './garage'
 import type { KartPreferences } from './preferences'
 
 function rounded(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill: string | CanvasGradient) {
@@ -79,7 +79,8 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
   const color=build.color,driver=DRIVERS.find(d=>d.id===build.driver)??DRIVERS[0]
   c.translate(48,48)
   c.fillStyle='#0006';c.beginPath();c.ellipse(4,6,24,17,0,0,Math.PI*2);c.fill()
-  for(const x of [-12,14])for(const y of [-15,15]){rounded(c,x-5,y-5,11,build.wheels==='endurance'?11:9,3,'#070e13');rounded(c,x-4,y-5,9,3,1,build.wheels==='slick'?'#e3d8b0':build.wheels==='slide'?color:'#47575b');if(build.wheels==='grip'||build.wheels==='endurance'){c.fillStyle='#84978b';for(let n=0;n<3;n++)c.fillRect(x-4+n*3,y-3,1,6)}}
+  const axles = AXLE_LAYOUT[build.chassis]
+  for(const x of axles.positions)for(const y of [-axles.halfWidth,axles.halfWidth]){rounded(c,x-5,y-5,11,build.wheels==='endurance'?11:9,3,'#070e13');rounded(c,x-4,y-5,9,3,1,build.wheels==='slick'?'#e3d8b0':build.wheels==='slide'?color:'#47575b');if(build.wheels==='grip'||build.wheels==='endurance'){c.fillStyle='#84978b';for(let n=0;n<3;n++)c.fillRect(x-4+n*3,y-3,1,6)}}
   const body=c.createLinearGradient(-23,-12,23,12);body.addColorStop(0,'#1b292b');body.addColorStop(.35,color);body.addColorStop(.68,color);body.addColorStop(1,'#37474a')
   if(build.chassis==='sprint'){
     // Open-wheeler: long tapered nose, exposed sidepods and a contrasting aero wing.
