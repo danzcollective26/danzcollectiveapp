@@ -1,0 +1,73 @@
+import type { Cameo } from '../types.ts'
+
+/**
+ * Apariciones de puerta. Los nombres salen del catálogo público
+ * (`src/content/collective.json`) y de Yeppo. No son biografías.
+ */
+export const CAMEOS: readonly Cameo[] = [
+  {
+    id: 'cameo-yeppo',
+    catalogId: 'yeppo',
+    archetypeId: 'cameo',
+    displayName: 'Yeppo',
+    age: null,
+    ticket: { valid: true, kind: 'invitacion', holder: 'Yeppo' },
+    traitIds: ['conocido-danz', 'buen-rollo'],
+    hiddenItemId: null,
+    visualCueIds: ['petalo-en-solapa'],
+    dialogueIds: ['puerta-yeppo', 'yeppo-aforo'],
+    prohibition: null,
+  },
+  {
+    id: 'cameo-chicharro',
+    catalogId: 'chicharro-es',
+    archetypeId: 'cameo',
+    displayName: 'Chicharro (ES)',
+    age: 30,
+    ticket: { valid: true, kind: 'lista', holder: 'Chicharro (ES)' },
+    traitIds: ['conocido-danz'],
+    hiddenItemId: null,
+    visualCueIds: ['sonrisa-de-casa'],
+    dialogueIds: ['cameo-chicharro', 'puerta-pase'],
+    prohibition: null,
+  },
+  {
+    id: 'cameo-tonydawgs',
+    catalogId: 'tonydawgs',
+    archetypeId: 'cameo',
+    displayName: 'TonyDawgs',
+    age: 32,
+    ticket: { valid: true, kind: 'lista', holder: 'TonyDawgs' },
+    traitIds: ['conocido-danz'],
+    hiddenItemId: null,
+    visualCueIds: ['sonrisa-de-casa'],
+    dialogueIds: ['cameo-tony', 'puerta-pase'],
+    prohibition: null,
+  },
+  {
+    id: 'cameo-wizme',
+    catalogId: 'wizme',
+    archetypeId: 'cameo',
+    displayName: 'Wizme',
+    age: 28,
+    ticket: { valid: true, kind: 'lista', holder: 'Wizme' },
+    traitIds: ['conocido-danz'],
+    hiddenItemId: null,
+    visualCueIds: ['sonrisa-de-casa'],
+    dialogueIds: ['cameo-wizme', 'puerta-pase'],
+    prohibition: null,
+  },
+  {
+    id: 'cameo-leon',
+    catalogId: 'leon',
+    archetypeId: 'cameo',
+    displayName: 'LEÖN',
+    age: 29,
+    ticket: { valid: true, kind: 'lista', holder: 'LEÖN' },
+    traitIds: ['conocido-danz'],
+    hiddenItemId: null,
+    visualCueIds: ['sonrisa-de-casa'],
+    dialogueIds: ['cameo-leon', 'puerta-pase'],
+    prohibition: null,
+  },
+]
