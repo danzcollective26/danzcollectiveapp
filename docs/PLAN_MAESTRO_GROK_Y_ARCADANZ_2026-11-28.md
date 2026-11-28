@@ -84,3 +84,16 @@ y preview para tu aprobación en el móvil antes de `main`.
 - No pedirle mover archivos ni pasos que la IA pueda hacer; guiarle con enlaces exactos.
 - Enseñar un boceto o maqueta antes de cambios gráficos importantes.
 - Gráficos: nada de «cutre» ni píxel pobre; Grok falló con el dibujo procedural, así que se usan assets reales.
+
+## 7. Biblias de diseño disponibles (bloque B, 28/11)
+
+| Juego | Documento |
+|---|---|
+| NomeNoConEso | `docs/NOMENOCONESO_PLAN.md` en el PR #57 (coherente con las respuestas del hilo 8) |
+| Idle Studio + After | `docs/juegos/IDLE_STUDIO_AFTER_FUSION.md` |
+| Vinyl Survivors | `docs/juegos/VINYL_SURVIVORS_DISENO.md` |
+| Manager Heist | `docs/grok/ANEXO-MANAGER-HEIST-*` (estilo pixel superado) |
+| Two Hands Jokano | `docs/grok/ANEXO-TWO-HANDS-JOKANO-DESIGN.md` |
+| SEIS | `docs/grok/ANEXO-SEIS-transcripcion-hilo13.md` + PR #50 |
+| Personajes | `docs/juegos/BIBLIA_PERSONAJES.md` |
+| Decisiones pendientes | `docs/juegos/TEST_DECISIONES_PENDIENTES_2026-11-28.md` |
