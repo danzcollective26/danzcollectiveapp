@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { arcadeIntroMedia, browserSession, rememberArcadeIntro, type ArcadeIntroId } from './arcadeIntros'
+import BloomIntro from './BloomIntro'
 import './arcadeIntro.css'
 
 export default function ArcadeIntro({ gameId, onDone }: { gameId: ArcadeIntroId; onDone: () => void }) {
+  const media = arcadeIntroMedia(gameId)
+  if (media?.kind === 'bloom') return <BloomIntro gameId={gameId} media={media} onDone={onDone} />
+  return <FilmIntro gameId={gameId} onDone={onDone} />
+}
+
+function FilmIntro({ gameId, onDone }: { gameId: ArcadeIntroId; onDone: () => void }) {
   const media = arcadeIntroMedia(gameId)
   const video = useRef<HTMLVideoElement>(null)
   const skip = useRef<HTMLButtonElement>(null)
@@ -111,7 +118,7 @@ export default function ArcadeIntro({ gameId, onDone }: { gameId: ArcadeIntroId;
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
   }
 
-  if (!media) return null
+  if (!media || media.kind !== 'film') return null
   const showSound = soundReady && (muted || needsGesture)
   return createPortal(
     <section className="arcade-film" role="dialog" aria-modal="true" aria-label={`Intro de ${media.title}`} onKeyDown={onKeyDown}>

@@ -1,20 +1,27 @@
 export const ARCADE_INTRO_GAMES = ['groove', 'snake', 'collecta', 'danzporter'] as const
 export type ArcadeIntroId = typeof ARCADE_INTRO_GAMES[number]
 
-export type ArcadeIntroMedia = {
-  src: string
-  poster: string
-  title: string
-}
+/** A film (Groove v3, approved) or a coded bloom: DANZ flower → approved cover. */
+export type ArcadeIntroMedia =
+  | { kind: 'film'; src: string; poster: string; title: string }
+  | { kind: 'bloom'; cover: string; title: string; accent: string }
 
 /** Public URLs only. The files stay out of the JS bundle and the offline shell. */
 const MEDIA: Partial<Record<ArcadeIntroId, ArcadeIntroMedia>> = {
   groove: {
+    kind: 'film',
     src: '/arcade/intros/intro-grooveninja.mp4',
     poster: '/arcade/intros/intro-grooveninja-poster.webp',
     title: 'GROOVE NINJA',
   },
+  // Approved covers only (AGENTS.md): never regenerated or recomposed here.
+  snake: { kind: 'bloom', cover: '/arcade/jack-approved-mobile.webp', title: 'LA QUE HAS LIAO, JACK', accent: '#d9ff6b' },
+  collecta: { kind: 'bloom', cover: '/arcade/collecta-mobile-v1.webp', title: 'DANZ COLLECTA', accent: '#f2c76f' },
+  danzporter: { kind: 'bloom', cover: '/arcade/danzporter-cover-v1.webp', title: 'DANZPORTER', accent: '#f2c76f' },
 }
+
+/** Total length of the coded bloom, in milliseconds. */
+export const BLOOM_DURATION_MS = 3000
 
 export function arcadeIntroMedia(id: ArcadeIntroId): ArcadeIntroMedia | null {
   return MEDIA[id] ?? null

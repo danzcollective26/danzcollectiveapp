@@ -1,15 +1,31 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { arcadeIntroMedia, arcadeIntroSeenKey, readArcadeIntroSeen, rememberArcadeIntro, shouldPlayArcadeIntro } from '../src/arcade/arcadeIntros.ts'
+import { BLOOM_DURATION_MS, arcadeIntroMedia, arcadeIntroSeenKey, readArcadeIntroSeen, rememberArcadeIntro, shouldPlayArcadeIntro } from '../src/arcade/arcadeIntros.ts'
 
-test('only Groove has an intro film; the other arcade games start straight away', () => {
-  assert.equal(arcadeIntroMedia('groove')?.src, '/arcade/intros/intro-grooveninja.mp4')
-  assert.equal(arcadeIntroMedia('groove')?.poster, '/arcade/intros/intro-grooveninja-poster.webp')
-  assert.equal(arcadeIntroMedia('snake'), null)
-  assert.equal(arcadeIntroMedia('collecta'), null)
-  assert.equal(arcadeIntroMedia('danzporter'), null)
-  for (const id of ['snake', 'collecta', 'danzporter'] as const) assert.equal(shouldPlayArcadeIntro(id, false, false), false)
+test('Groove keeps its approved film; Jack, Collecta and DANZPORTER bloom into their approved covers', () => {
+  const groove = arcadeIntroMedia('groove')
+  assert.equal(groove?.kind, 'film')
+  assert.equal(groove?.kind === 'film' && groove.src, '/arcade/intros/intro-grooveninja.mp4')
+  assert.equal(groove?.kind === 'film' && groove.poster, '/arcade/intros/intro-grooveninja-poster.webp')
+  const covers = { snake: '/arcade/jack-approved-mobile.webp', collecta: '/arcade/collecta-mobile-v1.webp', danzporter: '/arcade/danzporter-cover-v1.webp' } as const
+  for (const [id, cover] of Object.entries(covers) as [keyof typeof covers, string][]) {
+    const media = arcadeIntroMedia(id)
+    assert.equal(media?.kind, 'bloom', id)
+    assert.equal(media?.kind === 'bloom' && media.cover, cover, id)
+    assert.ok(readFileSync(new URL(`../public${cover}`, import.meta.url)).length > 10_000, `${cover} exists`)
+    assert.equal(shouldPlayArcadeIntro(id, false, false), true)
+    assert.equal(shouldPlayArcadeIntro(id, true, false), false)
+    assert.equal(shouldPlayArcadeIntro(id, false, true), false)
+  }
+  assert.ok(BLOOM_DURATION_MS >= 2500 && BLOOM_DURATION_MS <= 3500)
+})
+
+test('the bloom window uses the six-petal DANZ flower', () => {
+  const svg = readFileSync(new URL('../public/brand/danz-flower.svg', import.meta.url), 'utf8')
+  assert.equal((svg.match(/<circle /g) ?? []).length, 7)
+  const source = readFileSync(new URL('../src/arcade/BloomIntro.tsx', import.meta.url), 'utf8')
+  assert.equal((source.match(/r=\\?"20\\?"/g) ?? source.match(/r="20"/g) ?? []).length, 6)
 })
 
 test('a film plays once per session and never when motion is reduced', () => {

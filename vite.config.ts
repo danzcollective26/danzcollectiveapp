@@ -8,7 +8,7 @@ function playwrightIntroBypass(): Plugin {
     name: 'danz-playwright-intro-bypass',
     transformIndexHtml(html) {
       if (!enabled) return html
-      const script = `<script>try{if(sessionStorage.getItem('danz-arcade-intro-force')!=='1')sessionStorage.setItem('danz-arcade-intro-seen:groove','1')}catch(e){}</script>`
+      const script = `<script>try{if(sessionStorage.getItem('danz-arcade-intro-force')!=='1')['groove','snake','collecta','danzporter'].forEach(function(id){sessionStorage.setItem('danz-arcade-intro-seen:'+id,'1')})}catch(e){}</script>`
       return html.replace('<head>', `<head>${script}`)
     },
   }
