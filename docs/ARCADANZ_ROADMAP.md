@@ -1,6 +1,6 @@
 # DANZ: mejoras y próximos juegos
 
-Actualizado: 16 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZPORTER (antes Kart Mini) tiene tres modos locales, presentación 3D, garaje mecánico, daños y boxes publicados (PR 34–38), con validación GPU pendiente.
+Actualizado: 17 de noviembre de 2026. Este documento distingue el trabajo actual de las propuestas de futuro. Las diez mejoras están aceptadas como línea de trabajo progresiva; Arena y Persecución están publicados dentro de DANZ Collecta; DANZPORTER (antes Kart Mini) tiene tres modos locales, presentación 3D, garaje mecánico, daños y boxes publicados (PR 34–38), con validación GPU pendiente.
 
 Registro general de tareas, decisiones, dependencias y evidencia vigente:
 [Revisión y pendientes de DANZ](REVISION_Y_PENDIENTES_DANZ_2026-11-15.md).
@@ -273,3 +273,12 @@ Edge Function y la migración de cuenta existen en el repo y no están activadas
 hacen falta `KART_HEAD_API_KEY`, `KART_HEAD_API_URL` y aplicar
 `20261117120000_kart_custom_heads.sql`. El deslizamiento en barreras de main
 se mantiene. T01 sigue abierto.
+
+
+## NomeNoConEso — esqueleto, 17/11/2026
+
+Modo nuevo de DANZ Collecta, pedido por el propietario: la puerta del after.
+En el repositorio hay tipos, datos, firmas y un plan. No hay partida, no está
+en el hub y no sustituye a Arena, Persecución ni Último turno. La bandera
+`NOMENOCONESO_VISIBLE` sigue en false. DANZPOINTS no se concede. Plan:
+`docs/NOMENOCONESO_PLAN.md`. Registro: NN01.
