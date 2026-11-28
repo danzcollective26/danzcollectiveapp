@@ -1,5 +1,5 @@
 import { ROAD_WIDTH, TRACKS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race } from './engine'
-import { VENUES } from './garage'
+import { driverLook, VENUES } from './garage'
 import type { KartPreferences } from './preferences'
 import { cameraPoint, clipNear, cockpitFov, cockpitPose, type CameraPoint } from './camera'
 
@@ -66,7 +66,8 @@ export function createCockpitRenderer(parent:HTMLElement,read:()=>Race,advance:(
     paint(ground,venue.ground)
     const dynamic:Face[]=[]
     for(const car of state.cars.slice(1)){
-      dynamic.push(...cuboid(car.x,car.y,42,23,12,car.build.color,car.angle),...cuboid(car.x-Math.cos(car.angle)*4,car.y-Math.sin(car.angle)*4,14,14,13,'#e6d9bd',car.angle,17))
+      const look=driverLook(car.build.driver)
+      dynamic.push(...cuboid(car.x,car.y,42,23,12,car.build.color,car.angle),...cuboid(car.x-Math.cos(car.angle)*4,car.y-Math.sin(car.angle)*4,26,26,18,look.helmet,car.angle,22))
       for(const x of [-12,14])for(const z of [-15,15])dynamic.push(...cuboid(car.x+x*Math.cos(car.angle)-z*Math.sin(car.angle),car.y+x*Math.sin(car.angle)+z*Math.cos(car.angle),10,8,10,'#141d1e',car.angle,3))
     }
     const faces=[...staticFaces,...dynamic].map(face=>{const points=clipNear(face.points.map(v=>cameraPoint(v,pose)));return{points,color:face.color,depth:points.reduce((sum,p)=>sum+p.z,0)/Math.max(1,points.length)}}).filter(f=>f.points.length>2&&f.depth<2000).sort((a,b)=>b.depth-a.depth)
