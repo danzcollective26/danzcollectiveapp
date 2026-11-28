@@ -39,6 +39,7 @@ import { parseCollective } from './content/collective'
 import DanzMusic from './content/DanzMusic'
 import SnakeCells from './arcade/SnakeCells'
 import SnakeCable from './arcade/SnakeCable'
+import SnakeJuice from './arcade/SnakeJuice'
 import DanzFlower from './content/DanzFlower'
 import { readCollectaControls, saveCollectaControls } from './arcade/collectaControls'
 import { useGameScreen } from './arcade/useGameScreen'
@@ -466,6 +467,7 @@ export default function App() {
               <div className="game-board-space"><div className={`game-board${game.mode === 'maze' ? ' maze-board' : ''}`} style={{ gridTemplateColumns: `repeat(${GRID},1fr)`, gridTemplateRows: `repeat(${GRID},1fr)` }} onPointerDown={startGesture} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={cancelGesture} onLostPointerCapture={cancelGesture} role="img" aria-label={`Tablero de Snake${game.mode === 'maze' ? ` laberinto ${game.stage}` : ''}, puntuación ${game.score}`}>
                 <SnakeCable points={game.snake} grid={GRID}/>
                 <SnakeCells game={game} artwork={collective.snake}/>
+                <SnakeJuice game={game}/>
                 {!game.running && <div className="game-overlay"><span className="game-overlay-title">{game.won ? '¡COMPLETADO!' : game.over ? 'PARTY OVER' : game.levelUp ? `NIVEL ${game.stage}` : game.steps ? 'EN PAUSA' : GAME_TITLE}</span><small>{game.over ? 'OTRA PARTIDA?' : game.levelUp ? MAZE_STAGES[game.stage - 1].toUpperCase() : game.steps ? 'REANUDA CUANDO QUIERAS' : 'PULSA JUGAR'}</small></div>}
               </div></div>
               <div className="game-actions">
@@ -520,7 +522,7 @@ export default function App() {
       </main>
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
-      <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
+      <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'||arcadeGame==='idle'||arcadeGame==='collecta'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
       <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>
     </div>

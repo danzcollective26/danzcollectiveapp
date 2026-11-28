@@ -699,3 +699,25 @@ Rutas: `/?seccion=arcade&juego=kart` y
 
 Lo deslizante de las barreras laterales de main se conserva. T01 sigue en
 teléfono físico, GPU y FPS medidos. QR sigue aplazado.
+
+## 25. Continuidad con Claude: P0 y ARCADANZ premium, 27/11
+
+Petición del propietario: continuar el trabajo de Codex (uso limitado),
+resolver primero los P0 y llevar los juegos a sensación premium, gratis primero.
+
+| ID | Petición | Estado comprobado | Siguiente acción |
+| --- | --- | --- | --- |
+| P67 | #67: Android abre la PWA antigua desde la preview | Causa encontrada y corregida en rama `claude/danz-apo-analysis-nfzou2`: el login de las previews volvía siempre a producción y Android lo abría en la PWA instalada. Ahora vuelve a la misma preview del proyecto; etiqueta «PRUEBA · commit». Build y 281 pruebas internas correctas. Sin probar en Android. | Propietario: añadir en Supabase → Auth → URL Configuration las Redirect URLs de previews y quitar o compartir la protección de Vercel en previews. Después probar en Android. |
+| P75 | #75: regresiones E2E Cuenta/Pasaporte | Resuelto en ramas: PR #87 con Verify DANZ, integración y Cuenta/Pasaporte **success** en móvil, tableta y escritorio (commit `562ee5dd`). | Prueba física Android del propietario y aprobación para fusionar #87. |
+| AP01 | Auditoría visual y propuesta juego por juego | Entregado: `docs/PROPUESTA_JUEGOS_PREMIUM_2026-11-27.md` y capturas en `docs/evidence/2026-11-27-auditoria-juegos/`. Emulador, no dispositivo físico. | Propietario elige el orden; propuesto: kit premium + Jack. |
+| AP02 | Revisar hilos de Grok | Hecho 28/11: 14 hilos leídos completos por enlace público. Consolidado en `docs/PLAN_MAESTRO_GROK_Y_ARCADANZ_2026-11-28.md`. Varias ramas y documentos que Grok dio por hechos no existen en GitHub. | Bloque B: reconstruir las biblias de diseño en `docs/` y ordenar duplicados. |
+| AP03 | Conectores y flujo de trabajo de mínimo esfuerzo | Vercel: protección de previews desactivada y comprobada. Supabase: Redirect URLs añadidas por el propietario. Preferencia guardada en `AGENTS.md`. | Conectar Hugging Face, Vercel, Supabase, Picsart y Linear/Drive desde los botones. |
+
+## 26. Fusiones y decisiones del 28/11
+
+| ID | Petición | Estado comprobado | Siguiente acción |
+|---|---|---|---|
+| M87 | Fusionar integración estable | **Publicado**: PR #87 en `main` (`a9167a0`), CI verde; producción con nueva versión del service worker. | Prueba física Android de lo publicado. |
+| M56 | Fusionar cabezones | **Publicado** vía PR #98 (`2ff1509`), 292 internas, 90 E2E de Kart/Groove y CI 7/7. Sin migración ni IA. | Probar «Crea tu cabezón» en el móvil. |
+| D28 | Test de 22 decisiones | Respondido: `docs/juegos/DECISIONES_PROPIETARIO_2026-11-28.md`. | Ejecutar en orden: intros en código, Collecta premium + rival, NomeNoConEso, SEIS. |
+| T01b | Prueba E2E «iCloud + pase» intermitente | Detectado: falla 7/24 también en `main`; el canje se envía dos veces si la sesión se revalida con la petición en vuelo. El servidor responde «ya tenías este sello», sin daño real. | Arreglar la carrera en `usePendingPassRedemption` (P1). |

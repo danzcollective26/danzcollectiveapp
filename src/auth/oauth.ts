@@ -20,10 +20,24 @@ export function accountBrowserUrl(origin: string, pendingPass: string | null): s
   return url.href
 }
 
-/** Production origin for links opened from email or a shared Vercel preview. */
+/** Production origin for links opened from email, old demos or unknown hosts. */
 export const DANZ_CANONICAL_ORIGIN = 'https://danzcollectiveapp.vercel.app'
+
+/** Vercel previews that belong to this DANZ project (deployment and branch URLs). */
+const DANZ_PREVIEW_HOSTS = new Set(['danzcollectiveapp-preview.vercel.app'])
+const DANZ_PREVIEW_PATTERN = /^danzcollectiveapp-[a-z0-9-]+-danzcollectiveapp-5608\.vercel\.app$/
+
+export function isDanzPreviewHost(hostname: string): boolean {
+  return DANZ_PREVIEW_HOSTS.has(hostname) || DANZ_PREVIEW_PATTERN.test(hostname)
+}
+
+/** Return login to the same DANZ preview so Android does not hand the link to the
+ * installed production PWA (issue #67) and the PKCE verifier stays on this origin.
+ * Supabase still enforces its Redirect URL allow-list; a preview that is not listed
+ * falls back to the Site URL, which is the previous behaviour. */
 export function danzAuthOrigin(origin: string): string {
   const url = new URL(origin)
   if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return url.origin
+  if (url.protocol === 'https:' && isDanzPreviewHost(url.hostname)) return url.origin
   return DANZ_CANONICAL_ORIGIN
 }

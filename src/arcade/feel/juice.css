@@ -1,0 +1,4 @@
+.arcade-burst span{box-shadow:0 0 6px currentColor}
+.arcade-flash{animation:arcade-flash .42s ease-out}
+@keyframes arcade-flash{0%{box-shadow:0 0 0 0 #d9ff6bcc,0 12px 34px #000b}100%{box-shadow:0 0 0 14px #d9ff6b00,0 12px 34px #000b}}
+@media(prefers-reduced-motion:reduce){.arcade-flash{animation:none}}
