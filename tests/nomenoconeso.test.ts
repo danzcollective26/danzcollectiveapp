@@ -56,7 +56,6 @@ test('catalog ids are unique and cover the closed lists', () => {
   sameMembers(CAMEOS.map((item) => item.catalogId), CAMEO_CATALOG_IDS, 'cameos cerrados')
   assert.equal(NOMENOCONESO_SCHEMA_VERSION, 1)
   assert.equal(NOMENOCONESO_STORAGE_KEY, 'danz-collecta-nomenoconeso-v1')
-  assert.equal(NOMENOCONESO_VISIBLE, false)
 })
 
 test('every referenced id exists and seeds match the door rules', () => {
@@ -269,48 +268,117 @@ test('the points hook stays local and does not claim a reward', () => {
   assert.throws(() => buildPointsIntent(NIGHTS[0].id, -1), /puntuación local/)
 })
 
-test('gameplay functions stay pending and a blank night does not start itself', () => {
-  const state = createInitialNightState(NIGHTS[0], true)
-  assert.equal(state.phase, 'lista')
-  assert.equal(state.reducedMotion, true)
-  assert.equal(state.current, null)
-  assert.equal(state.result, null)
-  assert.deepEqual(state.metrics, NIGHTS[0].start)
-  const bare = scannerFromUpgrades([])
-  const fitted = scannerFromUpgrades(['linterna', 'mano-rapida', 'cacheo-fino', 'ojo-clinico'])
-  assert.ok(fitted.precision > bare.precision)
-  assert.ok(fitted.cooldownMs < bare.cooldownMs)
-  assert.ok(fitted.friskWindowMs > bare.friskWindowMs)
-  assert.ok(fitted.failRisk < bare.failRisk)
-  const person: Person = { ...PERSON_SEEDS[0], cameoId: null, roll: 0 }
-  const resolution: InspectionResolution = { ...ADMIT_CORRECT, correct: true, prohibition: null, angered: false, line: 'pendiente' }
-  const pending: [string, () => unknown][] = [
-    ['reduceNight', () => reduceNight(state, { type: 'empezar' })],
-    ['generatePerson', () => generatePerson({ nightId: NIGHTS[0].id, index: 0, seed: 1, archetypeIds: ['normal'] })],
-    ['resolveInspection', () => resolveInspection({ person, choice: 'pasa', revealedItem: false, frisked: false })],
-    ['resolveFrisk', () => resolveFrisk(person, { startedAtMs: 0, windowMs: 700, hitAtMs: null })],
-    ['resolveScan', () => resolveScan(bare, 0, 0.2)],
-    ['updateMetrics', () => updateMetrics(state.metrics, resolution)],
-    ['readEndCondition', () => readEndCondition(state, NIGHTS[0])],
-    ['applyNightResult', () => applyNightResult(createProgression(), { nightId: NIGHTS[0].id, passed: false, hard: false, reason: 'abandonada', metrics: state.metrics, score: 0, doorMoneyEarned: 0, reputationDelta: 0 })],
-  ]
-  for (const [name, run] of pending) {
-    assert.throws(run, (error: unknown) => error instanceof NomeNoConEsoPendiente && error.fn === name)
+const N1 = NIGHTS[0]
+const person = (overrides: Partial<Person> = {}): Person => ({ ...PERSON_SEEDS[0], cameoId: null, roll: 0, ...overrides })
+const started = (seed = 7) => reduceNight(createInitialNightState(N1), { type: 'empezar', seed })
+
+test('the generator is deterministic, copies seeds and forces minors out', () => {
+  const a = generatePerson({ nightId: N1.id, index: 3, seed: 42, archetypeIds: N1.archetypeIds })
+  const b = generatePerson({ nightId: N1.id, index: 3, seed: 42, archetypeIds: N1.archetypeIds })
+  assert.deepEqual(a, b)
+  assert.equal(a.id, `p-${N1.id}-3-42`)
+  assert.ok(N1.archetypeIds.includes(a.archetypeId))
+  assert.ok(a.roll >= 0 && a.roll < 1)
+  a.traitIds.push('mutado')
+  assert.ok(!PERSON_SEEDS.some(seed => seed.traitIds.includes('mutado')), 'seeds are copied, not mutated')
+  for (let index = 0; index < 200; index++) {
+    const p = generatePerson({ nightId: NIGHTS[4].id, index, seed: 9, archetypeIds: NIGHTS[4].archetypeIds })
+    if (p.age !== null && p.age < 18) assert.equal(p.prohibition, 'menor')
   }
 })
 
-test('the mode is not wired into Collecta, the library or the test lab', () => {
-  const files = [
-    '../src/App.tsx',
-    '../src/arcade/CollectaHub.tsx',
-    '../src/arcade/ArcadeChooser.tsx',
-    '../src/arcade/CollectaMatchMenu.tsx',
-    '../src/testlab/TestLab.tsx',
-  ]
-  for (const file of files) {
-    const source = readFileSync(new URL(file, import.meta.url), 'utf8').toLowerCase()
-    assert.equal(source.includes('nomenoconeso'), false, file)
-  }
+test('door verdicts: right and wrong admits and rejects, VVIP extras', () => {
+  const clean = person({ prohibition: null })
+  const banned = person({ prohibition: 'sin-entrada' })
+  const pass = resolveInspection({ person: clean, choice: 'pasa', revealedItem: false, frisked: false })
+  assert.equal(pass.correct, true); assert.deepEqual([pass.score, pass.capacity], [ADMIT_CORRECT.score, 1])
+  const wrongIn = resolveInspection({ person: banned, choice: 'pasa', revealedItem: false, frisked: false })
+  assert.equal(wrongIn.correct, false); assert.ok(wrongIn.vibe < 0); assert.equal(wrongIn.capacity, 1)
+  const out = resolveInspection({ person: banned, choice: 'fuera', revealedItem: false, frisked: false })
+  assert.equal(out.correct, true); assert.ok(out.score > 0); assert.equal(out.line, 'Sin sello no hay after. Hay acera.')
+  const wrongOut = resolveInspection({ person: clean, choice: 'fuera', revealedItem: false, frisked: false })
+  assert.equal(wrongOut.correct, false); assert.ok(wrongOut.vibe < 0)
+  const minor = resolveInspection({ person: person({ age: 16, prohibition: 'menor' }), choice: 'fuera', revealedItem: false, frisked: false })
+  assert.equal(minor.line, 'Hoy no. Esta puerta no es para ti todavía.')
+  const vvipIn = resolveInspection({ person: person({ archetypeId: 'vvip', prohibition: null }), choice: 'pasa', revealedItem: false, frisked: false })
+  assert.ok(vvipIn.vvip > 0)
+  const vvipOut = resolveInspection({ person: person({ archetypeId: 'vvip', prohibition: null }), choice: 'fuera', revealedItem: false, frisked: false })
+  assert.ok(vvipOut.vvip < 0)
+  const vvipBanned = resolveInspection({ person: person({ archetypeId: 'vvip', prohibition: 'hater' }), choice: 'fuera', revealedItem: false, frisked: false })
+  assert.equal(vvipBanned.vvip, 0, 'rejecting a prohibited VVIP has no happiness penalty')
+  assert.equal(resolveFrisk(clean, { startedAtMs: 100, windowMs: 700, hitAtMs: 500 }).hit, true)
+  assert.equal(resolveFrisk(clean, { startedAtMs: 100, windowMs: 700, hitAtMs: 900 }).hit, false)
+})
+
+test('metrics clamp, never mutate and capacity never drops', () => {
+  const before = { ...N1.start }
+  const after = updateMetrics(before, { ...ADMIT_CORRECT, vibe: 500, capacity: -5, correct: true, prohibition: null, angered: false, line: '' })
+  assert.deepEqual(before, N1.start)
+  assert.equal(after.vibe, 100)
+  assert.equal(after.capacity, before.capacity)
+})
+
+test('a night plays: start, decide, pause freezes the clock, objectives close it', () => {
+  let state = started()
+  assert.equal(state.phase, 'puerta'); assert.ok(state.current); assert.equal(state.queue.length, N1.queueSize - 1)
+  state = reduceNight(state, { type: 'tick', dtMs: 1000 })
+  assert.equal(state.elapsedMs, 1000)
+  const paused = reduceNight(state, { type: 'pausar', reason: 'pestana' })
+  assert.equal(paused.phase, 'pausa')
+  assert.equal(reduceNight(paused, { type: 'tick', dtMs: 5000 }).elapsedMs, 1000)
+  assert.equal(reduceNight(paused, { type: 'decidir', choice: 'pasa' }), paused)
+  state = reduceNight(paused, { type: 'reanudar' })
+  assert.equal(state.phase, 'puerta')
+  for (const bad of [NaN, -5, 0, Infinity]) assert.equal(reduceNight(state, { type: 'tick', dtMs: bad }).elapsedMs, 1000)
+  // Always choose right until the clock runs out.
+  for (let i = 0; i < 12; i++) state = reduceNight(state, { type: 'decidir', choice: state.current!.prohibition ? 'fuera' : 'pasa' })
+  assert.equal(state.queue.length, N1.queueSize - 1, 'the queue refills')
+  state = reduceNight(state, { type: 'tick', dtMs: N1.durationMs })
+  assert.equal(state.phase, 'cierre'); assert.equal(state.result?.reason, 'objetivos-cumplidos'); assert.equal(state.result?.passed, true)
+})
+
+test('vibe at zero and a blown capacity end the night at once as PARTY OVER', () => {
+  let state = started(3)
+  state = { ...state, metrics: { ...state.metrics, vibe: 1 }, current: person({ prohibition: 'hater' }) }
+  state = reduceNight(state, { type: 'decidir', choice: 'pasa' })
+  assert.equal(state.phase, 'game-over'); assert.equal(state.result?.reason, 'vibe-cero'); assert.equal(state.result?.hard, true)
+  let full = started(3)
+  full = { ...full, metrics: { ...full.metrics, capacity: N1.start.capacityMax }, current: person({ prohibition: null }) }
+  full = reduceNight(full, { type: 'decidir', choice: 'pasa' })
+  assert.equal(full.result?.reason, 'aforo-reventado'); assert.equal(full.phase, 'game-over')
+  const left = reduceNight(started(), { type: 'salir' })
+  assert.equal(left.result?.reason, 'abandonada'); assert.equal(left.result?.passed, false)
+})
+
+test('night results: records, bank and unlocks follow the plan; abandoned keeps nothing', () => {
+  const base = createProgression()
+  const metrics = { ...N1.start, score: 90, doorMoney: 12, reputation: 4 }
+  const passed = applyNightResult(base, { nightId: N1.id, passed: true, hard: false, reason: 'objetivos-cumplidos', metrics, score: 90, doorMoneyEarned: 12, reputationDelta: 4 })
+  assert.deepEqual(passed.nightsCleared, [N1.id]); assert.equal(passed.doorMoney, 12); assert.equal(passed.reputation, 4)
+  assert.equal(passed.bestScoreByNight[N1.id], 90); assert.equal(passed.pointsIntent?.claim, false)
+  const failed = applyNightResult(base, { nightId: N1.id, passed: false, hard: true, reason: 'vibe-cero', metrics, score: 30, doorMoneyEarned: 12, reputationDelta: 4 })
+  assert.deepEqual(failed.nightsCleared, []); assert.equal(failed.doorMoney, 0); assert.equal(failed.bestScoreByNight[N1.id], 30)
+  const left = applyNightResult(base, { nightId: N1.id, passed: false, hard: false, reason: 'abandonada', metrics, score: 50, doorMoneyEarned: 0, reputationDelta: 0 })
+  assert.equal(left.bestScoreByNight[N1.id], undefined)
+  const skip = applyNightResult(base, { nightId: NIGHTS[2].id, passed: true, hard: false, reason: 'objetivos-cumplidos', metrics, score: 90, doorMoneyEarned: 12, reputationDelta: 4 })
+  assert.deepEqual(skip.nightsCleared, [], 'night 3 cannot be cleared before 1 and 2')
+})
+
+test('v1 pieces stay pending: frisk, scanner and events', () => {
+  const state = started()
+  assert.throws(() => reduceNight(state, { type: 'cachear' }), (error: unknown) => error instanceof NomeNoConEsoPendiente)
+  assert.throws(() => resolveScan(scannerFromUpgrades([]), 0, 0.2), (error: unknown) => error instanceof NomeNoConEsoPendiente)
+  assert.equal(createInitialNightState(N1, true).reducedMotion, true)
+})
+
+test('the mode is wired into Collecta only, behind the visibility flag', () => {
+  assert.equal(NOMENOCONESO_VISIBLE, true)
+  const hub = readFileSync(new URL('../src/arcade/CollectaHub.tsx', import.meta.url), 'utf8')
+  assert.match(hub, /NOMENOCONESO_VISIBLE/)
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8')
+  assert.match(app, /nomenoconeso/)
+  const chooser = readFileSync(new URL('../src/arcade/ArcadeChooser.tsx', import.meta.url), 'utf8').toLowerCase()
+  assert.equal((chooser.match(/collecta-mobile-v1/g) ?? []).length <= 1, true, 'no extra library card')
   assert.match(PAUSE_LABEL, /PAUSA/)
   assert.match(PARTY_OVER_LABEL, /PARTY OVER/)
 })

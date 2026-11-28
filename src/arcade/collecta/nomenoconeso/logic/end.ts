@@ -1,35 +1,49 @@
 import type { NightConfig, NightEndReason, NightResult, NightState, ProgressionState } from '../types.ts'
-import { NomeNoConEsoPendiente } from './pending.ts'
+import { BANK_LIMIT } from '../data/balance.ts'
+import { buildPointsIntent } from './points.ts'
+import { recomputeProgression, rememberRecord } from './progression.ts'
+import { NIGHTS } from '../data/nights.ts'
 
-/**
- * TODO(nomenoconeso): devolver el cierre, o null si la noche sigue.
- * vibe <= 0 → vibe-cero.
- * capacity > capacityMax o capacity > objectives.maxCapacity → aforo-reventado.
- * Esos dos son inmediatos, aunque quede tiempo.
- * Si elapsedMs >= durationMs y vibe >= minVibe y score >= minScore
- * y capacity <= maxCapacity → objetivos-cumplidos.
- * Si elapsedMs >= durationMs y no se cumple eso → objetivos-fallidos.
- * En pausa, lista y game-over no evaluar el reloj.
- * No tratar un fallo de objetivos como cierre duro.
- */
+const ACTIVE = new Set(['puerta', 'cacheo', 'escaner'])
+
+/** Close reason, or null while the night goes on. Vibe and capacity end it at once. */
 export function readEndCondition(state: NightState, night: NightConfig): NightEndReason | null {
-  void state
-  void night
-  throw new NomeNoConEsoPendiente('readEndCondition')
+  if (!ACTIVE.has(state.phase)) return null
+  const m = state.metrics
+  if (m.vibe <= 0) return 'vibe-cero'
+  if (m.capacity > m.capacityMax || m.capacity > night.objectives.maxCapacity) return 'aforo-reventado'
+  if (state.elapsedMs < night.durationMs) return null
+  const goals = night.objectives
+  return m.vibe >= goals.minVibe && m.score >= goals.minScore && m.capacity <= goals.maxCapacity ? 'objetivos-cumplidos' : 'objetivos-fallidos'
 }
 
-/**
- * TODO(nomenoconeso): si result.passed, añadir la noche a nightsCleared
- * solo si es la siguiente, sumar doorMoneyEarned y reputationDelta
- * y guardar el récord con rememberRecord.
- * Si no passed, no tocar la hucha ni el desbloqueo. El récord de puntuación
- * sí puede guardarse, también en un cierre duro.
- * reason abandonada no guarda récord.
- * Rellenar pointsIntent con buildPointsIntent sin enviarlo a ningún sitio.
- * Después, recomputeProgression.
- */
+export function buildNightResult(state: NightState, reason: NightEndReason): NightResult {
+  const passed = reason === 'objetivos-cumplidos'
+  return {
+    nightId: state.nightId,
+    passed,
+    hard: reason === 'vibe-cero' || reason === 'aforo-reventado',
+    reason,
+    metrics: { ...state.metrics },
+    score: state.metrics.score,
+    doorMoneyEarned: state.metrics.doorMoney,
+    reputationDelta: state.metrics.reputation,
+  }
+}
+
+/** Records, bank and unlocks after a night. Abandoned nights keep nothing. */
 export function applyNightResult(progress: ProgressionState, result: NightResult): ProgressionState {
-  void progress
-  void result
-  throw new NomeNoConEsoPendiente('applyNightResult')
+  let next: ProgressionState = { ...progress, nightsCleared: [...progress.nightsCleared], bestScoreByNight: { ...progress.bestScoreByNight }, upgradeIds: [...progress.upgradeIds] }
+  if (result.reason !== 'abandonada') next = rememberRecord(next, result.nightId, result.score)
+  const expected = NIGHTS[next.nightsCleared.length]?.id
+  if (result.passed && result.nightId === expected) {
+    next = {
+      ...next,
+      nightsCleared: [...next.nightsCleared, result.nightId],
+      doorMoney: Math.min(BANK_LIMIT, next.doorMoney + Math.max(0, result.doorMoneyEarned)),
+      reputation: Math.min(BANK_LIMIT, next.reputation + Math.max(0, result.reputationDelta)),
+    }
+  }
+  next = { ...next, pointsIntent: buildPointsIntent(result.nightId, result.score) }
+  return recomputeProgression(next)
 }

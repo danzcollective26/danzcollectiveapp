@@ -270,10 +270,16 @@ export type NightState = {
   activeEventId: string | null
   reducedMotion: boolean
   result: NightResult | null
+  /** Seed for the queue generator; set on «empezar». */
+  seed: number
+  /** Index of the next person the generator will create. */
+  nextIndex: number
+  /** Last door decision, for feedback only. Never changes the rules. */
+  lastDecision: { personName: string; choice: DoorChoice; correct: boolean; line: string } | null
 }
 
 export type NightAction =
-  | { type: 'empezar' }
+  | { type: 'empezar'; seed?: number }
   | { type: 'pausar'; reason: PauseReason }
   | { type: 'reanudar' }
   | { type: 'tick'; dtMs: number }
