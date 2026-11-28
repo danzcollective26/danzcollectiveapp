@@ -1,3 +1,5 @@
+import { customDriverId } from './head/identity.ts'
+
 export const CHASSIS = [
   { id:'club', name:'CLUB 01', note:'Equilibrado. La base de la crew.', speed:1, acceleration:1, steering:1, durability:1 },
   { id:'sprint', name:'SPRINT', note:'Más rápido y ligero; aguanta menos golpes.', speed:1.06, acceleration:1.07, steering:1.03, durability:.8 },
@@ -20,14 +22,18 @@ export const KART_COLORS=['#edb644','#d9fa69','#82dadd','#f595b7','#e8e3d0','#f2
 export type ChassisId=typeof CHASSIS[number]['id']
 export type WheelId=typeof WHEELS[number]['id']
 export type DriverId=typeof DRIVERS[number]['id']
-export type KartBuild={chassis:ChassisId;wheels:WheelId;driver:DriverId;color:string}
+export type DriverRef=DriverId | `custom:${string}`
+export type KartBuild={chassis:ChassisId;wheels:WheelId;driver:DriverRef;color:string}
+export function driverLook(driver:string){
+  return DRIVERS.find(d=>d.id===driver)??{id:'crew' as const,name:'TU CABEZÓN',color:'#e4d1b0',helmet:'#eee8d5'}
+}
 export const DEFAULT_BUILD:KartBuild={chassis:'club',wheels:'street',driver:'crew',color:KART_COLORS[0]}
 export function normalizeBuild(value:unknown,fallback:KartBuild=DEFAULT_BUILD):KartBuild{
   const v=value&&typeof value==='object'?value as Record<string,unknown>:{}
   return {
     chassis:CHASSIS.some(c=>c.id===v.chassis)?v.chassis as ChassisId:fallback.chassis,
     wheels:WHEELS.some(w=>w.id===v.wheels)?v.wheels as WheelId:fallback.wheels,
-    driver:DRIVERS.some(d=>d.id===v.driver)?v.driver as DriverId:fallback.driver,
+    driver:DRIVERS.some(d=>d.id===v.driver)?v.driver as DriverId:typeof v.driver==='string'&&customDriverId(v.driver)?v.driver as DriverRef:fallback.driver,
     color:typeof v.color==='string'&&/^#[0-9a-f]{6}$/i.test(v.color)?v.color:fallback.color,
   }
 }
