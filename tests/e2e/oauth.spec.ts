@@ -176,6 +176,9 @@ test('an iCloud email can use the email flow and link its pass without Google or
   await page.getByLabel('Código de acceso', { exact: true }).fill('123456')
   await page.getByRole('button', { name: 'COMPROBAR CÓDIGO', exact: true }).click()
   await expect.poll(() => redemptions).toBe(1)
+  // The RPC reaching the mock is not the app handling its answer: reload only once
+  // the stamp is saved, as a person would, so the queue does not resend the pass.
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBeNull()
   await openRedeemedStamp(page, 'Noche desde iCloud')
   expect(sends).toBe(1)
   expect(redemptions).toBe(1)

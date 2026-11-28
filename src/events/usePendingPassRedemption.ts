@@ -19,6 +19,8 @@ type PendingOperation = {
   start?: ReturnType<typeof setTimeout>
   deadline?: ReturnType<typeof setTimeout>
   finished: boolean
+  /** The RPC has left the browser: session revalidation must not cancel or repeat it. */
+  sent: boolean
 }
 
 /** Only a server-validated account can turn a locally saved QR into a stamp. */
@@ -49,6 +51,10 @@ export function usePendingPassRedemption(client: SupabaseClient<Database> | null
   useEffect(() => () => {
     const pending = operation.current
     if (!pending) return
+    // Supabase revalidates on every auth event (user briefly null, loading true).
+    // A request already sent finishes on its own; cancelling it here made the
+    // queue send the same pass twice once the same user came back.
+    if (pending.sent) return
     operation.current = null
     clearTimeout(pending.start)
     clearTimeout(pending.deadline)
@@ -57,7 +63,8 @@ export function usePendingPassRedemption(client: SupabaseClient<Database> | null
   }, [client, userId, authLoading, online])
 
   useEffect(() => {
-    if (tried.current.owner !== userId) tried.current = { owner: userId, codes: new Set() }
+    // Reset only for a different signed-in account, not for the transient null during revalidation.
+    if (userId && tried.current.owner !== userId) tried.current = { owner: userId, codes: new Set() }
     if (!client || !userId || authLoading) return
     if (!online) {
       if (codeKey) setState({ owner: userId, busy: false, message: 'Tu pase sigue guardado. Lo vincularemos cuando vuelva la conexión.' })
@@ -66,20 +73,23 @@ export function usePendingPassRedemption(client: SupabaseClient<Database> | null
     if (operation.current) return
     const code = codeKey.split(',').find(value => value && !tried.current.codes.has(value))
     if (!code) return
-    const pending: PendingOperation = { owner: userId, code, abort: new AbortController(), finished: false }
+    const pending: PendingOperation = { owner: userId, code, abort: new AbortController(), finished: false, sent: false }
     operation.current = pending
     const stillCurrent = () => operation.current === pending && scope.current.client === client && scope.current.userId === userId && !scope.current.authLoading
+    // After sending, the answer belongs to this owner even while the session revalidates.
+    const sameOwner = () => operation.current === pending && scope.current.client === client && (scope.current.userId === userId || scope.current.userId === null)
     // StrictMode cleanup cancels the scheduled task before any request is made.
     pending.start = setTimeout(() => {
       if (!stillCurrent()) return
       tried.current.codes.add(code)
+      pending.sent = true
       setState({ owner: userId, busy: true, message: 'Añadiendo tu pase al pasaporte…' })
       pending.deadline = setTimeout(() => pending.abort.abort(), 12_000)
       let advance = false
       void (async () => {
         try {
           const { data, error } = await client.rpc('danz_redeem_event_code', { p_code: code }).abortSignal(pending.abort.signal)
-          if (!stillCurrent()) return
+          if (!sameOwner()) return
           if (error) throw error
           pending.finished = true
           const status = data?.[0]?.status
@@ -100,7 +110,7 @@ export function usePendingPassRedemption(client: SupabaseClient<Database> | null
             advance = true
           }
         } catch {
-          if (stillCurrent()) {
+          if (sameOwner()) {
             pending.finished = true
             setState({ owner: userId, busy: false, message: 'No hemos podido confirmar el canje. Tu pase sigue guardado. Reintentaremos al recuperar la conexión; también puedes pulsar «Reintentar pases».' })
           }
