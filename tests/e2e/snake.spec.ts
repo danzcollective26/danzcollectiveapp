@@ -249,3 +249,23 @@ test('GROOVE NINJA conserva la portada aprobada y su entrada propia en la biblio
  await expect.poll(()=>card.locator('img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })
+
+test('a cancelled secondary pointer never steals the live Snake swipe', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Chromium touch injection')
+  await openArcade(page)
+  await playSnake(page)
+  const rect = await page.locator('.game-board').boundingBox()
+  const x = rect!.x + rect!.width / 2, y = rect!.y + rect!.height / 2
+  const cdp = await page.context().newCDPSession(page)
+  try {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] })
+    await page.locator('.game-board').evaluate(board => {
+      board.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, pointerId: 999, isPrimary: false, pointerType: 'touch' }))
+    })
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 35, id: 1 }] })
+    await expect.poll(() => headIndex(page)).toBe(index(spawn.x, spawn.y - 1))
+  } finally {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+    await cdp.detach()
+  }
+})

@@ -14,7 +14,7 @@ Antes de cualquier cambio, leer este archivo y la [issue #62](https://github.com
 3. Ejecutar `npm run build` y `npm test` (y Playwright/PWA cuando proceda). Dejar evidencia de qué se verificó y qué quedó sin probar; una compilación correcta no demuestra funcionamiento táctil.
 4. Revisar RLS, migraciones y controles de consentimiento antes de tocar perfiles, Instagram, fotos privadas, puntos, sellos o cuentas. Nunca abrir información personal por conveniencia técnica.
 5. En el PR: anotar comportamiento anterior, cambio, riesgos, pruebas, despliegue de prueba y reversión. No corregir un fallo destruyendo otra función.
-6. Trabajar en bloques de tres o cuatro mejoras; comunicar avances reales y distinguir claramente código, compilación, despliegue, pruebas y aprobación. No afirmar actividad de fondo tras finalizar la respuesta.
+6. Trabajar por objetivos completos en bloques amplios y consecutivos, no por un número artificial de retoques. Al terminar una subtarea, abordar la siguiente prioridad conocida sin solicitar «adelante» ni cerrar una respuesta solo para anunciar el próximo paso. Dentro de cada ejecución activa, encadenar auditoría, implementación, regresiones, pruebas, correcciones y documentación hasta alcanzar un bloqueo real, una autorización imprescindible o un punto de entrega sustancial. Distinguir código, compilación, despliegue, pruebas y aprobación. No afirmar actividad de fondo tras finalizar la respuesta.
 
 ## Seguimiento para no perder peticiones
 
