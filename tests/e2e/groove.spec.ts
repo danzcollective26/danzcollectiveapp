@@ -214,7 +214,15 @@ test('playfield, mixer and primary controls fit 320px portrait and short landsca
       expect(r!.x + r!.width).toBeLessThanOrEqual(size.width + 1); expect(r!.y + r!.height).toBeLessThanOrEqual(size.height + 1)
     }
     const r = await page.locator('.gn-board').boundingBox()
-    expect(Math.abs(r!.width / r!.height - 640 / 760)).toBeLessThan(.01)
+    // In portrait, the board fills the stage by design. Landscape uses the
+    // 640:760 ratio. Pointer hit-testing maps coordinates through the SVG viewBox.
+    if (size.height > size.width) {
+      const stage = (await page.locator('.gn-play-slot').boundingBox())!
+      expect(Math.abs(r!.width - stage.width)).toBeLessThanOrEqual(2)
+      expect(Math.abs(r!.height - stage.height)).toBeLessThanOrEqual(2)
+    } else {
+      expect(Math.abs(r!.width / r!.height - 640 / 760)).toBeLessThan(.01)
+    }
     await page.getByRole('button', { name: 'AJUSTES', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'TU CABINA.', exact: true })
     const d = (await dialog.boundingBox())!
@@ -441,3 +449,19 @@ for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }]) {
     await expect(disc).toHaveCount(0)
   })
 }
+
+test('cancelling a secondary pointer does not pause an active Groove cut', async ({ page }) => {
+  await openGroove(page); await start(page)
+  const board = page.locator('.gn-board')
+  const box = (await board.boundingBox())!
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  try {
+    await board.evaluate(element => element.dispatchEvent(new PointerEvent('pointercancel', {
+      bubbles: true, pointerId: 999, pointerType: 'touch', isPrimary: false
+    })))
+    await expect(page.locator('.gn-panel')).toHaveAttribute('data-status', 'playing')
+  } finally {
+    await page.mouse.up()
+  }
+})

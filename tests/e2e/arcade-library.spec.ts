@@ -69,6 +69,14 @@ test('browser history restores the library and selected game', async ({ page }) 
 
 test('Yeppo hand reaches a real card, reacts in sync and cancels when the page scrolls', async ({ page }) => {
   await page.goto('/')
+  // The approved editorial hero occupies the initial viewport. Move an actual
+  // feature into view before asking Yeppo to touch it: offscreen cards must not
+  // be targeted, and the test must not depend on the height of the hero.
+  await page.locator('.danz-home-priority .feature').first().scrollIntoViewIfNeeded()
+  await expect.poll(() => page.locator('.danz-home-priority .feature').first().evaluate(el => {
+    const r = el.getBoundingClientRect()
+    return r.width > 70 && r.right > 200 && Math.min(r.bottom, innerHeight - 76) - Math.max(r.top, 125) > 48
+  })).toBe(true)
   await page.getByRole('button', { name: 'Hablar con Yeppo', exact: true }).click()
   await page.getByRole('button', { name: /VER A YEPPO PASEARSE/ }).click()
   const stage = page.locator('.yeppo-visiting-card')
@@ -106,4 +114,26 @@ test('reduced motion keeps Yeppo stationary without highlighting cards', async (
   await page.getByRole('button', { name: /VER A YEPPO PASEARSE/ }).click()
   await expect(page.locator('.yeppo-roam-stage')).toHaveCSS('animation-name', 'none')
   await expect(page.locator('.yeppo-playful-tap')).toHaveCount(0)
+})
+
+test('Snake keeps a live swipe when a different pointer is cancelled', async ({ page }) => {
+  await page.goto('/?seccion=arcade')
+  await page.locator('.arcade-choice').filter({ hasText: 'LA QUE HAS LIAO, JACK' }).click()
+  await page.locator('.arcade-console-menu').getByRole('button', { name: 'JUGAR AHORA', exact: true }).click()
+  const board=page.locator('.game-board')
+  await expect(board.locator('.head')).toHaveAttribute('data-direction','right')
+  const rect=(await board.boundingBox())!
+  const x=rect.x+rect.width/2, y=rect.y+rect.height/2
+  await page.mouse.move(x,y)
+  await page.mouse.down()
+  try {
+    // A second thumb is cancelled by the browser; the first still steers.
+    await board.evaluate(el => el.dispatchEvent(new PointerEvent('pointercancel', {
+      bubbles:true, pointerId:999, pointerType:'touch', isPrimary:false
+    })))
+    await page.mouse.move(x,y+Math.min(rect.height/4,90),{steps:2})
+    await expect(board.locator('.head')).toHaveAttribute('data-direction','down')
+  } finally {
+    await page.mouse.up()
+  }
 })

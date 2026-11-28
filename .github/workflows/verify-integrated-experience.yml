@@ -1,0 +1,56 @@
+name: Verify integrated DANZ mobile experience
+
+on:
+  pull_request:
+    paths:
+      - 'src/App.tsx'
+      - 'src/arcade/**'
+      - 'src/cloud/PrivateGallery.css'
+      - 'src/ui/MobileBottomNav.css'
+      - 'tests/e2e/**'
+      - '.github/workflows/verify-integrated-experience.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: danz-integration-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cross-feature-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [mobile, desktop]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify joint account, arcade and photo interactions
+        run: >-
+          npm run test:e2e -- --project=${{ matrix.viewport }} --workers=2 --max-failures=8
+          tests/e2e/account.spec.ts
+          tests/e2e/event-passport.spec.ts
+          tests/e2e/oauth.spec.ts
+          tests/e2e/groove.spec.ts
+          tests/e2e/kart.spec.ts
+          tests/e2e/collecta-joystick.spec.ts
+          tests/e2e/arcade-library.spec.ts
+          tests/e2e/snake.spec.ts
+          tests/e2e/gallery-admin.spec.ts
+          tests/e2e/private-gallery.spec.ts
+      - name: Save integration report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: danz-integrated-${{ matrix.viewport }}
+          path: playwright-report/
+          retention-days: 7

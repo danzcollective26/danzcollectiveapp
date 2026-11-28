@@ -1,6 +1,22 @@
 import { expect, test } from '@playwright/test'
 import { mockSupabase, makeSession, supabaseHost } from './helpers/supabase'
 
+// Authentication flows run without the unrelated Yeppo introduction overlay.
+// Yeppo itself has dedicated interaction and accessibility coverage.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('danz-yeppo-enabled-v1', 'false'))
+})
+
+async function openRedeemedStamp(page: import('@playwright/test').Page, title: string) {
+  await page.goto('/?seccion=pasaporte')
+  await expect(page.getByRole('region', { name: 'Pasaporte DANZ, un viaje por página' })).toBeVisible()
+  const next = page.getByRole('button', { name: 'Página siguiente' })
+  await next.click()
+  await next.click()
+  await expect(page.getByRole('button', { name: `Abrir viaje ${title}`, exact: true })).toBeVisible()
+}
+
+
 test('disabled or invalid providers are hidden and do not prevent email access', async ({ page }) => {
   await mockSupabase(page)
   await page.route(`${supabaseHost}/auth/v1/settings`, route => route.fulfill({ json: { external: { google: 'true', apple: false, github: true } } }))
@@ -48,7 +64,10 @@ for (const provider of ['google', 'apple'] as const) {
     await expect(page.getByRole('heading', { name: /PASE\s*GUARDADO\./ })).toBeVisible()
     await page.getByRole('button', { name: 'CANJEAR MI PASE', exact: true }).click()
     await page.getByRole('button', { name: `Continuar con ${provider === 'google' ? 'Google' : 'Apple'}`, exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Mi primera noche', exact: true })).toBeVisible()
+    // Wait for the real automatic redemption before navigating away: otherwise
+    // a page reload can abort the in-flight request and hide an unrelated race.
+    await expect.poll(() => redeemed).toBe(true)
+    await openRedeemedStamp(page, 'Mi primera noche')
     expect(exchanges).toBe(1)
     expect(emailRequests).toBe(0)
     expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBeNull()
@@ -156,7 +175,8 @@ test('an iCloud email can use the email flow and link its pass without Google or
   await page.getByRole('button', { name: 'MI CORREO INCLUYE UN CÓDIGO', exact: true }).click()
   await page.getByLabel('Código de acceso', { exact: true }).fill('123456')
   await page.getByRole('button', { name: 'COMPROBAR CÓDIGO', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Noche desde iCloud', exact: true })).toBeVisible()
+  await expect.poll(() => redemptions).toBe(1)
+  await openRedeemedStamp(page, 'Noche desde iCloud')
   expect(sends).toBe(1)
   expect(redemptions).toBe(1)
   expect(await page.evaluate(() => localStorage.getItem('danz-pending-event-pass'))).toBeNull()

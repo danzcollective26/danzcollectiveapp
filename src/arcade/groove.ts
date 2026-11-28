@@ -65,7 +65,7 @@ export function segmentDistance(point: GroovePoint, from: GroovePoint, to: Groov
 function random(state: GrooveState) { state.seed = state.seed * 48271 % 2147483647; return state.seed / 2147483647 }
 function spawnWave(state: GrooveState) {
   const stage = grooveStage(state.elapsed)
-  const wave = state.wave++, layout = wave % 5
+  const wave = state.wave++, layout = wave % 7
   if (wave % 4 === 3 && !state.cutSequence) {
     // Introduce up/down first, then alternate four directions and a third target.
     const patterns: GrooveCutDirection[][] = stage === 1 ? [['up', 'down'], ['down', 'up']] : [['up', 'down', 'right'], ['left', 'right', 'up'], ['down', 'up', 'left']]
@@ -80,14 +80,18 @@ function spawnWave(state: GrooveState) {
     state.nextWaveAt = nextWave(state, stage)
     return
   }
-  const count = layout === 0 ? 1 : layout === 3 ? Math.min(3, stage + 1) : 2
+  const count = layout === 0 ? 1 : layout === 3 ? Math.min(3, stage + 1) : layout === 5 ? 3 : 2
   const center = 230 + random(state) * 180
   for (let i = 0; i < count; i++) {
-    const x = count === 1 ? 105 + Math.floor(random(state) * 4) * 140 : center + (i - (count - 1) / 2) * (layout === 1 ? 96 : 145)
+    // Two additional silhouettes: a stepped fan and a crossing pair.
+    // Both preserve the existing timing, scoring and hit geometry.
+    const x = layout === 5 ? 155 + i * 165 : layout === 6 ? (i ? 495 : 145)
+      : count === 1 ? 105 + Math.floor(random(state) * 4) * 140
+      : center + (i - (count - 1) / 2) * (layout === 1 ? 96 : 145)
     const special: GrooveSpecial = wave === 0 ? 'normal' : i === 0 && wave % 8 === 5 ? 'combo' : i === 0 && wave % 8 === 1 ? 'split' : i === 0 && wave % 4 === 2 ? 'gold' : i === 0 && wave % 9 === 4 ? 'freeze' : 'normal'
     state.discs.push({ id: state.nextId++, kind: 'vinyl', special, axis: wave % 2 ? 'y' : 'x', layer: Math.floor(random(state) * 4),
-      born: state.flightTime, x, drift: (320 - x) * (layout === 4 ? .38 : .12),
-      launch: 665 + random(state) * 80 + (layout === 2 ? i * 35 : 0), spin: random(state) * 5 })
+      born: state.flightTime, x, drift: layout === 5 ? (1 - i) * 55 : layout === 6 ? (i ? -85 : 85) : (320 - x) * (layout === 4 ? .38 : .12),
+      launch: 665 + random(state) * 80 + (layout === 2 ? i * 35 : layout === 5 ? i * 26 : 0), spin: random(state) * 5 })
   }
   if (wave >= 5 && wave % (stage === 1 ? 5 : 3) === 0) {
     const x = center > 320 ? 115 : 525
@@ -242,7 +246,13 @@ export function beginGrooveCut(state: GrooveState): GrooveState {
 }
 // Keyboard alternative uses the visible layer number; it never awards DANZPOINTS.
 export function keyCutGroove(previous: GrooveState, layer: number, direction: GrooveCutDirection | 'x' | 'y' = 'x') {
-  const disc = previous.discs.find(item => item.kind === 'vinyl' && item.layer === layer && discPosition(item, previous.flightTime).y > 80 && discPosition(item, previous.flightTime).y < 650)
+  const candidates = previous.discs.filter(item => item.kind === 'vinyl' && item.layer === layer && discPosition(item, previous.flightTime).y > 80 && discPosition(item, previous.flightTime).y < 650)
+  // Keyboard players must be able to reach the next ordered target even if
+  // another disc shares its layer. Never skip sequence order to award points.
+  const sequence = previous.cutSequence
+  const disc = candidates.find(item => sequence && item.sequence === sequence.id && item.step === sequence.next)
+    ?? candidates.find(item => item.sequence === undefined)
+    ?? candidates[0]
   if (!disc) return previous
   const p = discPosition(disc, previous.flightTime)
   const state = beginGrooveCut(previous)

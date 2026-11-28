@@ -213,3 +213,33 @@ test('the smaller Split targets require smaller hit geometry and can be missed w
   for(let i=0;i<50;i++)state=advanceGroove(state,100)
   assert.equal(state.discs.length,0);assert.equal(state.lives,5);assert.equal(state.misses,0)
 })
+
+test('keyboard prioritizes the current ordered sequence target when a normal vinyl shares its layer', () => {
+  const base = atVinyl(), original = base.discs[0]
+  const ordinary = { ...original, id: 301, x: 160, drift: 0, layer: 2 }
+  const target = { ...original, id: 302, x: 480, drift: 0, layer: 2,
+    special: 'arrow' as const, direction: 'right' as const, axis: 'x' as const, sequence: 300, step: 0 }
+  const state = { ...base, discs: [ordinary, target],
+    cutSequence: { id: 300, next: 0, directions: ['right' as const, 'left' as const] } }
+  const next = keyCutGroove(state, 2, 'right')
+  assert.equal(next.hits, 1)
+  assert.equal(next.cutSequence?.next, 1)
+  assert.deepEqual(next.discs.map(d => d.id), [301])
+  assert.equal(state.cutSequence.next, 0)
+})
+
+test('later vinyl waves add a staggered fan and crossing pair without touching scoring', () => {
+  const base = atVinyl()
+  const fan = advanceGroove({ ...base, discs: [], wave: 5, nextWaveAt: 0, cutSequence: null }, 50)
+  const vinyls = fan.discs.filter(d => d.kind === 'vinyl')
+  assert.equal(vinyls.length, 3)
+  assert.equal(fan.discs.filter(d => d.kind === 'feedback').length, 1, 'existing feedback hazard stays active')
+  assert.deepEqual(vinyls.map(d => d.x), [155, 320, 485])
+  assert.deepEqual(vinyls.map(d => d.drift), [55, 0, -55])
+  const crossing = advanceGroove({ ...base, discs: [], wave: 6, nextWaveAt: 0, cutSequence: null }, 50)
+  assert.equal(crossing.discs.length, 2)
+  assert.deepEqual(crossing.discs.map(d => d.x), [145, 495])
+  assert.deepEqual(crossing.discs.map(d => d.drift), [85, -85])
+  assert.equal(fan.score, base.score)
+  assert.equal(crossing.lives, base.lives)
+})

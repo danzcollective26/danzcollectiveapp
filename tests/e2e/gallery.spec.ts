@@ -1,3 +1,4 @@
+import { navigateSection } from './sectionNavigation'
 import { test as base, expect, type Page } from '@playwright/test'
 
 // A generated one-pixel PNG: these tests never need a person's photograph.
@@ -12,10 +13,7 @@ const test = base.extend<{ pageErrors: void }>({
   }, { auto: true }],
 })
 
-async function navigate(page: Page, section: string) {
-  await page.getByRole('navigation', { name: 'Navegación principal' })
-    .getByRole('button', { name: section, exact: true }).click()
-}
+async function navigate(page: Page, section: string) { await navigateSection(page, section) }
 
 async function openGallery(page: Page) {
   await navigate(page, 'FOTOS')
@@ -61,8 +59,13 @@ test('preserves albums and images after reload; viewer, download and visitor pre
   await expect(viewer).toHaveAccessibleName('Fotografía 2 de 2 del álbum DANZ QA')
   await page.keyboard.press('ArrowLeft')
   await expect(viewer).toHaveAccessibleName('Fotografía 1 de 2 del álbum DANZ QA')
+  const link = viewer.getByRole('link', { name: 'DESCARGAR FOTO ↓', exact: true })
+  await expect.poll(() => link.evaluate(el => {
+    const r=el.getBoundingClientRect()
+    return el.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2))
+  })).toBe(true)
   const downloaded = page.waitForEvent('download')
-  await viewer.getByRole('link', { name: 'DESCARGAR FOTO ↓', exact: true }).click()
+  await link.click()
   expect((await downloaded).suggestedFilename()).toBe('synthetic-one.png')
   await page.keyboard.press('Escape')
   await expect(viewer).not.toBeVisible()
