@@ -39,6 +39,8 @@ import { parseCollective } from './content/collective'
 import DanzMusic from './content/DanzMusic'
 import SnakeCells from './arcade/SnakeCells'
 import SnakeCable from './arcade/SnakeCable'
+import ArcadeIntro from './arcade/ArcadeIntro'
+import { browserSession, readArcadeIntroSeen, shouldPlayArcadeIntro, type ArcadeIntroId } from './arcade/arcadeIntros'
 import DanzFlower from './content/DanzFlower'
 import { readCollectaControls, saveCollectaControls } from './arcade/collectaControls'
 import { useGameScreen } from './arcade/useGameScreen'
@@ -113,6 +115,11 @@ export default function App() {
   const [arcadeGame, setArcadeGame] = useState(locationGame)
   useEffect(() => { const active=page==='arcade'&&arcadeGame!==null;document.documentElement.classList.toggle('arcade-session',active);if(!active)releaseArcadeFullscreen() },[page,arcadeGame])
   useEffect(()=>()=>{document.documentElement.classList.remove('arcade-session');releaseArcadeFullscreen()},[])
+  // Coded intros (flower → approved cover) open once per session; Groove plays its own film.
+  const [, introTick] = useState(0)
+  const introId: ArcadeIntroId | null = page !== 'arcade' ? null : arcadeGame === 'snake' ? 'snake' : arcadeGame === 'collecta' ? 'collecta' : arcadeGame === 'kart' ? 'danzporter' : null
+  const introReduced = (() => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false } })()
+  const showIntro = introId !== null && shouldPlayArcadeIntro(introId, readArcadeIntroSeen(introId, browserSession()), introReduced)
   const [launchGroove, setLaunchGroove] = useState(() => locationGame() === 'groove')
   const gameScreen = useGameScreen(() => dispatch({ type: 'pause' }))
   const competition=useSnakeCompetition(game,(mode,seed)=>{
@@ -273,7 +280,8 @@ export default function App() {
     gameScreen.enter()
     requestArcadeFullscreen()
   }
-  useEffect(() => { if (page === 'arcade' && arcadeGame === 'snake') gameScreen.enter() }, [page, arcadeGame])
+  // Jack's launcher is a modal dialog: open it after the intro so the intro stays interactive.
+  useEffect(() => { if (page === 'arcade' && arcadeGame === 'snake' && !showIntro) gameScreen.enter() }, [page, arcadeGame, showIntro])
   const snakeWasImmersive = useRef(false)
   useEffect(() => {
     if (snakeWasImmersive.current && !gameScreen.active && page === 'arcade' && arcadeGame === 'snake') go('arcade')
@@ -520,6 +528,7 @@ export default function App() {
       </main>
 
       <DanzRadio arcadeActive={page==='arcade'||page==='admin'||page==='cuenta'} />
+      {showIntro && introId && <ArcadeIntro key={introId} gameId={introId} onDone={() => introTick(value => value + 1)} />}
       <Yeppo page={page} gameActive={(page==='arcade'&&(arcadeGame==='arena'||arcadeGame==='arena-solo'||arcadeGame==='chase'||arcadeGame==='kart'))||gameScreen.active||(page==='arcade'&&arcadeGame==='groove'&&launchGroove)} onNavigate={go} demoRequest={testLab?yeppoDemo:undefined} />
       <MobileBottomNav page={page} navigate={go} adminAvailable={admin.member && !admin.loading} />
       <footer className="footer content"><span className="footer-brand"><DanzFlower /> DANZ COLLECTIVE © {new Date().getFullYear()}</span><span>MUSIC · PEOPLE · CULTURE</span></footer>

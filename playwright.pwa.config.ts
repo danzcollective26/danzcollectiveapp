@@ -18,7 +18,7 @@ export default defineConfig({
     { name: 'pwa-mobile', use: { ...devices['Pixel 7'] } },
   ],
   webServer: {
-    env: { VITE_SUPABASE_URL: 'https://danz-test.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_danz_test_key' },
+    env: { DANZ_E2E: '1', VITE_SUPABASE_URL: 'https://danz-test.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_danz_test_key' },
     command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4175 --strictPort',
     url: 'http://127.0.0.1:4175',
     reuseExistingServer: false,

@@ -273,3 +273,11 @@ Edge Function y la migración de cuenta existen en el repo y no están activadas
 hacen falta `KART_HEAD_API_KEY`, `KART_HEAD_API_URL` y aplicar
 `20261117120000_kart_custom_heads.sql`. El deslizamiento en barreras de main
 se mantiene. T01 sigue abierto.
+
+## Groove — intro de cinco segundos, 16/11
+
+En `feature/arcade-intros`, todavía sin publicar. Una película aprobada se
+reproduce una vez por sesión, a pantalla completa, antes del menú de cabina.
+Saltar o el final del vídeo entran al juego. Movimiento reducido no la
+reproduce. Jack, Collecta y DANZPORTER no tienen intro. El archivo no se
+precacha. Registro G09.
