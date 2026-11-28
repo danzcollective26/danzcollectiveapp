@@ -1,6 +1,8 @@
 import Phaser from 'phaser'
 import { KART_WIDTH as W, KART_HEIGHT as H, ROAD_WIDTH, TRACKS, PIT_ENTRY, PIT_EXIT, pitPoint, trackPoint, type Race, type Track } from './engine'
-import { DRIVERS,VENUES,type KartBuild } from './garage'
+import { cabezonPose } from './bigHead'
+import { driverLook,VENUES,type KartBuild } from './garage'
+import { drawHeadArt, watchPortrait } from './head/drawHead'
 import type { KartPreferences } from './preferences'
 
 function rounded(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill: string | CanvasGradient) {
@@ -50,7 +52,7 @@ function mapArt(c: CanvasRenderingContext2D, track: Track,venue:typeof VENUES[nu
   c.save();c.translate(942,390);c.rotate(-Math.PI/2);c.fillStyle='#d8e0cd';c.font='900 12px Arial';c.fillText(track.name,0,0);c.restore()
 }
 function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
-  const color=build.color,driver=DRIVERS.find(d=>d.id===build.driver)??DRIVERS[0]
+  const color=build.color,driver=driverLook(build.driver)
   c.translate(48,48)
   c.fillStyle='#0006';c.beginPath();c.ellipse(4,6,24,17,0,0,Math.PI*2);c.fill()
   for(const x of [-12,14])for(const y of [-15,15]){rounded(c,x-5,y-5,11,build.wheels==='endurance'?11:9,3,'#070e13');rounded(c,x-4,y-5,9,3,1,build.wheels==='slick'?'#e3d8b0':build.wheels==='slide'?color:'#47575b');if(build.wheels==='grip'||build.wheels==='endurance'){c.fillStyle='#84978b';for(let n=0;n<3;n++)c.fillRect(x-4+n*3,y-3,1,6)}}
@@ -58,8 +60,7 @@ function kartArt(c: CanvasRenderingContext2D, build:KartBuild) {
   rounded(c,-24,-10,48,20,7,'#0b161a');rounded(c,-21,-12,build.chassis==='sprint'?46:41,build.chassis==='hauler'?25:22,7,body);rounded(c,12,-14,build.chassis==='sprint'?14:10,28,4,color)
   c.strokeStyle='#fff8';c.lineWidth=1;c.beginPath();c.moveTo(-15,-10);c.lineTo(13,-10);c.stroke()
   rounded(c,-20,-17,6,34,2,'#ced8c4');rounded(c,-19,-15,3,30,1,color);rounded(c,-12,-9,17,18,5,driver.color)
-  c.fillStyle='#111b20';c.beginPath();c.arc(-2,-1,10,0,Math.PI*2);c.fill();const helmet=c.createLinearGradient(-10,-8,8,8);helmet.addColorStop(0,'#ffefd2');helmet.addColorStop(.45,'#e0c9a3');helmet.addColorStop(1,'#82756b');c.fillStyle=helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill()
-  c.fillStyle=driver.helmet;c.beginPath();c.arc(-1,-3,8,0,Math.PI*2);c.fill();rounded(c,1,-8,6,11,3,'#182e37');c.fillStyle='#c6f7ed';c.fillRect(4,-7,1,7);flower(c,-3,-4,3,color)
+  c.fillStyle=driver.helmet;c.beginPath();c.arc(-2,-2,5,0,Math.PI*2);c.fill()
   c.strokeStyle='#d5ae8b';c.lineWidth=3;c.beginPath();c.moveTo(-3,-10);c.lineTo(7,-10);c.moveTo(-3,8);c.lineTo(7,8);c.stroke()
   rounded(c,15,-7,7,14,3,'#e7eace');c.fillStyle='#19292c';c.font='bold 8px Arial';c.textAlign='center';c.fillText('D',18,3)
 }
@@ -70,6 +71,7 @@ export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(del
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)')
   class KartScene extends Phaser.Scene {
     private cars: Phaser.GameObjects.Image[]=[]
+    private heads: Phaser.GameObjects.Image[]=[]
     private labels: Phaser.GameObjects.Text[]=[]
     private effects!: Phaser.GameObjects.Graphics
     private previous: Race|null=null
@@ -81,8 +83,12 @@ export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(del
       this.effects=this.add.graphics()
       state.cars.forEach((car,id)=>{
         const texture=this.textures.createCanvas(`kart-${id}`,96,96)!;kartArt(texture.getContext(),car.build);texture.refresh()
+        const headTexture=this.textures.createCanvas(`kart-head-${id}`,160,160)!
+        const paintHead=()=>{drawHeadArt(headTexture.getContext(),car.build.driver,car.build.color);headTexture.refresh()}
+        paintHead();watchPortrait(car.build.driver,paintHead)
         this.cars.push(this.add.image(car.x,car.y,`kart-${id}`))
-        this.labels.push(this.add.text(car.x,car.y-26,state.mode==='race'&&id>0?`CREW ${id}`:`P${id+1}`,{fontFamily:'Arial',fontStyle:'bold',fontSize:14,color:car.build.color,backgroundColor:'#09151cbb',padding:{x:4,y:2}}).setOrigin(.5,1));this.impacts[id]=0;this.bursts[id]=-10000
+        this.heads.push(this.add.image(car.x,car.y,`kart-head-${id}`).setDepth(3))
+        this.labels.push(this.add.text(car.x,car.y-52,state.mode==='race'&&id>0?`CREW ${id}`:`P${id+1}`,{fontFamily:'Arial',fontStyle:'bold',fontSize:14,color:car.build.color,backgroundColor:'#09151cbb',padding:{x:4,y:2}}).setOrigin(.5,1).setDepth(4));this.impacts[id]=0;this.bursts[id]=-10000
       })
       if(!disposed)ready()
     }
@@ -92,7 +98,10 @@ export function createKartRenderer(parent:HTMLElement,read:()=>Race,advance:(del
       const s=read();if(s===this.previous)return;this.previous=s;const g=this.effects;g.clear()
       s.cars.forEach((car,id)=>{
         const sprite=this.cars[id];sprite.setPosition(car.x,car.y).setRotation(car.angle).setAlpha(car.finishedAt===null?1:.6).setTint(Phaser.Display.Color.GetColor(255,Math.round(155+100*car.health),Math.round(140+115*car.health)))
-        this.labels[id].setPosition(car.x,car.y-25)
+        const pose=cabezonPose({time:now/1000,steer:car.steering,speed:car.speed,boosting:car.boosting,impactAge:(now-this.bursts[id])/1000,bump:car.drifting?.4:0,reduced:reduced.matches||s.phase!=='playing'})
+        const head=this.heads[id]
+        head.setPosition(car.x-Math.cos(car.angle)*4+Math.sin(car.angle)*pose.lean*18,car.y-Math.sin(car.angle)*4-Math.cos(car.angle)*pose.lean*18+pose.offsetY*8).setRotation(car.angle+pose.lean).setScale(.8*pose.squashX,.8*pose.squashY).setAlpha(sprite.alpha)
+        this.labels[id].setPosition(car.x,car.y-58)
         const label=car.service>0?'REPARANDO':car.tow>0?'GRÚA':s.mode==='race'&&id>0?`CREW ${id}`:`P${id+1}`;if(this.labels[id].text!==label)this.labels[id].setText(label)
         if(car.impacts!==this.impacts[id]){this.impacts[id]=car.impacts;this.bursts[id]=now}
         if(reduced.matches||s.phase!=='playing')return

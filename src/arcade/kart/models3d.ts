@@ -1,7 +1,9 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { batchMeshes } from './batch3d'
-import { DRIVERS, type KartBuild } from './garage'
+import { FACE_RENDER_ORDER, HEAD_CENTER, HEAD_RADIUS, HEAD_RENDER_ORDER } from './bigHead'
+import { driverLook, type KartBuild } from './garage'
+import { portraitFor } from './head/store'
 
 const rubber=new THREE.MeshStandardMaterial({color:'#141b21',roughness:.92})
 const graphite=new THREE.MeshStandardMaterial({color:'#233138',roughness:.56,metalness:.25})
@@ -17,9 +19,15 @@ export function flowerTexture(color='#182c2d') {return canvasTexture(128,128,c=>
 export function signTexture(text:string,sub:string,color='#d9fa69'){
   return canvasTexture(1024,256,c=>{c.fillStyle='#172b31';c.fillRect(0,0,1024,256);c.fillStyle=color;c.fillRect(0,0,12,256);c.fillRect(1012,0,12,256);c.textAlign='center';c.font='900 100px Arial';c.fillText(text,512,140);c.fillStyle='#d7e1cd';c.font='bold 22px Arial';c.fillText(sub,512,207)})
 }
-export type KartModel={root:THREE.Group;wheels:THREE.Group[];front:THREE.Group[];flame:THREE.Group;bumper:THREE.Group;smoke:THREE.Group;fragment:THREE.Mesh;paint:THREE.MeshPhysicalMaterial}
+export type KartModel={root:THREE.Group;wheels:THREE.Group[];front:THREE.Group[];flame:THREE.Group;bumper:THREE.Group;smoke:THREE.Group;fragment:THREE.Mesh;paint:THREE.MeshPhysicalMaterial;head:THREE.Group;headRestY:number}
+function portraitTexture(url:string){
+  const image=new Image(),texture=new THREE.Texture(image)
+  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=2
+  image.onload=()=>{texture.needsUpdate=true};image.src=url
+  return texture
+}
 export function buildKart(build:KartBuild,id:number):KartModel{
-  const color=build.color,driver=DRIVERS.find(d=>d.id===build.driver)??DRIVERS[0]
+  const color=build.color,driver=driverLook(build.driver)
   const suit=new THREE.MeshStandardMaterial({color:driver.color,roughness:.8}),helmet=ivory.clone();helmet.color.set(driver.helmet)
   const root=new THREE.Group(),wheels:THREE.Group[]=[],front:THREE.Group[]=[]
   const paint=new THREE.MeshPhysicalMaterial({color,metalness:.26,roughness:.29,clearcoat:.9,clearcoatRoughness:.2})
@@ -52,8 +60,17 @@ export function buildKart(build:KartBuild,id:number):KartModel{
   }
   // Helmeted driver, stitched suit, gloves and steering column.
   const torso=mesh(new THREE.CapsuleGeometry(5.5,8,4,10),suit,-3,17,0);torso.rotation.z=-.22;root.add(torso)
-  root.add(mesh(new THREE.SphereGeometry(8.1,20,14),helmet,-2,29,0))
-  root.add(mesh(new THREE.SphereGeometry(8.25,20,10,Math.PI-.85,1.7,.72,.95),visor,-2,29,0))
+  const head=new THREE.Group();head.name='cabezon';head.renderOrder=HEAD_RENDER_ORDER
+  head.position.set(HEAD_CENTER.x,HEAD_CENTER.y,HEAD_CENTER.z)
+  const portrait=portraitFor(build.driver)
+  if(portrait){
+    const balloon=mesh(new THREE.SphereGeometry(HEAD_RADIUS,24,16),helmet);balloon.renderOrder=HEAD_RENDER_ORDER;head.add(balloon)
+    const face=mesh(new THREE.CircleGeometry(HEAD_RADIUS*.82,28),new THREE.MeshBasicMaterial({map:portraitTexture(portrait),transparent:true,depthWrite:false}),HEAD_RADIUS*.58)
+    face.rotation.y=Math.PI/2;face.renderOrder=FACE_RENDER_ORDER;head.add(face)
+  }else{
+    head.add(mesh(new THREE.SphereGeometry(HEAD_RADIUS,24,16),helmet))
+    const visorMesh=mesh(new THREE.SphereGeometry(HEAD_RADIUS*1.02,20,12,Math.PI-.85,1.7,.72,.95),visor);visorMesh.renderOrder=FACE_RENDER_ORDER;head.add(visorMesh)
+  }
   for(const side of [-1,1]){
     root.add(rod(new THREE.Vector3(-2,21,side*5),new THREE.Vector3(5,16,side*9),2.3,suit),rod(new THREE.Vector3(5,16,side*9),new THREE.Vector3(10,16,side*6),2.1,suit))
     root.add(mesh(new THREE.SphereGeometry(2.6,8,6),ivory,10,16,side*6))
@@ -61,8 +78,9 @@ export function buildKart(build:KartBuild,id:number):KartModel{
   const steering=mesh(new THREE.TorusGeometry(6,.9,6,18),rubber,10,15,0);steering.rotation.y=Math.PI/2;root.add(steering)
   root.add(rod(new THREE.Vector3(10,13,0),new THREE.Vector3(10,8,0),.8,chrome))
   const decalMat=new THREE.MeshStandardMaterial({map:flowerTexture(),transparent:true,alphaTest:.1,roughness:.5})
+  const crown=mesh(new THREE.PlaneGeometry(HEAD_RADIUS*.62,HEAD_RADIUS*.62),decalMat,0,HEAD_RADIUS*.9,0);crown.rotation.x=-Math.PI/2;crown.renderOrder=FACE_RENDER_ORDER;head.add(crown)
+  root.add(head)
   const hood=mesh(new THREE.PlaneGeometry(7,7),decalMat,18,11.15,0);hood.rotation.x=-Math.PI/2;root.add(hood)
-  const top=mesh(new THREE.PlaneGeometry(6,6),decalMat,-2,37.15,0);top.rotation.x=-Math.PI/2;root.add(top)
   const badge=new THREE.MeshBasicMaterial({map:canvasTexture(128,128,c=>{c.fillStyle='#edf2d6';c.fillRect(0,0,128,128);c.fillStyle='#1b3030';c.font='900 84px Arial';c.textAlign='center';c.fillText(String(id+1).padStart(2,'0'),64,94)})})
   const number=mesh(new THREE.PlaneGeometry(6,7),badge,22.6,9,0);number.rotation.y=Math.PI/2;root.add(number)
   const flame=new THREE.Group();flame.position.set(-28,8,11)
@@ -72,7 +90,7 @@ export function buildKart(build:KartBuild,id:number):KartModel{
   const smoke=new THREE.Group(),smokeMaterial=new THREE.MeshBasicMaterial({color:'#6c7778',transparent:true,opacity:.3,depthWrite:false})
   for(let n=0;n<5;n++){const puff=mesh(new THREE.SphereGeometry(1,7,5),smokeMaterial,-18,18+n*5,Math.sin(n*2)*3);puff.castShadow=false;puff.scale.setScalar(3+n*.8);smoke.add(puff)}smoke.visible=false;root.add(smoke)
   const fragment=box(3,2,12,paint,24,5,0,.3);fragment.visible=false;root.add(fragment)
-  return {root,wheels,front,flame,bumper,smoke,fragment,paint}
+  return {root,wheels,front,flame,bumper,smoke,fragment,paint,head,headRestY:HEAD_CENTER.y}
 }
 
 export function palm(x:number,z:number,height:number){

@@ -673,6 +673,7 @@ vibración real, FPS ni audio oído.
 QR artístico no se ha tocado. Portadas aprobadas, sin cambios.
 La música protegida de Groove y el carrusel de ajustes publicados en main se conservan.
 
+<<<<<<< HEAD
 ## 24. Continuidad con Claude: P0 y ARCADANZ premium, 27/11
 
 Petición del propietario: continuar el trabajo de Codex (uso limitado),
@@ -685,3 +686,40 @@ resolver primero los P0 y llevar los juegos a sensación premium, gratis primero
 | AP01 | Auditoría visual y propuesta juego por juego | Entregado: `docs/PROPUESTA_JUEGOS_PREMIUM_2026-11-27.md` y capturas en `docs/evidence/2026-11-27-auditoria-juegos/`. Emulador, no dispositivo físico. | Propietario elige el orden; propuesto: kit premium + Jack. |
 | AP02 | Revisar hilos de Grok | Hecho 28/11: 14 hilos leídos completos por enlace público. Consolidado en `docs/PLAN_MAESTRO_GROK_Y_ARCADANZ_2026-11-28.md`. Varias ramas y documentos que Grok dio por hechos no existen en GitHub. | Bloque B: reconstruir las biblias de diseño en `docs/` y ordenar duplicados. |
 | AP03 | Conectores y flujo de trabajo de mínimo esfuerzo | Vercel: protección de previews desactivada y comprobada. Supabase: Redirect URLs añadidas por el propietario. Preferencia guardada en `AGENTS.md`. | Conectar Hugging Face, Vercel, Supabase, Picsart y Linear/Drive desde los botones. |
+=======
+## 24. DANZPORTER — cabezones y «Crea tu cabezón», 17/11
+
+| ID | Petición | Estado / siguiente acción |
+| --- | --- | --- |
+| K08 | Cabezones en los karts, con la escala y el bamboleo de un piloto premium | Implementado en `feature/kart-bigheads`. Cabeza a 2,12× el torso, por encima del chasis y más ancha que el cockpit. Inclinación, squash y estiramiento solo con la matriz. Pilotos de serie incluidos. No publicado. |
+| K09 | Crea tu cabezón: 1–3 fotos, dibujo reconocible y piloto seleccionable | Implementado en la misma rama. Consentimiento en español, cámara o archivo, inflado y guardado local. El dibujo de dispositivo siempre funciona. La caricatura remota y la copia en cuenta siguen apagadas. No publicado. |
+
+La migración `supabase/migrations/20261117120000_kart_custom_heads.sql` está en el
+repositorio y **no se ha aplicado** al proyecto alojado. Hasta aplicarla, no hay
+fila ni bucket `kart-heads`.
+
+Secreto del estudio, solo en la Edge Function `generate-kart-head`, nunca en Vite:
+
+- `KART_HEAD_API_KEY`
+- `KART_HEAD_API_URL` (`https://`, contrato `{ prompt, images }` → `{ image }`)
+
+Sin los dos, la función responde `available: false` y no llama a ningún
+proveedor. No hay un servicio de pago elegido. El detalle está en
+`supabase/functions/generate-kart-head/README.md`.
+
+Rutas: `/?seccion=arcade&juego=kart` y
+`/?seccion=arcade&juego=kart&estudio=cabezon`. Desde el móvil,
+`/test?seccion=arcade&juego=kart&estudio=cabezon`.
+
+Lo deslizante de las barreras laterales de main se conserva. T01 sigue en
+teléfono físico, GPU y FPS medidos. QR sigue aplazado.
+>>>>>>> origin/main
+
+## 25. Fusiones y decisiones del 28/11
+
+| ID | Petición | Estado comprobado | Siguiente acción |
+|---|---|---|---|
+| M87 | Fusionar integración estable | **Publicado**: PR #87 en `main` (`a9167a0`), CI verde; producción con nueva versión del service worker. | Prueba física Android de lo publicado. |
+| M56 | Fusionar cabezones | **Publicado** vía PR #98 (`2ff1509`), 292 internas, 90 E2E de Kart/Groove y CI 7/7. Sin migración ni IA. | Probar «Crea tu cabezón» en el móvil. |
+| D28 | Test de 22 decisiones | Respondido: `docs/juegos/DECISIONES_PROPIETARIO_2026-11-28.md`. | Ejecutar en orden: intros en código, Collecta premium + rival, NomeNoConEso, SEIS. |
+| T01b | Prueba E2E «iCloud + pase» intermitente | Detectado: falla 7/24 también en `main`; el canje se envía dos veces si la sesión se revalida con la petición en vuelo. El servidor responde «ya tenías este sello», sin daño real. | Arreglar la carrera en `usePendingPassRedemption` (P1). |
